@@ -1,0 +1,4 @@
+<div>
+  This plugin allows Hudson to invoke <a href="http://www.gradle.org/">Gradle</a>
+  build scripts directly.
+</div>
