@@ -9,7 +9,7 @@
   </parent>
   
   <artifactId>gradle</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>hpi</packaging>
   <name>Hudson Gradle plugin</name>
 
