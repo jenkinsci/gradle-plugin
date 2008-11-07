@@ -14,9 +14,9 @@
   <name>Hudson Gradle plugin</name>
 
   <scm>
-    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/gradle-1.0</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/gradle-1.0</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/gradle/tags/gradle-1.0</url>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/gradle-1.1</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/gradle-1.1</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/gradle/tags/gradle-1.1</url>
   </scm>
 
 </project>

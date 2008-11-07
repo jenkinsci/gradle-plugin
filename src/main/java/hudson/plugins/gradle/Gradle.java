@@ -67,7 +67,7 @@ public class Gradle extends Builder {
         if(launcher.isUnix())
             execName = "gradle";
         else
-            execName = "gradle.exe";
+            execName = "gradle.bat";
 
         String normalizedTarget = targets.replaceAll("[\t\r\n]+"," ");
 
@@ -137,26 +137,32 @@ public class Gradle extends Builder {
         }
 
         public boolean configure(StaplerRequest req) {
-            installations = req.bindParametersToList(
-                GradleInstallation.class,"gradle.").toArray(new GradleInstallation[0]);
+            installations = req.bindParametersToList(GradleInstallation.class,"gradle.").toArray(new GradleInstallation[0]);
             save();
             return true;
         }
 
         /**
-         * Checks if the GRADLE_HOME is valid.
+         * Checks if the specified Hudson GRADLE_HOME is valid.
          */
         public void doCheckGradleHome( StaplerRequest req, StaplerResponse rsp ) throws IOException, ServletException {
-            // this can be used to check the existence of a file on the server, so needs to be protected
+            
+        	
             new FormFieldValidator(req,rsp,true) {
                 public void check() throws IOException, ServletException {
                     File f = getFileParameter("value");
+                    
                     if(!f.isDirectory()) {
                         error(f+" is not a directory");
                         return;
                     }
+                    
+                    if(!new File(f,"bin").exists() && !new File(f,"lib").exists()) {
+                        error(f+" doesn't look like a Gradle directory");
+                        return;
+                    }
 
-                    if(!new File(f,"bin/gradle").exists() && !new File(f,"bin/gradle.exe").exists()) {
+                    if(!new File(f,"bin/gradle").exists()) {
                         error(f+" doesn't look like a Gradle directory");
                         return;
                     }

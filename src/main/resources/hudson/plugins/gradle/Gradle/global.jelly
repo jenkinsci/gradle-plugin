@@ -11,7 +11,7 @@
 
           <f:entry title="GRADLE_HOME">
             <f:textbox name="gradle.home" value="${inst.gradleHome}"
-              checkUrl="'builder/Gradle/checkGradleHome?value='+escape(this.value)" />
+              checkUrl="'builder/Gradle/checkGradleHome?value='+encode(this.value)" />
           </f:entry>
           
           <f:entry title="">

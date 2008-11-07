@@ -35,11 +35,17 @@ public final class GradleInstallation {
 
     public File getExecutable() {
         String execName;
-        if(File.separatorChar=='\\')
-            execName = "gradle.exe";
-        else
+        if(File.separatorChar=='\\'){
+            execName = "gradle.bat";
+            //Must support the previous Gradle versions before the version 0.5 where the windows executable file is gradle.exe
+            if (!new File(getGradleHome(),"bin/"+execName).exists()){
+            	execName = "gradle.exe";
+            }
+        }
+        else {
             execName = "gradle";
-
+            
+        }
         return new File(getGradleHome(),"bin/"+execName);
     }
 
