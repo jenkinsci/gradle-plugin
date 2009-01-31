@@ -5,6 +5,7 @@ import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.model.Project;
 import hudson.model.Descriptor;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.CopyOnWrite;
@@ -25,28 +26,40 @@ import javax.servlet.ServletException;
  * @author Gregory Boissinot - Zenika
  */
 public class Gradle extends Builder {
+	
+	
     /**
      * The targets, properties, and other Gradle options.
      * Either separated by whitespace or newline.
      */
     private final String targets;
 
+    
+    private final String rootBuildScript;
+    
     /**
      * Identifies {@link GradleInstallation} to be used.
      */
     private final String gradleName;
 
     @DataBoundConstructor
-    public Gradle(String targets,String gradleName) {
+    public Gradle(String targets, String rootBuildScript, String gradleName) {
         this.targets = targets;
         this.gradleName = gradleName;
+        this.rootBuildScript=rootBuildScript;
     }
 
     public String getTargets() {
         return targets;
     }
 
-    /**
+    
+    
+    public String getRootBuildScript() {
+		return rootBuildScript;
+	}
+
+	/**
      * Gets the Gradle to invoke,
      * or null to invoke the default one.
      */
@@ -70,6 +83,7 @@ public class Gradle extends Builder {
             execName = "gradle.bat";
 
         String normalizedTarget = targets.replaceAll("[\t\r\n]+"," ");
+        normalizedTarget=Util.replaceMacro(normalizedTarget, build.getEnvVars());
 
         GradleInstallation ai = getGradle();
         if(ai==null) {
@@ -98,8 +112,21 @@ public class Gradle extends Builder {
             args.add("&&","exit","%%ERRORLEVEL%%");
         }
 
+        
+
+        
+        FilePath rootLauncher= null;
+        if (rootBuildScript!=null && rootBuildScript.trim().length()!=0){
+            String rootBuildScriptReal = Util.replaceMacro(rootBuildScript, build.getEnvVars());
+        	rootLauncher= new FilePath(proj.getModuleRoot(), new File(rootBuildScriptReal).getParent());
+        }
+        else{
+        	rootLauncher=proj.getModuleRoot();
+        }
+        
+        
         try {
-            int r = launcher.launch(args.toCommandArray(),env,listener.getLogger(),proj.getModuleRoot()).join();
+            int r = launcher.launch(args.toCommandArray(),env,listener.getLogger(),rootLauncher).join();
             return r==0;
         } catch (IOException e) {
             Util.displayIOException(e,listener);
@@ -142,6 +169,36 @@ public class Gradle extends Builder {
             return true;
         }
 
+
+        /**
+         * Checks if the optional rootDirectory of the build.gradle script is valid
+         */
+        public void doCheckRootDirectory( final StaplerRequest req, StaplerResponse rsp ) throws IOException, ServletException {
+        	
+        	String value = req.getParameter("value");
+        	
+            if (value!=null  && value.trim().length()!=0){
+            	(new FormFieldValidator.WorkspaceFilePath(req,rsp,true,true)).process();
+            }
+            
+            /*
+            new FormFieldValidator(req,rsp,true) {
+                public void check() throws IOException, ServletException {
+                    String value = req.getParameter("value");
+                	
+                    if (value!=null  && value.trim().length()!=0){
+                    	
+                    	
+                    
+                    	new FormFieldValidator.WorkspaceFilePath()
+                    }
+                    
+                    ok();
+                }
+            }.process();
+            */
+        }
+        
         /**
          * Checks if the specified Hudson GRADLE_HOME is valid.
          */
