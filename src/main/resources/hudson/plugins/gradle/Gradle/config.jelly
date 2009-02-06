@@ -7,28 +7,25 @@
       </j:forEach>
     </select>
   </f:entry>
-  <f:entry     title="Switches"
-      	       description="
-    Specify Gradle switches to run. If necessary, you can also specify any gradle command line options.
-    Also, &lt;a href='${rootURL}/env-vars.html' target=_new>some
-    environment variables are available to the build script&lt;/a>
-    ">  
- 
-    <f:expandableTextbox name="gradle.targets" value="${instance.targets}" />
+  <f:entry   help="/plugin/gradle/switches.html"  title="Switches"
+        	       description="See &lt;a href='${rootURL}/env-vars.html' target=_new>the list of available environment variables&lt;/a>
+    ">
+    <f:expandableTextbox name="gradle.switches" value="${instance.switches}" />
   </f:entry>
-  
+  <f:entry   help="/plugin/gradle/tasks.html"  title="Tasks">  
+    <f:expandableTextbox name="gradle.tasks" value="${instance.tasks}" />
+  </f:entry>  
   
   <f:advanced>
-      <f:entry title="Root Build script" 
-      	       help="/plugin/gradle/rootBuildScript.html"
+      <f:entry title="Build File" 
+      	       help="/plugin/gradle/buildFile.html"
       	       description="
-    Specify Gradle root build script to run. If necessary, you can also specify any gradle command line options.
+    Specify Gradle build file to run.
     Also, &lt;a href='${rootURL}/env-vars.html' target=_new>some
     environment variables are available to the build script&lt;/a>
     ">  
-      	<f:textbox name="gradle.rootBuildScript" 
-      						 value="${instance.rootBuildScript}"
-      						 checkUrl="'${rootURL}/builder/Gradle/checkRootDirectory?job=${it.fullName}&amp;value='+encode(this.value)"  />
+      	<f:textbox name="gradle.buildFile" 
+      						 value="${instance.buildFile}" />
       </f:entry>
   </f:advanced>
   

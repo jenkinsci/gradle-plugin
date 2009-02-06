@@ -29,13 +29,20 @@ public class Gradle extends Builder {
 	
 	
     /**
-     * The targets, properties, and other Gradle options.
-     * Either separated by whitespace or newline.
+     * The Gradle command line switches
      */
-    private final String targets;
+    private final String switches;
 
-    
-    private final String rootBuildScript;
+    /**
+     * The Gradle tasks
+     */
+    private final String tasks;
+
+        
+    /**
+     * The Gradle build file path
+     */    
+    private final String buildFile;
     
     /**
      * Identifies {@link GradleInstallation} to be used.
@@ -43,21 +50,31 @@ public class Gradle extends Builder {
     private final String gradleName;
 
     @DataBoundConstructor
-    public Gradle(String targets, String rootBuildScript, String gradleName) {
-        this.targets = targets;
+    public Gradle(String switches, String tasks, String buildFile, String gradleName) {
+        this.switches = switches;
+        this.tasks=tasks;
         this.gradleName = gradleName;
-        this.rootBuildScript=rootBuildScript;
+        this.buildFile=buildFile;
     }
-
-    public String getTargets() {
-        return targets;
-    }
-
     
-    
-    public String getRootBuildScript() {
-		return rootBuildScript;
+
+	public String getSwitches() {
+		return switches;
 	}
+
+	public String getBuildFile() {
+		return buildFile;
+	}
+
+	public String getGradleName() {
+		return gradleName;
+	}
+
+	public String getTasks() {
+		return tasks;
+	}
+
+
 
 	/**
      * Gets the Gradle to invoke,
@@ -82,9 +99,12 @@ public class Gradle extends Builder {
         else
             execName = "gradle.bat";
 
-        String normalizedTarget = targets.replaceAll("[\t\r\n]+"," ");
-        normalizedTarget=Util.replaceMacro(normalizedTarget, build.getEnvVars());
+        String normalizedSwitches = switches.replaceAll("[\t\r\n]+"," ");
+        normalizedSwitches=Util.replaceMacro(normalizedSwitches, build.getEnvVars());
 
+        String normalizedTasks = tasks.replaceAll("[\t\r\n]+"," ");
+        
+        
         GradleInstallation ai = getGradle();
         if(ai==null) {
             args.add(execName);
@@ -97,7 +117,8 @@ public class Gradle extends Builder {
             args.add(exec.getPath());
         }
         args.addKeyValuePairs("-D",build.getBuildVariables());
-        args.addTokenized(normalizedTarget);
+        args.addTokenized(normalizedSwitches);
+        args.addTokenized(normalizedTasks);
 
         Map<String,String> env = build.getEnvVars();
         if(ai!=null)
@@ -116,8 +137,8 @@ public class Gradle extends Builder {
 
         
         FilePath rootLauncher= null;
-        if (rootBuildScript!=null && rootBuildScript.trim().length()!=0){
-            String rootBuildScriptReal = Util.replaceMacro(rootBuildScript, build.getEnvVars());
+        if (buildFile!=null && buildFile.trim().length()!=0){
+            String rootBuildScriptReal = Util.replaceMacro(buildFile, build.getEnvVars());
         	rootLauncher= new FilePath(proj.getModuleRoot(), new File(rootBuildScriptReal).getParent());
         }
         else{
@@ -168,36 +189,6 @@ public class Gradle extends Builder {
             save();
             return true;
         }
-
-
-        /**
-         * Checks if the optional rootDirectory of the build.gradle script is valid
-         */
-        public void doCheckRootDirectory( final StaplerRequest req, StaplerResponse rsp ) throws IOException, ServletException {
-        	
-        	String value = req.getParameter("value");
-        	
-            if (value!=null  && value.trim().length()!=0){
-            	(new FormFieldValidator.WorkspaceFilePath(req,rsp,true,true)).process();
-            }
-            
-            /*
-            new FormFieldValidator(req,rsp,true) {
-                public void check() throws IOException, ServletException {
-                    String value = req.getParameter("value");
-                	
-                    if (value!=null  && value.trim().length()!=0){
-                    	
-                    	
-                    
-                    	new FormFieldValidator.WorkspaceFilePath()
-                    }
-                    
-                    ok();
-                }
-            }.process();
-            */
-        }
         
         /**
          * Checks if the specified Hudson GRADLE_HOME is valid.
@@ -229,5 +220,7 @@ public class Gradle extends Builder {
             }.process();
         }
     }
+
+
 
 }
