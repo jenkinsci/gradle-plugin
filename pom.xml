@@ -12,5 +12,5 @@
   <version>1.3-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Hudson Gradle plugin</name>
-  <url>http://hudson.gotdns.com/wiki/display/HUDSON/Gradle+Plugin</url>
+  <url>http://wiki.hudson-ci.org/display/HUDSON/Gradle+Plugin</url>
 </project>
