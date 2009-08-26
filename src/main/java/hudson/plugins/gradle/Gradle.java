@@ -1,26 +1,43 @@
 package hudson.plugins.gradle;
 
-import hudson.tasks.Builder;
-import hudson.model.Build;
-import hudson.model.BuildListener;
-import hudson.model.Project;
-import hudson.model.Descriptor;
+import hudson.CopyOnWrite;
+import hudson.EnvVars;
+import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.CopyOnWrite;
+import hudson.model.AbstractProject;
+import hudson.model.Build;
+import hudson.model.BuildListener;
+import hudson.model.Computer;
+import hudson.model.EnvironmentSpecific;
+import hudson.model.Hudson;
+import hudson.model.Node;
+import hudson.model.Project;
+import hudson.model.TaskListener;
+import hudson.remoting.Callable;
+import hudson.slaves.NodeSpecific;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.tools.DownloadFromUrlInstaller;
+import hudson.tools.ToolDescriptor;
+import hudson.tools.ToolInstallation;
+import hudson.tools.ToolInstaller;
+import hudson.tools.ToolProperty;
 import hudson.util.ArgumentListBuilder;
-import hudson.util.FormFieldValidator;
+import hudson.util.FormValidation;
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import net.sf.json.JSONObject;
 
-import javax.servlet.ServletException;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * @author Gregory Boissinot - Zenika
@@ -81,48 +98,42 @@ public class Gradle extends Builder {
      * or null to invoke the default one.
      */
     public GradleInstallation getGradle() {
-        for( GradleInstallation i : DESCRIPTOR.getInstallations() ) {
+        for( GradleInstallation i : getDescriptor().getInstallations() ) {
             if(gradleName!=null && i.getName().equals(gradleName))
                 return i;
         }
         return null;
     }
 
-    public boolean perform(Build<?,?> build, Launcher launcher, BuildListener listener) throws InterruptedException {
-        Project proj = build.getProject();
+    public boolean perform(Build<?,?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 
-        ArgumentListBuilder args = new ArgumentListBuilder();
-
-        String execName;
-        if(launcher.isUnix())
-            execName = "gradle";
-        else
-            execName = "gradle.bat";
-
-        String normalizedSwitches = switches.replaceAll("[\t\r\n]+"," ");
-        normalizedSwitches=Util.replaceMacro(normalizedSwitches, build.getEnvVars());
-
+    	EnvVars env = build.getEnvironment(listener);
+    	
+    	String normalizedSwitches = switches.replaceAll("[\t\r\n]+"," ");
+        normalizedSwitches=Util.replaceMacro(normalizedSwitches, env);
         String normalizedTasks = tasks.replaceAll("[\t\r\n]+"," ");
         
-        
-        GradleInstallation ai = getGradle();
-        if(ai==null) {
-            args.add(execName);
-        } else {
-            File exec = ai.getExecutable();
-            if(!ai.getExists()) {
-                listener.fatalError(exec+" doesn't exist");
-                return false;
-            }
-            args.add(exec.getPath());
-        }
+        ArgumentListBuilder args = new ArgumentListBuilder();
+    
+    	GradleInstallation ai = getGradle();
+    	if(ai==null) {
+    		args.add(launcher.isUnix() ? "gradle" : "gradle.bat");
+    	} else {
+    		ai = ai.forNode(Computer.currentComputer().getNode(), listener);
+    		ai = ai.forEnvironment(env);
+    		String exe = ai.getExecutable(launcher);
+    		if (exe==null) {
+    			listener.fatalError("ERROR");
+    			return false;
+    		}
+    		args.add(exe);
+    	}    	
         args.addKeyValuePairs("-D",build.getBuildVariables());
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
-
-        Map<String,String> env = build.getEnvVars();
+       
         if(ai!=null)
-            env.put("GRADLE_HOME",ai.getGradleHome());
+            env.put("GRADLE_HOME",ai.getHome());
 
         if(!launcher.isUnix()) {
             // on Windows, executing batch file can't return the correct error code,
@@ -133,16 +144,13 @@ public class Gradle extends Builder {
             args.add("&&","exit","%%ERRORLEVEL%%");
         }
 
-        
-
-        
         FilePath rootLauncher= null;
         if (buildFile!=null && buildFile.trim().length()!=0){
-            String rootBuildScriptReal = Util.replaceMacro(buildFile, build.getEnvVars());
-        	rootLauncher= new FilePath(proj.getModuleRoot(), new File(rootBuildScriptReal).getParent());
+            String rootBuildScriptReal = Util.replaceMacro(buildFile,env);
+        	rootLauncher= new FilePath(build.getModuleRoot(), new File(rootBuildScriptReal).getParent());
         }
         else{
-        	rootLauncher=proj.getModuleRoot();
+        	rootLauncher=build.getModuleRoot();
         }
         
         
@@ -156,22 +164,39 @@ public class Gradle extends Builder {
         }
     }
 
-    public Descriptor<Builder> getDescriptor() {
-        return DESCRIPTOR;
+    public DescriptorImpl getDescriptor() {
+        return (DescriptorImpl)super.getDescriptor();
     }
 
-    public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
-
-    public static final class DescriptorImpl extends Descriptor<Builder> {
+    @Extension
+    public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
     	
         @CopyOnWrite
         private volatile GradleInstallation[] installations = new GradleInstallation[0];
 
-        private DescriptorImpl() {
-            super(Gradle.class);
+        public DescriptorImpl() {
             load();
         }
+        
+        protected DescriptorImpl(Class<? extends Gradle> clazz) {
+            super(clazz);
+        }
+        
+        /**
+         * Obtains the {@link GradleInstallation.DescriptorImpl} instance.
+         */
+        public GradleInstallation.DescriptorImpl getToolDescriptor() {
+            return ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class);
+        }
 
+        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+            return true;
+        }
+
+        protected void convert(Map<String,Object> oldPropertyBag) {
+            if(oldPropertyBag.containsKey("installations"))
+                installations = (GradleInstallation[]) oldPropertyBag.get("installations");
+        }
         public String getHelpFile() {
             return "/plugin/gradle/help.html";
         }
@@ -183,44 +208,148 @@ public class Gradle extends Builder {
         public GradleInstallation[] getInstallations() {
             return installations;
         }
-
-        public boolean configure(StaplerRequest req) {
-            installations = req.bindParametersToList(GradleInstallation.class,"gradle.").toArray(new GradleInstallation[0]);
+        
+        public void setInstallations(GradleInstallation... installations) {
+            this.installations=installations;
             save();
-            return true;
+        }
+
+        public Gradle newInstance (StaplerRequest request, JSONObject formData) throws FormException{        	    
+        	 return (Gradle)request.bindJSON(clazz,formData);
         }
         
-        /**
-         * Checks if the specified Hudson GRADLE_HOME is valid.
-         */
-        public void doCheckGradleHome( StaplerRequest req, StaplerResponse rsp ) throws IOException, ServletException {
-            
-        	
-            new FormFieldValidator(req,rsp,true) {
-                public void check() throws IOException, ServletException {
-                    File f = getFileParameter("value");
-                    
-                    if(!f.isDirectory()) {
-                        error(f+" is not a directory");
-                        return;
-                    }
-                    
-                    if(!new File(f,"bin").exists() && !new File(f,"lib").exists()) {
-                        error(f+" doesn't look like a Gradle directory");
-                        return;
-                    }
+    }
+    
+    
+    public static final class GradleInstallation extends ToolInstallation 
+    implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation> {
+ 	
+		 	
+		     private final String gradleHome;
+		     
+		     @DataBoundConstructor
+		     public GradleInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
+		     	super(name, launderHome(home), properties);
+		     	this.gradleHome=super.getHome();    	
+		     }
+		
+		     private static String launderHome(String home) {
+		         if(home.endsWith("/") || home.endsWith("\\")) {
+		             // see https://issues.apache.org/bugzilla/show_bug.cgi?id=26947
+		             // Ant doesn't like the trailing slash, especially on Windows
+		             return home.substring(0,home.length()-1);
+		         } else {
+		             return home;
+		         }
+		     }
 
-                    if(!new File(f,"bin/gradle").exists()) {
-                        error(f+" doesn't look like a Gradle directory");
-                        return;
-                    }
+		     /**
+		      * install directory.
+		      */
+		     public String getHome() {
+		         if (gradleHome!=null) return gradleHome;
+		         return super.getHome();
+		     }
+		
+		     
+		     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
+		         return launcher.getChannel().call(new Callable<String,IOException>() {
+		             public String call() throws IOException {
+		                 File exe = getExeFile();
+		                 if(exe.exists())
+		                     return exe.getPath();
+		                 return null;
+		             }
+		         });
+		     }
 
-                    ok();
-                }
-            }.process();
-        }
+		     private File getExeFile() {
+		         String execName;
+		         if(Hudson.isWindows())
+		             execName = "gradle.bat";
+		         else
+		             execName = "gradle";
+		
+		         String antHome = Util.replaceMacro(gradleHome,EnvVars.masterEnvVars);
+		
+		         return new File(antHome,"bin/"+execName);
+		     }
+
+		
+		     /**
+		      * Returns true if the executable exists.
+		      */
+		     public boolean getExists() throws IOException, InterruptedException {
+		         //return getExecutable(new Launcher.LocalLauncher(TaskListener.NULL))!=null;
+		     	return true;
+		     }
+		
+		     private static final long serialVersionUID = 1L;
+		
+		     public GradleInstallation forEnvironment(EnvVars environment) {
+		         return new GradleInstallation(getName(), environment.expand(gradleHome), getProperties().toList());
+		     }
+		
+		     public GradleInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
+		         return new GradleInstallation(getName(), translateFor(node, log), getProperties().toList());
+		     }
+
+		     @Extension
+		     public static class DescriptorImpl extends ToolDescriptor<GradleInstallation> {
+		     	
+		     	public DescriptorImpl(){    		
+		     	}
+		     	
+		         @Override
+		         public String getDisplayName() {
+		             return "Gradle";
+		         }
+		
+		         // for compatibility reasons, the persistence is done by Gradle.DescriptorImpl  
+		         @Override
+		         public GradleInstallation[] getInstallations() {
+		             return Hudson.getInstance().getDescriptorByType(Gradle.DescriptorImpl.class).getInstallations();
+		         }
+		
+		         @Override
+		         public void setInstallations(GradleInstallation... installations) {
+		             Hudson.getInstance().getDescriptorByType(Gradle.DescriptorImpl.class).setInstallations(installations);
+		         }
+		
+		         @Override
+		         public List<? extends ToolInstaller> getDefaultInstallers() {
+		             return Collections.singletonList(new GradleInstaller(null));
+		         }
+		
+		         /**
+		          * Checks if the GRADLE_HOME is valid.
+		          */
+		         public FormValidation doCheckHome(@QueryParameter File value) {
+		
+		             return FormValidation.ok();
+		         }
+		     }
     }
 
+     
+    public static class GradleInstaller extends DownloadFromUrlInstaller {
+    	
+        @DataBoundConstructor
+        public GradleInstaller(String id) {
+            super(id);
+        }
 
+        @Extension
+        public static final class DescriptorImpl extends DownloadFromUrlInstaller.DescriptorImpl<GradleInstaller> {
+            public String getDisplayName() {
+            	return "Install from Codehaus";
+            }
 
+			@Override
+            public boolean isApplicable(Class<? extends ToolInstallation> toolType) {                
+            	return toolType==GradleInstallation.class;
+            }
+        }
+    }
+   
 }
