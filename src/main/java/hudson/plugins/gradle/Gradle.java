@@ -6,8 +6,8 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.EnvironmentSpecific;
@@ -93,7 +93,7 @@ public class Gradle extends Builder {
 
 
 
-	/**
+    /**
      * Gets the Gradle to invoke,
      * or null to invoke the default one.
      */
@@ -105,7 +105,8 @@ public class Gradle extends Builder {
         return null;
     }
 
-    public boolean perform(Build<?,?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+    @Override
+    public boolean perform(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 
     	EnvVars env = build.getEnvironment(listener);
     	
@@ -155,7 +156,7 @@ public class Gradle extends Builder {
         
         
         try {
-            int r = launcher.launch(args.toCommandArray(),env,listener.getLogger(),rootLauncher).join();
+            int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(rootLauncher).join();
             return r==0;
         } catch (IOException e) {
             Util.displayIOException(e,listener);
@@ -214,7 +215,8 @@ public class Gradle extends Builder {
             save();
         }
 
-        public Gradle newInstance (StaplerRequest request, JSONObject formData) throws FormException{        	    
+        @Override
+        public Gradle newInstance(StaplerRequest request, JSONObject formData) throws FormException {
         	 return (Gradle)request.bindJSON(clazz,formData);
         }
         
@@ -224,7 +226,6 @@ public class Gradle extends Builder {
     public static final class GradleInstallation extends ToolInstallation 
     implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation> {
  	
-		 	
 		     private final String gradleHome;
 		     
 		     @DataBoundConstructor
