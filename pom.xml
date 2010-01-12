@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.320</version>
+    <version>1.340</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   
@@ -13,4 +13,20 @@
   <packaging>hpi</packaging>
   <name>Hudson Gradle plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/Gradle+Plugin</url>
+
+   <licenses>
+      <license>
+         <name>MIT license</name>
+         <comments>All source code is under the MIT license.</comments>
+      </license>
+   </licenses>
+
+   <developers>
+      <developer>
+         <id>gbois</id>
+         <name>Gregory Boissinot</name>
+         <email>gregory.boissinot@gmail.com</email>
+         <timezone>+1</timezone>
+      </developer>
+   </developers>
 </project>
