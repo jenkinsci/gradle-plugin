@@ -29,7 +29,7 @@ THE SOFTWARE.
   <f:entry title="${%name}" field="name">
     <f:textbox />
   </f:entry>
-  <f:entry title="GREG_HOME" field="home">
+  <f:entry title="GRADLE_HOME" field="home">
     <f:textbox />
   </f:entry>
 </j:jelly>
