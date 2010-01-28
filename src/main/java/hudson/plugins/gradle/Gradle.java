@@ -19,11 +19,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Gregory Boissinot - Zenika
- */
+
 public class Gradle extends Builder {
 
+
+    /**
+     * The Gradle build step description
+     */
+    private final String description;
 
     /**
      * The Gradle command line switches
@@ -36,6 +39,8 @@ public class Gradle extends Builder {
     private final String tasks;
 
 
+    private final String rootBuildScriptDir;
+
     /**
      * The Gradle build file path
      */
@@ -47,10 +52,12 @@ public class Gradle extends Builder {
     private final String gradleName;
 
     @DataBoundConstructor
-    public Gradle(String switches, String tasks, String buildFile, String gradleName) {
+    public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile, String gradleName) {
+        this.description=description;
         this.switches = switches;
         this.tasks = tasks;
         this.gradleName = gradleName;
+        this.rootBuildScriptDir=rootBuildScriptDir;
         this.buildFile = buildFile;
     }
 
@@ -71,6 +78,9 @@ public class Gradle extends Builder {
         return tasks;
     }
 
+    public String getDescription() {
+        return description;
+    }
 
     /**
      * Gets the Gradle to invoke,
@@ -127,11 +137,18 @@ public class Gradle extends Builder {
         }
 
         FilePath rootLauncher = null;
-        if (buildFile != null && buildFile.trim().length() != 0) {
-            String rootBuildScriptReal = Util.replaceMacro(buildFile, env);
-            rootLauncher = new FilePath(build.getModuleRoot(), new File(rootBuildScriptReal).getParent());
+        if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
+            String rootBuildScriptReal = Util.replaceMacro(rootBuildScriptDir.trim(), env);
+            rootBuildScriptReal=Util.replaceMacro(rootBuildScriptReal, build.getBuildVariableResolver());
+            rootLauncher = new FilePath(build.getModuleRoot(), rootBuildScriptReal);
         } else {
             rootLauncher = build.getModuleRoot();
+        }
+
+
+        if (buildFile!=null && buildFile.trim().length() != 0){
+           args.add("-b");
+           args.add(buildFile);
         }
 
 
