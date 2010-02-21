@@ -20,21 +20,21 @@ import java.util.List;
 import java.util.Map;
 
 
-public class Gradle extends Builder {
+public class GradleBuilder extends Builder {
 
 
     /**
-     * The Gradle build step description
+     * The GradleBuilder build step description
      */
     private final String description;
 
     /**
-     * The Gradle command line switches
+     * The GradleBuilder command line switches
      */
     private final String switches;
 
     /**
-     * The Gradle tasks
+     * The GradleBuilder tasks
      */
     private final String tasks;
 
@@ -42,7 +42,7 @@ public class Gradle extends Builder {
     private final String rootBuildScriptDir;
 
     /**
-     * The Gradle build file path
+     * The GradleBuilder build file path
      */
     private final String buildFile;
 
@@ -52,12 +52,12 @@ public class Gradle extends Builder {
     private final String gradleName;
 
     @DataBoundConstructor
-    public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile, String gradleName) {
-        this.description=description;
+    public GradleBuilder(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile, String gradleName) {
+        this.description = description;
         this.switches = switches;
         this.tasks = tasks;
         this.gradleName = gradleName;
-        this.rootBuildScriptDir=rootBuildScriptDir;
+        this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
     }
 
@@ -83,7 +83,7 @@ public class Gradle extends Builder {
     }
 
     /**
-     * Gets the Gradle to invoke,
+     * Gets the GradleBuilder to invoke,
      * or null to invoke the default one.
      */
     public GradleInstallation getGradle() {
@@ -138,17 +138,18 @@ public class Gradle extends Builder {
 
         FilePath rootLauncher = null;
         if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
-            String rootBuildScriptReal = Util.replaceMacro(rootBuildScriptDir.trim(), env);
-            rootBuildScriptReal=Util.replaceMacro(rootBuildScriptReal, build.getBuildVariableResolver());
-            rootLauncher = new FilePath(build.getModuleRoot(), rootBuildScriptReal);
+            String rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptDir.trim(), env);
+            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized, build.getBuildVariableResolver());
+            rootLauncher = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
         } else {
             rootLauncher = build.getModuleRoot();
         }
 
 
-        if (buildFile!=null && buildFile.trim().length() != 0){
-           args.add("-b");
-           args.add(buildFile);
+        if (buildFile != null && buildFile.trim().length() != 0) {
+            String buildFileNormalized = Util.replaceMacro(buildFile.trim(), env);
+            args.add("-b");
+            args.add(buildFileNormalized);
         }
 
 
@@ -161,6 +162,8 @@ public class Gradle extends Builder {
             return false;
         }
     }
+
+
 
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
@@ -176,7 +179,7 @@ public class Gradle extends Builder {
             load();
         }
 
-        protected DescriptorImpl(Class<? extends Gradle> clazz) {
+        protected DescriptorImpl(Class<? extends GradleBuilder> clazz) {
             super(clazz);
         }
 
@@ -201,7 +204,7 @@ public class Gradle extends Builder {
         }
 
         public String getDisplayName() {
-            return "Invoke Gradle script";
+            return "Invoke GradleBuilder script";
         }
 
         public GradleInstallation[] getInstallations() {
@@ -214,8 +217,8 @@ public class Gradle extends Builder {
         }
 
         @Override
-        public Gradle newInstance(StaplerRequest request, JSONObject formData) throws FormException {
-            return (Gradle) request.bindJSON(clazz, formData);
+        public GradleBuilder newInstance(StaplerRequest request, JSONObject formData) throws FormException {
+            return (GradleBuilder) request.bindJSON(clazz, formData);
         }
 
     }
@@ -264,7 +267,7 @@ public class Gradle extends Builder {
 
         private File getExeFile() {
             String execName;
-            if (Hudson.isWindows())
+            if (Functions.isWindows())
                 execName = "gradle.bat";
             else
                 execName = "gradle";
@@ -292,18 +295,19 @@ public class Gradle extends Builder {
 
             @Override
             public String getDisplayName() {
-                return "Gradle";
+                return "GradleBuilder";
             }
 
-            // for compatibility reasons, the persistence is done by Gradle.DescriptorImpl
+            // for compatibility reasons, the persistence is done by GradleBuilder.DescriptorImpl
+
             @Override
             public GradleInstallation[] getInstallations() {
-                return Hudson.getInstance().getDescriptorByType(Gradle.DescriptorImpl.class).getInstallations();
+                return Hudson.getInstance().getDescriptorByType(GradleBuilder.DescriptorImpl.class).getInstallations();
             }
 
             @Override
             public void setInstallations(GradleInstallation... installations) {
-                Hudson.getInstance().getDescriptorByType(Gradle.DescriptorImpl.class).setInstallations(installations);
+                Hudson.getInstance().getDescriptorByType(GradleBuilder.DescriptorImpl.class).setInstallations(installations);
             }
 
 
