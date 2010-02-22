@@ -82,6 +82,10 @@ public class GradleBuilder extends Builder {
         return description;
     }
 
+    public String getRootBuildScriptDir() {
+        return rootBuildScriptDir;
+    }
+
     /**
      * Gets the GradleBuilder to invoke,
      * or null to invoke the default one.
