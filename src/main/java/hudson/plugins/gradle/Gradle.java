@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class GradleBuilder extends Builder {
+public class Gradle extends Builder {
 
 
     /**
@@ -52,7 +52,7 @@ public class GradleBuilder extends Builder {
     private final String gradleName;
 
     @DataBoundConstructor
-    public GradleBuilder(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile, String gradleName) {
+    public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile, String gradleName) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -128,6 +128,13 @@ public class GradleBuilder extends Builder {
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
 
+        if (buildFile != null && buildFile.trim().length() != 0) {
+            String buildFileNormalized = Util.replaceMacro(buildFile.trim(), env);
+            args.add("-b");
+            args.add(buildFileNormalized);
+        }
+
+
         if (ai != null)
             env.put("GRADLE_HOME", ai.getHome());
 
@@ -147,13 +154,6 @@ public class GradleBuilder extends Builder {
             rootLauncher = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
         } else {
             rootLauncher = build.getModuleRoot();
-        }
-
-
-        if (buildFile != null && buildFile.trim().length() != 0) {
-            String buildFileNormalized = Util.replaceMacro(buildFile.trim(), env);
-            args.add("-b");
-            args.add(buildFileNormalized);
         }
 
 
@@ -183,7 +183,7 @@ public class GradleBuilder extends Builder {
             load();
         }
 
-        protected DescriptorImpl(Class<? extends GradleBuilder> clazz) {
+        protected DescriptorImpl(Class<? extends Gradle> clazz) {
             super(clazz);
         }
 
@@ -221,102 +221,9 @@ public class GradleBuilder extends Builder {
         }
 
         @Override
-        public GradleBuilder newInstance(StaplerRequest request, JSONObject formData) throws FormException {
-            return (GradleBuilder) request.bindJSON(clazz, formData);
-        }
-
-    }
-
-
-    public static final class GradleInstallation extends ToolInstallation
-            implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation> {
-
-        private final String gradleHome;
-
-        @DataBoundConstructor
-        public GradleInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
-            super(name, launderHome(home), properties);
-            this.gradleHome = super.getHome();
-        }
-
-        private static String launderHome(String home) {
-            if (home.endsWith("/") || home.endsWith("\\")) {
-                // see https://issues.apache.org/bugzilla/show_bug.cgi?id=26947
-                // Ant doesn't like the trailing slash, especially on Windows
-                return home.substring(0, home.length() - 1);
-            } else {
-                return home;
-            }
-        }
-
-        /**
-         * install directory.
-         */
-        public String getHome() {
-            if (gradleHome != null) return gradleHome;
-            return super.getHome();
-        }
-
-
-        public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-            return launcher.getChannel().call(new Callable<String, IOException>() {
-                public String call() throws IOException {
-                    File exe = getExeFile();
-                    if (exe.exists())
-                        return exe.getPath();
-                    return null;
-                }
-            });
-        }
-
-        private File getExeFile() {
-            String execName;
-            if (Functions.isWindows())
-                execName = "gradle.bat";
-            else
-                execName = "gradle";
-
-            String antHome = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
-
-            return new File(antHome, "bin/" + execName);
-        }
-
-        private static final long serialVersionUID = 1L;
-
-        public GradleInstallation forEnvironment(EnvVars environment) {
-            return new GradleInstallation(getName(), environment.expand(gradleHome), getProperties().toList());
-        }
-
-        public GradleInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
-            return new GradleInstallation(getName(), translateFor(node, log), getProperties().toList());
-        }
-
-        @Extension
-        public static class DescriptorImpl extends ToolDescriptor<GradleInstallation> {
-
-            public DescriptorImpl() {
-            }
-
-            @Override
-            public String getDisplayName() {
-                return "GradleBuilder";
-            }
-
-            // for compatibility reasons, the persistence is done by GradleBuilder.DescriptorImpl
-
-            @Override
-            public GradleInstallation[] getInstallations() {
-                return Hudson.getInstance().getDescriptorByType(GradleBuilder.DescriptorImpl.class).getInstallations();
-            }
-
-            @Override
-            public void setInstallations(GradleInstallation... installations) {
-                Hudson.getInstance().getDescriptorByType(GradleBuilder.DescriptorImpl.class).setInstallations(installations);
-            }
-
-
+        public Gradle newInstance(StaplerRequest request, JSONObject formData) throws FormException {
+            return (Gradle) request.bindJSON(clazz, formData);
         }
     }
-
 
 }
