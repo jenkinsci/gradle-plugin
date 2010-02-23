@@ -1,22 +1,19 @@
 package hudson.plugins.gradle;
 
 import hudson.*;
-import hudson.model.*;
-import hudson.remoting.Callable;
-import hudson.slaves.NodeSpecific;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
+import hudson.model.Computer;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
-import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
-import hudson.tools.ToolProperty;
 import hudson.util.ArgumentListBuilder;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 
@@ -166,7 +163,6 @@ public class Gradle extends Builder {
             return false;
         }
     }
-
 
 
     public DescriptorImpl getDescriptor() {
