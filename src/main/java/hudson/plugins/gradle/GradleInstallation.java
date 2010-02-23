@@ -86,7 +86,7 @@ public class GradleInstallation extends ToolInstallation
 
         @Override
         public String getDisplayName() {
-            return "GradleBuilder";
+            return Messages.installer_displayName();
         }
 
         // for compatibility reasons, the persistence is done by GradleBuilder.DescriptorImpl

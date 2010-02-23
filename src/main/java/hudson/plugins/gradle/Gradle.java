@@ -208,7 +208,7 @@ public class Gradle extends Builder {
         }
 
         public String getDisplayName() {
-            return "Invoke GradleBuilder script";
+            return Messages.step_displayName();
         }
 
         public GradleInstallation[] getInstallations() {
