@@ -100,11 +100,27 @@ public class Gradle extends Builder {
 
         EnvVars env = build.getEnvironment(listener);
 
-        String normalizedSwitches = switches.replaceAll("[\t\r\n]+", " ");
+        String extraSwitches = env.get("gradle.extraSwitches");
+        String normalizedSwitches;
+        if (extraSwitches != null) {
+            normalizedSwitches = switches + " " + extraSwitches;
+        } else {
+            normalizedSwitches = switches;
+        }
+        normalizedSwitches = normalizedSwitches.replaceAll("[\t\r\n]+", " ");
         normalizedSwitches = Util.replaceMacro(normalizedSwitches, env);
         normalizedSwitches = Util.replaceMacro(normalizedSwitches, build.getBuildVariables());
 
-        String normalizedTasks = tasks.replaceAll("[\t\r\n]+", " ");
+
+        String extraTasks = env.get("gradle.extraTasks");
+        String normalizedTasks;
+        if (extraTasks != null) {
+            normalizedTasks = tasks + " " + extraTasks;
+        } else {
+            normalizedTasks = tasks;
+        }
+        normalizedTasks = normalizedTasks.replaceAll("[\t\r\n]+", " ");
+
 
         ArgumentListBuilder args = new ArgumentListBuilder();
 
@@ -165,6 +181,7 @@ public class Gradle extends Builder {
     }
 
 
+    @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
     }
@@ -190,6 +207,7 @@ public class Gradle extends Builder {
             return ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class);
         }
 
+        @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             return true;
         }
@@ -199,10 +217,12 @@ public class Gradle extends Builder {
                 installations = (GradleInstallation[]) oldPropertyBag.get("installations");
         }
 
+        @Override
         public String getHelpFile() {
             return "/plugin/gradle/help.html";
         }
 
+        @Override
         public String getDisplayName() {
             return Messages.step_displayName();
         }
