@@ -100,7 +100,7 @@ public class Gradle extends Builder {
 
         EnvVars env = build.getEnvironment(listener);
 
-        String extraSwitches = env.get("gradle.extraSwitches");
+        String extraSwitches = env.get("GRADLE_EXT_SWITCHES");
         String normalizedSwitches;
         if (extraSwitches != null) {
             normalizedSwitches = switches + " " + extraSwitches;
@@ -112,7 +112,7 @@ public class Gradle extends Builder {
         normalizedSwitches = Util.replaceMacro(normalizedSwitches, build.getBuildVariables());
 
 
-        String extraTasks = env.get("gradle.extraTasks");
+        String extraTasks = env.get("GRADLE_EXT_TASKS");
         String normalizedTasks;
         if (extraTasks != null) {
             normalizedTasks = tasks + " " + extraTasks;
