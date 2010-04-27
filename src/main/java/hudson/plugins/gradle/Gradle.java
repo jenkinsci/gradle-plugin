@@ -5,6 +5,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.Computer;
+import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
@@ -120,10 +121,7 @@ public class Gradle extends Builder {
             normalizedTasks = tasks;
         }
         normalizedTasks = normalizedTasks.replaceAll("[\t\r\n]+", " ");
-
-
         ArgumentListBuilder args = new ArgumentListBuilder();
-
         GradleInstallation ai = getGradle();
         if (ai == null) {
             args.add(launcher.isUnix() ? "gradle" : "gradle.bat");
@@ -140,14 +138,11 @@ public class Gradle extends Builder {
         args.addKeyValuePairs("-D", build.getBuildVariables());
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
-
         if (buildFile != null && buildFile.trim().length() != 0) {
             String buildFileNormalized = Util.replaceMacro(buildFile.trim(), env);
             args.add("-b");
             args.add(buildFileNormalized);
         }
-
-
         if (ai != null)
             env.put("GRADLE_HOME", ai.getHome());
 
@@ -160,7 +155,7 @@ public class Gradle extends Builder {
             args.add("&&", "exit", "%%ERRORLEVEL%%");
         }
 
-        FilePath rootLauncher = null;
+        FilePath rootLauncher;
         if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
             String rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptDir.trim(), env);
             rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized, build.getBuildVariableResolver());
@@ -168,14 +163,19 @@ public class Gradle extends Builder {
         } else {
             rootLauncher = build.getModuleRoot();
         }
-
-
         try {
             int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(rootLauncher).join();
-            return r == 0;
+            boolean success = r == 0;
+            // if the build is successful then set it as success otherwise as a failure.
+            build.setResult(Result.SUCCESS);
+            if (!success) {
+                build.setResult(Result.FAILURE);
+            }
+            return success;
         } catch (IOException e) {
             Util.displayIOException(e, listener);
             e.printStackTrace(listener.fatalError("command execution failed"));
+            build.setResult(Result.FAILURE);
             return false;
         }
     }
