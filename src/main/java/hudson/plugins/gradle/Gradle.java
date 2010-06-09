@@ -1,7 +1,6 @@
 package hudson.plugins.gradle;
 
 import hudson.*;
-import hudson.Messages;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
