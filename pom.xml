@@ -9,7 +9,7 @@
   </parent>
   
   <artifactId>gradle</artifactId>
-  <version>1.4-SNAPSHOT</version>
+  <version>1.4</version>
   <packaging>hpi</packaging>
   <name>Hudson Gradle plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/Gradle+Plugin</url>
@@ -29,4 +29,10 @@
          <timezone>+1</timezone>
       </developer>
    </developers>
+
+  <scm>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/gradle-1.4</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/gradle-1.4</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/tags/gradle-1.4</url>
+  </scm>
 </project>
