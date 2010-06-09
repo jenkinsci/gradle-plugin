@@ -1,16 +1,14 @@
 package hudson.plugins.gradle;
 
 import hudson.*;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.Computer;
-import hudson.model.Result;
+import hudson.Messages;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -48,6 +46,7 @@ public class Gradle extends Builder {
      * Identifies {@link GradleInstallation} to be used.
      */
     private final String gradleName;
+    private static final String JAVA_OPTS_KEY = "JAVA_OPTS";
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile, String gradleName) {
@@ -162,6 +161,10 @@ public class Gradle extends Builder {
             rootLauncher = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
         } else {
             rootLauncher = build.getModuleRoot();
+        }
+        String javaOpts = env.get(JAVA_OPTS_KEY);
+        if (StringUtils.isNotBlank(javaOpts)) {
+            env.remove(JAVA_OPTS_KEY);
         }
         try {
             int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(rootLauncher).join();
