@@ -1,32 +1,39 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
- 
-  <parent>
-    <groupId>org.jvnet.hudson.plugins</groupId>
-    <artifactId>plugin</artifactId>
-    <version>1.336</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
-  
-  <artifactId>gradle</artifactId>
-  <version>1.5-SNAPSHOT</version>
-  <packaging>hpi</packaging>
-  <name>Hudson Gradle plugin</name>
-  <url>http://wiki.hudson-ci.org/display/HUDSON/Gradle+Plugin</url>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-   <licenses>
-      <license>
-         <name>MIT license</name>
-         <comments>All source code is under the MIT license.</comments>
-      </license>
-   </licenses>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>1.397</version>
+    </parent>
 
-   <developers>
-      <developer>
-         <id>gbois</id>
-         <name>Gregory Boissinot</name>
-         <email>gregory.boissinot@gmail.com</email>
-         <timezone>+1</timezone>
-      </developer>
-   </developers>
+    <groupId>com.zenika.jenkins-ci.plugins</groupId>
+    <artifactId>gradle</artifactId>
+    <version>1.5-SNAPSHOT</version>
+    <packaging>hpi</packaging>
+    <name>Jenkins Gradle plugin</name>
+    <url>http://wiki.jenkins-ci.org/display/JENKINS/Gradle+Plugin</url>
+
+    <licenses>
+        <license>
+            <name>MIT license</name>
+            <comments>All source code is under the MIT license.</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>gbois</id>
+            <name>Gregory Boissinot</name>
+            <email>gregory.boissinot@gmail.com</email>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git@github.com:jenkinsci/gradle-plugin.git</connection>
+        <developerConnection>scm:git@github.com:jenkinsci/gradle-plugin.git</developerConnection>
+    </scm>
+
 </project>
