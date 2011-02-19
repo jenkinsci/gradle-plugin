@@ -32,8 +32,8 @@
     </developers>
 
     <scm>
-        <connection>scm:git@github.com:jenkinsci/gradle-plugin.git</connection>
-        <developerConnection>scm:git@github.com:jenkinsci/gradle-plugin.git</developerConnection>
+    	<connection>scm:git:git://github.com/jenkinsci/gradle-plugin.git</connection>
+	<developerConnection>scm:git:git@github.com:jenkinsci/gradle-plugin.git</developerConnection>
     </scm>
 
 </project>
