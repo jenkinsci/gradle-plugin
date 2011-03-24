@@ -1,6 +1,10 @@
 package hudson.plugins.gradle;
 
-import hudson.*;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.Functions;
+import hudson.Launcher;
+import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Hudson;
 import hudson.model.Node;
@@ -9,11 +13,13 @@ import hudson.remoting.Callable;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
+import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -88,6 +94,11 @@ public class GradleInstallation extends ToolInstallation
         @Override
         public String getDisplayName() {
             return Messages.installer_displayName();
+        }
+
+        @Override
+        public List<? extends ToolInstaller> getDefaultInstallers() {
+            return Collections.singletonList(new GradleInstaller(null));
         }
 
         // for compatibility reasons, the persistence is done by GradleBuilder.DescriptorImpl
