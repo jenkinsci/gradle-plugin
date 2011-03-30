@@ -1,7 +1,17 @@
 package hudson.plugins.gradle;
 
-import hudson.*;
-import hudson.model.*;
+import hudson.CopyOnWrite;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Functions;
+import hudson.Launcher;
+import hudson.Util;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
+import hudson.model.Computer;
+import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
@@ -11,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -45,16 +56,23 @@ public class Gradle extends Builder {
      * Identifies {@link GradleInstallation} to be used.
      */
     private final String gradleName;
+
+    /**
+     * Flag whether to use the gradle wrapper rather than a standard Gradle installation
+     */
+    private final boolean useWrapper;
     private static final String JAVA_OPTS_KEY = "JAVA_OPTS";
 
     @DataBoundConstructor
-    public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile, String gradleName) {
+    public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
+            String gradleName, boolean useWrapper) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
         this.gradleName = gradleName;
         this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
+        this.useWrapper = !useWrapper;
     }
 
 
@@ -78,24 +96,29 @@ public class Gradle extends Builder {
         return description;
     }
 
+    public boolean isUseWrapper() {
+        return useWrapper;
+    }
+
     public String getRootBuildScriptDir() {
         return rootBuildScriptDir;
     }
 
     /**
-     * Gets the GradleBuilder to invoke,
-     * or null to invoke the default one.
+     * Gets the GradleBuilder to invoke, or null to invoke the default one.
      */
     public GradleInstallation getGradle() {
         for (GradleInstallation i : getDescriptor().getInstallations()) {
-            if (gradleName != null && i.getName().equals(gradleName))
+            if (gradleName != null && i.getName().equals(gradleName)) {
                 return i;
+            }
         }
         return null;
     }
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+            throws InterruptedException, IOException {
 
         EnvVars env = build.getEnvironment(listener);
 
@@ -122,11 +145,28 @@ public class Gradle extends Builder {
         ArgumentListBuilder args = new ArgumentListBuilder();
         GradleInstallation ai = getGradle();
         if (ai == null) {
-            args.add(launcher.isUnix() ? "gradle" : "gradle.bat");
+            if (useWrapper) {
+                String execName;
+                if (Functions.isWindows()) {
+                    execName = "gradlew.bat";
+                } else {
+                    execName = "gradlew";
+                }
+                FilePath workspace = build.getModuleRoot();
+                File gradleWrapperFile = new File(workspace.getRemote(), execName);
+                args.add(gradleWrapperFile.getAbsolutePath());
+            } else {
+                args.add(launcher.isUnix() ? "gradle" : "gradle.bat");
+            }
         } else {
             ai = ai.forNode(Computer.currentComputer().getNode(), listener);
             ai = ai.forEnvironment(env);
-            String exe = ai.getExecutable(launcher);
+            String exe;
+            if (useWrapper) {
+                exe = ai.getWrapperExecutable(launcher, build);
+            } else {
+                exe = ai.getExecutable(launcher);
+            }
             if (exe == null) {
                 listener.fatalError("ERROR");
                 return false;
@@ -141,8 +181,9 @@ public class Gradle extends Builder {
             args.add("-b");
             args.add(buildFileNormalized);
         }
-        if (ai != null)
+        if (ai != null) {
             env.put("GRADLE_HOME", ai.getHome());
+        }
 
         if (!launcher.isUnix()) {
             // on Windows, executing batch file can't return the correct error code,
@@ -215,8 +256,9 @@ public class Gradle extends Builder {
         }
 
         protected void convert(Map<String, Object> oldPropertyBag) {
-            if (oldPropertyBag.containsKey("installations"))
+            if (oldPropertyBag.containsKey("installations")) {
                 installations = (GradleInstallation[]) oldPropertyBag.get("installations");
+            }
         }
 
         @Override
