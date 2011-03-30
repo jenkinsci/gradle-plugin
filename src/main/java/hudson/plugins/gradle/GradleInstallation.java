@@ -5,6 +5,7 @@ import hudson.Extension;
 import hudson.Functions;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.model.AbstractBuild;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Hudson;
 import hudson.model.Node;
@@ -47,7 +48,9 @@ public class GradleInstallation extends ToolInstallation
 
     @Override
     public String getHome() {
-        if (gradleHome != null) return gradleHome;
+        if (gradleHome != null) {
+            return gradleHome;
+        }
         return super.getHome();
     }
 
@@ -56,8 +59,22 @@ public class GradleInstallation extends ToolInstallation
         return launcher.getChannel().call(new Callable<String, IOException>() {
             public String call() throws IOException {
                 File exe = getExeFile();
-                if (exe.exists())
+                if (exe.exists()) {
                     return exe.getPath();
+                }
+                return null;
+            }
+        });
+    }
+
+    public String getWrapperExecutable(Launcher launcher, final AbstractBuild<?, ?> build)
+            throws IOException, InterruptedException {
+        return launcher.getChannel().call(new Callable<String, IOException>() {
+            public String call() throws IOException {
+                File exe = getWrapperExeFile(build);
+                if (exe.exists()) {
+                    return exe.getPath();
+                }
                 return null;
             }
         });
@@ -65,14 +82,23 @@ public class GradleInstallation extends ToolInstallation
 
     private File getExeFile() {
         String execName;
-        if (Functions.isWindows())
+        if (Functions.isWindows()) {
             execName = "gradle.bat";
-        else
+        } else {
             execName = "gradle";
-
+        }
         String antHome = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
-
         return new File(antHome, "bin/" + execName);
+    }
+
+    private File getWrapperExeFile(AbstractBuild<?, ?> build) {
+        String execName;
+        if (Functions.isWindows()) {
+            execName = "gradlew.bat";
+        } else {
+            execName = "gradlew";
+        }
+        return new File(build.getModuleRoot().getRemote(), execName);
     }
 
     private static final long serialVersionUID = 1L;
