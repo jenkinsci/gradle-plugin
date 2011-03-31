@@ -1,17 +1,7 @@
 package hudson.plugins.gradle;
 
-import hudson.CopyOnWrite;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Functions;
-import hudson.Launcher;
-import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.Computer;
-import hudson.model.Result;
+import hudson.*;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
@@ -26,8 +16,10 @@ import java.io.IOException;
 import java.util.Map;
 
 
+/**
+ * @author Gregory Boissinot
+ */
 public class Gradle extends Builder {
-
 
     /**
      * The GradleBuilder build step description
@@ -61,11 +53,12 @@ public class Gradle extends Builder {
      * Flag whether to use the gradle wrapper rather than a standard Gradle installation
      */
     private final boolean useWrapper;
+
     private static final String JAVA_OPTS_KEY = "JAVA_OPTS";
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-            String gradleName, boolean useWrapper) {
+                  String gradleName, boolean useWrapper) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -146,17 +139,12 @@ public class Gradle extends Builder {
         GradleInstallation ai = getGradle();
         if (ai == null) {
             if (useWrapper) {
-                String execName;
-                if (Functions.isWindows()) {
-                    execName = "gradlew.bat";
-                } else {
-                    execName = "gradlew";
-                }
+                String execName = (Functions.isWindows())?GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND:GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND;
                 FilePath workspace = build.getModuleRoot();
                 File gradleWrapperFile = new File(workspace.getRemote(), execName);
                 args.add(gradleWrapperFile.getAbsolutePath());
             } else {
-                args.add(launcher.isUnix() ? "gradle" : "gradle.bat");
+                args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
             }
         } else {
             ai = ai.forNode(Computer.currentComputer().getNode(), listener);

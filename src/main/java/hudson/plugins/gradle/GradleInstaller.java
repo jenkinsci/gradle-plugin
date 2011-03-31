@@ -22,7 +22,7 @@ public class GradleInstaller extends DownloadFromUrlInstaller {
 
         @Override
         public boolean isApplicable(Class<? extends ToolInstallation> toolType) {
-            return toolType==GradleInstallation.class;
+            return toolType == GradleInstallation.class;
         }
     }
 }

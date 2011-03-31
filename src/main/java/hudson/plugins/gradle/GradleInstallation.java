@@ -1,15 +1,7 @@
 package hudson.plugins.gradle;
 
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.Functions;
-import hudson.Launcher;
-import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.EnvironmentSpecific;
-import hudson.model.Hudson;
-import hudson.model.Node;
-import hudson.model.TaskListener;
+import hudson.*;
+import hudson.model.*;
 import hudson.remoting.Callable;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
@@ -24,8 +16,16 @@ import java.util.Collections;
 import java.util.List;
 
 
+/**
+ * @author Gregory Boissinot
+ */
 public class GradleInstallation extends ToolInstallation
         implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation> {
+
+    public static final String UNIX_GRADLE_COMMAND = "gradle";
+    public static final String WINDOWS_GRADLE_COMMAND = "gradle.bat";
+    public static final String UNIX_GRADLE_WRAPPER_COMMAND = "gradlew";
+    public static final String WINDOWS_GRADLE_WRAPPER_COMMAND = "gradlew.bat";
 
     private final String gradleHome;
 
@@ -81,23 +81,13 @@ public class GradleInstallation extends ToolInstallation
     }
 
     private File getExeFile() {
-        String execName;
-        if (Functions.isWindows()) {
-            execName = "gradle.bat";
-        } else {
-            execName = "gradle";
-        }
+        String execName = (Functions.isWindows())?WINDOWS_GRADLE_COMMAND:UNIX_GRADLE_COMMAND;
         String antHome = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
         return new File(antHome, "bin/" + execName);
     }
 
     private File getWrapperExeFile(AbstractBuild<?, ?> build) {
-        String execName;
-        if (Functions.isWindows()) {
-            execName = "gradlew.bat";
-        } else {
-            execName = "gradlew";
-        }
+        String execName = (Functions.isWindows())?WINDOWS_GRADLE_WRAPPER_COMMAND:UNIX_GRADLE_WRAPPER_COMMAND;
         return new File(build.getModuleRoot().getRemote(), execName);
     }
 
@@ -138,7 +128,6 @@ public class GradleInstallation extends ToolInstallation
         public void setInstallations(GradleInstallation... installations) {
             Hudson.getInstance().getDescriptorByType(Gradle.DescriptorImpl.class).setInstallations(installations);
         }
-
 
     }
 
