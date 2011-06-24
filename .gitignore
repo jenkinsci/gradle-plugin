@@ -1,6 +1,8 @@
 target
-build
+work
 .classpath
 .project
 .settings
 *.iml
+*.ipr
+*.iws
