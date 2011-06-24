@@ -9,7 +9,7 @@
 
     <groupId>com.zenika.jenkins-ci.plugins</groupId>
     <artifactId>gradle</artifactId>
-    <version>1.9</version>
+    <version>1.10-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Jenkins Gradle plugin</name>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Gradle+Plugin</url>
