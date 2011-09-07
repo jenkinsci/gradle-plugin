@@ -7,6 +7,7 @@ import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import net.sf.json.JSONObject;
+import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -18,39 +19,14 @@ import java.util.Map;
 /**
  * @author Gregory Boissinot
  */
-public class Gradle extends Builder {
+public class Gradle extends Builder implements DryRun {
 
-    /**
-     * The GradleBuilder build step description
-     */
     private final String description;
-
-    /**
-     * The GradleBuilder command line switches
-     */
     private final String switches;
-
-    /**
-     * The GradleBuilder tasks
-     */
     private final String tasks;
-
-
     private final String rootBuildScriptDir;
-
-    /**
-     * The GradleBuilder build file path
-     */
     private final String buildFile;
-
-    /**
-     * Identifies {@link GradleInstallation} to be used.
-     */
     private final String gradleName;
-
-    /**
-     * Flag whether to use the gradle wrapper rather than a standard Gradle installation
-     */
     private final boolean useWrapper;
 
     @DataBoundConstructor
@@ -66,37 +42,41 @@ public class Gradle extends Builder {
     }
 
 
+    @SuppressWarnings("unused")
     public String getSwitches() {
         return switches;
     }
 
+    @SuppressWarnings("unused")
     public String getBuildFile() {
         return buildFile;
     }
 
+    @SuppressWarnings("unused")
     public String getGradleName() {
         return gradleName;
     }
 
+    @SuppressWarnings("unused")
     public String getTasks() {
         return tasks;
     }
 
+    @SuppressWarnings("unused")
     public String getDescription() {
         return description;
     }
 
+    @SuppressWarnings("unused")
     public boolean isUseWrapper() {
         return useWrapper;
     }
 
+    @SuppressWarnings("unused")
     public String getRootBuildScriptDir() {
         return rootBuildScriptDir;
     }
 
-    /**
-     * Gets the GradleBuilder to invoke, or null to invoke the default one.
-     */
     public GradleInstallation getGradle() {
         for (GradleInstallation i : getDescriptor().getInstallations()) {
             if (gradleName != null && i.getName().equals(gradleName)) {
@@ -107,11 +87,22 @@ public class Gradle extends Builder {
     }
 
     @Override
+    public boolean performDryRun(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+        return performTask(true, build, launcher, listener);
+    }
+
+    @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+            throws InterruptedException, IOException {
+        return performTask(false, build, launcher, listener);
+    }
+
+    private boolean performTask(boolean dryRun, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
 
         EnvVars env = build.getEnvironment(listener);
 
+        //Switches
         String extraSwitches = env.get("GRADLE_EXT_SWITCHES");
         String normalizedSwitches;
         if (extraSwitches != null) {
@@ -123,7 +114,12 @@ public class Gradle extends Builder {
         normalizedSwitches = Util.replaceMacro(normalizedSwitches, env);
         normalizedSwitches = Util.replaceMacro(normalizedSwitches, build.getBuildVariables());
 
+        //Add dry-run switch if needed
+        if (dryRun) {
+            normalizedSwitches = normalizedSwitches + " --dry-run";
+        }
 
+        //Tasks
         String extraTasks = env.get("GRADLE_EXT_TASKS");
         String normalizedTasks;
         if (extraTasks != null) {
@@ -132,11 +128,15 @@ public class Gradle extends Builder {
             normalizedTasks = tasks;
         }
         normalizedTasks = normalizedTasks.replaceAll("[\t\r\n]+", " ");
+        normalizedTasks = Util.replaceMacro(normalizedTasks, env);
+        normalizedTasks = Util.replaceMacro(normalizedTasks, build.getBuildVariables());
+
+        //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
         GradleInstallation ai = getGradle();
         if (ai == null) {
             if (useWrapper) {
-                String execName = (Functions.isWindows())?GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND:GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND;
+                String execName = (Functions.isWindows()) ? GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND : GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND;
                 FilePath workspace = build.getModuleRoot();
                 File gradleWrapperFile = new File(workspace.getRemote(), execName);
                 args.add(gradleWrapperFile.getAbsolutePath());
@@ -181,12 +181,19 @@ public class Gradle extends Builder {
 
         FilePath rootLauncher;
         if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
-            String rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptDir.trim(), env);
+            String rootBuildScriptNormalized = rootBuildScriptDir.trim().replaceAll("[\t\r\n]+", " ");
+            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized.trim(), env);
             rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized, build.getBuildVariableResolver());
             rootLauncher = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
         } else {
-            rootLauncher = build.getModuleRoot();
+            rootLauncher = build.getWorkspace();
         }
+
+        //Not call from an Executor
+        if (rootLauncher == null) {
+            rootLauncher = build.getProject().getSomeWorkspace();
+        }
+
         try {
             int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(rootLauncher).join();
             boolean success = r == 0;

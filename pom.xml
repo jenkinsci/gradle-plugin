@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>1.404</version>
+        <version>1.410</version>
     </parent>
 
     <groupId>com.zenika.jenkins-ci.plugins</groupId>
@@ -25,27 +26,21 @@
         <developer>
             <id>gbois</id>
             <name>Gregory Boissinot</name>
-            <email>gregory.boissinot@gmail.com</email>
             <timezone>+1</timezone>
         </developer>
     </developers>
-
-    <repositories>
-        <repository>
-            <id>jenkins-release-repo</id>
-            <url>http://maven.jenkins-ci.org:8081/content/groups/artifacts/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 
     <scm>
         <connection>scm:git:git://github.com/jenkinsci/gradle-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/gradle-plugin.git</developerConnection>
     </scm>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci.lib</groupId>
+            <artifactId>dry-run-lib</artifactId>
+            <version>0.1</version>
+        </dependency>
+    </dependencies>
 
 </project>
