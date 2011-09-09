@@ -1,0 +1,8 @@
+.gradle-outcome-failure {
+    font-weight: bold;
+    color: red;
+}
+
+.gradle-outcome-success {
+    color: #204A87;
+}
