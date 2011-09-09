@@ -9,8 +9,6 @@ import hudson.console.ConsoleNote;
 import java.util.regex.Pattern;
 
 public final class GradleTargetNote extends ConsoleNote {
-	public GradleTargetNote() {
-	}
 
 	@Override
 	public ConsoleAnnotator annotate(Object context, MarkupText text,
@@ -19,11 +17,10 @@ public final class GradleTargetNote extends ConsoleNote {
 		if (!ENABLED)
 			return null;
 
-		// TODO confirm regex
-		// MarkupText.SubText t = text.findToken(Pattern.compile(".*(?=:)"));
-		MarkupText.SubText t = text.findToken(Pattern.compile(":(.+)"));
+		MarkupText.SubText t = text.findToken(Pattern.compile(":(\\w+).*"));
 		if (t != null)
-			t.addMarkup(0, t.length(), "<b class=gradle-target>", "</b>");
+			t.addMarkup(1, t.group(1).length() + 1, "<b class=gradle-target>",
+					"</b>");
 		return null;
 	}
 
