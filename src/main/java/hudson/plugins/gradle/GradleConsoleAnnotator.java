@@ -14,8 +14,6 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 	private final OutputStream out;
 	private final Charset charset;
 
-	private boolean seenEmptyLine;
-
 	public GradleConsoleAnnotator(OutputStream out, Charset charset) {
 		this.out = out;
 		this.charset = charset;
@@ -28,22 +26,14 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 		// trim off CR/LF from the end
 		line = trimEOL(line);
 
-		// TODO look again this condition
-		// if (seenEmptyLine && endsWith(line, ':') && line.indexOf(' ') < 0)
-		if (startsWith(line, ':'))
+		if (line.startsWith(":"))
 			// put the annotation
 			new GradleTargetNote().encodeTo(out);
 
 		if (line.equals("BUILD SUCCESSFUL") || line.equals("BUILD FAILED"))
 			new GradleOutcomeNote().encodeTo(out);
 
-		seenEmptyLine = line.length() == 0;
 		out.write(b, 0, len);
-	}
-
-	private boolean startsWith(String line, char c) {
-		int len = line.length();
-		return len > 0 && line.charAt(0) == c;
 	}
 
 	@Override
