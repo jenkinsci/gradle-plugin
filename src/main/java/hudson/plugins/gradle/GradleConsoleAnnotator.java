@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 
 /**
  * @author ikikko
+ * @see hudson.tasks._ant.AntConsoleAnnotator
  */
 public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 	private final OutputStream out;
@@ -28,7 +29,7 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 
 		if (line.startsWith(":"))
 			// put the annotation
-			new GradleTargetNote().encodeTo(out);
+			new GradleTaskNote().encodeTo(out);
 
 		if (line.equals("BUILD SUCCESSFUL") || line.equals("BUILD FAILED"))
 			new GradleOutcomeNote().encodeTo(out);

@@ -27,7 +27,7 @@ THE SOFTWARE.
   <l:ajax>
     <table class='pane' id='console-outline'>
       <tr>
-        <td class='pane-header'>${%Executed Ant Targets}</td>
+        <td class='pane-header'>${%Executed Gradle Tasks}</td>
       </tr>
       <tr>
         <td id='console-outline-body' />
