@@ -1,0 +1,12 @@
+.gradle-outcome-failure {
+    font-weight: bold;
+    color: red;
+}
+
+.gradle-outcome-success {
+    color: #204A87;
+}
+
+.gradle-task-progress-status {
+    color: #ADAD27;
+}
