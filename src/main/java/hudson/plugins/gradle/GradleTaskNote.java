@@ -17,7 +17,7 @@ public final class GradleTaskNote extends ConsoleNote {
 		if (!ENABLED)
 			return null;
 
-		MarkupText.SubText t = text.findToken(Pattern.compile(":(\\w+).*"));
+		MarkupText.SubText t = text.findToken(Pattern.compile(":(\\S+).*"));
 		if (t != null)
 			t.addMarkup(1, t.group(1).length() + 1, "<b class=gradle-task>",
 					"</b>");

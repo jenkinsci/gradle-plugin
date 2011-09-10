@@ -34,6 +34,12 @@ public class GradleTaskNoteTest {
 	}
 
 	@Test
+	public void testAnnotateTaskWithMultiProject() {
+		assertEquals(":<b class=gradle-task>PARENT:TASK</b>",
+				annotate(":PARENT:TASK"));
+	}
+
+	@Test
 	public void testDisabled() {
 		GradleTaskNote.ENABLED = false;
 		assertEquals("TASK:", annotate("TASK:"));
