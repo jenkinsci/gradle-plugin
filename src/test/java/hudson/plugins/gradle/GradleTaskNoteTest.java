@@ -23,20 +23,41 @@ public class GradleTaskNoteTest {
 	}
 
 	@Test
-	public void testAnnotateTask() {
+	public void annotate() {
 		assertEquals(":<b class=gradle-task>TASK</b>", annotate(":TASK"));
 	}
 
 	@Test
-	public void testAnnotateTaskWithSuffixWords() {
-		assertEquals(":<b class=gradle-task>TASK</b> UP-TO-DATE",
+	public void annotateWithUpToDate() {
+		assertEquals(
+				":<b class=gradle-task>TASK</b> <span class=gradle-task-progress-status>UP-TO-DATE</span>",
 				annotate(":TASK UP-TO-DATE"));
 	}
 
 	@Test
-	public void testAnnotateTaskWithMultiProject() {
+	public void annotateWithSkipped() {
+		assertEquals(
+				":<b class=gradle-task>TASK</b> <span class=gradle-task-progress-status>SKIPPED</span>",
+				annotate(":TASK SKIPPED"));
+	}
+
+	@Test
+	public void annotateWithNonProgressStatus() {
+		assertEquals(":<b class=gradle-task>TASK</b> DUMMY",
+				annotate(":TASK DUMMY"));
+	}
+
+	@Test
+	public void annotateWithMultiProject() {
 		assertEquals(":<b class=gradle-task>PARENT:TASK</b>",
 				annotate(":PARENT:TASK"));
+	}
+
+	@Test
+	public void annotateWithProgressStatusAndMultiProject() {
+		assertEquals(
+				":<b class=gradle-task>PARENT:TASK</b> <span class=gradle-task-progress-status>UP-TO-DATE</span>",
+				annotate(":PARENT:TASK UP-TO-DATE"));
 	}
 
 	@Test
