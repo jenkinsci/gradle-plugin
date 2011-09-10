@@ -48,6 +48,11 @@ public class GradleTaskNoteTest {
 	}
 
 	@Test
+	public void annotateWithErrors() {
+		assertEquals(":::: ERRORS", annotate(":::: ERRORS"));
+	}
+
+	@Test
 	public void annotateWithMultiProject() {
 		assertEquals(":<b class=gradle-task>PARENT:TASK</b>",
 				annotate(":PARENT:TASK"));

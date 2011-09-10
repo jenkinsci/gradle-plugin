@@ -28,7 +28,7 @@ public final class GradleTaskNote extends ConsoleNote {
 			return null;
 
 		MarkupText.SubText t = text.findToken(Pattern
-				.compile(":(\\S+)(\\s*)(\\S*)"));
+				.compile("^:([^:]\\S*)(\\s*)(\\S*)"));
 		if (t == null) {
 			return null;
 		}
