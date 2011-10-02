@@ -195,15 +195,15 @@ public class Gradle extends Builder implements DryRun {
         }
 
         try {
-			GradleConsoleAnnotator gca = new GradleConsoleAnnotator(
-					listener.getLogger(), build.getCharset());
-			int r;
-			try {
-				r = launcher.launch().cmds(args).envs(env).stdout(gca)
-						.pwd(rootLauncher).join();
-			} finally {
-				gca.forceEol();
-			}
+            GradleConsoleAnnotator gca = new GradleConsoleAnnotator(
+                    listener.getLogger(), build.getCharset());
+            int r;
+            try {
+                r = launcher.launch().cmds(args).envs(env).stdout(gca)
+                        .pwd(rootLauncher).join();
+            } finally {
+                gca.forceEol();
+            }
             boolean success = r == 0;
             // if the build is successful then set it as success otherwise as a failure.
             build.setResult(Result.SUCCESS);

@@ -81,13 +81,13 @@ public class GradleInstallation extends ToolInstallation
     }
 
     private File getExeFile() {
-        String execName = (Functions.isWindows())?WINDOWS_GRADLE_COMMAND:UNIX_GRADLE_COMMAND;
+        String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_COMMAND : UNIX_GRADLE_COMMAND;
         String antHome = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
         return new File(antHome, "bin/" + execName);
     }
 
     private File getWrapperExeFile(AbstractBuild<?, ?> build) {
-        String execName = (Functions.isWindows())?WINDOWS_GRADLE_WRAPPER_COMMAND:UNIX_GRADLE_WRAPPER_COMMAND;
+        String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_WRAPPER_COMMAND : UNIX_GRADLE_WRAPPER_COMMAND;
         return new File(build.getModuleRoot().getRemote(), execName);
     }
 

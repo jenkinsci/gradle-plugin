@@ -31,30 +31,30 @@ import hudson.console.ConsoleNote;
 
 /**
  * Annotates the BUILD SUCCESSFUL/FAILED line of the Ant execution.
- * 
+ *
  * @author ikikko
  */
 public class GradleOutcomeNote extends ConsoleNote {
-	public GradleOutcomeNote() {
-	}
+    public GradleOutcomeNote() {
+    }
 
-	@Override
-	public ConsoleAnnotator annotate(Object context, MarkupText text,
-			int charPos) {
-		if (text.getText().contains("FAIL"))
-			text.addMarkup(0, text.length(),
-					"<span class=gradle-outcome-failure>", "</span>");
-		if (text.getText().contains("SUCCESS"))
-			text.addMarkup(0, text.length(),
-					"<span class=gradle-outcome-success>", "</span>");
-		return null;
-	}
+    @Override
+    public ConsoleAnnotator annotate(Object context, MarkupText text,
+                                     int charPos) {
+        if (text.getText().contains("FAIL"))
+            text.addMarkup(0, text.length(),
+                    "<span class=gradle-outcome-failure>", "</span>");
+        if (text.getText().contains("SUCCESS"))
+            text.addMarkup(0, text.length(),
+                    "<span class=gradle-outcome-success>", "</span>");
+        return null;
+    }
 
-	@Extension
-	public static final class DescriptorImpl extends
-			ConsoleAnnotationDescriptor {
-		public String getDisplayName() {
-			return "Gradle build outcome";
-		}
-	}
+    @Extension
+    public static final class DescriptorImpl extends
+            ConsoleAnnotationDescriptor {
+        public String getDisplayName() {
+            return "Gradle build outcome";
+        }
+    }
 }
