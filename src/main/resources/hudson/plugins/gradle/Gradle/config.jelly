@@ -1,9 +1,18 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-    <f:radioBlock name="useWrapper" checked="${!instance.useWrapper}" value="false" title="${%Invoke Gradle}">
-        <f:entry title="${%Gradle Version}" field="gradleName">
-            <select class="setting-input">
+    <f:radioBlock name="usingWrapper" value="true" title="${%Use Gradle Wrapper}" checked="${instance.useWrapper}">
+        <f:entry title="${%Wrapper location}" field="wrapperScript"> <!-- Optional -->
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="${%Make gradlew executable}" field="makeExecutable">
+            <f:checkbox />
+        </f:entry>
+    </f:radioBlock>
+
+    <f:radioBlock name="usingWrapper" value="false" title="${%Invoke Gradle}" checked="${!instance.useWrapper}">
+        <f:entry title="${%Gradle Version}">
+            <select class="setting-input" name="gradle.gradleName">
                 <option>(Default)</option>
                 <j:forEach var="inst" items="${descriptor.installations}">
                     <f:option selected="${inst.name==instance.gradle.name}">${inst.name}</f:option>
@@ -11,15 +20,6 @@
             </select>
         </f:entry>
     </f:radioBlock>
-    <f:radioBlock name="useWrapper" checked="${instance.useWrapper}" value="true" title="${%Use Gradle Wrapper}">
-        <f:entry title="${%Make gradlew executable}" field="makeExecutable">
-            <f:checkbox />
-        </f:entry>
-    </f:radioBlock>
-
-    <f:entry title="${%Build step description}" field="description">
-        <f:expandableTextbox/>
-    </f:entry>
 
     <f:entry title="${%Switches}" field="switches">
         <f:expandableTextbox/>

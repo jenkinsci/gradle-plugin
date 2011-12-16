@@ -22,7 +22,6 @@ import java.util.Set;
  */
 public class Gradle extends Builder implements DryRun {
 
-    private final String description;
     private final String switches;
     private final String tasks;
     private final String rootBuildScriptDir;
@@ -30,18 +29,34 @@ public class Gradle extends Builder implements DryRun {
     private final String gradleName;
     private final boolean useWrapper;
     private final boolean makeExecutable;
+    private final String wrapperScript;
+
+    // Artifact of how Jelly/Stapler puts conditional variables in blocks, which NEED to map to a sub-Object.
+    // The alternative would have been to mess with DescriptorImpl.getInstance
+    public static class UsingWrapper {
+        @DataBoundConstructor
+        public UsingWrapper(String value, String gradleName, String wrapperScript, Boolean makeExecutable) {
+            this.gradleName = gradleName;
+            this.wrapperScript = wrapperScript;
+            this.makeExecutable = makeExecutable;
+        }
+
+        String gradleName;
+        String wrapperScript;
+        Boolean makeExecutable;
+    }
 
     @DataBoundConstructor
-    public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable) {
-        this.description = description;
+    public Gradle(String switches, String tasks, String rootBuildScriptDir, String buildFile,
+                  UsingWrapper usingWrapper) {
         this.switches = switches;
         this.tasks = tasks;
-        this.gradleName = gradleName;
         this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
-        this.useWrapper = useWrapper;
-        this.makeExecutable = makeExecutable;
+        this.useWrapper = usingWrapper != null && usingWrapper.wrapperScript!=null;
+        this.gradleName = usingWrapper==null?null:usingWrapper.gradleName; // May be null
+        this.wrapperScript = usingWrapper==null?null:usingWrapper.wrapperScript; // May be null
+        this.makeExecutable = usingWrapper==null?null:Boolean.TRUE.equals(usingWrapper.makeExecutable); // May be null
     }
 
 
@@ -66,11 +81,6 @@ public class Gradle extends Builder implements DryRun {
     }
 
     @SuppressWarnings("unused")
-    public String getDescription() {
-        return description;
-    }
-
-    @SuppressWarnings("unused")
     public boolean isUseWrapper() {
         return useWrapper;
     }
@@ -83,6 +93,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public boolean isMakeExecutable() {
         return makeExecutable;
+    }
+
+    @SuppressWarnings("unused")
+    public String getWrapperScript() {
+        return wrapperScript;
     }
 
     public GradleInstallation getGradle() {
@@ -145,32 +160,46 @@ public class Gradle extends Builder implements DryRun {
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
         GradleInstallation ai = getGradle();
+        String exe;
         if (ai == null) {
             if (useWrapper) {
                 String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-                FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
-                if (makeExecutable) {
-                    gradleWrapperFile.chmod(0744);
+                if( wrapperScript != null && wrapperScript.trim().length() != 0) {
+                    // Override with provided relative path to gradlew
+                    String wrapperScriptNormalized = wrapperScript.trim().replaceAll("[\t\r\n]+", "");
+                    wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized.trim(), env);
+                    wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized, build.getBuildVariableResolver());
+                    execName = wrapperScriptNormalized;
                 }
-                args.add(gradleWrapperFile.getRemote());
+
+                FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
+                if( !gradleWrapperFile.exists() ) {
+                    listener.fatalError("Unable to find Gradle Wrapper");
+                    return false;
+                }
+                if (makeExecutable) {
+                    gradleWrapperFile.chmod(0755);
+                }
+                exe = gradleWrapperFile.getRemote();
             } else {
-                args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
+                exe = launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND;
             }
         } else {
             ai = ai.forNode(Computer.currentComputer().getNode(), listener);
             ai = ai.forEnvironment(env);
-            String exe;
-            if (useWrapper) {
+            if (useWrapper) { // Can not happen, the Gradle installation is disabled if the useWrapper is checked
                 exe = ai.getWrapperExecutable(build);
             } else {
                 exe = ai.getExecutable(launcher);
             }
-            if (exe == null) {
-                gradleLogger.error("Can't retrieve the Gradle executable.");
-                return false;
-            }
-            args.add(exe);
         }
+
+        if (exe == null) {
+            listener.fatalError("ERROR");
+            return false;
+        }
+        args.add(exe);
+
         args.addKeyValuePairs("-D", fixParameters(build.getBuildVariables()));
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
@@ -310,21 +339,5 @@ public class Gradle extends Builder implements DryRun {
             this.installations = installations;
             save();
         }
-
-        @Override
-        public Gradle newInstance(StaplerRequest request, JSONObject formData) throws FormException {
-
-            // "flatten" formData for useWrapper radioBlocks
-            JSONObject useWrapper = formData.getJSONObject("useWrapper");
-            boolean wrapper = useWrapper.getBoolean("value");
-            useWrapper.remove("value");
-            for (String key : (Set<String>) useWrapper.keySet()) {
-                formData.put(key, useWrapper.get(key));
-            }
-            formData.put("useWrapper", wrapper);
-
-            return (Gradle) request.bindJSON(clazz, formData);
-        }
     }
-
 }
