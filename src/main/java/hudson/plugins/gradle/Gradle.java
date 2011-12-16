@@ -11,7 +11,6 @@ import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -28,17 +27,32 @@ public class Gradle extends Builder implements DryRun {
     private final String buildFile;
     private final String gradleName;
     private final boolean useWrapper;
+    private final String wrapperScript;
+
+    // Artifact of how Jelly/Stapler puts conditional variables in blocks, which NEED to map to a sub-Object.
+    // The alternative would have been to mess with DescriptorImpl.getInstance
+    public static class UsingWrapper {
+        @DataBoundConstructor
+        public UsingWrapper(String value, String gradleName, String wrapperScript) {
+            this.gradleName = gradleName;
+            this.wrapperScript = wrapperScript;
+        }
+
+        String gradleName;
+        String wrapperScript;
+    }
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper) {
+                  UsingWrapper usingWrapper) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
-        this.gradleName = gradleName;
         this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
-        this.useWrapper = !useWrapper;
+        this.useWrapper = usingWrapper != null && usingWrapper.wrapperScript!=null;
+        this.gradleName = usingWrapper==null?null:usingWrapper.gradleName; // May be null;
+        this.wrapperScript = usingWrapper==null?null:usingWrapper.wrapperScript; // May be null
     }
 
 
@@ -75,6 +89,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public String getRootBuildScriptDir() {
         return rootBuildScriptDir;
+    }
+
+    @SuppressWarnings("unused")
+    public String getWrapperScript() {
+        return wrapperScript;
     }
 
     public GradleInstallation getGradle() {
@@ -134,29 +153,43 @@ public class Gradle extends Builder implements DryRun {
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
         GradleInstallation ai = getGradle();
+        String exe;
         if (ai == null) {
             if (useWrapper) {
                 String execName = (Functions.isWindows()) ? GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND : GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND;
+                if( wrapperScript != null && wrapperScript.trim().length() != 0) {
+                    // Override with provided relative path to gradlew
+                    String wrapperScriptNormalized = wrapperScript.trim().replaceAll("[\t\r\n]+", "");
+                    wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized.trim(), env);
+                    wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized, build.getBuildVariableResolver());
+                    execName = wrapperScriptNormalized;
+                }
+
                 FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
-                args.add(gradleWrapperFile.getRemote());
+                if( !gradleWrapperFile.exists() ) {
+                    listener.fatalError("Unable to find Gradle Wrapper");
+                    return false;
+                }
+                exe = gradleWrapperFile.getRemote();
             } else {
-                args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
+                exe = launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND;
             }
         } else {
             ai = ai.forNode(Computer.currentComputer().getNode(), listener);
             ai = ai.forEnvironment(env);
-            String exe;
-            if (useWrapper) {
+            if (useWrapper) { // Can not happen, the Gradle installation is disabled if the useWrapper is checked
                 exe = ai.getWrapperExecutable(launcher, build);
             } else {
                 exe = ai.getExecutable(launcher);
             }
-            if (exe == null) {
-                listener.fatalError("ERROR");
-                return false;
-            }
-            args.add(exe);
         }
+
+        if (exe == null) {
+            listener.fatalError("ERROR");
+            return false;
+        }
+        args.add(exe);
+
         args.addKeyValuePairs("-D", build.getBuildVariables());
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
@@ -217,7 +250,6 @@ public class Gradle extends Builder implements DryRun {
             return false;
         }
     }
-
 
     @Override
     public DescriptorImpl getDescriptor() {
