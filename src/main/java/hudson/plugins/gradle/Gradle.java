@@ -11,8 +11,8 @@ import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -157,7 +157,7 @@ public class Gradle extends Builder implements DryRun {
             }
             args.add(exe);
         }
-        args.addKeyValuePairs("-D", build.getBuildVariables());
+        args.addKeyValuePairs("-D", fixParameters(build.getBuildVariables()));
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
         if (buildFile != null && buildFile.trim().length() != 0) {
@@ -218,6 +218,28 @@ public class Gradle extends Builder implements DryRun {
         }
     }
 
+    private Map<String, String> fixParameters(Map<String, String> parmas) {
+        Map<String, String> result = new HashMap<String, String>();
+        for (Map.Entry<String, String> entry : parmas.entrySet()) {
+            String value = entry.getValue();
+            if (isXmlValue(value)) {
+                result.put(entry.getKey(), "\"" + value + "\"");
+            } else {
+                result.put(entry.getKey(), value);
+            }
+        }
+        return result;
+    }
+
+    private boolean isXmlValue(String value) {
+        if (value == null) {
+            return false;
+        }
+        if (value.trim().length() == 0) {
+            return false;
+        }
+        return value.contains("<") && (value.contains("</") || value.contains("/>"));
+    }
 
     @Override
     public DescriptorImpl getDescriptor() {
