@@ -12,6 +12,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import java.util.List;
  * @author Gregory Boissinot
  */
 public class GradleInstallation extends ToolInstallation
-        implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation> {
+        implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation>, Serializable {
 
     public static final String UNIX_GRADLE_COMMAND = "gradle";
     public static final String WINDOWS_GRADLE_COMMAND = "gradle.bat";
