@@ -7,7 +7,6 @@
         <version>1.409</version>
     </parent>
 
-    <groupId>com.zenika.jenkins-ci.plugins</groupId>
     <artifactId>gradle</artifactId>
     <version>1.13-SNAPSHOT</version>
     <packaging>hpi</packaging>
