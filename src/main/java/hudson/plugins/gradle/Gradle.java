@@ -4,14 +4,17 @@ import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.ClasspathBuilder;
+import hudson.util.JVMBuilder;
 import net.sf.json.JSONObject;
 import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Map;
 
@@ -28,17 +31,32 @@ public class Gradle extends Builder implements DryRun {
     private final String buildFile;
     private final String gradleName;
     private final boolean useWrapper;
+    private final String wrapperScript;
+
+    // Artifact of how Jelly/Stapler puts conditional variables in blocks, which NEED to map to a sub-Object.
+    // The alternative would have been to mess with DescriptorImpl.getInstance
+    public static class UsingWrapper {
+        @DataBoundConstructor
+        public UsingWrapper(String value, String gradleName, String wrapperScript) {
+            this.gradleName = gradleName;
+            this.wrapperScript = wrapperScript;
+        }
+
+        String gradleName;
+        String wrapperScript;
+    }
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper) {
+                  UsingWrapper usingWrapper) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
-        this.gradleName = gradleName;
         this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
-        this.useWrapper = !useWrapper;
+        this.useWrapper = usingWrapper != null && usingWrapper.wrapperScript!=null;
+        this.gradleName = usingWrapper==null?null:usingWrapper.gradleName; // May be null;
+        this.wrapperScript = usingWrapper==null?null:usingWrapper.wrapperScript; // May be null
     }
 
 
@@ -75,6 +93,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public String getRootBuildScriptDir() {
         return rootBuildScriptDir;
+    }
+
+    @SuppressWarnings("unused")
+    public String getWrapperScript() {
+        return wrapperScript;
     }
 
     public GradleInstallation getGradle() {
@@ -131,51 +154,44 @@ public class Gradle extends Builder implements DryRun {
         normalizedTasks = Util.replaceMacro(normalizedTasks, env);
         normalizedTasks = Util.replaceMacro(normalizedTasks, build.getBuildVariables());
 
-        //Build arguments
-        ArgumentListBuilder args = new ArgumentListBuilder();
+        // Resolve Gradle installation and java environment
         GradleInstallation ai = getGradle();
         if (ai == null) {
-            if (useWrapper) {
-                String execName = (Functions.isWindows()) ? GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND : GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND;
-                FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
-                args.add(gradleWrapperFile.getRemote());
-            } else {
-                args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
-            }
-        } else {
-            ai = ai.forNode(Computer.currentComputer().getNode(), listener);
-            ai = ai.forEnvironment(env);
-            String exe;
-            if (useWrapper) {
-                exe = ai.getWrapperExecutable(launcher, build);
-            } else {
-                exe = ai.getExecutable(launcher);
-            }
-            if (exe == null) {
-                listener.fatalError("ERROR");
-                return false;
-            }
-            args.add(exe);
+            launcher.getListener().error("Gradle installation not set, cannot build");
+            build.setResult(Result.FAILURE);
+            return false;
         }
-        args.addKeyValuePairs("-D", build.getBuildVariables());
-        args.addTokenized(normalizedSwitches);
-        args.addTokenized(normalizedTasks);
+        if (build.getEnvironment(listener).get("JAVA_HOME") == null) {
+            launcher.getListener().error("Missing JAVA_HOME in build environment. Make sure a JDK is selected for the project.");
+            build.setResult(Result.FAILURE);
+            return false;
+        }
+
+        ai = ai.forNode(Computer.currentComputer().getNode(), listener);
+        ai = ai.forEnvironment(env);
+
+
+        // Build arguments, jvm options and classpath
+        final ClasspathBuilder classpath = new ClasspathBuilder();
+        final ArgumentListBuilder vmOptions = new ArgumentListBuilder();
+        final ArgumentListBuilder gradleArgs = new ArgumentListBuilder();
+
+        final FilePath libPath = new FilePath(new FilePath(launcher.getChannel(), ai.getHome()), "lib");
+        for (FilePath file : libPath.list("gradle-launcher*.jar")) {
+            classpath.add(file);
+        }
+
+        gradleArgs.addKeyValuePairs("-D", build.getBuildVariables());
+
+        gradleArgs.addTokenized(normalizedSwitches);
+        gradleArgs.addTokenized(normalizedTasks);
         if (buildFile != null && buildFile.trim().length() != 0) {
             String buildFileNormalized = Util.replaceMacro(buildFile.trim(), env);
-            args.add("-b");
-            args.add(buildFileNormalized);
+            gradleArgs.add("-b");
+            gradleArgs.add(buildFileNormalized);
         }
         if (ai != null) {
             env.put("GRADLE_HOME", ai.getHome());
-        }
-
-        if (!launcher.isUnix()) {
-            // on Windows, executing batch file can't return the correct error code,
-            // so we need to wrap it into cmd.exe.
-            // double %% is needed because we want ERRORLEVEL to be expanded after
-            // batch file executed, not before. This alone shows how broken Windows is...
-            args.prepend("cmd.exe", "/C");
-            args.add("&&", "exit", "%%ERRORLEVEL%%");
         }
 
         FilePath rootLauncher;
@@ -194,21 +210,29 @@ public class Gradle extends Builder implements DryRun {
         }
 
         try {
-            GradleConsoleAnnotator gca = new GradleConsoleAnnotator(
-                    listener.getLogger(), build.getCharset());
-            int r;
+            GradleConsoleAnnotator gca = new GradleConsoleAnnotator(listener.getLogger(), build.getCharset());
+            boolean success;
             try {
-                r = launcher.launch().cmds(args).envs(env).stdout(gca)
-                        .pwd(rootLauncher).join();
+                ArgumentListBuilder args = new ArgumentListBuilder();
+                final FilePath javaHome = new FilePath(launcher.getChannel(), build.getEnvironment(listener).get("JAVA_HOME"));
+                args.add(javaHome.child("bin").child("java").getRemote());
+                args.add("-cp").add(classpath.toString());
+                args.add(vmOptions.toCommandArray());
+                args.add("org.gradle.launcher.GradleMain");
+                args.add(gradleArgs.toCommandArray());
+
+                final int returnCode = launcher.launch()
+                        .cmds(args)
+                        .envs(env)
+                        .stdout(gca)
+                        .pwd(rootLauncher)
+                        .join();
+                success = returnCode == 0;
             } finally {
                 gca.forceEol();
             }
-            boolean success = r == 0;
             // if the build is successful then set it as success otherwise as a failure.
-            build.setResult(Result.SUCCESS);
-            if (!success) {
-                build.setResult(Result.FAILURE);
-            }
+            build.setResult(success ? Result.SUCCESS : Result.FAILURE);
             return success;
         } catch (IOException e) {
             Util.displayIOException(e, listener);
@@ -217,7 +241,6 @@ public class Gradle extends Builder implements DryRun {
             return false;
         }
     }
-
 
     @Override
     public DescriptorImpl getDescriptor() {
