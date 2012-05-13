@@ -100,6 +100,9 @@ public class Gradle extends Builder implements DryRun {
     private boolean performTask(boolean dryRun, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
 
+        GradleLogger gradleLogger = new GradleLogger(listener);
+        gradleLogger.info("Launching build.");
+
         EnvVars env = build.getEnvironment(listener);
 
         //Switches
@@ -152,7 +155,7 @@ public class Gradle extends Builder implements DryRun {
                 exe = ai.getExecutable(launcher);
             }
             if (exe == null) {
-                listener.fatalError("ERROR");
+                gradleLogger.error("Can't retrieve the Gradle executable.");
                 return false;
             }
             args.add(exe);
