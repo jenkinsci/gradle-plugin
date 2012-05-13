@@ -3,6 +3,7 @@ package hudson.plugins.gradle;
 import hudson.*;
 import hudson.model.*;
 import hudson.remoting.Callable;
+import hudson.remoting.VirtualChannel;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
@@ -68,13 +69,15 @@ public class GradleInstallation extends ToolInstallation
         });
     }
 
-    public String getWrapperExecutable(Launcher launcher, final AbstractBuild<?, ?> build)
+    public String getWrapperExecutable(final AbstractBuild<?, ?> build)
             throws IOException, InterruptedException {
-        return launcher.getChannel().call(new Callable<String, IOException>() {
-            public String call() throws IOException {
-                File exe = getWrapperExeFile(build);
-                if (exe.exists()) {
-                    return exe.getPath();
+        return build.getModuleRoot().act(new FilePath.FileCallable<String>() {
+            @Override
+            public String invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+                String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_WRAPPER_COMMAND : UNIX_GRADLE_WRAPPER_COMMAND;
+                File execFile = new File(f, execName);
+                if (execFile.exists()) {
+                    return execFile.getPath();
                 }
                 return null;
             }
@@ -86,13 +89,6 @@ public class GradleInstallation extends ToolInstallation
         String antHome = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
         return new File(antHome, "bin/" + execName);
     }
-
-    private File getWrapperExeFile(AbstractBuild<?, ?> build) {
-        String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_WRAPPER_COMMAND : UNIX_GRADLE_WRAPPER_COMMAND;
-        return new File(build.getModuleRoot().getRemote(), execName);
-    }
-
-    private static final long serialVersionUID = 1L;
 
     public GradleInstallation forEnvironment(EnvVars environment) {
         return new GradleInstallation(getName(), environment.expand(gradleHome), getProperties().toList());

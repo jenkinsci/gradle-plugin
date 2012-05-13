@@ -147,7 +147,7 @@ public class Gradle extends Builder implements DryRun {
             ai = ai.forEnvironment(env);
             String exe;
             if (useWrapper) {
-                exe = ai.getWrapperExecutable(launcher, build);
+                exe = ai.getWrapperExecutable(build);
             } else {
                 exe = ai.getExecutable(launcher);
             }
