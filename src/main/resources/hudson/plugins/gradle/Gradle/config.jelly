@@ -13,6 +13,10 @@
         </f:entry>
     </f:optionalBlock>
 
+    <f:entry title="${%Gradle wrapper location}" field="wrapperLocation">
+        <f:textbox/>
+    </f:entry>
+
     <f:entry title="${%Build step description}" field="description">
         <f:expandableTextbox/>
     </f:entry>

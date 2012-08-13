@@ -9,6 +9,7 @@ import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
@@ -69,9 +70,15 @@ public class GradleInstallation extends ToolInstallation
         });
     }
 
-    public String getWrapperExecutable(final AbstractBuild<?, ?> build)
+    public String getWrapperExecutable(final AbstractBuild<?, ?> build, String wrapperLocation)
             throws IOException, InterruptedException {
-        return build.getModuleRoot().act(new FilePath.FileCallable<String>() {
+        FilePath gradleWrapperLocation;
+        if (StringUtils.isNotBlank(wrapperLocation)) {
+            gradleWrapperLocation = new FilePath(build.getModuleRoot(), wrapperLocation);
+        } else {
+            gradleWrapperLocation = build.getModuleRoot();
+        }
+        return gradleWrapperLocation.act(new FilePath.FileCallable<String>() {
             @Override
             public String invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
                 String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_WRAPPER_COMMAND : UNIX_GRADLE_WRAPPER_COMMAND;
