@@ -7,11 +7,13 @@ import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +21,7 @@ import java.util.Map;
 /**
  * @author Gregory Boissinot
  */
-public class Gradle extends Builder implements DryRun {
+public class Gradle extends Builder implements DryRun, Serializable {
 
     private final String description;
     private final String switches;
@@ -28,10 +30,11 @@ public class Gradle extends Builder implements DryRun {
     private final String buildFile;
     private final String gradleName;
     private final boolean useWrapper;
+    private final String wrapperLocation;
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper) {
+                  String gradleName, boolean useWrapper, String wrapperLocation) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -39,8 +42,8 @@ public class Gradle extends Builder implements DryRun {
         this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
         this.useWrapper = !useWrapper;
+        this.wrapperLocation = wrapperLocation;
     }
-
 
     @SuppressWarnings("unused")
     public String getSwitches() {
@@ -75,6 +78,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public String getRootBuildScriptDir() {
         return rootBuildScriptDir;
+    }
+
+    @SuppressWarnings("unused")
+    public String getWrapperLocation() {
+        return wrapperLocation;
     }
 
     public GradleInstallation getGradle() {
@@ -140,7 +148,15 @@ public class Gradle extends Builder implements DryRun {
         if (ai == null) {
             if (useWrapper) {
                 String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-                FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
+
+                FilePath gradleWrapperLocation;
+                if (StringUtils.isNotBlank(wrapperLocation)) {
+                    gradleWrapperLocation = new FilePath(build.getModuleRoot(), wrapperLocation);
+                } else {
+                    gradleWrapperLocation = build.getModuleRoot();
+                }
+
+                FilePath gradleWrapperFile = new FilePath(gradleWrapperLocation, execName);
                 args.add(gradleWrapperFile.getRemote());
             } else {
                 args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
@@ -150,7 +166,7 @@ public class Gradle extends Builder implements DryRun {
             ai = ai.forEnvironment(env);
             String exe;
             if (useWrapper) {
-                exe = ai.getWrapperExecutable(build);
+                exe = ai.getWrapperExecutable(build, wrapperLocation);
             } else {
                 exe = ai.getExecutable(launcher);
             }
