@@ -141,6 +141,7 @@ public class Gradle extends Builder implements DryRun {
             if (useWrapper) {
                 String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
                 FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
+                gradleWrapperFile.chmod(744);
                 args.add(gradleWrapperFile.getRemote());
             } else {
                 args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
