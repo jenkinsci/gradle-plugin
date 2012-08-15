@@ -1,0 +1,47 @@
+buildscript {
+    repositories {
+        maven {
+            name "jenkins"
+            delegate.url("http://maven.jenkins-ci.org/content/repositories/releases/")
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.jenkins-ci.tools:gradle-jpi-plugin:0.4.0'
+    }
+}
+
+//Actually apply JPI plugin
+apply plugin: 'jpi'
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.1'
+}
+
+group = "org.jenkins-ci.plugins"
+version = "1.18-SNAPSHOT"
+
+dependencies {
+    compile group: 'org.jenkins-ci.lib', name: 'dry-run-lib', version: '0.1'
+}
+
+/**
+ * Jenkins descriptor variables
+ */
+jenkinsPlugin {
+    coreVersion = '1.420'
+    displayName = 'Jenkins Gradle plugin'
+    url = 'http://wiki.jenkins-ci.org/display/JENKINS/Gradle+Plugin'
+    gitHubUrl = 'https://github.com/noamt/jenkins-motivation-plugin'
+
+    ext.licenseName = 'MIT license'
+    ext.licenseComments = 'All source code is under the MIT license.'
+
+    developers {
+        developer {
+            id 'gbois'
+            name 'Gregory Boissinot'
+            timezone '+1'
+        }
+    }
+}
