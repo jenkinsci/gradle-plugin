@@ -14,6 +14,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -28,17 +29,19 @@ public class Gradle extends Builder implements DryRun {
     private final String buildFile;
     private final String gradleName;
     private final boolean useWrapper;
+    private final boolean makeExecutable;
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper) {
+                  String gradleName, boolean useWrapper, boolean makeExecutable) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
         this.gradleName = gradleName;
         this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
-        this.useWrapper = !useWrapper;
+        this.useWrapper = useWrapper;
+        this.makeExecutable = makeExecutable;
     }
 
 
@@ -75,6 +78,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public String getRootBuildScriptDir() {
         return rootBuildScriptDir;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isMakeExecutable() {
+        return makeExecutable;
     }
 
     public GradleInstallation getGradle() {
@@ -141,7 +149,9 @@ public class Gradle extends Builder implements DryRun {
             if (useWrapper) {
                 String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
                 FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
-                gradleWrapperFile.chmod(744);
+                if (makeExecutable) {
+                    gradleWrapperFile.chmod(0744);
+                }
                 args.add(gradleWrapperFile.getRemote());
             } else {
                 args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
@@ -303,6 +313,16 @@ public class Gradle extends Builder implements DryRun {
 
         @Override
         public Gradle newInstance(StaplerRequest request, JSONObject formData) throws FormException {
+
+            // "flatten" formData for useWrapper radioBlocks
+            JSONObject useWrapper = formData.getJSONObject("useWrapper");
+            boolean wrapper = useWrapper.getBoolean("value");
+            useWrapper.remove("value");
+            for (String key : (Set<String>) useWrapper.keySet()) {
+                formData.put(key, useWrapper.get(key));
+            }
+            formData.put("useWrapper", wrapper);
+
             return (Gradle) request.bindJSON(clazz, formData);
         }
     }
