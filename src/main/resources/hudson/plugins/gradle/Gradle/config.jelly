@@ -3,7 +3,7 @@
 
     <f:radioBlock name="useWrapper" checked="${!instance.useWrapper}" value="false" title="${%Invoke Gradle}">
         <f:entry title="${%Gradle Version}" field="gradleName">
-            <select class="setting-input">
+            <select class="setting-input" name="gradleName">
                 <option>(Default)</option>
                 <j:forEach var="inst" items="${descriptor.installations}">
                     <f:option selected="${inst.name==instance.gradle.name}">${inst.name}</f:option>
