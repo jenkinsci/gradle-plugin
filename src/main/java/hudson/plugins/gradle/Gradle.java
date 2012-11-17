@@ -148,13 +148,13 @@ public class Gradle extends Builder implements DryRun {
         normalizedTasks = Util.replaceMacro(normalizedTasks, env);
         normalizedTasks = Util.replaceMacro(normalizedTasks, build.getBuildVariables());
 
-	FilePath normalizedRootBuildScriptDir = null;
-	if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
+        FilePath normalizedRootBuildScriptDir = null;
+        if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
             String rootBuildScriptNormalized = rootBuildScriptDir.trim().replaceAll("[\t\r\n]+", " ");
             rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized.trim(), env);
             rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized, build.getBuildVariableResolver());
             normalizedRootBuildScriptDir = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
-	}
+        }
 
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
@@ -163,8 +163,8 @@ public class Gradle extends Builder implements DryRun {
             if (useWrapper) {
                 String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
                 FilePath gradleWrapperFile = ((fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null))
-					      ? new FilePath(normalizedRootBuildScriptDir, execName)
-					      : new FilePath(build.getModuleRoot(), execName));
+                                              ? new FilePath(normalizedRootBuildScriptDir, execName)
+                                              : new FilePath(build.getModuleRoot(), execName));
                 if (makeExecutable) {
                     gradleWrapperFile.chmod(0744);
                 }
