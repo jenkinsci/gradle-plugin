@@ -30,10 +30,11 @@ public class Gradle extends Builder implements DryRun {
     private final String gradleName;
     private final boolean useWrapper;
     private final boolean makeExecutable;
+    private final boolean fromRootBuildScriptDir;
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable) {
+                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -42,8 +43,8 @@ public class Gradle extends Builder implements DryRun {
         this.buildFile = buildFile;
         this.useWrapper = useWrapper;
         this.makeExecutable = makeExecutable;
+	this.fromRootBuildScriptDir = fromRootBuildScriptDir;
     }
-
 
     @SuppressWarnings("unused")
     public String getSwitches() {
@@ -83,6 +84,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public boolean isMakeExecutable() {
         return makeExecutable;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isFromRootBuildScriptDir() {
+        return fromRootBuildScriptDir;
     }
 
     public GradleInstallation getGradle() {
@@ -142,13 +148,23 @@ public class Gradle extends Builder implements DryRun {
         normalizedTasks = Util.replaceMacro(normalizedTasks, env);
         normalizedTasks = Util.replaceMacro(normalizedTasks, build.getBuildVariables());
 
+	FilePath normalizedRootBuildScriptDir = null;
+	if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
+            String rootBuildScriptNormalized = rootBuildScriptDir.trim().replaceAll("[\t\r\n]+", " ");
+            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized.trim(), env);
+            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized, build.getBuildVariableResolver());
+            normalizedRootBuildScriptDir = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
+	}
+
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
         GradleInstallation ai = getGradle();
         if (ai == null) {
             if (useWrapper) {
                 String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-                FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
+                FilePath gradleWrapperFile = ((fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null))
+					      ? new FilePath(normalizedRootBuildScriptDir, execName)
+					      : new FilePath(build.getModuleRoot(), execName));
                 if (makeExecutable) {
                     gradleWrapperFile.chmod(0744);
                 }
@@ -196,11 +212,8 @@ public class Gradle extends Builder implements DryRun {
         }
 
         FilePath rootLauncher;
-        if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
-            String rootBuildScriptNormalized = rootBuildScriptDir.trim().replaceAll("[\t\r\n]+", " ");
-            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized.trim(), env);
-            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized, build.getBuildVariableResolver());
-            rootLauncher = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
+        if (normalizedRootBuildScriptDir != null) {
+            rootLauncher = normalizedRootBuildScriptDir;
         } else {
             rootLauncher = build.getWorkspace();
         }
