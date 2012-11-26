@@ -199,6 +199,9 @@ public class Gradle extends Builder implements DryRun {
             env.put("GRADLE_HOME", ai.getHome());
         }
 
+        // Make user home relative to the workspace, so that files aren't shared between builds
+        env.put("GRADLE_USER_HOME", build.getWorkspace().getRemote());
+
         if (!launcher.isUnix()) {
             // on Windows, executing batch file can't return the correct error code,
             // so we need to wrap it into cmd.exe.
