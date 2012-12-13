@@ -20,6 +20,12 @@
         </f:entry>
     </f:radioBlock>
 
+    <f:optionalBlock field="useLauncherJar" title="${%Bypasses startup script}">
+        <f:entry title="${%Launcher/Wrapper jar path}" field="launcherJar">
+            <f:textbox/>
+        </f:entry>
+    </f:optionalBlock>
+    
     <f:entry title="${%Build step description}" field="description">
         <f:expandableTextbox/>
     </f:entry>

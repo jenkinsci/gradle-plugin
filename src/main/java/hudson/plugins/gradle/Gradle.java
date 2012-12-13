@@ -11,8 +11,11 @@ import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,12 +32,14 @@ public class Gradle extends Builder implements DryRun {
     private final String buildFile;
     private final String gradleName;
     private final boolean useWrapper;
+    private final boolean useLauncherJar;
     private final boolean makeExecutable;
     private final boolean fromRootBuildScriptDir;
+    private final String launcherJar;
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir) {
+                  String gradleName, boolean useWrapper, boolean useLauncherJar, String launcherJar, boolean makeExecutable, boolean fromRootBuildScriptDir) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -42,6 +47,8 @@ public class Gradle extends Builder implements DryRun {
         this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
         this.useWrapper = useWrapper;
+        this.useLauncherJar = useLauncherJar;
+        this.launcherJar = launcherJar;
         this.makeExecutable = makeExecutable;
         this.fromRootBuildScriptDir = fromRootBuildScriptDir;
     }
@@ -74,6 +81,16 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public boolean isUseWrapper() {
         return useWrapper;
+    }
+    
+    @SuppressWarnings("unused")
+    public boolean isUseLauncherJar() {
+        return useLauncherJar;
+    }
+    
+    @SuppressWarnings("unused")
+    public String getLauncherJar() {
+        return launcherJar;
     }
 
     @SuppressWarnings("unused")
@@ -144,50 +161,70 @@ public class Gradle extends Builder implements DryRun {
         } else {
             normalizedTasks = tasks;
         }
-        normalizedTasks = normalizedTasks.replaceAll("[\t\r\n]+", " ");
-        normalizedTasks = Util.replaceMacro(normalizedTasks, env);
-        normalizedTasks = Util.replaceMacro(normalizedTasks, build.getBuildVariables());
+        normalizedTasks = normalizeString(build, env, normalizedTasks);
 
-        FilePath normalizedRootBuildScriptDir = null;
-        if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
-            String rootBuildScriptNormalized = rootBuildScriptDir.trim().replaceAll("[\t\r\n]+", " ");
-            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized.trim(), env);
-            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized, build.getBuildVariableResolver());
-            normalizedRootBuildScriptDir = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
-        }
+        FilePath normalizedRootBuildScriptDir = normalizePath(build, env, rootBuildScriptDir);
+        FilePath normalizedLauncherJar = normalizePath(build, env, launcherJar);
 
         //Build arguments
-        ArgumentListBuilder args = new ArgumentListBuilder();
         GradleInstallation ai = getGradle();
-        if (ai == null) {
-            if (useWrapper) {
-                String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-                FilePath gradleWrapperFile = ((fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null))
-                                              ? new FilePath(normalizedRootBuildScriptDir, execName)
-                                              : new FilePath(build.getModuleRoot(), execName));
-                if (makeExecutable) {
-                    gradleWrapperFile.chmod(0744);
+        if (ai != null) {
+            ai = ai.forNode(getCurrentNode(), listener).forEnvironment(env);
+        }
+        ArgumentListBuilder args = new ArgumentListBuilder();
+        if (useLauncherJar) {
+            if (normalizedLauncherJar != null) {
+                
+            } else if (useWrapper) {
+                String gradleLauncherJar = "gradle/wrapper/gradle-wrapper.jar";
+                normalizedLauncherJar = ((fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null))
+                    ? new FilePath(normalizedRootBuildScriptDir, gradleLauncherJar)
+                    : new FilePath(build.getModuleRoot(), gradleLauncherJar));
+            } else if (ai != null) {
+                String str = ai.getLauncher(launcher);
+                if (str != null) {
+                    normalizedLauncherJar = new FilePath(launcher.getChannel(), str);
                 }
-                args.add(gradleWrapperFile.getRemote());
-            } else {
-                args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
             }
-        } else {
-            ai = ai.forNode(Computer.currentComputer().getNode(), listener);
-            ai = ai.forEnvironment(env);
-            String exe;
-            if (useWrapper) {
-                exe = ai.getWrapperExecutable(build);
-            } else {
-                exe = ai.getExecutable(launcher);
+            if (normalizedLauncherJar == null) {
+                gradleLogger.error("Can't retrieve the Gradle launcher/wrapper jar.");
+                return false;
             }
+            String className = normalizedLauncherJar.getName().contains("gradle-wrapper")
+                ? "org.gradle.wrapper.GradleWrapperMain"
+                : "org.gradle.launcher.GradleMain";
+
+            JDK jdk = build.getProject().getJDK();
+            if (jdk != null) {
+                jdk = jdk.forNode(getCurrentNode(), listener).forEnvironment(env);
+            }
+            if (jdk == null) {
+                args.add("java");
+            } else {
+                args.add(new File(jdk.getBinDir(), "java").getPath());
+            }
+            args.add("-classpath").add(normalizedLauncherJar.getRemote()).add(className);
+        }
+        else if (useWrapper) {
+            String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
+            FilePath gradleWrapperFile = ((fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null))
+                                          ? new FilePath(normalizedRootBuildScriptDir, execName)
+                                          : new FilePath(build.getModuleRoot(), execName));
+            if (makeExecutable) {
+                gradleWrapperFile.chmod(0744);
+            }
+            args.add(gradleWrapperFile.getRemote());
+        } else if (ai != null) {
+            String exe = ai.getExecutable(launcher);
             if (exe == null) {
                 gradleLogger.error("Can't retrieve the Gradle executable.");
                 return false;
             }
             args.add(exe);
+        } else {
+            args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
         }
-        args.addKeyValuePairs("-D", fixParameters(build.getBuildVariables()));
+        args.addKeyValuePairs("-D", build.getBuildVariables());
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
         if (buildFile != null && buildFile.trim().length() != 0) {
@@ -202,13 +239,8 @@ public class Gradle extends Builder implements DryRun {
         // Make user home relative to the workspace, so that files aren't shared between builds
         env.put("GRADLE_USER_HOME", build.getWorkspace().getRemote());
 
-        if (!launcher.isUnix()) {
-            // on Windows, executing batch file can't return the correct error code,
-            // so we need to wrap it into cmd.exe.
-            // double %% is needed because we want ERRORLEVEL to be expanded after
-            // batch file executed, not before. This alone shows how broken Windows is...
-            args.prepend("cmd.exe", "/C");
-            args.add("&&", "exit", "%%ERRORLEVEL%%");
+        if (!launcher.isUnix() && !useLauncherJar) {
+            args = args.toWindowsCommand();
         }
 
         FilePath rootLauncher;
@@ -248,27 +280,34 @@ public class Gradle extends Builder implements DryRun {
         }
     }
 
-    private Map<String, String> fixParameters(Map<String, String> parmas) {
-        Map<String, String> result = new HashMap<String, String>();
-        for (Map.Entry<String, String> entry : parmas.entrySet()) {
-            String value = entry.getValue();
-            if (isValue2Escape(value)) {
-                result.put(entry.getKey(), "\"" + value + "\"");
-            } else {
-                result.put(entry.getKey(), value);
-            }
-        }
-        return result;
+    /**
+     * Returns the current {@link Node} on which we are buildling.
+     */
+    protected Node getCurrentNode() {
+        return Executor.currentExecutor().getOwner().getNode();
     }
 
-    private boolean isValue2Escape(String value) {
-        if (value == null) {
-            return false;
+    private static FilePath normalizePath(AbstractBuild<?, ?> build, EnvVars env, String path)
+    {
+        FilePath normalizedPath = null;
+        if (path != null && path.trim().length() != 0) {
+            String pathNormalized = normalizeString(build, env, path);
+            normalizedPath = new FilePath(build.getModuleRoot(), pathNormalized);
         }
-        if (value.trim().length() == 0) {
-            return false;
-        }
-        return value.contains("<") || value.contains(">");
+        return normalizedPath;
+    }
+
+    private static String normalizeString(AbstractBuild<?, ?> build, EnvVars env, String str)
+    {
+        String strNormalized = str.replaceAll("[\t\r\n]+", " ").trim();
+        strNormalized = Util.replaceMacro(strNormalized, env);
+        strNormalized = Util.replaceMacro(strNormalized, build.getBuildVariableResolver());
+        return strNormalized;
+    }
+    
+    private static boolean startQuoting(StringBuilder buf, String arg, int atIndex) {
+        buf.append('"').append(arg.substring(0, atIndex));
+        return true;
     }
 
     @Override
@@ -338,6 +377,11 @@ public class Gradle extends Builder implements DryRun {
                 formData.put(key, useWrapper.get(key));
             }
             formData.put("useWrapper", wrapper);
+            JSONObject useLauncher = formData.getJSONObject("useLauncherJar");
+            if (!useLauncher.isNullObject()) {
+                formData.put("launcherJar", useLauncher.get("launcherJar"));
+                formData.put("useLauncherJar", !useLauncher.isEmpty());
+            }
 
             return (Gradle) request.bindJSON(clazz, formData);
         }
