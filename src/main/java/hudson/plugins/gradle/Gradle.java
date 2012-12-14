@@ -173,17 +173,17 @@ public class Gradle extends Builder implements DryRun {
         }
         ArgumentListBuilder args = new ArgumentListBuilder();
         if (useLauncherJar) {
-            if (normalizedLauncherJar != null) {
-                
-            } else if (useWrapper) {
-                String gradleLauncherJar = "gradle/wrapper/gradle-wrapper.jar";
-                normalizedLauncherJar = ((fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null))
-                    ? new FilePath(normalizedRootBuildScriptDir, gradleLauncherJar)
-                    : new FilePath(build.getModuleRoot(), gradleLauncherJar));
-            } else if (ai != null) {
-                String str = ai.getLauncher(launcher);
-                if (str != null) {
-                    normalizedLauncherJar = new FilePath(launcher.getChannel(), str);
+            if (normalizedLauncherJar == null) {
+                if (useWrapper) {
+                    String gradleLauncherJar = "gradle/wrapper/gradle-wrapper.jar";
+                    normalizedLauncherJar = ((fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null))
+                        ? new FilePath(normalizedRootBuildScriptDir, gradleLauncherJar)
+                        : new FilePath(build.getModuleRoot(), gradleLauncherJar));
+                } else if (ai != null) {
+                    String str = ai.getLauncher(launcher);
+                    if (str != null) {
+                        normalizedLauncherJar = new FilePath(launcher.getChannel(), str);
+                    }
                 }
             }
             if (normalizedLauncherJar == null) {
@@ -203,7 +203,7 @@ public class Gradle extends Builder implements DryRun {
             } else {
                 args.add(new File(jdk.getBinDir(), "java").getPath());
             }
-            args.add("-classpath").add(normalizedLauncherJar.getRemote()).add(className);
+            args.add("-cp").add(normalizedLauncherJar.getRemote()).add(className);
         }
         else if (useWrapper) {
             String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
@@ -305,11 +305,6 @@ public class Gradle extends Builder implements DryRun {
         return strNormalized;
     }
     
-    private static boolean startQuoting(StringBuilder buf, String arg, int atIndex) {
-        buf.append('"').append(arg.substring(0, atIndex));
-        return true;
-    }
-
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
