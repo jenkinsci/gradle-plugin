@@ -187,7 +187,8 @@ public class Gradle extends Builder implements DryRun {
             }
             args.add(exe);
         }
-        args.addKeyValuePairs("-D", fixParameters(build.getBuildVariables()));
+        Set<String> sensitiveVars = build.getSensitiveBuildVariables();
+        args.addKeyValuePairs("-D", fixParameters(build.getBuildVariables()), sensitiveVars);
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
         if (buildFile != null && buildFile.trim().length() != 0) {
