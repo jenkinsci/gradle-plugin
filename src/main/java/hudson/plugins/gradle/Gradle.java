@@ -204,12 +204,7 @@ public class Gradle extends Builder implements DryRun {
         env.put("GRADLE_USER_HOME", build.getWorkspace().getRemote());
 
         if (!launcher.isUnix()) {
-            // on Windows, executing batch file can't return the correct error code,
-            // so we need to wrap it into cmd.exe.
-            // double %% is needed because we want ERRORLEVEL to be expanded after
-            // batch file executed, not before. This alone shows how broken Windows is...
-            args.prepend("cmd.exe", "/C");
-            args.add("&&", "exit", "%%ERRORLEVEL%%");
+            args = args.toWindowsCommand();
         }
 
         FilePath rootLauncher;
