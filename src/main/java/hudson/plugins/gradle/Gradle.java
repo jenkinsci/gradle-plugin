@@ -31,10 +31,11 @@ public class Gradle extends Builder implements DryRun {
     private final boolean useWrapper;
     private final boolean makeExecutable;
     private final boolean fromRootBuildScriptDir;
+    private final boolean useWorkspaceAsHome;
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir) {
+                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir, boolean useWorkspaceAsHome) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -44,6 +45,7 @@ public class Gradle extends Builder implements DryRun {
         this.useWrapper = useWrapper;
         this.makeExecutable = makeExecutable;
         this.fromRootBuildScriptDir = fromRootBuildScriptDir;
+        this.useWorkspaceAsHome = useWorkspaceAsHome;
     }
 
     @SuppressWarnings("unused")
@@ -89,6 +91,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public boolean isFromRootBuildScriptDir() {
         return fromRootBuildScriptDir;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isUseWorkspaceAsHome() {
+        return useWorkspaceAsHome;
     }
 
     public GradleInstallation getGradle() {
@@ -200,8 +207,10 @@ public class Gradle extends Builder implements DryRun {
             env.put("GRADLE_HOME", ai.getHome());
         }
 
-        // Make user home relative to the workspace, so that files aren't shared between builds
-        env.put("GRADLE_USER_HOME", build.getWorkspace().getRemote());
+        if (useWorkspaceAsHome) {
+            // Make user home relative to the workspace, so that files aren't shared between builds
+            env.put("GRADLE_USER_HOME", build.getWorkspace().getRemote());
+        }
 
         if (!launcher.isUnix()) {
             args = args.toWindowsCommand();
