@@ -33,13 +33,6 @@
         <developerConnection>scm:git:git@github.com:jenkinsci/gradle-plugin.git</developerConnection>
     </scm>
 
-    <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.lib</groupId>
