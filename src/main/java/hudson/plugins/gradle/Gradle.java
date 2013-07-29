@@ -36,10 +36,11 @@ public class Gradle extends Builder implements DryRun {
     private final boolean makeExecutable;
     private final boolean fromRootBuildScriptDir;
     private final String launcherJar;
+    private final boolean useWorkspaceAsHome;
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean useLauncherJar, String launcherJar, boolean makeExecutable, boolean fromRootBuildScriptDir) {
+                  String gradleName, boolean useWrapper, boolean useLauncherJar, String launcherJar, boolean makeExecutable, boolean fromRootBuildScriptDir, boolean useWorkspaceAsHome) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -51,6 +52,7 @@ public class Gradle extends Builder implements DryRun {
         this.launcherJar = launcherJar;
         this.makeExecutable = makeExecutable;
         this.fromRootBuildScriptDir = fromRootBuildScriptDir;
+        this.useWorkspaceAsHome = useWorkspaceAsHome;
     }
 
     @SuppressWarnings("unused")
@@ -82,12 +84,12 @@ public class Gradle extends Builder implements DryRun {
     public boolean isUseWrapper() {
         return useWrapper;
     }
-    
+
     @SuppressWarnings("unused")
     public boolean isUseLauncherJar() {
         return useLauncherJar;
     }
-    
+
     @SuppressWarnings("unused")
     public String getLauncherJar() {
         return launcherJar;
@@ -106,6 +108,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public boolean isFromRootBuildScriptDir() {
         return fromRootBuildScriptDir;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isUseWorkspaceAsHome() {
+        return useWorkspaceAsHome;
     }
 
     public GradleInstallation getGradle() {
@@ -224,7 +231,8 @@ public class Gradle extends Builder implements DryRun {
         } else {
             args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
         }
-        args.addKeyValuePairs("-D", build.getBuildVariables());
+        Set<String> sensitiveVars = build.getSensitiveBuildVariables();
+        args.addKeyValuePairs("-D", build.getBuildVariables(), sensitiveVars);
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
         if (buildFile != null && buildFile.trim().length() != 0) {
@@ -236,8 +244,10 @@ public class Gradle extends Builder implements DryRun {
             env.put("GRADLE_HOME", ai.getHome());
         }
 
-        // Make user home relative to the workspace, so that files aren't shared between builds
-        env.put("GRADLE_USER_HOME", build.getWorkspace().getRemote());
+        if (useWorkspaceAsHome) {
+            // Make user home relative to the workspace, so that files aren't shared between builds
+            env.put("GRADLE_USER_HOME", build.getWorkspace().getRemote());
+        }
 
         if (!launcher.isUnix() && !useLauncherJar) {
             args = args.toWindowsCommand();
@@ -304,7 +314,7 @@ public class Gradle extends Builder implements DryRun {
         strNormalized = Util.replaceMacro(strNormalized, build.getBuildVariableResolver());
         return strNormalized;
     }
-    
+
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
