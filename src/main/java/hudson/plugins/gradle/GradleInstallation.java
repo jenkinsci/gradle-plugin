@@ -12,6 +12,7 @@ import hudson.tools.ToolProperty;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
@@ -69,6 +70,25 @@ public class GradleInstallation extends ToolInstallation
         });
     }
 
+    public String getLauncher(Launcher launcher) throws IOException, InterruptedException {
+        return launcher.getChannel().call(new Callable<String, IOException>() {
+            public String call() throws IOException {
+                String home = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
+                File[] launcher = new File(home, "lib").listFiles(LAUNCHER_FILTER);
+                if (launcher != null && launcher.length > 0) {
+                    return launcher[0].getPath();
+                }
+                return null;
+            }
+        });
+    }
+    
+    private static final FilenameFilter LAUNCHER_FILTER = new FilenameFilter() {
+        public boolean accept(File dir, String name) {
+            return name.startsWith("gradle-launcher") && name.endsWith(".jar");
+        }
+    };
+
     public String getWrapperExecutable(final AbstractBuild<?, ?> build)
             throws IOException, InterruptedException {
         return build.getModuleRoot().act(new FilePath.FileCallable<String>() {
@@ -86,8 +106,8 @@ public class GradleInstallation extends ToolInstallation
 
     private File getExeFile() {
         String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_COMMAND : UNIX_GRADLE_COMMAND;
-        String antHome = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
-        return new File(antHome, "bin/" + execName);
+        String home = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
+        return new File(home, "bin/" + execName);
     }
 
     public GradleInstallation forEnvironment(EnvVars environment) {
