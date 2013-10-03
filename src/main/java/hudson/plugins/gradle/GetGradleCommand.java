@@ -12,6 +12,7 @@ import hudson.tools.ToolPropertyDescriptor;
 import hudson.util.DescribableList;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import java.util.ArrayList;
@@ -79,8 +80,7 @@ public class GetGradleCommand extends CLICommand {
     @Override
     protected int run() throws Exception {
         if (help) {
-            // XXX printUsage() would be better
-            printUsageSummary(stderr);
+            printUsage(stderr, new CmdLineParser(this));
             return OK;
         }
 
