@@ -105,7 +105,7 @@ public class Gradle extends Builder implements DryRun {
         return null;
     }
 
-//    @Override
+    @Override
     public boolean performDryRun(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         return performTask(true, build, launcher, listener);
     }
