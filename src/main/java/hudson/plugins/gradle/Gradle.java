@@ -6,10 +6,8 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
-import net.sf.json.JSONObject;
 import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -107,7 +105,7 @@ public class Gradle extends Builder implements DryRun {
         return null;
     }
 
-    @Override
+//    @Override
     public boolean performDryRun(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         return performTask(true, build, launcher, listener);
     }
@@ -331,21 +329,5 @@ public class Gradle extends Builder implements DryRun {
             this.installations = installations;
             save();
         }
-
-        @Override
-        public Gradle newInstance(StaplerRequest request, JSONObject formData) throws FormException {
-
-            // "flatten" formData for useWrapper radioBlocks
-            JSONObject useWrapper = formData.getJSONObject("useWrapper");
-            boolean wrapper = useWrapper.getBoolean("value");
-            useWrapper.remove("value");
-            for (String key : (Set<String>) useWrapper.keySet()) {
-                formData.put(key, useWrapper.get(key));
-            }
-            formData.put("useWrapper", wrapper);
-
-            return (Gradle) request.bindJSON(clazz, formData);
-        }
     }
-
 }
