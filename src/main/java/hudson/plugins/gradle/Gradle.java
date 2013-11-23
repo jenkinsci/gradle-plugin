@@ -169,9 +169,37 @@ public class Gradle extends Builder implements DryRun {
         if (ai == null) {
             if (useWrapper) {
                 String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-                FilePath gradleWrapperFile = ((fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null))
-                                              ? new FilePath(normalizedRootBuildScriptDir, execName)
-                                              : new FilePath(build.getModuleRoot(), execName));
+                FilePath gradleWrapperFile;
+                if (fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null)) {
+                    gradleWrapperFile = new FilePath(normalizedRootBuildScriptDir, execName);
+                } else {
+                    gradleWrapperFile = new FilePath(build.getModuleRoot(), execName); // Fallback path
+
+                    // It's possible that a user wants to use gradle wrapper of a project which is located
+                    // not at a repo's root. Example:
+                    //    my-big-repo
+                    //        |__my-project
+                    //               |__<my files>
+                    //               |__gradlew
+                    // We want to point to the gradlew located at that project then.
+
+                    if (buildFile != null && !buildFile.isEmpty()) {
+                        // Check if the target project is located not at the root dir
+                        char fileSeparator = launcher.isUnix() ? '/' : '\\';
+                        int i = buildFile.lastIndexOf(fileSeparator);
+                        if (i > 0) {
+                            // Check if there is a wrapper script at the target project's dir.
+                            FilePath baseDir = build.getModuleRoot();
+                            FilePath candidate = new FilePath(baseDir, buildFile.substring(0, i));
+                            if (candidate.isDirectory() && new FilePath(candidate, execName).exists()) {
+                                // Use gradle wrapper file from the target project.
+                                gradleWrapperFile = new FilePath(candidate, execName);
+                            }
+                        }
+                    }
+
+                }
+
                 if (makeExecutable) {
                     gradleWrapperFile.chmod(0744);
                 }
