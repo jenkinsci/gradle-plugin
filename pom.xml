@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>1.427</version>
+        <version>1.480</version>
     </parent>
 
     <artifactId>gradle</artifactId>
@@ -54,5 +54,30 @@
             <version>0.1</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.cloudbees</groupId>
+                    <artifactId>maven-license-plugin</artifactId>
+                    <version>1.7</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jvnet.localizer</groupId>
+                    <artifactId>maven-localizer-plugin</artifactId>
+                    <version>1.14</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.jenkins-ci.tools</groupId>
+                <artifactId>maven-hpi-plugin</artifactId>
+                <version>1.100</version>
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
