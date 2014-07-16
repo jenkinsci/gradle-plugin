@@ -8,7 +8,7 @@
     </parent>
 
     <artifactId>gradle</artifactId>
-    <version>1.24</version>
+    <version>1.25-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Jenkins Gradle plugin</name>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Gradle+Plugin</url>
@@ -31,7 +31,7 @@
     <scm>
         <connection>scm:git:git://github.com/jenkinsci/gradle-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/gradle-plugin.git</developerConnection>
-      <tag>gradle-1.24</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <repositories>
