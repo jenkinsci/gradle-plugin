@@ -69,21 +69,6 @@ public class GradleInstallation extends ToolInstallation
         });
     }
 
-    public String getWrapperExecutable(final AbstractBuild<?, ?> build)
-            throws IOException, InterruptedException {
-        return build.getModuleRoot().act(new FilePath.FileCallable<String>() {
-            @Override
-            public String invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-                String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_WRAPPER_COMMAND : UNIX_GRADLE_WRAPPER_COMMAND;
-                File execFile = new File(f, execName);
-                if (execFile.exists()) {
-                    return execFile.getPath();
-                }
-                return null;
-            }
-        });
-    }
-
     private File getExeFile() {
         String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_COMMAND : UNIX_GRADLE_COMMAND;
         String antHome = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
