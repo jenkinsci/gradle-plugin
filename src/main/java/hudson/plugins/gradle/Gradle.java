@@ -163,63 +163,63 @@ public class Gradle extends Builder implements DryRun {
 
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
-        GradleInstallation ai = getGradle();
-        if (ai == null) {
-            if (useWrapper) {
-                String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-                FilePath gradleWrapperFile;
-                if (fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null)) {
-                    gradleWrapperFile = new FilePath(normalizedRootBuildScriptDir, execName);
-                } else {
-                    gradleWrapperFile = new FilePath(build.getModuleRoot(), execName); // Fallback path
+        if (useWrapper) {
+            //We are using the wrapper and don't care about the installed gradle versions
+            String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
+            FilePath gradleWrapperFile;
+            if (fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null)) {
+                gradleWrapperFile = new FilePath(normalizedRootBuildScriptDir, execName);
+            } else {
+                gradleWrapperFile = new FilePath(build.getModuleRoot(), execName); // Fallback path
 
-                    // It's possible that a user wants to use gradle wrapper of a project which is located
-                    // not at a repo's root. Example:
-                    //    my-big-repo
-                    //        |__my-project
-                    //               |__<my files>
-                    //               |__gradlew
-                    // We want to point to the gradlew located at that project then.
+                // It's possible that a user wants to use gradle wrapper of a project which is located
+                // not at a repo's root. Example:
+                //    my-big-repo
+                //        |__my-project
+                //               |__<my files>
+                //               |__gradlew
+                // We want to point to the gradlew located at that project then.
 
-                    if (buildFile != null && !buildFile.isEmpty()) {
-                        // Check if the target project is located not at the root dir
-                        char fileSeparator = launcher.isUnix() ? '/' : '\\';
-                        int i = buildFile.lastIndexOf(fileSeparator);
-                        if (i > 0) {
-                            // Check if there is a wrapper script at the target project's dir.
-                            FilePath baseDir = build.getModuleRoot();
-                            FilePath candidate = new FilePath(baseDir, buildFile.substring(0, i));
-                            if (candidate.isDirectory() && new FilePath(candidate, execName).exists()) {
-                                // Use gradle wrapper file from the target project.
-                                gradleWrapperFile = new FilePath(candidate, execName);
-                            }
+                if (buildFile != null && !buildFile.isEmpty()) {
+                    // Check if the target project is located not at the root dir
+                    char fileSeparator = launcher.isUnix() ? '/' : '\\';
+                    int i = buildFile.lastIndexOf(fileSeparator);
+                    if (i > 0) {
+                        // Check if there is a wrapper script at the target project's dir.
+                        FilePath baseDir = build.getModuleRoot();
+                        FilePath candidate = new FilePath(baseDir, buildFile.substring(0, i));
+                        if (candidate.isDirectory() && new FilePath(candidate, execName).exists()) {
+                            // Use gradle wrapper file from the target project.
+                            gradleWrapperFile = new FilePath(candidate, execName);
                         }
                     }
-
                 }
+            }
 
-                if (makeExecutable) {
-                    gradleWrapperFile.chmod(0744);
+            if (makeExecutable) {
+                gradleWrapperFile.chmod(0744);
+            }
+            args.add(gradleWrapperFile.getRemote());
+        } else {
+            //Look for a gradle installation
+            GradleInstallation ai = getGradle();
+            if (ai != null) {
+                ai = ai.forNode(Computer.currentComputer().getNode(), listener);
+                ai = ai.forEnvironment(env);
+                String exe = ai.getExecutable(launcher);
+                if (exe == null) {
+                    gradleLogger.error("Can't retrieve the Gradle executable.");
+                    return false;
                 }
-                args.add(gradleWrapperFile.getRemote());
+                env.put("GRADLE_HOME", ai.getHome());
+                args.add(exe);
             } else {
+                //No gradle installation either, fall back to simple command
                 args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
             }
-        } else {
-            ai = ai.forNode(Computer.currentComputer().getNode(), listener);
-            ai = ai.forEnvironment(env);
-            String exe;
-            if (useWrapper) {
-                exe = ai.getWrapperExecutable(build);
-            } else {
-                exe = ai.getExecutable(launcher);
-            }
-            if (exe == null) {
-                gradleLogger.error("Can't retrieve the Gradle executable.");
-                return false;
-            }
-            args.add(exe);
         }
+        
+       
         Set<String> sensitiveVars = build.getSensitiveBuildVariables();
         args.addKeyValuePairs("-D", fixParameters(build.getBuildVariables()), sensitiveVars);
         args.addTokenized(normalizedSwitches);
@@ -228,9 +228,6 @@ public class Gradle extends Builder implements DryRun {
             String buildFileNormalized = Util.replaceMacro(buildFile.trim(), env);
             args.add("-b");
             args.add(buildFileNormalized);
-        }
-        if (ai != null) {
-            env.put("GRADLE_HOME", ai.getHome());
         }
 
         if (useWorkspaceAsHome) {
