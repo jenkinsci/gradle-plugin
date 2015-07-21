@@ -30,10 +30,11 @@ public class Gradle extends Builder implements DryRun {
     private final boolean makeExecutable;
     private final boolean fromRootBuildScriptDir;
     private final boolean useWorkspaceAsHome;
+    private final boolean ignoreBuildResult;
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir, boolean useWorkspaceAsHome) {
+                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir, boolean useWorkspaceAsHome, boolean ignoreBuildResult) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -44,6 +45,7 @@ public class Gradle extends Builder implements DryRun {
         this.makeExecutable = makeExecutable;
         this.fromRootBuildScriptDir = fromRootBuildScriptDir;
         this.useWorkspaceAsHome = useWorkspaceAsHome;
+        this.ignoreBuildResult = ignoreBuildResult;
     }
 
     @SuppressWarnings("unused")
@@ -94,6 +96,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public boolean isUseWorkspaceAsHome() {
         return useWorkspaceAsHome;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isIgnoreBuildResult() {
+        return ignoreBuildResult;
     }
 
     public GradleInstallation getGradle() {
@@ -262,10 +269,17 @@ public class Gradle extends Builder implements DryRun {
                 gca.forceEol();
             }
             boolean success = r == 0;
-            // if the build is successful then set it as success otherwise as a failure.
-            build.setResult(Result.SUCCESS);
-            if (!success) {
-                build.setResult(Result.FAILURE);
+
+            // If 'ignoreBuildResult' is true, set 'success' to true
+            // Else, use actual result
+            if (ignoreBuildResult) {
+                success = true;
+            } else {
+                if (success) {
+                    build.setResult(Result.SUCCESS);
+                } else {
+                    build.setResult(Result.FAILURE);
+                }
             }
             return success;
         } catch (IOException e) {
