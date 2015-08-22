@@ -19,7 +19,11 @@
             <f:checkbox default="true"/>
         </f:entry>
     </f:radioBlock>
-
+	
+	<f:entry title="${%Set environment variables to Gradle jvm system properties}" field="transferEnvironmentVariables">
+		<f:checkbox default="true"/>
+	</f:entry>
+    
     <f:entry title="${%Build step description}" field="description">
         <f:expandableTextbox/>
     </f:entry>
