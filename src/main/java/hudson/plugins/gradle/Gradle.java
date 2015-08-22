@@ -30,10 +30,12 @@ public class Gradle extends Builder implements DryRun {
     private final boolean makeExecutable;
     private final boolean fromRootBuildScriptDir;
     private final boolean useWorkspaceAsHome;
+    private final boolean transferEnvironmentVariables;
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir, boolean useWorkspaceAsHome) {
+                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir, 
+                  boolean useWorkspaceAsHome, boolean transferEnvironmentVariables) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -44,6 +46,7 @@ public class Gradle extends Builder implements DryRun {
         this.makeExecutable = makeExecutable;
         this.fromRootBuildScriptDir = fromRootBuildScriptDir;
         this.useWorkspaceAsHome = useWorkspaceAsHome;
+        this.transferEnvironmentVariables = transferEnvironmentVariables;
     }
 
     @SuppressWarnings("unused")
@@ -96,6 +99,11 @@ public class Gradle extends Builder implements DryRun {
         return useWorkspaceAsHome;
     }
 
+    @SuppressWarnings("unused")
+    public boolean isTransferEnvironmentVariables(){
+    	return transferEnvironmentVariables;
+    }
+    
     public GradleInstallation getGradle() {
         for (GradleInstallation i : getDescriptor().getInstallations()) {
             if (gradleName != null && i.getName().equals(gradleName)) {
@@ -105,7 +113,7 @@ public class Gradle extends Builder implements DryRun {
         return null;
     }
 
-    @Override
+    //@Override
     public boolean performDryRun(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         return performTask(true, build, launcher, listener);
     }
@@ -219,9 +227,10 @@ public class Gradle extends Builder implements DryRun {
             }
         }
         
-       
-        Set<String> sensitiveVars = build.getSensitiveBuildVariables();
-        args.addKeyValuePairs("-D", fixParameters(build.getBuildVariables()), sensitiveVars);
+        if(transferEnvironmentVariables){
+        	Set<String> sensitiveVars = build.getSensitiveBuildVariables();
+            args.addKeyValuePairs("-D", fixParameters(build.getBuildVariables()), sensitiveVars);
+        }        
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
         if (buildFile != null && buildFile.trim().length() != 0) {
