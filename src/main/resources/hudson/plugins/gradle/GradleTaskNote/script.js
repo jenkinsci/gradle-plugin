@@ -14,7 +14,8 @@
                     rootURL + "/descriptor/hudson.plugins.gradle.GradleTaskNote/outline",
             {insertion: Insertion.Bottom, onComplete: function() {
                 if (!u.success())   return; // we can't us onSuccess because that kicks in before onComplete
-                outline = document.getElementById("console-outline-body");
+                outline = document.getElementById("console-outline-body")
+                			.getElementsByTagName('ul')[0];
                 loading = false;
                 queue.each(handle);
             }});
@@ -27,7 +28,7 @@
             queue.push(e);
         } else {
             var id = "gradle-task-" + (iota++);
-            outline.appendChild(parseHtml("<li><a href='#" + id + "'>" + e.innerHTML + "</a></li>"))
+            outline.appendChild(parseHtml("<li><a href='#" + id + "'>" + e.innerHTML + "</a></li>"));
 
             if (document.all)
                 e.innerHTML += '<a name="' + id + '"/>';  // IE8 loses "name" attr in appendChild

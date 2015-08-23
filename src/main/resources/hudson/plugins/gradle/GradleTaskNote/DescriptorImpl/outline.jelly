@@ -30,7 +30,9 @@ THE SOFTWARE.
         <td class='pane-header'>${%Executed Gradle Tasks}</td>
       </tr>
       <tr>
-        <td id='console-outline-body' />
+        <td id='console-outline-body'>
+        	<ul></ul>
+        </td>
       </tr>
     </table>
   </l:ajax>
