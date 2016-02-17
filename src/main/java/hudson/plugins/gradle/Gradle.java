@@ -30,10 +30,12 @@ public class Gradle extends Builder implements DryRun {
     private final boolean makeExecutable;
     private final boolean fromRootBuildScriptDir;
     private final boolean useWorkspaceAsHome;
+    private final boolean passAsProperties;
 
     @DataBoundConstructor
     public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir, boolean useWorkspaceAsHome) {
+                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir,
+                  boolean useWorkspaceAsHome, boolean passAsProperties) {
         this.description = description;
         this.switches = switches;
         this.tasks = tasks;
@@ -44,6 +46,7 @@ public class Gradle extends Builder implements DryRun {
         this.makeExecutable = makeExecutable;
         this.fromRootBuildScriptDir = fromRootBuildScriptDir;
         this.useWorkspaceAsHome = useWorkspaceAsHome;
+        this.passAsProperties = passAsProperties;
     }
 
     @SuppressWarnings("unused")
@@ -94,6 +97,11 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public boolean isUseWorkspaceAsHome() {
         return useWorkspaceAsHome;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isPassAsProperties() {
+        return passAsProperties;
     }
 
     public GradleInstallation getGradle() {
@@ -221,7 +229,7 @@ public class Gradle extends Builder implements DryRun {
         
        
         Set<String> sensitiveVars = build.getSensitiveBuildVariables();
-        args.addKeyValuePairs("-D", fixParameters(build.getBuildVariables()), sensitiveVars);
+        args.addKeyValuePairs(passPropertyOption(), fixParameters(build.getBuildVariables()), sensitiveVars);
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
         if (buildFile != null && buildFile.trim().length() != 0) {
@@ -274,6 +282,10 @@ public class Gradle extends Builder implements DryRun {
             build.setResult(Result.FAILURE);
             return false;
         }
+    }
+
+    private String passPropertyOption() {
+        return passAsProperties ? "-P" : "-D";
     }
 
     private Map<String, String> fixParameters(Map<String, String> parmas) {
