@@ -10,6 +10,7 @@ import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -212,15 +213,22 @@ public class Gradle extends Builder implements DryRun {
             //Look for a gradle installation
             GradleInstallation ai = getGradle();
             if (ai != null) {
-                ai = ai.forNode(Computer.currentComputer().getNode(), listener);
-                ai = ai.forEnvironment(env);
-                String exe = ai.getExecutable(launcher);
-                if (exe == null) {
-                    gradleLogger.error("Can't retrieve the Gradle executable.");
+                Computer computer = Computer.currentComputer();
+                Node node = computer != null ? computer.getNode() : null;
+                if (node != null) {
+                    ai = ai.forNode(node, listener);
+                    ai = ai.forEnvironment(env);
+                    String exe = ai.getExecutable(launcher);
+                    if (exe == null) {
+                        gradleLogger.error("Can't retrieve the Gradle executable.");
+                        return false;
+                    }
+                    env.put("GRADLE_HOME", ai.getHome());
+                    args.add(exe);
+                } else {
+                    gradleLogger.error("Not in a build node.");
                     return false;
                 }
-                env.put("GRADLE_HOME", ai.getHome());
-                args.add(exe);
             } else {
                 //No gradle installation either, fall back to simple command
                 args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
@@ -238,9 +246,10 @@ public class Gradle extends Builder implements DryRun {
             args.add(buildFileNormalized);
         }
 
-        if (useWorkspaceAsHome) {
+        final FilePath workspace = build.getWorkspace();
+        if (useWorkspaceAsHome && workspace != null) {
             // Make user home relative to the workspace, so that files aren't shared between builds
-            env.put("GRADLE_USER_HOME", build.getWorkspace().getRemote());
+            env.put("GRADLE_USER_HOME", workspace.getRemote());
         }
 
         if (!launcher.isUnix()) {
@@ -359,7 +368,7 @@ public class Gradle extends Builder implements DryRun {
         }
 
         public GradleInstallation[] getInstallations() {
-            return installations;
+            return Arrays.copyOf(installations, installations.length);
         }
 
         public void setInstallations(GradleInstallation... installations) {
