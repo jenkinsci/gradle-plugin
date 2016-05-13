@@ -9,7 +9,7 @@ import java.nio.charset.Charset;
 
 /**
  * @author ikikko
- * @see hudson.tasks._ant.AntConsoleAnnotator
+ * @see <a href="https://github.com/jenkinsci/ant-plugin/blob/master/src/main/java/hudson/tasks/_ant/AntConsoleAnnotator.java">AntConsoleAnnotator</a>
  */
 public class GradleConsoleAnnotator extends LineTransformationOutputStream {
     private final OutputStream out;
