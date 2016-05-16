@@ -1,11 +1,15 @@
 package hudson.plugins.gradle;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
+import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -20,6 +24,12 @@ import java.util.Set;
  * @author Gregory Boissinot
  */
 public class Gradle extends Builder implements DryRun {
+
+    // TODO: Remove when baseline 1.653+
+    @SuppressFBWarnings(value="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE", justification="https://github.com/jenkinsci/jenkins/commit/bb7c8fcedbcc9b51c5b1bb5b32810af5ac6b1ffb")
+    static @NonNull Jenkins getJenkins() {
+        return Jenkins.getInstance();
+    }
 
     private final String description;
     private final String switches;
@@ -114,6 +124,22 @@ public class Gradle extends Builder implements DryRun {
         return null;
     }
 
+    /** Turns a null string into a blanck string. */
+    private static String null2Blank(String input) {
+        return input != null ? input : "";
+    }
+
+    /** Appends text to a possibly null string. */
+    private static String append(String input, String textToAppend) {
+        if (StringUtils.isBlank(input)) {
+            return null2Blank(textToAppend);
+        }
+        if (StringUtils.isBlank(textToAppend)) {
+            return null2Blank(input);
+        }
+        return input + " " + textToAppend;
+    }
+
     @Override
     public boolean performDryRun(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         return performTask(true, build, launcher, listener);
@@ -135,12 +161,7 @@ public class Gradle extends Builder implements DryRun {
 
         //Switches
         String extraSwitches = env.get("GRADLE_EXT_SWITCHES");
-        String normalizedSwitches;
-        if (extraSwitches != null) {
-            normalizedSwitches = switches + " " + extraSwitches;
-        } else {
-            normalizedSwitches = switches;
-        }
+        String normalizedSwitches = append(switches, extraSwitches);
         normalizedSwitches = normalizedSwitches.replaceAll("[\t\r\n]+", " ");
         normalizedSwitches = Util.replaceMacro(normalizedSwitches, env);
         normalizedSwitches = Util.replaceMacro(normalizedSwitches, build.getBuildVariables());
@@ -152,12 +173,7 @@ public class Gradle extends Builder implements DryRun {
 
         //Tasks
         String extraTasks = env.get("GRADLE_EXT_TASKS");
-        String normalizedTasks;
-        if (extraTasks != null) {
-            normalizedTasks = tasks + " " + extraTasks;
-        } else {
-            normalizedTasks = tasks;
-        }
+        String normalizedTasks = append(tasks, extraTasks);
         normalizedTasks = normalizedTasks.replaceAll("[\t\r\n]+", " ");
         normalizedTasks = Util.replaceMacro(normalizedTasks, env);
         normalizedTasks = Util.replaceMacro(normalizedTasks, build.getBuildVariables());

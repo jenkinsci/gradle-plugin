@@ -102,12 +102,12 @@ public class GradleInstallation extends ToolInstallation
 
         @Override
         public GradleInstallation[] getInstallations() {
-            return Hudson.getInstance().getDescriptorByType(Gradle.DescriptorImpl.class).getInstallations();
+            return Gradle.getJenkins().getDescriptorByType(Gradle.DescriptorImpl.class).getInstallations();
         }
 
         @Override
         public void setInstallations(GradleInstallation... installations) {
-            Hudson.getInstance().getDescriptorByType(Gradle.DescriptorImpl.class).setInstallations(installations);
+            Gradle.getJenkins().getDescriptorByType(Gradle.DescriptorImpl.class).setInstallations(installations);
         }
 
     }
