@@ -1,3 +1,4 @@
+ <?jelly escape-by-default='true'?>
 <div>
   This plugin allows Jenkins to invoke <a href="http://www.gradle.org/">Gradle</a>
   build scripts directly.

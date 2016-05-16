@@ -2,13 +2,12 @@ package hudson.plugins.gradle;
 
 import hudson.*;
 import hudson.model.*;
-import hudson.remoting.Callable;
-import hudson.remoting.VirtualChannel;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
+import jenkins.security.MasterToSlaveCallable;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
@@ -58,7 +57,7 @@ public class GradleInstallation extends ToolInstallation
 
 
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-        return launcher.getChannel().call(new Callable<String, IOException>() {
+        return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
             public String call() throws IOException {
                 File exe = getExeFile();
                 if (exe.exists()) {
@@ -103,12 +102,12 @@ public class GradleInstallation extends ToolInstallation
 
         @Override
         public GradleInstallation[] getInstallations() {
-            return Hudson.getInstance().getDescriptorByType(Gradle.DescriptorImpl.class).getInstallations();
+            return Gradle.getJenkins().getDescriptorByType(Gradle.DescriptorImpl.class).getInstallations();
         }
 
         @Override
         public void setInstallations(GradleInstallation... installations) {
-            Hudson.getInstance().getDescriptorByType(Gradle.DescriptorImpl.class).setInstallations(installations);
+            Gradle.getJenkins().getDescriptorByType(Gradle.DescriptorImpl.class).setInstallations(installations);
         }
 
     }
