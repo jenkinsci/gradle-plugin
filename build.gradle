@@ -27,4 +27,3 @@ dependencies {
 }
 
 defaultTasks 'test', 'jpi'
-
