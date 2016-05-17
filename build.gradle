@@ -1,0 +1,29 @@
+plugins {
+  id "org.jenkins-ci.jpi" version "0.16.0"
+}
+
+group = "org.jenkins-ci.plugins"
+description = "A description of your plugin"
+
+jenkinsPlugin {
+  // Version of Jenkins core this plugin depends on.
+  coreVersion = "1.480"
+
+  // Human-readable name of plugin.
+  displayName = "Gradle Plugin"
+
+  // URL for plugin on Jenkins wiki or elsewhere.
+  url = "http://wiki.jenkins-ci.org/display/JENKINS/Gradle+Plugin"   
+
+  // Plugin URL on GitHub. Optional.
+  gitHubUrl = "https://github.com/jenkinsci/gradle-plugin"
+
+  // Plugin ID, defaults to the project name without trailing '-plugin'
+  shortName = "gradle"                                           
+}
+
+dependencies {
+  compile 'org.jenkins-ci.lib:dry-run-lib:0.1'
+}
+
+defaultTasks 'test', 'jpi'
