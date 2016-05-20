@@ -7,7 +7,7 @@ description = "A description of your plugin"
 
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = "1.480"
+  coreVersion = "1.580.1"
 
   // Human-readable name of plugin.
   displayName = "Gradle Plugin"
