@@ -301,6 +301,10 @@ public class Gradle extends Builder implements DryRun {
             if (!success) {
                 build.setResult(Result.FAILURE);
             }
+            String scanUrl = gca.getScanUrl();
+            if (StringUtils.isNotEmpty(scanUrl)) {
+                build.addAction(new BuildScanAction(scanUrl));
+            }
             return success;
         } catch (IOException e) {
             Util.displayIOException(e, listener);

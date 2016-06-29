@@ -14,6 +14,8 @@ import java.nio.charset.Charset;
 public class GradleConsoleAnnotator extends LineTransformationOutputStream {
     private final OutputStream out;
     private final Charset charset;
+    private boolean nextLineIsBuildScan;
+    private String scanUrl;
 
     public GradleConsoleAnnotator(OutputStream out, Charset charset) {
         this.out = out;
@@ -34,6 +36,14 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
         if (line.equals("BUILD SUCCESSFUL") || line.equals("BUILD FAILED"))
             new GradleOutcomeNote().encodeTo(out);
 
+        if (nextLineIsBuildScan) {
+            scanUrl = line;
+            nextLineIsBuildScan = false;
+        }
+        if (line.equals("Publishing build information...")) {
+            nextLineIsBuildScan = true;
+        }
+
         out.write(b, 0, len);
     }
 
@@ -43,4 +53,7 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
         out.close();
     }
 
+    public String getScanUrl() {
+        return scanUrl;
+    }
 }
