@@ -1,5 +1,5 @@
 plugins {
-  id "org.jenkins-ci.jpi" version "0.18.0"
+  id "org.jenkins-ci.jpi" version "0.18.1"
 }
 
 group = "org.jenkins-ci.plugins"
@@ -22,8 +22,13 @@ jenkinsPlugin {
   shortName = "gradle"                                           
 }
 
+sourceCompatibility = '1.6'
+
 dependencies {
   compile 'org.jenkins-ci.lib:dry-run-lib:0.1'
+
+  testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
+  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.7@jar'
 }
 
 defaultTasks 'test', 'jpi'
