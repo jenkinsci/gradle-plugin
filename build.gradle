@@ -19,7 +19,14 @@ jenkinsPlugin {
   gitHubUrl = "https://github.com/jenkinsci/gradle-plugin"
 
   // Plugin ID, defaults to the project name without trailing '-plugin'
-  shortName = "gradle"                                           
+  shortName = "gradle"
+
+  developers {
+    developer {
+      id 'wolfs'
+      name 'Stefan Wolf'
+    }
+  }
 }
 
 sourceCompatibility = '1.6'
