@@ -36,11 +36,10 @@ import hudson.util.DescribableList;
 import hudson.util.VersionNumber;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.rules.RuleChain;
 import org.jvnet.hudson.test.CreateFileBuilder;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
-import org.jvnet.hudson.test.ToolInstallations;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -49,37 +48,37 @@ import static org.junit.Assert.assertNotNull;
  * Tests for the Gradle build step.
  */
 public class GradleTest {
-    @Rule
     public final JenkinsRule rule = new JenkinsRule();
+    public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(rule);
     @Rule
-    public final TemporaryFolder tmp = new TemporaryFolder();
+    public final RuleChain rules = RuleChain.outerRule(rule).around(gradleInstallationRule);
 
     @Test
     public void buildStepDefaultTask() throws Exception {
-        final GradleInstallation gi = ToolInstallations.configureDefaultGradle(tmp);
+        gradleInstallationRule.addInstallation();
         FreeStyleProject p = rule.createFreeStyleProject();
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\ntask hello << { println 'Hello' }"));
-        p.getBuildersList().add(new Gradle(null, null, null, null, null, gi.getName(), false, false, false, false, false));
+        p.getBuildersList().add(new Gradle(null, null, null, null, null, gradleInstallationRule.getGradleVersion(), false, false, false, false, false));
         FreeStyleBuild build = rule.buildAndAssertSuccess(p);
         rule.assertLogContains("Hello", build);
     }
 
     @Test
     public void buildStepCustomTask() throws Exception {
-        final GradleInstallation gi = ToolInstallations.configureDefaultGradle(tmp);
+        gradleInstallationRule.addInstallation();
         FreeStyleProject p = rule.createFreeStyleProject();
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"));
-        p.getBuildersList().add(new Gradle(null, null, "hello", null, null, gi.getName(), false, false, false, false, false));
+        p.getBuildersList().add(new Gradle(null, null, "hello", null, null, gradleInstallationRule.getGradleVersion(), false, false, false, false, false));
         FreeStyleBuild build = rule.buildAndAssertSuccess(p);
         rule.assertLogContains("Hello", build);
     }
 
     @Test
     public void buildStepCustomDir() throws Exception {
-        final GradleInstallation gi = ToolInstallations.configureDefaultGradle(tmp);
+        gradleInstallationRule.addInstallation();
         FreeStyleProject p = rule.createFreeStyleProject();
         p.getBuildersList().add(new CreateFileBuilder("build/build.gradle", "task hello << { println 'Hello' }"));
-        p.getBuildersList().add(new Gradle(null, null, "hello", "build", null, gi.getName(), false, false, false, false, false));
+        p.getBuildersList().add(new Gradle(null, null, "hello", "build", null, gradleInstallationRule.getGradleVersion(), false, false, false, false, false));
         FreeStyleBuild build = rule.buildAndAssertSuccess(p);
         rule.assertLogContains("Hello", build);
     }

@@ -27,6 +27,8 @@ jenkinsPlugin {
       name 'Stefan Wolf'
     }
   }
+
+  disabledTestInjection = false
 }
 
 sourceCompatibility = '1.6'
@@ -35,7 +37,7 @@ dependencies {
   compile 'org.jenkins-ci.lib:dry-run-lib:0.1'
 
   testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
-  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.7@jar'
+  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.8@jar'
 }
 
 defaultTasks 'test', 'jpi'

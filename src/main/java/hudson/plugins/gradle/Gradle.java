@@ -1,7 +1,6 @@
 package hudson.plugins.gradle;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -26,7 +25,7 @@ import java.util.Set;
 public class Gradle extends Builder implements DryRun {
 
     // TODO: Remove when baseline 1.653+
-    @SuppressFBWarnings(value="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE", justification="https://github.com/jenkinsci/jenkins/commit/bb7c8fcedbcc9b51c5b1bb5b32810af5ac6b1ffb")
+//    @SuppressFBWarnings(value="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE", justification="https://github.com/jenkinsci/jenkins/commit/bb7c8fcedbcc9b51c5b1bb5b32810af5ac6b1ffb")
     static @NonNull Jenkins getJenkins() {
         return Jenkins.getInstance();
     }
