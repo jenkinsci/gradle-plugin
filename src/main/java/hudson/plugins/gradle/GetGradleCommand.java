@@ -9,6 +9,7 @@ import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import hudson.tools.ToolPropertyDescriptor;
 import hudson.util.DescribableList;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.args4j.CmdLineParser;
@@ -84,7 +85,7 @@ public class GetGradleCommand extends CLICommand {
         }
 
         GradleInstallation[] installations =
-            Gradle.getJenkins().getDescriptorByType(GradleInstallation.DescriptorImpl.class).getInstallations();
+            Jenkins.getInstance().getDescriptorByType(GradleInstallation.DescriptorImpl.class).getInstallations();
 
         Map<String,List<String>> map = new HashMap<String,List<String>>();
 

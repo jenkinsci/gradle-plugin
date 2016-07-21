@@ -1,7 +1,13 @@
 package hudson.plugins.gradle;
 
-import hudson.*;
-import hudson.model.*;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.Functions;
+import hudson.Launcher;
+import hudson.Util;
+import hudson.model.EnvironmentSpecific;
+import hudson.model.Node;
+import hudson.model.TaskListener;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
@@ -10,6 +16,7 @@ import hudson.tools.ToolProperty;
 import jenkins.security.MasterToSlaveCallable;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -88,6 +95,9 @@ public class GradleInstallation extends ToolInstallation
         public DescriptorImpl() {
         }
 
+        @Inject
+        private Gradle.DescriptorImpl gradleDescriptor;
+
         @Override
         public String getDisplayName() {
             return Messages.installer_displayName();
@@ -102,12 +112,12 @@ public class GradleInstallation extends ToolInstallation
 
         @Override
         public GradleInstallation[] getInstallations() {
-            return Gradle.getJenkins().getDescriptorByType(Gradle.DescriptorImpl.class).getInstallations();
+            return gradleDescriptor.getInstallations();
         }
 
         @Override
         public void setInstallations(GradleInstallation... installations) {
-            Gradle.getJenkins().getDescriptorByType(Gradle.DescriptorImpl.class).setInstallations(installations);
+            gradleDescriptor.setInstallations(installations);
         }
 
     }

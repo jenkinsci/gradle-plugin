@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+    <actions/>
+    <description></description>
+    <keepDependencies>false</keepDependencies>
+    <properties/>
+    <scm />
+    <canRoam>true</canRoam>
+    <disabled>false</disabled>
+    <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+    <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+    <triggers/>
+    <concurrentBuild>false</concurrentBuild>
+    <builders>
+        <hudson.plugins.gradle.Gradle plugin="gradle@1.25">
+            <description>description</description>
+            <switches>switches</switches>
+            <tasks>tasks</tasks>
+            <rootBuildScriptDir>rootBuildScript</rootBuildScriptDir>
+            <buildFile>buildFile.gradle</buildFile>
+            <gradleName>2.14</gradleName>
+            <useWrapper>true</useWrapper>
+            <makeExecutable>true</makeExecutable>
+            <fromRootBuildScriptDir>true</fromRootBuildScriptDir>
+            <useWorkspaceAsHome>true</useWorkspaceAsHome>
+            <passAsProperties>true</passAsProperties>
+        </hudson.plugins.gradle.Gradle>
+    </builders>
+    <publishers/>
+    <buildWrappers/>
+</project>

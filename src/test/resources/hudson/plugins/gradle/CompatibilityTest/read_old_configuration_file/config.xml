@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson>
+  <version>1.318-SNAPSHOT (private-08/08/2009 09:46-tom)</version>
+  <numExecutors>2</numExecutors>
+  <mode>NORMAL</mode>
+  <jdks/>
+  <clouds/>
+  <slaves/>
+  <quietPeriod>5</quietPeriod>
+  <scmCheckoutRetryCount>0</scmCheckoutRetryCount>
+  <slaveAgentPort>0</slaveAgentPort>
+  <label></label>
+  <nodeProperties/>
+  <globalNodeProperties/>
+  <disabledAdministrativeMonitors/>
+</hudson>

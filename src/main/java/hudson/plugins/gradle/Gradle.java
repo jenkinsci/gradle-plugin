@@ -1,13 +1,21 @@
 package hudson.plugins.gradle;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
-import hudson.*;
-import hudson.model.*;
+import hudson.CopyOnWrite;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
+import hudson.model.Computer;
+import hudson.model.Node;
+import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -23,12 +31,6 @@ import java.util.Set;
  * @author Gregory Boissinot
  */
 public class Gradle extends Builder implements DryRun {
-
-    // TODO: Remove when baseline 1.653+
-//    @SuppressFBWarnings(value="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE", justification="https://github.com/jenkinsci/jenkins/commit/bb7c8fcedbcc9b51c5b1bb5b32810af5ac6b1ffb")
-    static @NonNull Jenkins getJenkins() {
-        return Jenkins.getInstance();
-    }
 
     private final String description;
     private final String switches;

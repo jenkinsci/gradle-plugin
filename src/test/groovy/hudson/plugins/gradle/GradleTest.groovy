@@ -43,20 +43,20 @@ import static org.jvnet.hudson.test.JenkinsRule.getLog
  * Tests for the Gradle build step.
  */
 class GradleTest extends Specification {
-    private final JenkinsRule rule = new JenkinsRule()
-    private final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(rule)
+    private final JenkinsRule j = new JenkinsRule()
+    private final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
     @Rule
-    public final RuleChain rules = RuleChain.outerRule(rule).around(gradleInstallationRule)
+    public final RuleChain rules = RuleChain.outerRule(j).around(gradleInstallationRule)
 
     def 'run the default tasks'() {
         given:
         gradleInstallationRule.addInstallation()
-        FreeStyleProject p = rule.createFreeStyleProject()
+        FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\ntask hello << { println 'Hello' }"))
         p.getBuildersList().add(new Gradle(null, null, null, null, null, gradleInstallationRule.getGradleVersion(), false, false, false, false, false))
 
         when:
-        FreeStyleBuild build = rule.buildAndAssertSuccess(p)
+        FreeStyleBuild build = j.buildAndAssertSuccess(p)
 
         then:
         getLog(build).contains "Hello"
@@ -65,12 +65,12 @@ class GradleTest extends Specification {
     def 'run a task'() {
         given:
         gradleInstallationRule.addInstallation()
-        FreeStyleProject p = rule.createFreeStyleProject()
+        FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
         p.getBuildersList().add(new Gradle(null, null, "hello", null, null, gradleInstallationRule.getGradleVersion(), false, false, false, false, false))
 
         when:
-        FreeStyleBuild build = rule.buildAndAssertSuccess(p)
+        FreeStyleBuild build = j.buildAndAssertSuccess(p)
 
         then:
         getLog(build).contains "Hello"
@@ -79,30 +79,57 @@ class GradleTest extends Specification {
     def 'build file in different directory'() {
         given:
         gradleInstallationRule.addInstallation()
-        FreeStyleProject p = rule.createFreeStyleProject()
+        FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build/build.gradle", "task hello << { println 'Hello' }"))
         p.getBuildersList().add(new Gradle(null, null, "hello", "build", null, gradleInstallationRule.getGradleVersion(), false, false, false, false, false))
 
         when:
-        FreeStyleBuild build = rule.buildAndAssertSuccess(p)
+        FreeStyleBuild build = j.buildAndAssertSuccess(p)
 
         then:
         getLog(build).contains "Hello"
     }
 
+    def "Config roundtrip"() {
+        given:
+        def before = configuredGradle()
+
+        when:
+        def after = j.configRoundtrip(before)
+
+        then:
+        before.description == after.description
+        before.switches == after.switches
+        before.tasks == after.tasks
+        before.rootBuildScriptDir == after.rootBuildScriptDir
+        before.buildFile == after.buildFile
+        before.gradleName == after.gradleName
+        before.useWrapper == after.useWrapper
+        before.makeExecutable == after.makeExecutable
+        before.fromRootBuildScriptDir == after.fromRootBuildScriptDir
+        before.useWorkspaceAsHome == after.useWorkspaceAsHome
+        before.passAsProperties == after.passAsProperties
+    }
+
+    private Gradle configuredGradle() {
+        new Gradle("description", "switches", 'tasks', "buildScriptDir",
+                "buildFile.gradle", gradleInstallationRule.gradleVersion, true, true, true,
+                true, true)
+    }
+
     def 'add Gradle installation'() {
         given:
-        String pagePath = rule.jenkins.getVersion() >= (new VersionNumber("2.0")) ? "configureTools" : "configure"
-        WebClient wc = rule.createWebClient()
+        String pagePath = j.jenkins.getVersion() >= (new VersionNumber("2.0")) ? "configureTools" : "configure"
+        WebClient wc = j.createWebClient()
         HtmlPage p = wc.goTo(pagePath)
         HtmlForm f = p.getFormByName("config")
-        HtmlButton b = rule.getButtonByCaption(f, "Add Gradle")
+        HtmlButton b = j.getButtonByCaption(f, "Add Gradle")
 
         when:
         b.click()
-        rule.findPreviousInputElement(b, "name").setValueAttribute("myGradle")
-        rule.findPreviousInputElement(b, "home").setValueAttribute("/tmp/foo")
-        rule.submit(f)
+        j.findPreviousInputElement(b, "name").setValueAttribute("myGradle")
+        j.findPreviousInputElement(b, "home").setValueAttribute("/tmp/foo")
+        j.submit(f)
 
         then:
         installationConfigured()
@@ -111,14 +138,14 @@ class GradleTest extends Specification {
         when:
         p = wc.goTo(pagePath)
         f = p.getFormByName("config")
-        rule.submit(f)
+        j.submit(f)
 
         then:
         installationConfigured()
     }
 
     private void installationConfigured() {
-        GradleInstallation[] installations = rule.get(Gradle.DescriptorImpl).getInstallations()
+        GradleInstallation[] installations = j.get(Gradle.DescriptorImpl).getInstallations()
         assert installations.size() == 1
         def installation = installations[0]
         installation.name == 'myGradle'
