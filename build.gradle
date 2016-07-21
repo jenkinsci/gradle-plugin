@@ -21,6 +21,8 @@ jenkinsPlugin {
   // Plugin ID, defaults to the project name without trailing '-plugin'
   shortName = "gradle"
 
+  compatibleSinceVersion = '1.0'
+
   developers {
     developer {
       id 'wolfs'
