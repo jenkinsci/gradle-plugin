@@ -90,6 +90,32 @@ class GradlePluginIntegrationTest extends Specification {
         getLog(build).contains "Hello"
     }
 
+    def 'build scan is discovered'() {
+        given:
+        gradleInstallationRule.addInstallation()
+        FreeStyleProject p = j.createFreeStyleProject()
+        p.getBuildersList().add(new CreateFileBuilder("build/build.gradle", """
+plugins {
+    id 'com.gradle.build-scan' version '1.0'
+}
+
+buildScan {
+    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+    licenseAgree = 'yes'
+}
+
+task hello << { println 'Hello' }"""))
+        p.getBuildersList().add(new Gradle(null, "-Dscan", "hello", "build", null, gradleInstallationRule.getGradleVersion(), false, false, false, true, false))
+
+        when:
+        def build = j.buildAndAssertSuccess(p)
+
+        then:
+        def action = build.getAction(BuildScanAction)
+        action.scanUrl.contains('gradle.com')
+        new URL(action.scanUrl)
+    }
+
     def "Config roundtrip"() {
         given:
         gradleInstallationRule.addInstallation()
