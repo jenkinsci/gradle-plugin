@@ -53,7 +53,7 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\ntask hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(null, null, null, null, null, gradleInstallationRule.getGradleVersion(), false, false, false, false, false))
+        p.getBuildersList().add(new Gradle(null, null, null, null, null, gradleInstallationRule.getGradleVersion(), false, false, false, true, false))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -67,7 +67,7 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(null, null, "hello", null, null, gradleInstallationRule.getGradleVersion(), false, false, false, false, false))
+        p.getBuildersList().add(new Gradle(null, null, "hello", null, null, gradleInstallationRule.getGradleVersion(), false, false, false, true, false))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -81,7 +81,7 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build/build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(null, null, "hello", "build", null, gradleInstallationRule.getGradleVersion(), false, false, false, false, false))
+        p.getBuildersList().add(new Gradle(null, null, "hello", "build", null, gradleInstallationRule.getGradleVersion(), false, false, false, true, false))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -92,6 +92,7 @@ class GradlePluginIntegrationTest extends Specification {
 
     def "Config roundtrip"() {
         given:
+        gradleInstallationRule.addInstallation()
         def before = configuredGradle()
 
         when:

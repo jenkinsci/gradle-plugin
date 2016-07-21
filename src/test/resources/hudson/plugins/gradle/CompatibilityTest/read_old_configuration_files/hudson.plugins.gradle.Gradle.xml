@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson.plugins.gradle.Gradle_-DescriptorImpl plugin="gradle@1.25-SNAPSHOT">
+    <installations>
+        <hudson.plugins.gradle.GradleInstallation>
+            <name>2.14</name>
+            <home></home>
+            <properties>
+                <hudson.tools.InstallSourceProperty>
+                    <installers>
+                        <hudson.plugins.gradle.GradleInstaller>
+                            <id>2.14</id>
+                        </hudson.plugins.gradle.GradleInstaller>
+                    </installers>
+                </hudson.tools.InstallSourceProperty>
+            </properties>
+            <gradleHome></gradleHome>
+        </hudson.plugins.gradle.GradleInstallation>
+    </installations>
+</hudson.plugins.gradle.Gradle_-DescriptorImpl>
