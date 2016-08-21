@@ -32,7 +32,6 @@ import java.util.Set;
  */
 public class Gradle extends Builder implements DryRun {
 
-    private final String description;
     private final String switches;
     private final String tasks;
     private final String rootBuildScriptDir;
@@ -40,23 +39,36 @@ public class Gradle extends Builder implements DryRun {
     private final String gradleName;
     private final boolean useWrapper;
     private final boolean makeExecutable;
-    private final boolean fromRootBuildScriptDir;
     private final boolean useWorkspaceAsHome;
+    private final String wrapperScript;
     private final boolean passAsProperties;
 
+    // Artifact of how Jelly/Stapler puts conditional variables in blocks, which NEED to map to a sub-Object.
+    // The alternative would have been to mess with DescriptorImpl.getInstance
+    public static class UsingWrapper {
+        @DataBoundConstructor
+        public UsingWrapper(String value, String gradleName, String wrapperScript, Boolean makeExecutable) {
+            this.gradleName = gradleName;
+            this.wrapperScript = wrapperScript;
+            this.makeExecutable = makeExecutable;
+        }
+
+        String gradleName;
+        String wrapperScript;
+        Boolean makeExecutable;
+    }
+
     @DataBoundConstructor
-    public Gradle(String description, String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable, boolean fromRootBuildScriptDir,
-                  boolean useWorkspaceAsHome, boolean passAsProperties) {
-        this.description = description;
+    public Gradle(String switches, String tasks, String rootBuildScriptDir, String buildFile,
+                  UsingWrapper usingWrapper, boolean useWorkspaceAsHome, boolean passAsProperties) {
         this.switches = switches;
         this.tasks = tasks;
-        this.gradleName = gradleName;
         this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
-        this.useWrapper = useWrapper;
-        this.makeExecutable = makeExecutable;
-        this.fromRootBuildScriptDir = fromRootBuildScriptDir;
+        this.useWrapper = usingWrapper != null && usingWrapper.wrapperScript!=null;
+        this.gradleName = usingWrapper==null?null:usingWrapper.gradleName; // May be null
+        this.wrapperScript = usingWrapper==null?null:usingWrapper.wrapperScript; // May be null
+        this.makeExecutable = usingWrapper==null?null:Boolean.TRUE.equals(usingWrapper.makeExecutable); // May be null
         this.useWorkspaceAsHome = useWorkspaceAsHome;
         this.passAsProperties = passAsProperties;
     }
@@ -82,11 +94,6 @@ public class Gradle extends Builder implements DryRun {
     }
 
     @SuppressWarnings("unused")
-    public String getDescription() {
-        return description;
-    }
-
-    @SuppressWarnings("unused")
     public boolean isUseWrapper() {
         return useWrapper;
     }
@@ -102,13 +109,8 @@ public class Gradle extends Builder implements DryRun {
     }
 
     @SuppressWarnings("unused")
-    public boolean isFromRootBuildScriptDir() {
-        return fromRootBuildScriptDir;
-    }
-
-    @SuppressWarnings("unused")
-    public boolean isUseWorkspaceAsHome() {
-        return useWorkspaceAsHome;
+    public String getWrapperScript() {
+        return wrapperScript;
     }
 
     @SuppressWarnings("unused")
@@ -192,38 +194,21 @@ public class Gradle extends Builder implements DryRun {
         if (useWrapper) {
             //We are using the wrapper and don't care about the installed gradle versions
             String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-            FilePath gradleWrapperFile;
-            if (fromRootBuildScriptDir && (normalizedRootBuildScriptDir != null)) {
-                gradleWrapperFile = new FilePath(normalizedRootBuildScriptDir, execName);
-            } else {
-                gradleWrapperFile = new FilePath(build.getModuleRoot(), execName); // Fallback path
-
-                // It's possible that a user wants to use gradle wrapper of a project which is located
-                // not at a repo's root. Example:
-                //    my-big-repo
-                //        |__my-project
-                //               |__<my files>
-                //               |__gradlew
-                // We want to point to the gradlew located at that project then.
-
-                if (buildFile != null && !buildFile.isEmpty()) {
-                    // Check if the target project is located not at the root dir
-                    char fileSeparator = launcher.isUnix() ? '/' : '\\';
-                    int i = buildFile.lastIndexOf(fileSeparator);
-                    if (i > 0) {
-                        // Check if there is a wrapper script at the target project's dir.
-                        FilePath baseDir = build.getModuleRoot();
-                        FilePath candidate = new FilePath(baseDir, buildFile.substring(0, i));
-                        if (candidate.isDirectory() && new FilePath(candidate, execName).exists()) {
-                            // Use gradle wrapper file from the target project.
-                            gradleWrapperFile = new FilePath(candidate, execName);
-                        }
-                    }
-                }
+            if( wrapperScript != null && wrapperScript.trim().length() != 0) {
+                // Override with provided relative path to gradlew
+                String wrapperScriptNormalized = wrapperScript.trim().replaceAll("[\t\r\n]+", "");
+                wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized.trim(), env);
+                wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized, build.getBuildVariableResolver());
+                execName = wrapperScriptNormalized;
             }
 
+            FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
+            if( !gradleWrapperFile.exists() ) {
+                listener.fatalError("Unable to find Gradle Wrapper");
+                return false;
+            }
             if (makeExecutable) {
-                gradleWrapperFile.chmod(0744);
+                gradleWrapperFile.chmod(0755);
             }
             args.add(gradleWrapperFile.getRemote());
         } else {
@@ -251,8 +236,8 @@ public class Gradle extends Builder implements DryRun {
                 args.add(launcher.isUnix() ? GradleInstallation.UNIX_GRADLE_COMMAND : GradleInstallation.WINDOWS_GRADLE_COMMAND);
             }
         }
-        
-       
+
+
         Set<String> sensitiveVars = build.getSensitiveBuildVariables();
         args.addKeyValuePairs(passPropertyOption(), fixParameters(build.getBuildVariables()), sensitiveVars);
         args.addTokenized(normalizedSwitches);
