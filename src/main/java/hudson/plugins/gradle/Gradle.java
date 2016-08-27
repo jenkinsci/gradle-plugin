@@ -1,5 +1,6 @@
 package hudson.plugins.gradle;
 
+import com.google.common.base.Joiner;
 import hudson.CopyOnWrite;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -40,35 +41,22 @@ public class Gradle extends Builder implements DryRun {
     private final boolean useWrapper;
     private final boolean makeExecutable;
     private final boolean useWorkspaceAsHome;
-    private final String wrapperScript;
+    private String wrapperScript;
     private final boolean passAsProperties;
-
-    // Artifact of how Jelly/Stapler puts conditional variables in blocks, which NEED to map to a sub-Object.
-    // The alternative would have been to mess with DescriptorImpl.getInstance
-    public static class UsingWrapper {
-        @DataBoundConstructor
-        public UsingWrapper(String value, String gradleName, String wrapperScript, Boolean makeExecutable) {
-            this.gradleName = gradleName;
-            this.wrapperScript = wrapperScript;
-            this.makeExecutable = makeExecutable;
-        }
-
-        String gradleName;
-        String wrapperScript;
-        Boolean makeExecutable;
-    }
+    private transient boolean fromRootBuildScriptDir;
 
     @DataBoundConstructor
     public Gradle(String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  UsingWrapper usingWrapper, boolean useWorkspaceAsHome, boolean passAsProperties) {
+                  String gradleName, boolean useWrapper, boolean makeExecutable, String wrapperScript,
+                  boolean useWorkspaceAsHome, boolean passAsProperties) {
         this.switches = switches;
         this.tasks = tasks;
         this.rootBuildScriptDir = rootBuildScriptDir;
         this.buildFile = buildFile;
-        this.useWrapper = usingWrapper != null && usingWrapper.wrapperScript!=null;
-        this.gradleName = usingWrapper==null?null:usingWrapper.gradleName; // May be null
-        this.wrapperScript = usingWrapper==null?null:usingWrapper.wrapperScript; // May be null
-        this.makeExecutable = usingWrapper==null?null:Boolean.TRUE.equals(usingWrapper.makeExecutable); // May be null
+        this.useWrapper = useWrapper;
+        this.gradleName = gradleName; // May be null
+        this.wrapperScript = wrapperScript; // May be null
+        this.makeExecutable = Boolean.TRUE.equals(makeExecutable); // May be null
         this.useWorkspaceAsHome = useWorkspaceAsHome;
         this.passAsProperties = passAsProperties;
     }
@@ -101,6 +89,12 @@ public class Gradle extends Builder implements DryRun {
     @SuppressWarnings("unused")
     public String getRootBuildScriptDir() {
         return rootBuildScriptDir;
+    }
+
+
+    @SuppressWarnings("unused")
+    public boolean isUseWorkspaceAsHome() {
+        return useWorkspaceAsHome;
     }
 
     @SuppressWarnings("unused")
@@ -297,6 +291,13 @@ public class Gradle extends Builder implements DryRun {
             build.setResult(Result.FAILURE);
             return false;
         }
+    }
+
+    private Object readResolve() {
+        if (fromRootBuildScriptDir) {
+            wrapperScript = Joiner.on("/").skipNulls().join(rootBuildScriptDir, "gradlew");
+        }
+        return this;
     }
 
     private String passPropertyOption() {
