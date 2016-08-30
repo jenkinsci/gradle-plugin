@@ -27,8 +27,8 @@ package hudson.plugins.gradle
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.html.HtmlPage
-import hudson.model.FreeStyleBuild
-import hudson.model.FreeStyleProject
+import hudson.model.*
+import hudson.model.queue.QueueTaskFuture
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
 import org.junit.Rule
@@ -40,6 +40,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.jvnet.hudson.test.JenkinsRule.getLog
+
 /**
  * Tests for the Gradle build step.
  */
@@ -217,6 +218,30 @@ task hello << { println 'Hello' }"""))
 
         then:
         installationConfigured()
+    }
+
+    def 'parameterized build with multiline parameter'(){
+        gradleInstallationRule.addInstallation()
+        FreeStyleProject p = j.createFreeStyleProject()
+        def textParam = 'line1=first\nline2=two\nHello'
+        TextParameterValue param = new TextParameterValue("TEXT_PARAM", textParam , "Parameters for build")
+        p.getBuildersList().add(new CreateFileBuilder("build.gradle", """
+task showParam << {
+    println System.getProperty('TEXT_PARAM')
+}
+"""))
+        p.getBuildersList().add(new Gradle(null, null, 'showParam', null, null, gradleInstallationRule.getGradleVersion(), false, false, false, true, false))
+
+        QueueTaskFuture<FreeStyleBuild> scheduled = p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(param))
+        //assertNotNull(scheduled);
+        FreeStyleBuild build = scheduled.get();
+
+        when:
+        j.assertBuildStatusSuccess(build)
+
+        then:
+        getLog(build).contains textParam
+
     }
 
     private void installationConfigured() {

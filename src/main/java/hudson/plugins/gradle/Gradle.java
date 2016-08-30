@@ -324,8 +324,12 @@ public class Gradle extends Builder implements DryRun {
 
     private Map<String, String> fixParameters(Map<String, String> parmas) {
         Map<String, String> result = new HashMap<String, String>();
+        String lineSeperator = System.getProperty("line.separator");
         for (Map.Entry<String, String> entry : parmas.entrySet()) {
             String value = entry.getValue();
+            if ( value.contains(lineSeperator)){
+                value = value.replaceAll("\n", "\\" + lineSeperator);
+            }
             if (isValue2Escape(value)) {
                 result.put(entry.getKey(), "\"" + value + "\"");
             } else {
