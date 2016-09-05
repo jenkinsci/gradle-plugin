@@ -186,17 +186,7 @@ public class Gradle extends Builder implements DryRun {
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
         if (useWrapper) {
-            //We are using the wrapper and don't care about the installed gradle versions
-            String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-            if( wrapperScript != null && wrapperScript.trim().length() != 0) {
-                // Override with provided relative path to gradlew
-                String wrapperScriptNormalized = wrapperScript.trim().replaceAll("[\t\r\n]+", "");
-                wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized.trim(), env);
-                wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized, build.getBuildVariableResolver());
-                execName = wrapperScriptNormalized;
-            }
-
-            FilePath gradleWrapperFile = new FilePath(build.getModuleRoot(), execName);
+            FilePath gradleWrapperFile = getGradleWrapperFile(build, launcher, env);
             if( !gradleWrapperFile.exists() ) {
                 listener.fatalError("Unable to find Gradle Wrapper");
                 return false;
@@ -298,6 +288,20 @@ public class Gradle extends Builder implements DryRun {
             wrapperScript = Joiner.on("/").skipNulls().join(rootBuildScriptDir, "gradlew");
         }
         return this;
+    }
+
+    private FilePath getGradleWrapperFile(AbstractBuild<?, ?> build, Launcher launcher, EnvVars env) throws IOException, InterruptedException {
+        //We are using the wrapper and don't care about the installed gradle versions
+        String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
+        if( wrapperScript != null && wrapperScript.trim().length() != 0) {
+            // Override with provided relative path to gradlew
+            String wrapperScriptNormalized = wrapperScript.trim().replaceAll("[\t\r\n]+", "");
+            wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized.trim(), env);
+            wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized, build.getBuildVariableResolver());
+            execName = wrapperScriptNormalized;
+        }
+
+        return new FilePath(build.getModuleRoot(), execName);
     }
 
     private String passPropertyOption() {
