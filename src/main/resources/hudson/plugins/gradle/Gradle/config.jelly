@@ -16,7 +16,7 @@
         <f:entry title="${%Make gradlew executable}" field="makeExecutable">
             <f:checkbox />
         </f:entry>
-        <f:entry title="${%Wrapper location}" field="wrapperScript"> <!-- Optional -->
+        <f:entry title="${%Wrapper location}" field="wrapperLocation"> <!-- Optional -->
             <f:textbox/>
         </f:entry>
     </f:radioBlock>

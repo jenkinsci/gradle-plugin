@@ -1,6 +1,5 @@
 package hudson.plugins.gradle;
 
-import com.google.common.base.Joiner;
 import hudson.CopyOnWrite;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -41,13 +40,13 @@ public class Gradle extends Builder implements DryRun {
     private final boolean useWrapper;
     private final boolean makeExecutable;
     private final boolean useWorkspaceAsHome;
-    private String wrapperScript;
+    private String wrapperLocation;
     private final boolean passAsProperties;
     private transient boolean fromRootBuildScriptDir;
 
     @DataBoundConstructor
     public Gradle(String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable, String wrapperScript,
+                  String gradleName, boolean useWrapper, boolean makeExecutable, String wrapperLocation,
                   boolean useWorkspaceAsHome, boolean passAsProperties) {
         this.switches = switches;
         this.tasks = tasks;
@@ -55,7 +54,7 @@ public class Gradle extends Builder implements DryRun {
         this.buildFile = buildFile;
         this.useWrapper = useWrapper;
         this.gradleName = gradleName; // May be null
-        this.wrapperScript = wrapperScript; // May be null
+        this.wrapperLocation = wrapperLocation; // May be null
         this.makeExecutable = Boolean.TRUE.equals(makeExecutable); // May be null
         this.useWorkspaceAsHome = useWorkspaceAsHome;
         this.passAsProperties = passAsProperties;
@@ -103,8 +102,8 @@ public class Gradle extends Builder implements DryRun {
     }
 
     @SuppressWarnings("unused")
-    public String getWrapperScript() {
-        return wrapperScript;
+    public String getWrapperLocation() {
+        return wrapperLocation;
     }
 
     @SuppressWarnings("unused")
@@ -186,7 +185,7 @@ public class Gradle extends Builder implements DryRun {
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
         if (useWrapper) {
-            FilePath gradleWrapperFile = getGradleWrapperFile(build, launcher, env);
+            FilePath gradleWrapperFile = getGradleWrapperFile(build, launcher, env, normalizedRootBuildScriptDir);
             if( !gradleWrapperFile.exists() ) {
                 listener.fatalError("Unable to find Gradle Wrapper");
                 return false;
@@ -283,25 +282,38 @@ public class Gradle extends Builder implements DryRun {
         }
     }
 
-    private Object readResolve() {
-        if (fromRootBuildScriptDir) {
-            wrapperScript = Joiner.on("/").skipNulls().join(rootBuildScriptDir, "gradlew");
-        }
-        return this;
-    }
-
-    private FilePath getGradleWrapperFile(AbstractBuild<?, ?> build, Launcher launcher, EnvVars env) throws IOException, InterruptedException {
+    private FilePath getGradleWrapperFile(AbstractBuild<?, ?> build, Launcher launcher, EnvVars env, FilePath normalizedRootBuildScriptDir) throws IOException, InterruptedException {
         //We are using the wrapper and don't care about the installed gradle versions
         String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-        if( wrapperScript != null && wrapperScript.trim().length() != 0) {
+        FilePath gradleWrapperLocation = build.getModuleRoot();
+        if (wrapperLocation != null && wrapperLocation.trim().length() != 0) {
             // Override with provided relative path to gradlew
-            String wrapperScriptNormalized = wrapperScript.trim().replaceAll("[\t\r\n]+", "");
-            wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized.trim(), env);
-            wrapperScriptNormalized = Util.replaceMacro(wrapperScriptNormalized, build.getBuildVariableResolver());
-            execName = wrapperScriptNormalized;
+            String wrapperLocationNormalized = wrapperLocation.trim().replaceAll("[\t\r\n]+", "");
+            wrapperLocationNormalized = Util.replaceMacro(wrapperLocationNormalized.trim(), env);
+            wrapperLocationNormalized = Util.replaceMacro(wrapperLocationNormalized, build.getBuildVariableResolver());
+            gradleWrapperLocation = new FilePath(gradleWrapperLocation, wrapperLocationNormalized);
+        } else if (buildFile != null && !buildFile.isEmpty()) {
+            // Check if the target project is located not at the root dir
+            char fileSeparator = launcher.isUnix() ? '/' : '\\';
+            int i = buildFile.lastIndexOf(fileSeparator);
+            if (i > 0) {
+                // Check if there is a wrapper script at the target project's dir.
+                FilePath candidate = new FilePath(normalizedRootBuildScriptDir == null ? build.getModuleRoot() : normalizedRootBuildScriptDir, buildFile.substring(0, i));
+                if (candidate.isDirectory() && new FilePath(candidate, execName).exists()) {
+                    // Use gradle wrapper file from the target project.
+                    gradleWrapperLocation = candidate;
+                }
+            }
         }
 
-        return new FilePath(build.getModuleRoot(), execName);
+        return new FilePath(gradleWrapperLocation, execName);
+    }
+
+    private Object readResolve() {
+        if (fromRootBuildScriptDir) {
+            wrapperLocation = rootBuildScriptDir;
+        }
+        return this;
     }
 
     private String passPropertyOption() {

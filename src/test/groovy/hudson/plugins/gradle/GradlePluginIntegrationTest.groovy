@@ -63,9 +63,9 @@ class GradlePluginIntegrationTest extends Specification {
         getLog(build).contains "Hello"
     }
 
-    public Gradle gradle(Map options = [:]) {
-        new Gradle(null, null, (String) options.tasks, (String) options.rootBuildScriptDir, (String) options.buildFile, gradleInstallationRule.getGradleVersion(), options.useWrapper ?: false, false,
-                options.fromRootBuildScriptDir ?: false, true, false)
+    Gradle gradle(Map options = [:]) {
+        new Gradle((String) options.switches, (String) options.tasks, (String) options.rootBuildScriptDir, (String) options.buildFile,
+                gradleInstallationRule.getGradleVersion(), options.useWrapper ?: false, false, (String) options.wrapperLocation, true, false)
     }
 
     def 'run a task'() {
@@ -148,19 +148,18 @@ task hello << { println 'Hello' }"""))
         j.buildAndAssertSuccess(p)
 
         where:
-        buildFile                 | wrapperDir | settings
-        'build/build.gradle'      | 'build'    | [rootBuildScriptDir: 'build', fromRootBuildScriptDir: true]
-        'build/build.gradle'      | 'build'    | [rootBuildScriptDir: 'build', buildFile: 'build.gradle', fromRootBuildScriptDir: true]
-        'build/build.gradle'      | 'build'    | [buildFile: 'build/build.gradle', fromRootBuildScriptDir: false]
-        'build/build.gradle'      | 'build'    | [buildFile: 'build/build.gradle', fromRootBuildScriptDir: true]
-        'build/some/build.gradle' | 'build'    | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle',  fromRootBuildScriptDir: true]
-        'build/build.gradle'      | null       | [rootBuildScriptDir: 'build', fromRootBuildScriptDir: false]
-        'build/build.gradle'      | null       | [rootBuildScriptDir: 'build', buildFile: 'build.gradle', fromRootBuildScriptDir: false]
-        'build/build.gradle'      | null       | [buildFile: 'build/build.gradle', fromRootBuildScriptDir: false]
-        'build/build.gradle'      | null       | [buildFile: 'build/build.gradle', fromRootBuildScriptDir: true]
+        buildFile                 | wrapperDir   | settings
+        'build/build.gradle'      | 'build'      | [rootBuildScriptDir: 'build', wrapperLocation: 'build']
+        'build/build.gradle'      | 'build'      | [rootBuildScriptDir: 'build', buildFile: 'build.gradle', wrapperLocation: 'build']
+        'build/build.gradle'      | 'build'      | [buildFile: 'build/build.gradle']
+        'build/some/build.gradle' | 'build'      | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle', wrapperLocation: 'build']
+        'build/some/build.gradle' | 'build/some' | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle']
+        'build/build.gradle'      | null         | [rootBuildScriptDir: 'build']
+        'build/build.gradle'      | null         | [rootBuildScriptDir: 'build', buildFile: 'build.gradle']
+        'build/build.gradle'      | null         | [buildFile: 'build/build.gradle']
 
         description = "configuration with buildScriptDir '${settings.rootBuildScriptDir}', ${settings.buildFile ?: ""} and the wrapper " +
-                "from the ${settings.fromRootBuildScriptDir ? "buildScriptDir" : "workspace root"}"
+                "from ${settings.wrapperLocation ?: "workspace root"}"
         wrapperDirDescription = wrapperDir ?: 'workspace root'
     }
 
@@ -180,13 +179,9 @@ task hello << { println 'Hello' }"""))
         before.gradleName == after.gradleName
         before.useWrapper == after.useWrapper
         before.makeExecutable == after.makeExecutable
-        before.wrapperScript == after.wrapperScript
+        before.wrapperLocation == after.wrapperLocation
         before.useWorkspaceAsHome == after.useWorkspaceAsHome
         before.passAsProperties == after.passAsProperties
-    }
-
-    Gradle gradle(Map options = [:]) {
-        new Gradle(options.switches, options.tasks, null, options.buildFile, gradleInstallationRule.getGradleVersion(), false, false, null, true, false)
     }
 
     private Gradle configuredGradle() {
