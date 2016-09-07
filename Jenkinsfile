@@ -24,5 +24,5 @@ node('docker') {
   /* Archive the test results */
   junit '**/build/test-results/**/TEST-*.xml'
   /* Archive the build artifacts */
-  archiveArtifacts artifacts: 'build/lib/*.hpi,build/lib/*.jpi'
+  archiveArtifacts artifacts: 'build/libs/*.hpi'
 }
