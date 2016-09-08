@@ -27,8 +27,10 @@ package hudson.plugins.gradle
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.html.HtmlPage
+import com.google.common.base.Joiner
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
+import hudson.model.Result
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
 import org.junit.Rule
@@ -161,6 +163,29 @@ task hello << { println 'Hello' }"""))
         description = "configuration with buildScriptDir '${settings.rootBuildScriptDir}', ${settings.buildFile ?: ""} and the wrapper " +
                 "from ${settings.wrapperLocation ?: "workspace root"}"
         wrapperDirDescription = wrapperDir ?: 'workspace root'
+    }
+
+    def 'wrapper was not found'() {
+        given:
+        FreeStyleProject p = j.createFreeStyleProject()
+        p.getBuildersList().add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
+        p.getBuildersList().add(gradle([useWrapper: true, tasks: 'hello'] + settings))
+
+        when:
+        def build = p.scheduleBuild2(0).get()
+        then:
+        j.assertBuildStatus(Result.FAILURE, build);
+        getLog(build).contains("The Gradle wrapper has not been found in these directories: ${searchedDirs.collect { Joiner.on('/').skipNulls().join(build.getWorkspace(), it) }.join(', ')}")
+
+        where:
+        buildFile                 | settings                                                                                    | searchedDirs
+        'build/build.gradle'      | [buildFile: 'build/build.gradle']                                                           | ['build', null]
+        'build.gradle'            | [buildFile: 'build.gradle']                                                                 | [null]
+        'build/some/build.gradle' | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle']                               | ['build/some', null]
+        'build/build.gradle'      | [buildFile: 'build/build.gradle']                                                           | ['build', null]
+        'build.gradle'            | [buildFile: 'build.gradle']                                                                 | [null]
+        'build/some/build.gradle' | [wrapperLocation: 'somewhere', rootBuildScriptDir: 'build', buildFile: 'some/build.gradle'] | ['somewhere']
+        'build/some/build.gradle' | [rootBuildScriptDir: 'build']                                                               | [null]
     }
 
     def "Config roundtrip"() {

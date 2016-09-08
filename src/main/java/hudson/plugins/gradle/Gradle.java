@@ -1,5 +1,7 @@
 package hudson.plugins.gradle;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import hudson.CopyOnWrite;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -23,6 +25,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -185,9 +188,18 @@ public class Gradle extends Builder implements DryRun {
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
         if (useWrapper) {
-            FilePath gradleWrapperFile = getGradleWrapperFile(build, launcher, env, normalizedRootBuildScriptDir);
-            if( !gradleWrapperFile.exists() ) {
-                listener.fatalError("Unable to find Gradle Wrapper");
+            List<FilePath> possibleWrapperLocations = getPossibleWrapperLocations(build, launcher, env, normalizedRootBuildScriptDir);
+            String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
+            FilePath gradleWrapperFile = null;
+            for (FilePath possibleWrapperLocation : possibleWrapperLocations) {
+                final FilePath possibleGradleWrapperFile = new FilePath(possibleWrapperLocation, execName);
+                if (possibleGradleWrapperFile.exists()) {
+                    gradleWrapperFile = possibleGradleWrapperFile;
+                    break;
+                }
+            }
+            if (gradleWrapperFile == null) {
+                listener.fatalError("The Gradle wrapper has not been found in these directories: %s", Joiner.on(", ").join(possibleWrapperLocations));
                 return false;
             }
             if (makeExecutable) {
@@ -282,31 +294,25 @@ public class Gradle extends Builder implements DryRun {
         }
     }
 
-    private FilePath getGradleWrapperFile(AbstractBuild<?, ?> build, Launcher launcher, EnvVars env, FilePath normalizedRootBuildScriptDir) throws IOException, InterruptedException {
-        //We are using the wrapper and don't care about the installed gradle versions
-        String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-        FilePath gradleWrapperLocation = build.getModuleRoot();
+    private List<FilePath> getPossibleWrapperLocations(AbstractBuild<?, ?> build, Launcher launcher, EnvVars env, FilePath normalizedRootBuildScriptDir) throws IOException, InterruptedException {
+        FilePath moduleRoot = build.getModuleRoot();
         if (wrapperLocation != null && wrapperLocation.trim().length() != 0) {
             // Override with provided relative path to gradlew
             String wrapperLocationNormalized = wrapperLocation.trim().replaceAll("[\t\r\n]+", "");
             wrapperLocationNormalized = Util.replaceMacro(wrapperLocationNormalized.trim(), env);
             wrapperLocationNormalized = Util.replaceMacro(wrapperLocationNormalized, build.getBuildVariableResolver());
-            gradleWrapperLocation = new FilePath(gradleWrapperLocation, wrapperLocationNormalized);
+            return ImmutableList.of(new FilePath(moduleRoot, wrapperLocationNormalized));
         } else if (buildFile != null && !buildFile.isEmpty()) {
             // Check if the target project is located not at the root dir
             char fileSeparator = launcher.isUnix() ? '/' : '\\';
             int i = buildFile.lastIndexOf(fileSeparator);
             if (i > 0) {
                 // Check if there is a wrapper script at the target project's dir.
-                FilePath candidate = new FilePath(normalizedRootBuildScriptDir == null ? build.getModuleRoot() : normalizedRootBuildScriptDir, buildFile.substring(0, i));
-                if (candidate.isDirectory() && new FilePath(candidate, execName).exists()) {
-                    // Use gradle wrapper file from the target project.
-                    gradleWrapperLocation = candidate;
-                }
+                FilePath candidate = new FilePath(normalizedRootBuildScriptDir == null ? moduleRoot : normalizedRootBuildScriptDir, buildFile.substring(0, i));
+                return ImmutableList.of(candidate, moduleRoot);
             }
         }
-
-        return new FilePath(gradleWrapperLocation, execName);
+        return ImmutableList.of(moduleRoot);
     }
 
     private Object readResolve() {
