@@ -26,6 +26,7 @@ class CompatibilityTest {
         assert gradle.makeExecutable == reference.makeExecutable
         assert gradle.useWorkspaceAsHome == reference.useWorkspaceAsHome
         assert gradle.passAsProperties == reference.passAsProperties
+        assert gradle.wrapperLocation == reference.wrapperLocation
 
         def installations = j.jenkins.getDescriptorByType(hudson.plugins.gradle.Gradle.DescriptorImpl).getInstallations()
         assert installations.size() == 1
@@ -34,7 +35,7 @@ class CompatibilityTest {
 
     private Gradle configuredGradle() {
         new Gradle("switches", 'tasks', "rootBuildScript",
-                "buildFile.gradle", '2.14', true, true, "rootBuildScript/gradlew",
+                "buildFile.gradle", '2.14', true, true, "rootBuildScript",
                 true, true)
     }
 }
