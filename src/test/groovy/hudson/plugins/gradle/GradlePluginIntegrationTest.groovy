@@ -27,8 +27,10 @@ package hudson.plugins.gradle
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.html.HtmlPage
+import com.google.common.base.Joiner
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
+import hudson.model.Result
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
 import org.junit.Rule
@@ -63,9 +65,9 @@ class GradlePluginIntegrationTest extends Specification {
         getLog(build).contains "Hello"
     }
 
-    public Gradle gradle(Map options = [:]) {
-        new Gradle(null, null, (String) options.tasks, (String) options.rootBuildScriptDir, (String) options.buildFile, gradleInstallationRule.getGradleVersion(), options.useWrapper ?: false, false,
-                options.fromRootBuildScriptDir ?: false, true, false)
+    Gradle gradle(Map options = [:]) {
+        new Gradle((String) options.switches, (String) options.tasks, (String) options.rootBuildScriptDir, (String) options.buildFile,
+                gradleInstallationRule.getGradleVersion(), options.useWrapper ?: false, false, (String) options.wrapperLocation, true, false)
     }
 
     def 'run a task'() {
@@ -73,7 +75,7 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(null, null, "hello", null, null, gradleInstallationRule.getGradleVersion(), false, false, false, true, false))
+        p.getBuildersList().add(gradle(tasks: 'hello'))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -87,7 +89,7 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build/build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(null, null, "hello", "build", null, gradleInstallationRule.getGradleVersion(), false, false, false, true, false))
+        p.getBuildersList().add(gradle(tasks: 'hello', buildFile: 'build/build.gradle'))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -100,7 +102,7 @@ class GradlePluginIntegrationTest extends Specification {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.getBuildersList().add(new CreateFileBuilder("build/build.gradle", """
+        p.getBuildersList().add(new CreateFileBuilder("build.gradle", """
 plugins {
     id 'com.gradle.build-scan' version '1.0'
 }
@@ -111,7 +113,7 @@ buildScan {
 }
 
 task hello << { println 'Hello' }"""))
-        p.getBuildersList().add(new Gradle(null, "-Dscan", "hello", "build", null, gradleInstallationRule.getGradleVersion(), false, false, false, true, false))
+        p.getBuildersList().add(gradle(switches: '-Dscan', tasks: 'hello'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -148,20 +150,42 @@ task hello << { println 'Hello' }"""))
         j.buildAndAssertSuccess(p)
 
         where:
-        buildFile                 | wrapperDir | settings
-        'build/build.gradle'      | 'build'    | [rootBuildScriptDir: 'build', fromRootBuildScriptDir: true]
-        'build/build.gradle'      | 'build'    | [rootBuildScriptDir: 'build', buildFile: 'build.gradle', fromRootBuildScriptDir: true]
-        'build/build.gradle'      | 'build'    | [buildFile: 'build/build.gradle', fromRootBuildScriptDir: false]
-        'build/build.gradle'      | 'build'    | [buildFile: 'build/build.gradle', fromRootBuildScriptDir: true]
-        'build/some/build.gradle' | 'build'    | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle',  fromRootBuildScriptDir: true]
-        'build/build.gradle'      | null       | [rootBuildScriptDir: 'build', fromRootBuildScriptDir: false]
-        'build/build.gradle'      | null       | [rootBuildScriptDir: 'build', buildFile: 'build.gradle', fromRootBuildScriptDir: false]
-        'build/build.gradle'      | null       | [buildFile: 'build/build.gradle', fromRootBuildScriptDir: false]
-        'build/build.gradle'      | null       | [buildFile: 'build/build.gradle', fromRootBuildScriptDir: true]
+        buildFile                 | wrapperDir   | settings
+        'build/build.gradle'      | 'build'      | [rootBuildScriptDir: 'build', wrapperLocation: 'build']
+        'build/build.gradle'      | 'build'      | [rootBuildScriptDir: 'build', buildFile: 'build.gradle', wrapperLocation: 'build']
+        'build/build.gradle'      | 'build'      | [buildFile: 'build/build.gradle']
+        'build/some/build.gradle' | 'build'      | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle', wrapperLocation: 'build']
+        'build/some/build.gradle' | 'build/some' | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle']
+        'build/build.gradle'      | null         | [rootBuildScriptDir: 'build']
+        'build/build.gradle'      | null         | [rootBuildScriptDir: 'build', buildFile: 'build.gradle']
+        'build/build.gradle'      | null         | [buildFile: 'build/build.gradle']
 
         description = "configuration with buildScriptDir '${settings.rootBuildScriptDir}', ${settings.buildFile ?: ""} and the wrapper " +
-                "from the ${settings.fromRootBuildScriptDir ? "buildScriptDir" : "workspace root"}"
+                "from ${settings.wrapperLocation ?: "workspace root"}"
         wrapperDirDescription = wrapperDir ?: 'workspace root'
+    }
+
+    def 'wrapper was not found'() {
+        given:
+        FreeStyleProject p = j.createFreeStyleProject()
+        p.getBuildersList().add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
+        p.getBuildersList().add(gradle([useWrapper: true, tasks: 'hello'] + settings))
+
+        when:
+        def build = p.scheduleBuild2(0).get()
+        then:
+        j.assertBuildStatus(Result.FAILURE, build);
+        getLog(build).contains("The Gradle wrapper has not been found in these directories: ${searchedDirs.collect { Joiner.on('/').skipNulls().join(build.getWorkspace(), it) }.join(', ')}")
+
+        where:
+        buildFile                 | settings                                                                                    | searchedDirs
+        'build/build.gradle'      | [buildFile: 'build/build.gradle']                                                           | ['build', null]
+        'build.gradle'            | [buildFile: 'build.gradle']                                                                 | [null]
+        'build/some/build.gradle' | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle']                               | ['build/some', null]
+        'build/build.gradle'      | [buildFile: 'build/build.gradle']                                                           | ['build', null]
+        'build.gradle'            | [buildFile: 'build.gradle']                                                                 | [null]
+        'build/some/build.gradle' | [wrapperLocation: 'somewhere', rootBuildScriptDir: 'build', buildFile: 'some/build.gradle'] | ['somewhere']
+        'build/some/build.gradle' | [rootBuildScriptDir: 'build']                                                               | [null]
     }
 
     def "Config roundtrip"() {
@@ -173,7 +197,6 @@ task hello << { println 'Hello' }"""))
         def after = j.configRoundtrip(before)
 
         then:
-        before.description == after.description
         before.switches == after.switches
         before.tasks == after.tasks
         before.rootBuildScriptDir == after.rootBuildScriptDir
@@ -181,15 +204,14 @@ task hello << { println 'Hello' }"""))
         before.gradleName == after.gradleName
         before.useWrapper == after.useWrapper
         before.makeExecutable == after.makeExecutable
-        before.fromRootBuildScriptDir == after.fromRootBuildScriptDir
+        before.wrapperLocation == after.wrapperLocation
         before.useWorkspaceAsHome == after.useWorkspaceAsHome
         before.passAsProperties == after.passAsProperties
     }
 
     private Gradle configuredGradle() {
-        new Gradle("description", "switches", 'tasks', "buildScriptDir",
-                "buildFile.gradle", gradleInstallationRule.gradleVersion, true, true, true,
-                true, true)
+        new Gradle("switches", 'tasks', "buildScriptDir",
+                "buildFile.gradle", gradleInstallationRule.gradleVersion, true, true, 'path/to/wrapper', true, true)
     }
 
     def 'add Gradle installation'() {

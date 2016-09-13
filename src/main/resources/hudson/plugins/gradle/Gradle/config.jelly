@@ -16,8 +16,8 @@
         <f:entry title="${%Make gradlew executable}" field="makeExecutable">
             <f:checkbox />
         </f:entry>
-        <f:entry title="${%From Root Build Script Dir}" field="fromRootBuildScriptDir">
-            <f:checkbox default="true"/>
+        <f:entry title="${%Wrapper location}" field="wrapperLocation"> <!-- Optional -->
+            <f:textbox/>
         </f:entry>
     </f:radioBlock>
 
