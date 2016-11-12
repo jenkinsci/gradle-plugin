@@ -15,7 +15,9 @@ node('docker') {
   /* Call the Gradle build. */
   docker.image('openjdk:7-jdk').inside {
     timeout(60) {
-      sh './gradlew -i build'
+      withEnv("JENKINS_URL=${env.JENKINS_URL}") {
+        sh './gradlew -i build'
+      }
     }
   }
 
