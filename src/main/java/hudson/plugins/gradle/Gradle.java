@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -36,32 +37,21 @@ import java.util.Set;
  */
 public class Gradle extends Builder implements DryRun {
 
-    private final String switches;
-    private final String tasks;
-    private final String rootBuildScriptDir;
-    private final String buildFile;
-    private final String gradleName;
-    private final boolean useWrapper;
-    private final boolean makeExecutable;
-    private final boolean useWorkspaceAsHome;
+    private String switches;
+    private String tasks;
+    private String rootBuildScriptDir;
+    private String buildFile;
+    private String gradleName;
+    private boolean useWrapper;
+    private boolean makeExecutable;
+    private boolean useWorkspaceAsHome;
     private String wrapperLocation;
-    private final boolean passAsProperties;
+    private boolean passAsProperties;
+
     private transient boolean fromRootBuildScriptDir;
 
     @DataBoundConstructor
-    public Gradle(String switches, String tasks, String rootBuildScriptDir, String buildFile,
-                  String gradleName, boolean useWrapper, boolean makeExecutable, String wrapperLocation,
-                  boolean useWorkspaceAsHome, boolean passAsProperties) {
-        this.switches = switches;
-        this.tasks = tasks;
-        this.rootBuildScriptDir = rootBuildScriptDir;
-        this.buildFile = buildFile;
-        this.useWrapper = useWrapper;
-        this.gradleName = gradleName; // May be null
-        this.wrapperLocation = wrapperLocation; // May be null
-        this.makeExecutable = Boolean.TRUE.equals(makeExecutable); // May be null
-        this.useWorkspaceAsHome = useWorkspaceAsHome;
-        this.passAsProperties = passAsProperties;
+    public Gradle() {
     }
 
     @SuppressWarnings("unused")
@@ -69,14 +59,9 @@ public class Gradle extends Builder implements DryRun {
         return switches;
     }
 
-    @SuppressWarnings("unused")
-    public String getBuildFile() {
-        return buildFile;
-    }
-
-    @SuppressWarnings("unused")
-    public String getGradleName() {
-        return gradleName;
+    @DataBoundSetter
+    public void setSwitches(String switches) {
+        this.switches = switches;
     }
 
     @SuppressWarnings("unused")
@@ -84,9 +69,9 @@ public class Gradle extends Builder implements DryRun {
         return tasks;
     }
 
-    @SuppressWarnings("unused")
-    public boolean isUseWrapper() {
-        return useWrapper;
+    @DataBoundSetter
+    public void setTasks(String tasks) {
+        this.tasks = tasks;
     }
 
     @SuppressWarnings("unused")
@@ -94,10 +79,39 @@ public class Gradle extends Builder implements DryRun {
         return rootBuildScriptDir;
     }
 
+    @DataBoundSetter
+    public void setRootBuildScriptDir(String rootBuildScriptDir) {
+        this.rootBuildScriptDir = rootBuildScriptDir;
+    }
 
     @SuppressWarnings("unused")
-    public boolean isUseWorkspaceAsHome() {
-        return useWorkspaceAsHome;
+    public String getBuildFile() {
+        return buildFile;
+    }
+
+    @DataBoundSetter
+    public void setBuildFile(String buildFile) {
+        this.buildFile = buildFile;
+    }
+
+    @SuppressWarnings("unused")
+    public String getGradleName() {
+        return gradleName;
+    }
+
+    @DataBoundSetter
+    public void setGradleName(String gradleName) {
+        this.gradleName = gradleName;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isUseWrapper() {
+        return useWrapper;
+    }
+
+    @DataBoundSetter
+    public void setUseWrapper(boolean useWrapper) {
+        this.useWrapper = useWrapper;
     }
 
     @SuppressWarnings("unused")
@@ -105,14 +119,39 @@ public class Gradle extends Builder implements DryRun {
         return makeExecutable;
     }
 
+    @DataBoundSetter
+    public void setMakeExecutable(boolean makeExecutable) {
+        this.makeExecutable = makeExecutable;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isUseWorkspaceAsHome() {
+        return useWorkspaceAsHome;
+    }
+
+    @DataBoundSetter
+    public void setUseWorkspaceAsHome(boolean useWorkspaceAsHome) {
+        this.useWorkspaceAsHome = useWorkspaceAsHome;
+    }
+
     @SuppressWarnings("unused")
     public String getWrapperLocation() {
         return wrapperLocation;
     }
 
+    @DataBoundSetter
+    public void setWrapperLocation(String wrapperLocation) {
+        this.wrapperLocation = wrapperLocation;
+    }
+
     @SuppressWarnings("unused")
     public boolean isPassAsProperties() {
         return passAsProperties;
+    }
+
+    @DataBoundSetter
+    public void setPassAsProperties(boolean passAsProperties) {
+        this.passAsProperties = passAsProperties;
     }
 
     public GradleInstallation getGradle() {
@@ -405,5 +444,21 @@ public class Gradle extends Builder implements DryRun {
             this.installations = installations;
             save();
         }
+    }
+
+    @Deprecated
+    public Gradle(String switches, String tasks, String rootBuildScriptDir, String buildFile,
+                  String gradleName, boolean useWrapper, boolean makeExecutable, String wrapperLocation,
+                  boolean useWorkspaceAsHome, boolean passAsProperties) {
+        setSwitches(switches);
+        setTasks(tasks);
+        setRootBuildScriptDir(rootBuildScriptDir);
+        setBuildFile(buildFile);
+        setUseWrapper(useWrapper);
+        setGradleName(gradleName); // May be null
+        setWrapperLocation(wrapperLocation); // May be null
+        setMakeExecutable(makeExecutable);
+        setUseWorkspaceAsHome(useWorkspaceAsHome);
+        setPassAsProperties(passAsProperties);
     }
 }
