@@ -5,6 +5,12 @@ plugins {
 group = "org.jenkins-ci.plugins"
 description = "A description of your plugin"
 
+ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
+
+if (ciBuild) {
+  println 'This build is running on CI'
+}
+
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
   coreVersion = "1.580.1"
@@ -46,6 +52,7 @@ dependencies {
 
 test {
   systemProperties["hudson.model.DownloadService.noSignatureCheck"] = "true"
+  ignoreFailures = ciBuild
 }
 
 defaultTasks 'test', 'jpi'
