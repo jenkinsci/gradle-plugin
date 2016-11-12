@@ -8,3 +8,4 @@ In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
 * 1.26 (unreleased)
+  * Use `@DataBoundSetter` instead of a (too) large `@DataBoundConstructor`

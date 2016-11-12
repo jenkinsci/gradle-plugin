@@ -56,18 +56,13 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\ntask hello << { println 'Hello' }"))
-        p.getBuildersList().add(gradle())
+        p.getBuildersList().add(new Gradle())
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
 
         then:
         getLog(build).contains "Hello"
-    }
-
-    Gradle gradle(Map options = [:]) {
-        new Gradle((String) options.switches, (String) options.tasks, (String) options.rootBuildScriptDir, (String) options.buildFile,
-                gradleInstallationRule.getGradleVersion(), options.useWrapper ?: false, false, (String) options.wrapperLocation, true, false)
     }
 
     def 'run a task'() {
@@ -75,7 +70,7 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(gradle(tasks: 'hello'))
+        p.getBuildersList().add(new Gradle(tasks: 'hello', *:defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -84,12 +79,16 @@ class GradlePluginIntegrationTest extends Specification {
         getLog(build).contains "Hello"
     }
 
+    Map getDefaults() {
+        [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true]
+    }
+
     def 'build file in different directory'() {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build/build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(gradle(tasks: 'hello', buildFile: 'build/build.gradle'))
+        p.getBuildersList().add(new Gradle(tasks: 'hello', buildFile: 'build/build.gradle', *:defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -113,7 +112,7 @@ buildScan {
 }
 
 task hello << { println 'Hello' }"""))
-        p.getBuildersList().add(gradle(switches: '-Dscan', tasks: 'hello'))
+        p.getBuildersList().add(new Gradle(switches: '-Dscan', tasks: 'hello', *:defaults))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -129,8 +128,8 @@ task hello << { println 'Hello' }"""))
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(gradle(tasks: 'wrapper'))
-        p.getBuildersList().add(gradle(useWrapper: true, tasks: 'hello'))
+        p.getBuildersList().add(new Gradle(tasks: 'wrapper', *:defaults))
+        p.getBuildersList().add(new Gradle(useWrapper: true, tasks: 'hello', *:defaults))
 
         expect:
         j.buildAndAssertSuccess(p)
@@ -142,9 +141,9 @@ task hello << { println 'Hello' }"""))
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir))
-        p.getBuildersList().add(gradle(
-                [useWrapper: true, tasks: 'hello'] + settings))
+        p.getBuildersList().add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *:defaults))
+        p.getBuildersList().add(new Gradle(
+                defaults + [useWrapper: true, tasks: 'hello'] + settings))
 
         expect:
         j.buildAndAssertSuccess(p)
@@ -169,7 +168,7 @@ task hello << { println 'Hello' }"""))
         given:
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(gradle([useWrapper: true, tasks: 'hello'] + settings))
+        p.getBuildersList().add(new Gradle(defaults + [useWrapper: true, tasks: 'hello'] + settings))
 
         when:
         def build = p.scheduleBuild2(0).get()
@@ -210,8 +209,10 @@ task hello << { println 'Hello' }"""))
     }
 
     private Gradle configuredGradle() {
-        new Gradle("switches", 'tasks', "buildScriptDir",
-                "buildFile.gradle", gradleInstallationRule.gradleVersion, true, true, 'path/to/wrapper', true, true)
+        new Gradle(switches: "switches", tasks: 'tasks', rootBuildScriptDir: "buildScriptDir",
+                buildFile:  "buildFile.gradle", gradleName:  gradleInstallationRule.gradleVersion,
+                useWrapper: true, makeExecutable: true, wrapperLocation: 'path/to/wrapper',
+                useWorkspaceAsHome: true, passAsProperties: true)
     }
 
     def 'add Gradle installation'() {
