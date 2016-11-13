@@ -56,7 +56,7 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.getBuildersList().add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\ntask hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle())
+        p.getBuildersList().add(new Gradle(defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -77,10 +77,6 @@ class GradlePluginIntegrationTest extends Specification {
 
         then:
         getLog(build).contains "Hello"
-    }
-
-    Map getDefaults() {
-        [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true]
     }
 
     def 'build file in different directory'() {
@@ -240,6 +236,10 @@ task hello << { println 'Hello' }"""))
 
         then:
         installationConfigured()
+    }
+
+    Map getDefaults() {
+        [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true]
     }
 
     private void installationConfigured() {
