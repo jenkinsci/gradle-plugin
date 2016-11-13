@@ -1,6 +1,8 @@
 Jenkins Gradle Plugin
 =====================
 
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/gradle-plugin/master)](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Fgradle-plugin/branches/)
+
 This plugin allows Jenkins to invoke [Gradle](href="http://www.gradle.org/) build scripts directly.
 For more information see the [Jenkins wiki page](http://wiki.jenkins-ci.org/display/JENKINS/Gradle+Plugin).
 
