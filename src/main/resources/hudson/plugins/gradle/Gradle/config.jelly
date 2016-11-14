@@ -21,10 +21,6 @@
         </f:entry>
     </f:radioBlock>
 
-    <f:entry title="${%Build step description}" field="description">
-        <f:expandableTextbox/>
-    </f:entry>
-
     <f:entry title="${%Switches}" field="switches">
         <f:expandableTextbox/>
     </f:entry>
