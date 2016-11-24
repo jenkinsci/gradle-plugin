@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "org.jenkins-ci.plugins"
-description = "This plugin adds Gradle Support to Jenkins."
+description = "This plugin adds Gradle Support to Jenkins"
 
 ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
 
