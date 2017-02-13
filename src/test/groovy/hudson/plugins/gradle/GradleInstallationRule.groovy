@@ -1,6 +1,5 @@
 package hudson.plugins.gradle
 
-import hudson.tools.InstallSourceProperty
 import hudson.util.FormValidation
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
@@ -11,10 +10,10 @@ class GradleInstallationRule extends TestWatcher {
         System.setProperty("hudson.model.DownloadService.noSignatureCheck", "true");
     }
 
-    final String gradleVersion
+    String gradleVersion
     private JenkinsRule j
 
-    GradleInstallationRule(String gradleVersion = '3.0', JenkinsRule j) {
+    GradleInstallationRule(String gradleVersion = '3.2.1', JenkinsRule j) {
         this.gradleVersion = gradleVersion
         this.j = j
     }

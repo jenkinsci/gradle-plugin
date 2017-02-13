@@ -28,9 +28,14 @@ import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.html.HtmlPage
 import com.google.common.base.Joiner
+import hudson.model.Cause
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
+import hudson.model.ParametersAction
+import hudson.model.ParametersDefinitionProperty
 import hudson.model.Result
+import hudson.model.TextParameterDefinition
+import hudson.model.TextParameterValue
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
 import org.junit.Rule
@@ -55,8 +60,8 @@ class GradlePluginIntegrationTest extends Specification {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.getBuildersList().add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\ntask hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(defaults))
+        p.buildersList.add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\ntask hello << { println 'Hello' }"))
+        p.buildersList.add(new Gradle(defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -69,8 +74,8 @@ class GradlePluginIntegrationTest extends Specification {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.getBuildersList().add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(tasks: 'hello', *:defaults))
+        p.buildersList.add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
+        p.buildersList.add(new Gradle(tasks: 'hello', *:defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -83,8 +88,8 @@ class GradlePluginIntegrationTest extends Specification {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.getBuildersList().add(new CreateFileBuilder("build/build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(tasks: 'hello', buildFile: 'build/build.gradle', *:defaults))
+        p.buildersList.add(new CreateFileBuilder("build/build.gradle", "task hello << { println 'Hello' }"))
+        p.buildersList.add(new Gradle(tasks: 'hello', buildFile: 'build/build.gradle', *:defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -97,7 +102,7 @@ class GradlePluginIntegrationTest extends Specification {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.getBuildersList().add(new CreateFileBuilder("build.gradle", """
+        p.buildersList.add(new CreateFileBuilder("build.gradle", """
 plugins {
     id 'com.gradle.build-scan' version '1.0'
 }
@@ -108,7 +113,7 @@ buildScan {
 }
 
 task hello << { println 'Hello' }"""))
-        p.getBuildersList().add(new Gradle(switches: '-Dscan', tasks: 'hello', *:defaults))
+        p.buildersList.add(new Gradle(switches: '-Dscan', tasks: 'hello', *:defaults))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -123,9 +128,9 @@ task hello << { println 'Hello' }"""))
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.getBuildersList().add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(tasks: 'wrapper', *:defaults))
-        p.getBuildersList().add(new Gradle(useWrapper: true, tasks: 'hello', *:defaults))
+        p.buildersList.add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
+        p.buildersList.add(new Gradle(tasks: 'wrapper', *:defaults))
+        p.buildersList.add(new Gradle(useWrapper: true, tasks: 'hello', *:defaults))
 
         expect:
         j.buildAndAssertSuccess(p)
@@ -136,9 +141,9 @@ task hello << { println 'Hello' }"""))
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.getBuildersList().add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *:defaults))
-        p.getBuildersList().add(new Gradle(
+        p.buildersList.add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
+        p.buildersList.add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *:defaults))
+        p.buildersList.add(new Gradle(
                 defaults + [useWrapper: true, tasks: 'hello'] + settings))
 
         expect:
@@ -163,8 +168,8 @@ task hello << { println 'Hello' }"""))
     def 'wrapper was not found'() {
         given:
         FreeStyleProject p = j.createFreeStyleProject()
-        p.getBuildersList().add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
-        p.getBuildersList().add(new Gradle(defaults + [useWrapper: true, tasks: 'hello'] + settings))
+        p.buildersList.add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
+        p.buildersList.add(new Gradle(defaults + [useWrapper: true, tasks: 'hello'] + settings))
 
         when:
         def build = p.scheduleBuild2(0).get()
@@ -181,6 +186,23 @@ task hello << { println 'Hello' }"""))
         'build.gradle'            | [buildFile: 'build.gradle']                                                                 | [null]
         'build/some/build.gradle' | [wrapperLocation: 'somewhere', rootBuildScriptDir: 'build', buildFile: 'some/build.gradle'] | ['somewhere']
         'build/some/build.gradle' | [rootBuildScriptDir: 'build']                                                               | [null]
+    }
+
+    def "Can use > signs in system properties"() {
+        given:
+        gradleInstallationRule.addInstallation()
+        def p = j.createFreeStyleProject()
+        p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition('PARAM', null, null)))
+        p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { println 'property=' + System.getProperty('PARAM') } }"))
+        p.buildersList.add(new Gradle(tasks: 'wrapper', *:defaults))
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWrapper: true, useWorkspaceAsHome: true))
+
+        when:
+        def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", "a < b"))))
+
+        then:
+        // TODO: Make this return 'property=a < b'
+        getLog(build).contains('property="a < b"')
     }
 
     def "Config roundtrip"() {
