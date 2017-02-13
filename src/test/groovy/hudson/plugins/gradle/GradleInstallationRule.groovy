@@ -1,5 +1,6 @@
 package hudson.plugins.gradle
 
+import hudson.tools.InstallSourceProperty
 import hudson.util.FormValidation
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
