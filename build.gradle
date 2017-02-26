@@ -13,7 +13,7 @@ if (ciBuild) {
 
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = "1.580.1"
+  coreVersion = "1.642.1"
 
   // Human-readable name of plugin.
   displayName = "Gradle Plugin"

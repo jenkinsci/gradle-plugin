@@ -10,6 +10,7 @@ In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
 * 1.27 (unreleased)
+  * Increase required core version to 1.642.1
 * 1.26 (Feb 13 2016)
   * Use `@DataBoundSetter` instead of a (too) large `@DataBoundConstructor`
   * Add @Symbol annotations for step and tool [JENKINS-37394](https://issues.jenkins-ci.org/browse/JENKINS-37394)
