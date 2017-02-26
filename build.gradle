@@ -50,9 +50,17 @@ dependencies {
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.8@jar'
 }
 
+if (project.hasProperty("maxParallelForks")) {
+  project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
+} else {
+  ext.maxParallelForks = 3
+}
+
+
 test {
   systemProperties["hudson.model.DownloadService.noSignatureCheck"] = "true"
   ignoreFailures = ciBuild
+  maxParallelForks = project.maxParallelForks
 }
 
 defaultTasks 'test', 'jpi'
