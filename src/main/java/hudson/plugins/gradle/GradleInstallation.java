@@ -63,6 +63,10 @@ public class GradleInstallation extends ToolInstallation
         return super.getHome();
     }
 
+    @Override
+    public void buildEnvVars(EnvVars env) {
+        env.put("PATH+GRADLE", getHome() + "/bin");
+    }
 
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
         return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
