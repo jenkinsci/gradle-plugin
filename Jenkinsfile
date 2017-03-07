@@ -4,7 +4,7 @@
 properties([[$class: 'BuildDiscarderProperty',
                 strategy: [$class: 'LogRotator', numToKeepStr: '10']]])
 
-parallel {
+parallel[
     node('docker') {
       /* Make sure we always have a clean workspace */
       deleteDir()
@@ -26,7 +26,7 @@ parallel {
       junit '**/build/test-results/**/TEST-*.xml'
       /* Archive the build artifacts */
       archiveArtifacts artifacts: 'build/libs/*.hpi'
-    }
+    },
 
     node('windows') {
       /* Make sure we always have a clean workspace */
@@ -44,4 +44,4 @@ parallel {
       /* Archive the test results */
       junit '**/build/test-results/**/TEST-*.xml'
     }
-}
+]
