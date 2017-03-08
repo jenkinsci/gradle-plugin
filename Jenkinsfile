@@ -30,9 +30,7 @@ parallel([
         archiveArtifacts artifacts: 'build/libs/*.hpi'
       }
     }
-
   },
-
   'Windows': {
     node('windows') {
       /* Make sure we always have a clean workspace */

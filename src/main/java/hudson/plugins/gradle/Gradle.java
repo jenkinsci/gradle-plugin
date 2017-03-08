@@ -344,12 +344,9 @@ public class Gradle extends Builder implements DryRun {
             return ImmutableList.of(new FilePath(moduleRoot, wrapperLocationNormalized));
         } else if (buildFile != null && !buildFile.isEmpty()) {
             // Check if the target project is located not at the root dir
-            char fileSeparator = launcher.isUnix() ? '/' : '\\';
-            int i = buildFile.lastIndexOf(fileSeparator);
-            if (i > 0) {
-                // Check if there is a wrapper script at the target project's dir.
-                FilePath candidate = new FilePath(normalizedRootBuildScriptDir == null ? moduleRoot : normalizedRootBuildScriptDir, buildFile.substring(0, i));
-                return ImmutableList.of(candidate, moduleRoot);
+            FilePath parentOfBuildFile = new FilePath(normalizedRootBuildScriptDir == null ? moduleRoot : normalizedRootBuildScriptDir, buildFile).getParent();
+            if (parentOfBuildFile != null && !parentOfBuildFile.equals(moduleRoot)) {
+                return ImmutableList.of(parentOfBuildFile, moduleRoot);
             }
         }
         return ImmutableList.of(moduleRoot);
