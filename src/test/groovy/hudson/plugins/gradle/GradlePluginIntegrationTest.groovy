@@ -50,6 +50,7 @@ import static org.jvnet.hudson.test.JenkinsRule.getLog
 /**
  * Tests for the Gradle build step.
  */
+@Unroll
 class GradlePluginIntegrationTest extends Specification {
     private final JenkinsRule j = new JenkinsRule()
     private final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
@@ -104,7 +105,7 @@ class GradlePluginIntegrationTest extends Specification {
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(new CreateFileBuilder("build.gradle", """
 plugins {
-    id 'com.gradle.build-scan' version '1.0'
+    id 'com.gradle.build-scan' version '1.6'
 }
 
 buildScan {
@@ -113,7 +114,7 @@ buildScan {
 }
 
 task hello << { println 'Hello' }"""))
-        p.buildersList.add(new Gradle(switches: '-Dscan', tasks: 'hello', *:defaults))
+        p.buildersList.add(new Gradle(tasks: 'hello', *:defaults, switches: '-Dscan --no-daemon'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -136,7 +137,6 @@ task hello << { println 'Hello' }"""))
         j.buildAndAssertSuccess(p)
     }
 
-    @Unroll
     def 'wrapper in #wrapperDirDescription, build file #buildFile, #description'() {
         given:
         gradleInstallationRule.addInstallation()
@@ -174,14 +174,14 @@ task hello << { println 'Hello' }"""))
         when:
         def build = p.scheduleBuild2(0).get()
         then:
-        j.assertBuildStatus(Result.FAILURE, build);
-        getLog(build).contains("The Gradle wrapper has not been found in these directories: ${searchedDirs.collect { Joiner.on('/').skipNulls().join(build.getWorkspace(), it) }.join(', ')}")
+        j.assertBuildStatus(Result.FAILURE, build)
+        getLog(build).contains("The Gradle wrapper has not been found in these directories: ${searchedDirs.collect { Joiner.on(File.separator).skipNulls().join(build.getWorkspace(), it) }.join(', ')}")
 
         where:
         buildFile                 | settings                                                                                    | searchedDirs
         'build/build.gradle'      | [buildFile: 'build/build.gradle']                                                           | ['build', null]
         'build.gradle'            | [buildFile: 'build.gradle']                                                                 | [null]
-        'build/some/build.gradle' | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle']                               | ['build/some', null]
+        'build/some/build.gradle' | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle']                               | ['build' + File.separator + 'some', null]
         'build/build.gradle'      | [buildFile: 'build/build.gradle']                                                           | ['build', null]
         'build.gradle'            | [buildFile: 'build.gradle']                                                                 | [null]
         'build/some/build.gradle' | [wrapperLocation: 'somewhere', rootBuildScriptDir: 'build', buildFile: 'some/build.gradle'] | ['somewhere']
@@ -261,7 +261,7 @@ task hello << { println 'Hello' }"""))
     }
 
     Map getDefaults() {
-        [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true]
+        [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true, switches: '--no-daemon']
     }
 
     private void installationConfigured() {
