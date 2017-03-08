@@ -4,44 +4,25 @@
 properties([[$class: 'BuildDiscarderProperty',
                 strategy: [$class: 'LogRotator', numToKeepStr: '10']]])
 
-parallel[
-    node('docker') {
-      /* Make sure we always have a clean workspace */
-      deleteDir()
+node('docker') {
+  /* Make sure we always have a clean workspace */
+  deleteDir()
+  
+  stage 'Checkout'
+  checkout scm
 
-      stage 'Checkout'
-      checkout scm
-
-      stage 'Build'
-      /* Call the Gradle build. */
-      docker.image('openjdk:7-jdk').inside {
-        timeout(60) {
-          sh './gradlew -i build'
-        }
-      }
-
-      /* Save Results. */
-      stage 'Results'
-      /* Archive the test results */
-      junit '**/build/test-results/**/TEST-*.xml'
-      /* Archive the build artifacts */
-      archiveArtifacts artifacts: 'build/libs/*.hpi'
-    },
-
-    node('windows') {
-      /* Make sure we always have a clean workspace */
-      deleteDir()
-
-      stage 'Checkout'
-      checkout scm
-
-      stage 'Build'
-      /* Call the Gradle build. */
-      bat './gradlew.bat -i build'
-
-      /* Save Results. */
-      stage 'Results'
-      /* Archive the test results */
-      junit '**/build/test-results/**/TEST-*.xml'
+  stage 'Build'
+  /* Call the Gradle build. */
+  docker.image('openjdk:7-jdk').inside {
+    timeout(60) {
+      sh './gradlew -i build'
     }
-]
+  }
+
+  /* Save Results. */
+  stage 'Results'
+  /* Archive the test results */
+  junit '**/build/test-results/**/TEST-*.xml'
+  /* Archive the build artifacts */
+  archiveArtifacts artifacts: 'build/libs/*.hpi'
+}
