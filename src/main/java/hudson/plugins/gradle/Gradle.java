@@ -26,7 +26,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -274,7 +273,7 @@ public class Gradle extends Builder implements DryRun {
 
 
         Set<String> sensitiveVars = build.getSensitiveBuildVariables();
-        args.addKeyValuePairs(passPropertyOption(), fixParameters(build.getBuildVariables()), sensitiveVars);
+        args.addKeyValuePairs(passPropertyOption(), build.getBuildVariables(), sensitiveVars);
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
         if (buildFile != null && buildFile.trim().length() != 0) {
@@ -361,29 +360,6 @@ public class Gradle extends Builder implements DryRun {
 
     private String passPropertyOption() {
         return passAsProperties ? "-P" : "-D";
-    }
-
-    private Map<String, String> fixParameters(Map<String, String> parmas) {
-        Map<String, String> result = new HashMap<String, String>();
-        for (Map.Entry<String, String> entry : parmas.entrySet()) {
-            String value = entry.getValue();
-            if (isValue2Escape(value)) {
-                result.put(entry.getKey(), "\"" + value + "\"");
-            } else {
-                result.put(entry.getKey(), value);
-            }
-        }
-        return result;
-    }
-
-    private boolean isValue2Escape(String value) {
-        if (value == null) {
-            return false;
-        }
-        if (value.trim().length() == 0) {
-            return false;
-        }
-        return value.contains("<") || value.contains(">");
     }
 
     @Override

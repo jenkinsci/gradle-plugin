@@ -188,7 +188,7 @@ task hello << { println 'Hello' }"""))
         'build/some/build.gradle' | [rootBuildScriptDir: 'build']                                                               | [null]
     }
 
-    def "Can use > signs in system properties"() {
+    def "Can use '#propertyValue' in system properties"() {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
@@ -198,11 +198,20 @@ task hello << { println 'Hello' }"""))
         p.buildersList.add(new Gradle(tasks: 'printParam', useWrapper: true, useWorkspaceAsHome: true))
 
         when:
-        def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", "a < b"))))
+        def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", propertyValue))))
 
         then:
-        // TODO: Make this return 'property=a < b'
-        getLog(build).contains('property="a < b"')
+        getLog(build).contains("property=${propertyValue}")
+
+        where:
+        propertyValue << [
+                'a < b',
+                '<foo> <bar/> </foo>',
+                'renaming XYZ >> \'xyz\'',
+                'renaming XYZ >>> \'xyz\'',
+                'renaming XYZ >> "xyz"',
+                'renaming \'XYZ >> \'x"y"z\'"'
+        ]
     }
 
     def "Config roundtrip"() {
