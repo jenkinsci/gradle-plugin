@@ -10,6 +10,7 @@ In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
 * 1.27 (unreleased)
+  * Make finding wrapper location more robust on Windows
   * Increase required core version to 1.642.1
 * 1.26 (Feb 13 2016)
   * Use `@DataBoundSetter` instead of a (too) large `@DataBoundConstructor`
