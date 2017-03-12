@@ -214,7 +214,38 @@ task hello << { println 'Hello' }"""))
                 """
                    Some
                    multiline
-                   parameter""".stripIndent()
+                   parameter""".stripIndent().replaceAll('\n', System.lineSeparator())
+        ]
+        escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
+    }
+
+    def "Can use '#escapedPropertyValue' in project properties"() {
+        given:
+        gradleInstallationRule.addInstallation()
+        def p = j.createFreeStyleProject()
+        p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition('PARAM', null, null)))
+        p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { println 'property=' + PARAM } }"))
+        p.buildersList.add(new Gradle(tasks: 'wrapper', *:defaults))
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWrapper: true, useWorkspaceAsHome: true, passAsProperties: true))
+
+        when:
+        def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", propertyValue))))
+
+        then:
+        getLog(build).contains("property=${propertyValue}")
+
+        where:
+        propertyValue << [
+                'a < b',
+                '<foo> <bar/> </foo>',
+                'renaming XYZ >> \'xyz\'',
+                'renaming XYZ >>> \'xyz\'',
+                'renaming XYZ >> "xyz"',
+                'renaming \'XYZ >> \'x"y"z\'"',
+                """
+                   Some
+                   multiline
+                   parameter""".stripIndent().replaceAll('\n', System.lineSeparator())
         ]
         escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
     }
