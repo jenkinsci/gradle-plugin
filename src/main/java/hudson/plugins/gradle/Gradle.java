@@ -196,13 +196,10 @@ public class Gradle extends Builder implements DryRun {
         gradleLogger.info("Launching build.");
 
         EnvVars env = build.getEnvironment(listener);
+        env.overrideAll(build.getBuildVariables());
 
         //Switches
-        String extraSwitches = env.get("GRADLE_EXT_SWITCHES");
-        String normalizedSwitches = append(switches, extraSwitches);
-        normalizedSwitches = normalizedSwitches.replaceAll("[\t\r\n]+", " ");
-        normalizedSwitches = Util.replaceMacro(normalizedSwitches, env);
-        normalizedSwitches = Util.replaceMacro(normalizedSwitches, build.getBuildVariables());
+        String normalizedSwitches = getNormalized(switches, env, "GRADLE_EXT_SWITCHES");
 
         //Add dry-run switch if needed
         if (dryRun) {
@@ -210,35 +207,15 @@ public class Gradle extends Builder implements DryRun {
         }
 
         //Tasks
-        String extraTasks = env.get("GRADLE_EXT_TASKS");
-        String normalizedTasks = append(tasks, extraTasks);
-        normalizedTasks = normalizedTasks.replaceAll("[\t\r\n]+", " ");
-        normalizedTasks = Util.replaceMacro(normalizedTasks, env);
-        normalizedTasks = Util.replaceMacro(normalizedTasks, build.getBuildVariables());
+        String normalizedTasks = getNormalized(tasks, env, "GRADLE_EXT_TASKS");
 
-        FilePath normalizedRootBuildScriptDir = null;
-        if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
-            String rootBuildScriptNormalized = rootBuildScriptDir.trim().replaceAll("[\t\r\n]+", " ");
-            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized.trim(), env);
-            rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized, build.getBuildVariableResolver());
-            normalizedRootBuildScriptDir = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
-        }
+        FilePath normalizedRootBuildScriptDir = getNormalizedRootBuildScriptDir(build, env);
 
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
         if (useWrapper) {
-            List<FilePath> possibleWrapperLocations = getPossibleWrapperLocations(build, launcher, env, normalizedRootBuildScriptDir);
-            String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
-            FilePath gradleWrapperFile = null;
-            for (FilePath possibleWrapperLocation : possibleWrapperLocations) {
-                final FilePath possibleGradleWrapperFile = new FilePath(possibleWrapperLocation, execName);
-                if (possibleGradleWrapperFile.exists()) {
-                    gradleWrapperFile = possibleGradleWrapperFile;
-                    break;
-                }
-            }
+            FilePath gradleWrapperFile = findGradleWrapper(normalizedRootBuildScriptDir, build, launcher, listener, env);
             if (gradleWrapperFile == null) {
-                listener.fatalError("The Gradle wrapper has not been found in these directories: %s", Joiner.on(", ").join(possibleWrapperLocations));
                 return false;
             }
             if (makeExecutable) {
@@ -276,8 +253,8 @@ public class Gradle extends Builder implements DryRun {
         args.addKeyValuePairs(passPropertyOption(), build.getBuildVariables(), sensitiveVars);
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
-        if (buildFile != null && buildFile.trim().length() != 0) {
-            String buildFileNormalized = Util.replaceMacro(buildFile.trim(), env);
+        if (StringUtils.isNotBlank(buildFile)) {
+            String buildFileNormalized = env.expand(buildFile.trim());
             args.add("-b");
             args.add(buildFileNormalized);
         }
@@ -333,13 +310,51 @@ public class Gradle extends Builder implements DryRun {
         }
     }
 
+    private FilePath findGradleWrapper(FilePath normalizedRootBuildScriptDir, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, EnvVars env) throws IOException, InterruptedException {
+        List<FilePath> possibleWrapperLocations = getPossibleWrapperLocations(build, launcher, env, normalizedRootBuildScriptDir);
+        String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
+        FilePath gradleWrapperFile = null;
+        for (FilePath possibleWrapperLocation : possibleWrapperLocations) {
+            final FilePath possibleGradleWrapperFile = new FilePath(possibleWrapperLocation, execName);
+            if (possibleGradleWrapperFile.exists()) {
+                gradleWrapperFile = possibleGradleWrapperFile;
+                break;
+            }
+        }
+        if (gradleWrapperFile == null) {
+            listener.fatalError("The Gradle wrapper has not been found in these directories: %s", Joiner.on(", ").join(possibleWrapperLocations));
+        }
+        return gradleWrapperFile;
+    }
+
+    private FilePath getNormalizedRootBuildScriptDir(AbstractBuild<?, ?> build, EnvVars env) {
+        FilePath normalizedRootBuildScriptDir = null;
+        if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
+            String rootBuildScriptNormalized = replaceWhitespaceBySpace(rootBuildScriptDir.trim());
+            rootBuildScriptNormalized = env.expand(rootBuildScriptNormalized.trim());
+            normalizedRootBuildScriptDir = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
+        }
+        return normalizedRootBuildScriptDir;
+    }
+
+    private String getNormalized(String args, EnvVars env, String contributingEnvironmentVariable) {
+        String extraArgs = env.get(contributingEnvironmentVariable);
+        String normalizedArgs = append(args, extraArgs);
+        normalizedArgs = replaceWhitespaceBySpace(normalizedArgs);
+        normalizedArgs = env.expand(normalizedArgs);
+        return normalizedArgs;
+    }
+
+    private String replaceWhitespaceBySpace(String argument) {
+        return argument.replaceAll("[\t\r\n]+", " ");
+    }
+
     private List<FilePath> getPossibleWrapperLocations(AbstractBuild<?, ?> build, Launcher launcher, EnvVars env, FilePath normalizedRootBuildScriptDir) throws IOException, InterruptedException {
         FilePath moduleRoot = build.getModuleRoot();
         if (wrapperLocation != null && wrapperLocation.trim().length() != 0) {
             // Override with provided relative path to gradlew
             String wrapperLocationNormalized = wrapperLocation.trim().replaceAll("[\t\r\n]+", "");
-            wrapperLocationNormalized = Util.replaceMacro(wrapperLocationNormalized.trim(), env);
-            wrapperLocationNormalized = Util.replaceMacro(wrapperLocationNormalized, build.getBuildVariableResolver());
+            wrapperLocationNormalized = env.expand(wrapperLocationNormalized.trim());
             return ImmutableList.of(new FilePath(moduleRoot, wrapperLocationNormalized));
         } else if (buildFile != null && !buildFile.isEmpty()) {
             // Check if the target project is located not at the root dir
