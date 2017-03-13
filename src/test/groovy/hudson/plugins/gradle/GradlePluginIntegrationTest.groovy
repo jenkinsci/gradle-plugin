@@ -36,6 +36,7 @@ import hudson.model.ParametersDefinitionProperty
 import hudson.model.Result
 import hudson.model.TextParameterDefinition
 import hudson.model.TextParameterValue
+import hudson.remoting.Launcher
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
 import org.junit.Rule
@@ -204,18 +205,7 @@ task hello << { println 'Hello' }"""))
         getLog(build).contains("property=${propertyValue}")
 
         where:
-        propertyValue << [
-                'a < b',
-                '<foo> <bar/> </foo>',
-                'renaming XYZ >> \'xyz\'',
-                'renaming XYZ >>> \'xyz\'',
-                'renaming XYZ >> "xyz"',
-                'renaming \'XYZ >> \'x"y"z\'"',
-                """
-                   Some
-                   multiline
-                   parameter""".stripIndent().replaceAll('\n', System.lineSeparator())
-        ]
+        propertyValue << criticalStrings
         escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
     }
 
@@ -235,19 +225,23 @@ task hello << { println 'Hello' }"""))
         getLog(build).contains("property=${propertyValue}")
 
         where:
-        propertyValue << [
+        propertyValue << criticalStrings
+        escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
+    }
+
+    private static List<String> getCriticalStrings() {
+        return [
                 'a < b',
                 '<foo> <bar/> </foo>',
                 'renaming XYZ >> \'xyz\'',
                 'renaming XYZ >>> \'xyz\'',
                 'renaming XYZ >> "xyz"',
                 'renaming \'XYZ >> \'x"y"z\'"',
-                """
+                Launcher.isWindows() ? "Multiline does not work on windows \\r\\n" : """
                    Some
                    multiline
                    parameter""".stripIndent().replaceAll('\n', System.lineSeparator())
         ]
-        escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
     }
 
     def "Config roundtrip"() {
