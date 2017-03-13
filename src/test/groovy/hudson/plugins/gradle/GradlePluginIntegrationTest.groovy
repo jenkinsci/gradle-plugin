@@ -28,6 +28,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.html.HtmlPage
 import com.google.common.base.Joiner
+import hudson.EnvVars
 import hudson.model.Cause
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
@@ -309,6 +310,11 @@ task hello << { println 'Hello' }"""))
         def installation = installations[0]
         installation.name == 'myGradle'
         installation.home == '/tmp/foo'
+
+        def envVars = new EnvVars()
+        installation.buildEnvVars(envVars)
+        assert envVars.containsKey("PATH+GRADLE")
+        assert envVars.get("PATH+GRADLE") == installation.home + "/bin"
 
         // by default we should get the auto installer
         def props = installations[0].getProperties()
