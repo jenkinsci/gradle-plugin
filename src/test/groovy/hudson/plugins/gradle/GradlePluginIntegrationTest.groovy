@@ -302,7 +302,10 @@ task hello << { println 'Hello' }"""))
     }
 
     def 'list installations through CLI'() {
+        when:
         CLICommandInvoker.Result result = new CLICommandInvoker(j, "get-gradle").invoke()
+
+        then:
         assertCLIResult(result, true, '{}')
 
         when:
@@ -310,20 +313,20 @@ task hello << { println 'Hello' }"""))
         result = new CLICommandInvoker(j, "get-gradle").invoke()
 
         then:
-        assertCLIResult(result, true, '{"inst1":["3.2.1"]}')
+        assertCLIResult(result, true, expectedOutputForVersion('{"inst1":["%s"]}'))
 
         when:
         gradleInstallationRule.addInstallations("inst1", "inst2")
         result = new CLICommandInvoker(j, "get-gradle").invoke()
 
         then:
-        assertCLIResult(result, true, '{"inst1":["3.2.1"],"inst2":["3.2.1"]}')
+        assertCLIResult(result, true, expectedOutputForVersion('{"inst1":["%s"],"inst2":["%s"]}'))
 
         when:
         result = new CLICommandInvoker(j, "get-gradle").invokeWithArgs("--name=inst1")
 
         then:
-        assertCLIResult(result, true, '["3.2.1"]')
+        assertCLIResult(result, true, expectedOutputForVersion('["%s"]'))
 
         when:
         result = new CLICommandInvoker(j, "get-gradle").invokeWithArgs("--name=unknown")
@@ -357,6 +360,10 @@ task hello << { println 'Hello' }"""))
 
         Assert.assertEquals(expectedReturnCode, result.returnCode())
         Assert.assertEquals(expectedOutput + "\n", output)
+    }
+
+    private String expectedOutputForVersion(String output) {
+        return String.format(output, gradleInstallationRule.gradleVersion, gradleInstallationRule.gradleVersion)
     }
 
 }
