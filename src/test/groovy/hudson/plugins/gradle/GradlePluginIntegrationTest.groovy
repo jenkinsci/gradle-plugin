@@ -28,6 +28,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.html.HtmlPage
 import com.google.common.base.Joiner
+import hudson.cli.CLICommandInvoker
 import hudson.model.Cause
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
@@ -39,6 +40,7 @@ import hudson.model.TextParameterValue
 import hudson.remoting.Launcher
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.CreateFileBuilder
@@ -299,6 +301,37 @@ task hello << { println 'Hello' }"""))
         installationConfigured()
     }
 
+    def 'list installations through CLI'() {
+        CLICommandInvoker.Result result = new CLICommandInvoker(j, "get-gradle").invoke()
+        assertCLIResult(result, true, '{}')
+
+        when:
+        gradleInstallationRule.addInstallations("inst1")
+        result = new CLICommandInvoker(j, "get-gradle").invoke()
+
+        then:
+        assertCLIResult(result, true, '{"inst1":["3.2.1"]}')
+
+        when:
+        gradleInstallationRule.addInstallations("inst1", "inst2")
+        result = new CLICommandInvoker(j, "get-gradle").invoke()
+
+        then:
+        assertCLIResult(result, true, '{"inst1":["3.2.1"],"inst2":["3.2.1"]}')
+
+        when:
+        result = new CLICommandInvoker(j, "get-gradle").invokeWithArgs("--name=inst1")
+
+        then:
+        assertCLIResult(result, true, '["3.2.1"]')
+
+        when:
+        result = new CLICommandInvoker(j, "get-gradle").invokeWithArgs("--name=unknown")
+
+        then:
+        assertCLIResult(result, false, 'Requested gradle installation not found: unknown')
+    }
+
     Map getDefaults() {
         [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true, switches: '--no-daemon']
     }
@@ -317,4 +350,13 @@ task hello << { println 'Hello' }"""))
         assert installers.size() == 1
         assert installers.get(GradleInstaller)
     }
+
+    private void assertCLIResult(hudson.cli.CLICommandInvoker.Result result, boolean success, String expectedOutput) {
+        int expectedReturnCode = success ? 0 : 1
+        String output = success ? result.stdout() : result.stderr()
+
+        Assert.assertEquals(expectedReturnCode, result.returnCode())
+        Assert.assertEquals(expectedOutput + "\n", output)
+    }
+
 }
