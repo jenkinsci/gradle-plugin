@@ -40,6 +40,9 @@ import hudson.model.TextParameterValue
 import hudson.remoting.Launcher
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
+import net.sf.json.JSON
+import net.sf.json.JSONArray
+import net.sf.json.JSONObject
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.CreateFileBuilder
@@ -355,10 +358,23 @@ task hello << { println 'Hello' }"""))
 
     private void assertCLIResult(hudson.cli.CLICommandInvoker.Result result, boolean success, String expectedOutput) {
         int expectedReturnCode = success ? 0 : 1
-        String output = success ? result.stdout() : result.stderr()
-
         assert expectedReturnCode == result.returnCode()
-        assert expectedOutput == output.trim()
+
+        if (success) {
+            JSON expectedJson, resultJson
+
+            if (expectedOutput.startsWith("[")) {
+                expectedJson = JSONArray.fromObject(expectedOutput)
+                resultJson = JSONArray.fromObject(result.stdout().trim())
+            } else {
+                expectedJson = JSONObject.fromObject(expectedOutput)
+                resultJson = JSONObject.fromObject(result.stdout().trim())
+            }
+
+            assert expectedJson == resultJson
+        } else {
+            assert expectedOutput == result.stderr().trim()
+        }
     }
 
     private String expectedOutputForVersion(String output) {
