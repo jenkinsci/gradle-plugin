@@ -308,33 +308,33 @@ task hello << { println 'Hello' }"""))
         CLICommandInvoker.Result result = new CLICommandInvoker(j, "get-gradle").invoke()
 
         then:
-        assertCLIResult(result, true, '{}')
+        assertCLIResult(result, '{}')
 
         when:
         gradleInstallationRule.addInstallations("inst1")
         result = new CLICommandInvoker(j, "get-gradle").invoke()
 
         then:
-        assertCLIResult(result, true, expectedOutputForVersion('{"inst1":["%s"]}'))
+        assertCLIResult(result, expectedOutputForVersion('{"inst1":["%s"]}'))
 
         when:
         gradleInstallationRule.addInstallations("inst1", "inst2")
         result = new CLICommandInvoker(j, "get-gradle").invoke()
 
         then:
-        assertCLIResult(result, true, expectedOutputForVersion('{"inst1":["%s"],"inst2":["%s"]}'))
+        assertCLIResult(result, expectedOutputForVersion('{"inst1":["%s"],"inst2":["%s"]}'))
 
         when:
         result = new CLICommandInvoker(j, "get-gradle").invokeWithArgs("--name=inst1")
 
         then:
-        assertCLIResult(result, true, expectedOutputForVersion('["%s"]'))
+        assertCLIResult(result, expectedOutputForVersion('["%s"]'))
 
         when:
         result = new CLICommandInvoker(j, "get-gradle").invokeWithArgs("--name=unknown")
 
         then:
-        assertCLIResult(result, false, 'Requested gradle installation not found: unknown')
+        assertCLIError(result, 'Requested gradle installation not found: unknown')
     }
 
     Map getDefaults() {
@@ -356,25 +356,26 @@ task hello << { println 'Hello' }"""))
         assert installers.get(GradleInstaller)
     }
 
-    private void assertCLIResult(hudson.cli.CLICommandInvoker.Result result, boolean success, String expectedOutput) {
-        int expectedReturnCode = success ? 0 : 1
-        assert expectedReturnCode == result.returnCode()
+    private void assertCLIResult(hudson.cli.CLICommandInvoker.Result result, String expectedOutput) {
+        assert 0 == result.returnCode()
 
-        if (success) {
-            JSON expectedJson, resultJson
+        JSON expectedJson, resultJson
 
-            if (expectedOutput.startsWith("[")) {
-                expectedJson = JSONArray.fromObject(expectedOutput)
-                resultJson = JSONArray.fromObject(result.stdout().trim())
-            } else {
-                expectedJson = JSONObject.fromObject(expectedOutput)
-                resultJson = JSONObject.fromObject(result.stdout().trim())
-            }
-
-            assert expectedJson == resultJson
+        if (expectedOutput.startsWith("[")) {
+            expectedJson = JSONArray.fromObject(expectedOutput)
+            resultJson = JSONArray.fromObject(result.stdout().trim())
         } else {
-            assert expectedOutput == result.stderr().trim()
+            expectedJson = JSONObject.fromObject(expectedOutput)
+            resultJson = JSONObject.fromObject(result.stdout().trim())
         }
+
+        assert expectedJson == resultJson
+    }
+
+    private void assertCLIError(hudson.cli.CLICommandInvoker.Result result, String expectedOutput) {
+        assert 1 == result.returnCode()
+        assert expectedOutput == result.stderr().trim()
+
     }
 
     private String expectedOutputForVersion(String output) {
