@@ -40,7 +40,6 @@ import hudson.model.TextParameterValue
 import hudson.remoting.Launcher
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
-import org.junit.Assert
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.CreateFileBuilder
@@ -358,8 +357,8 @@ task hello << { println 'Hello' }"""))
         int expectedReturnCode = success ? 0 : 1
         String output = success ? result.stdout() : result.stderr()
 
-        Assert.assertEquals(expectedReturnCode, result.returnCode())
-        Assert.assertEquals(expectedOutput + "\n", output)
+        assert expectedReturnCode == result.returnCode()
+        assert expectedOutput == output.trim()
     }
 
     private String expectedOutputForVersion(String output) {
