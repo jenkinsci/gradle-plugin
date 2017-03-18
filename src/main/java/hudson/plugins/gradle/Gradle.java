@@ -18,6 +18,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.VariableResolver;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.lib.dryrun.DryRun;
@@ -45,7 +46,12 @@ public class Gradle extends Builder implements DryRun {
     private boolean makeExecutable;
     private boolean useWorkspaceAsHome;
     private String wrapperLocation;
-    private boolean passAsProperties;
+    private transient Boolean passAsProperties;
+    private String systemProperties;
+    private boolean passAllAsSystemProperties;
+
+    private String projectProperties;
+    private boolean passAllAsProjectProperties;
 
     private transient boolean fromRootBuildScriptDir;
 
@@ -143,14 +149,40 @@ public class Gradle extends Builder implements DryRun {
         this.wrapperLocation = wrapperLocation;
     }
 
-    @SuppressWarnings("unused")
-    public boolean isPassAsProperties() {
-        return passAsProperties;
+    public String getSystemProperties() {
+        return systemProperties;
     }
 
     @DataBoundSetter
-    public void setPassAsProperties(boolean passAsProperties) {
-        this.passAsProperties = passAsProperties;
+    public void setSystemProperties(String systemProperties) {
+        this.systemProperties = Util.fixEmptyAndTrim(systemProperties);
+    }
+
+    public boolean isPassAllAsSystemProperties() {
+        return passAllAsSystemProperties;
+    }
+
+    @DataBoundSetter
+    public void setPassAllAsSystemProperties(boolean passAllAsSystemProperties) {
+        this.passAllAsSystemProperties = passAllAsSystemProperties;
+    }
+
+    public String getProjectProperties() {
+        return projectProperties;
+    }
+    @DataBoundSetter
+
+    public void setProjectProperties(String projectProperties) {
+        this.projectProperties = projectProperties;
+    }
+
+    public boolean isPassAllAsProjectProperties() {
+        return passAllAsProjectProperties;
+    }
+    
+    @DataBoundSetter
+    public void setPassAllAsProjectProperties(boolean passAllAsProjectProperties) {
+        this.passAllAsProjectProperties = passAllAsProjectProperties;
     }
 
     public GradleInstallation getGradle() {
@@ -197,6 +229,7 @@ public class Gradle extends Builder implements DryRun {
 
         EnvVars env = build.getEnvironment(listener);
         env.overrideAll(build.getBuildVariables());
+        final VariableResolver<String> resolver = new VariableResolver.ByMap<>(env);
 
         //Switches
         String normalizedSwitches = getNormalized(switches, env, "GRADLE_EXT_SWITCHES");
@@ -250,7 +283,14 @@ public class Gradle extends Builder implements DryRun {
 
 
         Set<String> sensitiveVars = build.getSensitiveBuildVariables();
-        args.addKeyValuePairs(passPropertyOption(), build.getBuildVariables(), sensitiveVars);
+        args.addKeyValuePairsFromPropertyString("-D", getSystemProperties(), resolver, sensitiveVars);
+        if (isPassAllAsSystemProperties()) {
+            args.addKeyValuePairs("-D", build.getBuildVariables(), sensitiveVars);
+        }
+        args.addKeyValuePairsFromPropertyString("-P", getProjectProperties(), resolver, sensitiveVars);
+        if (isPassAllAsProjectProperties()) {
+            args.addKeyValuePairs("-P", build.getBuildVariables(), sensitiveVars);
+        }
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
         if (StringUtils.isNotBlank(buildFile)) {
@@ -370,11 +410,14 @@ public class Gradle extends Builder implements DryRun {
         if (fromRootBuildScriptDir) {
             wrapperLocation = rootBuildScriptDir;
         }
+        if (passAsProperties != null) {
+            if (passAsProperties) {
+                passAllAsProjectProperties = true;
+            } else {
+                passAllAsSystemProperties = true;
+            }
+        }
         return this;
-    }
-
-    private String passPropertyOption() {
-        return passAsProperties ? "-P" : "-D";
     }
 
     @Override
@@ -447,6 +490,7 @@ public class Gradle extends Builder implements DryRun {
         setWrapperLocation(wrapperLocation); // May be null
         setMakeExecutable(makeExecutable);
         setUseWorkspaceAsHome(useWorkspaceAsHome);
-        setPassAsProperties(passAsProperties);
+        setPassAllAsProjectProperties(passAsProperties);
+        setPassAllAsSystemProperties(!passAsProperties);
     }
 }

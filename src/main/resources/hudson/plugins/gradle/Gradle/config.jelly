@@ -1,6 +1,6 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
 
     <f:radioBlock inline="true" name="useWrapper" checked="${!instance.useWrapper}" value="false" title="${%Invoke Gradle}">
         <f:entry title="${%Gradle Version}" field="gradleName">
@@ -21,35 +21,46 @@
         </f:entry>
     </f:radioBlock>
 
-    <f:entry title="${%Switches}" field="switches">
-        <f:expandableTextbox/>
-    </f:entry>
-
-
     <f:entry title="${%Tasks}" field="tasks">
         <f:expandableTextbox/>
     </f:entry>
 
-    <f:entry title="${%Root Build script}" field="rootBuildScriptDir">
-        <f:textbox/>
-    </f:entry>
+    <f:advanced>
+        <f:entry title="${%Switches}" field="switches">
+            <f:expandableTextbox/>
+        </f:entry>
 
-    <f:entry title="${%Build File}"
-             field="buildFile"
-             description="
-    Specify Gradle build file to run.
-    Also, &lt;a href='${rootURL}/env-vars.html' target=_new>some environment variables are available to the build script&lt;/a>
-    ">
-        <f:textbox/>
-    </f:entry>
+        <f:entry field="systemProperties" title="${%System properties}">
+            <f:textarea/>
+        </f:entry>
 
-    <f:entry title="${%Force GRADLE_USER_HOME to use workspace}" field="useWorkspaceAsHome">
-        <f:checkbox default="false"/>
-    </f:entry>
+        <f:entry title="${%Pass all job parameters as System properties}" field="passAllAsSystemProperties">
+            <f:checkbox default="false"/>
+        </f:entry>
 
-    <f:entry title="${%Pass job parameters as Gradle properties}" field="passAsProperties">
-        <f:checkbox default="false"/>
-    </f:entry>
+        <f:entry field="projectProperties" title="${%Project properties}">
+            <f:textarea/>
+        </f:entry>
 
+        <f:entry title="${%Pass all job parameters as Project properties}" field="passAllAsProjectProperties">
+            <f:checkbox default="false"/>
+        </f:entry>
 
+        <f:entry title="${%Root Build script}" field="rootBuildScriptDir">
+            <f:textbox/>
+        </f:entry>
+
+        <f:entry title="${%Build File}"
+                 field="buildFile"
+                 description="
+        Specify Gradle build file to run.
+        Also, &lt;a href='${rootURL}/env-vars.html' target=_new>some environment variables are available to the build script&lt;/a>
+        ">
+            <f:textbox/>
+        </f:entry>
+
+        <f:entry title="${%Force GRADLE_USER_HOME to use workspace}" field="useWorkspaceAsHome">
+            <f:checkbox default="false"/>
+        </f:entry>
+    </f:advanced>
 </j:jelly>

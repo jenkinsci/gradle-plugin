@@ -200,7 +200,7 @@ task hello << { println 'Hello' }"""))
         p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition('PARAM', null, null)))
         p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { println 'property=' + System.getProperty('PARAM') } }"))
         p.buildersList.add(new Gradle(tasks: 'wrapper', *:defaults))
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWrapper: true, useWorkspaceAsHome: true))
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWrapper: true, useWorkspaceAsHome: true, passAllAsSystemProperties: true, *:defaults))
 
         when:
         def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", propertyValue))))
@@ -220,7 +220,7 @@ task hello << { println 'Hello' }"""))
         p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition('PARAM', null, null)))
         p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { println 'property=' + PARAM } }"))
         p.buildersList.add(new Gradle(tasks: 'wrapper', *:defaults))
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWrapper: true, useWorkspaceAsHome: true, passAsProperties: true))
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWrapper: true, useWorkspaceAsHome: true, passAllAsProjectProperties: true, *:defaults))
 
         when:
         def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", propertyValue))))
@@ -266,14 +266,18 @@ task hello << { println 'Hello' }"""))
         before.makeExecutable == after.makeExecutable
         before.wrapperLocation == after.wrapperLocation
         before.useWorkspaceAsHome == after.useWorkspaceAsHome
-        before.passAsProperties == after.passAsProperties
+        before.systemProperties == after.systemProperties
+        before.passAllAsSystemProperties == after.passAllAsSystemProperties
+        before.projectProperties == after.projectProperties
+        before.passAllAsProjectProperties == after.passAllAsProjectProperties
     }
 
     private Gradle configuredGradle() {
         new Gradle(switches: "switches", tasks: 'tasks', rootBuildScriptDir: "buildScriptDir",
                 buildFile:  "buildFile.gradle", gradleName:  gradleInstallationRule.gradleVersion,
                 useWrapper: true, makeExecutable: true, wrapperLocation: 'path/to/wrapper',
-                useWorkspaceAsHome: true, passAsProperties: true)
+                useWorkspaceAsHome: true, passAllAsProjectProperties: true, passAllAsSystemProperties: true,
+                systemProperties: 'someProp=someValue', projectProperties: 'someOtherProp=someOtherValue')
     }
 
     def 'add Gradle installation'() {
