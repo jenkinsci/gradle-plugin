@@ -1,10 +1,13 @@
 package hudson.plugins.gradle
 
 import hudson.model.Cause
+import hudson.model.FreeStyleBuild
+import hudson.model.FreeStyleProject
 import hudson.model.ParametersAction
 import hudson.model.ParametersDefinitionProperty
 import hudson.model.TextParameterDefinition
 import hudson.model.TextParameterValue
+import hudson.model.queue.QueueTaskFuture
 import hudson.remoting.Launcher
 import org.junit.Rule
 import org.junit.rules.RuleChain
@@ -26,46 +29,63 @@ class PropertyPassingIntegrationTest extends Specification {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
-        p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition('PARAM', null, null)))
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { println 'property=' + System.getProperty('PARAM') } }"))
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, passAllAsSystemProperties: true, *:defaults))
+        addParameter(p, 'PARAM')
+        createBuildScript(p, """
+            task printParam {
+                doLast {
+                    println 'property=' + System.getProperty('PARAM')
+                }
+            }""".stripIndent())
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, passAllAsSystemProperties: true, *: defaults))
 
         when:
-        def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", propertyValue))))
+        def build = j.assertBuildStatusSuccess(triggerBuildWithParameter(p, "PARAM", propertyValue))
 
         then:
         getLog(build).contains("property=${propertyValue}")
 
         where:
         propertyValue << criticalStrings
-        escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
+        escapedPropertyValue = escapeStringForMethodName(propertyValue)
     }
 
     def "pass '#escapedPropertyValue' via parameter in project properties"() {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
-        p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition('PARAM', null, null)))
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { println 'property=' + PARAM } }"))
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, passAllAsProjectProperties: true, *:defaults))
+        addParameter(p, "PARAM")
+        createBuildScript(p, """
+            task printParam {
+                doLast {
+                    println 'property=' + PARAM
+                }
+            }""".stripIndent())
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, passAllAsProjectProperties: true, *: defaults))
 
         when:
-        def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", propertyValue))))
+        def build = j.assertBuildStatusSuccess(triggerBuildWithParameter(p, "PARAM", propertyValue))
 
         then:
         getLog(build).contains("property=${propertyValue}")
 
         where:
         propertyValue << criticalStrings
-        escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
+        escapedPropertyValue = escapeStringForMethodName(propertyValue)
     }
 
     def "pass project properties"() {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { \n ${criticalProperties.collect { k, v -> "println('${k}=' + ${k})" }.join('\n') } } }"))
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, projectProperties: (criticalProperties.collect { k, v -> "${k}=${v}\n"}).join(''), *:defaults))
+        createBuildScript(p, """
+            task printParam {
+                doLast { 
+                ${criticalProperties.collect { k, v ->
+                    "println('${k}=' + ${k})"
+                }.join('\n')}
+                }
+            }""".stripIndent())
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, projectProperties: map2PropertiesString(criticalProperties), *: defaults))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -80,8 +100,15 @@ class PropertyPassingIntegrationTest extends Specification {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { \n ${criticalProperties.collect { k, v -> "println('${k}=' + System.getProperty('${k}'))" }.join('\n') } } }"))
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, systemProperties: (criticalProperties.collect { k, v -> "${k}=${v}\n"}).join(''), *:defaults))
+        createBuildScript(p, """
+            task printParam {
+                doLast { 
+                ${criticalProperties.collect { k, v ->
+                    "println('${k}=' + System.getProperty('${k}'))"
+                }.join('\n')}
+                }
+            }""".stripIndent())
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, systemProperties: map2PropertiesString(criticalProperties), *: defaults))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -102,13 +129,7 @@ class PropertyPassingIntegrationTest extends Specification {
     ]
 
     private static List<String> getCriticalStrings() {
-        return [
-                'a < b',
-                '<foo> <bar/> </foo>',
-                'renaming XYZ >> \'xyz\'',
-                'renaming XYZ >>> \'xyz\'',
-                'renaming XYZ >> "xyz"',
-                'renaming \'XYZ >> \'x"y"z\'"',
+        return criticalProperties.values() + [
                 Launcher.isWindows() ? "Multiline does not work on windows \\r\\n" : """
                    Some
                    multiline
@@ -117,6 +138,26 @@ class PropertyPassingIntegrationTest extends Specification {
     }
 
     Map getDefaults() {
-        [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true, switches: '--no-daemon']
+        [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: false, switches: '--no-daemon']
+    }
+
+    private static boolean createBuildScript(FreeStyleProject p, String buildScript) {
+        p.buildersList.add(new CreateFileBuilder("build.gradle", buildScript))
+    }
+
+    private static String escapeStringForMethodName(value) {
+        value.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
+    }
+
+    private static String map2PropertiesString(Map<String, String> properties) {
+        (properties.collect { k, v -> "${k}=${v}\n" }).join('')
+    }
+
+    private static QueueTaskFuture<FreeStyleBuild> triggerBuildWithParameter(FreeStyleProject p, String parameterName, String value) {
+        p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue(parameterName, value)))
+    }
+
+    private static addParameter(FreeStyleProject p, String parameterName) {
+        p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition(parameterName, null, null)))
     }
 }
