@@ -375,7 +375,6 @@ task hello << { println 'Hello' }"""))
     private void assertCLIError(hudson.cli.CLICommandInvoker.Result result, String expectedOutput) {
         assert result.returnCode() == 1
         assert result.stderr().trim() == expectedOutput
-
     }
 
     private String expectedOutputForVersion(String output) {
