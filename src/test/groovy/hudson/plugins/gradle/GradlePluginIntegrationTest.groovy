@@ -357,7 +357,7 @@ task hello << { println 'Hello' }"""))
     }
 
     private void assertCLIResult(hudson.cli.CLICommandInvoker.Result result, String expectedOutput) {
-        assert 0 == result.returnCode()
+        assert result.returnCode() == 0
 
         JSON expectedJson, resultJson
 
@@ -369,12 +369,12 @@ task hello << { println 'Hello' }"""))
             resultJson = JSONObject.fromObject(result.stdout().trim())
         }
 
-        assert expectedJson == resultJson
+        assert resultJson == expectedJson
     }
 
     private void assertCLIError(hudson.cli.CLICommandInvoker.Result result, String expectedOutput) {
-        assert 1 == result.returnCode()
-        assert expectedOutput == result.stderr().trim()
+        assert result.returnCode() == 1
+        assert result.stderr().trim() == expectedOutput
 
     }
 
