@@ -31,9 +31,20 @@ class GradleInstallationRule extends TestWatcher {
     }
 
     void addInstallation() {
+        addInstallations(gradleVersion)
+    }
+
+    void addInstallations(String... installationNames) {
         def gradleInstallationDescriptor = j.jenkins.getDescriptorByType(hudson.plugins.gradle.GradleInstallation.DescriptorImpl)
-        gradleInstallationDescriptor.setInstallations(
-                new GradleInstallation(gradleVersion, "", [new InstallSourceProperty([new GradleInstaller(gradleVersion)])]))
+
+        GradleInstallation[] installations = new GradleInstallation[installationNames.size()]
+
+        for (int i = 0; i < installationNames.size(); i++) {
+            String name = installationNames[i]
+            installations[i] = new GradleInstallation(name, "", [new InstallSourceProperty([new GradleInstaller(gradleVersion)])])
+        }
+
+        gradleInstallationDescriptor.setInstallations(installations)
 
         assert gradleInstallationDescriptor.getInstallations()
     }
