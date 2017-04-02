@@ -10,9 +10,14 @@ In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
 * 1.27 (unreleased)
-  * Job parameters are now correctly quoted when passed as system properties ([JENKINS-42573](https://issues.jenkins-ci.org/browse/JENKINS-42573) and [JENKINS-20505](https://issues.jenkins-ci.org/browse/JENKINS-20505))
-  * Make finding wrapper location more robust on Windows
   * Increase required core version to 1.642.1
+  * Make finding wrapper location more robust on Windows
+  * Job parameters are now correctly quoted when passed as system properties ([JENKINS-42573](https://issues.jenkins-ci.org/browse/JENKINS-42573) and [JENKINS-20505](https://issues.jenkins-ci.org/browse/JENKINS-20505))
+  * Do not pass all job parameters as (system) properties to Gradle by default
+  * Include automated test for CLI command [JENKINS-42847](https://issues.jenkins-ci.org/browse/JENKINS-42847)
+  * Ensure that Gradle's bin directory is on the path for Pipeline tool steps [JENKINS-42381](https://issues.jenkins-ci.org/browse/JENKINS-42381)
+  * Add option to pass only selected system properties to Gradle
+  * Add option to pass only selected project properties to Gradle
 * 1.26 (Feb 13 2016)
   * Use `@DataBoundSetter` instead of a (too) large `@DataBoundConstructor`
   * Add @Symbol annotations for step and tool [JENKINS-37394](https://issues.jenkins-ci.org/browse/JENKINS-37394)
