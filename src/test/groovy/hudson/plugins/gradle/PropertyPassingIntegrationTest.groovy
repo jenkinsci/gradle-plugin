@@ -9,22 +9,13 @@ import hudson.model.TextParameterDefinition
 import hudson.model.TextParameterValue
 import hudson.model.queue.QueueTaskFuture
 import hudson.remoting.Launcher
-import org.junit.Rule
-import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.CreateFileBuilder
-import org.jvnet.hudson.test.JenkinsRule
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.jvnet.hudson.test.JenkinsRule.getLog
 
 @Unroll
-class PropertyPassingIntegrationTest extends Specification {
-    private final JenkinsRule j = new JenkinsRule()
-    private final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
-    @Rule
-    public final RuleChain rules = RuleChain.outerRule(j).around(gradleInstallationRule)
-
+class PropertyPassingIntegrationTest extends AbstractIntegrationTest {
     def "pass '#escapedPropertyValue' via parameter in system properties"() {
         given:
         gradleInstallationRule.addInstallation()
@@ -135,10 +126,6 @@ class PropertyPassingIntegrationTest extends Specification {
                    multiline
                    parameter""".stripIndent().replaceAll('\n', System.lineSeparator())
         ]
-    }
-
-    Map getDefaults() {
-        [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: false, switches: '--no-daemon']
     }
 
     private static boolean createBuildScript(FreeStyleProject p, String buildScript) {
