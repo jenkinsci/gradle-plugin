@@ -30,15 +30,9 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage
 import com.google.common.base.Joiner
 import hudson.EnvVars
 import hudson.cli.CLICommandInvoker
-import hudson.model.Cause
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
-import hudson.model.ParametersAction
-import hudson.model.ParametersDefinitionProperty
 import hudson.model.Result
-import hudson.model.TextParameterDefinition
-import hudson.model.TextParameterValue
-import hudson.remoting.Launcher
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
 import net.sf.json.JSON
@@ -53,6 +47,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.jvnet.hudson.test.JenkinsRule.getLog
+
 /**
  * Tests for the Gradle build step.
  */
@@ -82,7 +77,7 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
-        p.buildersList.add(new Gradle(tasks: 'hello', *:defaults))
+        p.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -96,7 +91,7 @@ class GradlePluginIntegrationTest extends Specification {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(new CreateFileBuilder("build/build.gradle", "task hello << { println 'Hello' }"))
-        p.buildersList.add(new Gradle(tasks: 'hello', buildFile: 'build/build.gradle', *:defaults))
+        p.buildersList.add(new Gradle(tasks: 'hello', buildFile: 'build/build.gradle', *: defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
@@ -120,7 +115,7 @@ buildScan {
 }
 
 task hello << { println 'Hello' }"""))
-        p.buildersList.add(new Gradle(tasks: 'hello', *:defaults, switches: '-Dscan --no-daemon'))
+        p.buildersList.add(new Gradle(tasks: 'hello', *: defaults, switches: '-Dscan --no-daemon'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -136,8 +131,8 @@ task hello << { println 'Hello' }"""))
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
-        p.buildersList.add(new Gradle(tasks: 'wrapper', *:defaults))
-        p.buildersList.add(new Gradle(useWrapper: true, tasks: 'hello', *:defaults))
+        p.buildersList.add(new Gradle(tasks: 'wrapper', *: defaults))
+        p.buildersList.add(new Gradle(useWrapper: true, tasks: 'hello', *: defaults))
 
         expect:
         j.buildAndAssertSuccess(p)
@@ -148,7 +143,7 @@ task hello << { println 'Hello' }"""))
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
-        p.buildersList.add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *:defaults))
+        p.buildersList.add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *: defaults))
         p.buildersList.add(new Gradle(
                 defaults + [useWrapper: true, tasks: 'hello'] + settings))
 
@@ -194,61 +189,6 @@ task hello << { println 'Hello' }"""))
         'build/some/build.gradle' | [rootBuildScriptDir: 'build']                                                               | [null]
     }
 
-    def "Can use '#escapedPropertyValue' in system properties"() {
-        given:
-        gradleInstallationRule.addInstallation()
-        def p = j.createFreeStyleProject()
-        p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition('PARAM', null, null)))
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { println 'property=' + System.getProperty('PARAM') } }"))
-        p.buildersList.add(new Gradle(tasks: 'wrapper', *:defaults))
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWrapper: true, useWorkspaceAsHome: true))
-
-        when:
-        def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", propertyValue))))
-
-        then:
-        getLog(build).contains("property=${propertyValue}")
-
-        where:
-        propertyValue << criticalStrings
-        escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
-    }
-
-    def "Can use '#escapedPropertyValue' in project properties"() {
-        given:
-        gradleInstallationRule.addInstallation()
-        def p = j.createFreeStyleProject()
-        p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition('PARAM', null, null)))
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "task printParam { doLast { println 'property=' + PARAM } }"))
-        p.buildersList.add(new Gradle(tasks: 'wrapper', *:defaults))
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWrapper: true, useWorkspaceAsHome: true, passAsProperties: true))
-
-        when:
-        def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", propertyValue))))
-
-        then:
-        getLog(build).contains("property=${propertyValue}")
-
-        where:
-        propertyValue << criticalStrings
-        escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
-    }
-
-    private static List<String> getCriticalStrings() {
-        return [
-                'a < b',
-                '<foo> <bar/> </foo>',
-                'renaming XYZ >> \'xyz\'',
-                'renaming XYZ >>> \'xyz\'',
-                'renaming XYZ >> "xyz"',
-                'renaming \'XYZ >> \'x"y"z\'"',
-                Launcher.isWindows() ? "Multiline does not work on windows \\r\\n" : """
-                   Some
-                   multiline
-                   parameter""".stripIndent().replaceAll('\n', System.lineSeparator())
-        ]
-    }
-
     def "Config roundtrip"() {
         given:
         gradleInstallationRule.addInstallation()
@@ -267,14 +207,18 @@ task hello << { println 'Hello' }"""))
         before.makeExecutable == after.makeExecutable
         before.wrapperLocation == after.wrapperLocation
         before.useWorkspaceAsHome == after.useWorkspaceAsHome
-        before.passAsProperties == after.passAsProperties
+        before.systemProperties == after.systemProperties
+        before.passAllAsSystemProperties == after.passAllAsSystemProperties
+        before.projectProperties == after.projectProperties
+        before.passAllAsProjectProperties == after.passAllAsProjectProperties
     }
 
     private Gradle configuredGradle() {
         new Gradle(switches: "switches", tasks: 'tasks', rootBuildScriptDir: "buildScriptDir",
-                buildFile:  "buildFile.gradle", gradleName:  gradleInstallationRule.gradleVersion,
+                buildFile: "buildFile.gradle", gradleName: gradleInstallationRule.gradleVersion,
                 useWrapper: true, makeExecutable: true, wrapperLocation: 'path/to/wrapper',
-                useWorkspaceAsHome: true, passAsProperties: true)
+                useWorkspaceAsHome: true, passAllAsProjectProperties: true, passAllAsSystemProperties: true,
+                systemProperties: 'someProp=someValue', projectProperties: 'someOtherProp=someOtherValue')
     }
 
     def 'add Gradle installation'() {
