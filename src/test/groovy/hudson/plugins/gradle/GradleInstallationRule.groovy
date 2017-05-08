@@ -1,5 +1,6 @@
 package hudson.plugins.gradle
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import hudson.tools.InstallSourceProperty
 import hudson.util.FormValidation
 import org.junit.rules.TestWatcher
@@ -24,6 +25,7 @@ class GradleInstallationRule extends TestWatcher {
         loadGradleToolInstallers()
     }
 
+    @SuppressFBWarnings(value = "SE_NO_SERIALVERSIONID", justification = "Due to closure")
     private void loadGradleToolInstallers() {
         assert j.jenkins.getExtensionList(hudson.model.DownloadService.Downloadable).find {
             it.id == GradleInstaller.name

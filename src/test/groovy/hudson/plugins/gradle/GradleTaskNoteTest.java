@@ -1,5 +1,6 @@
 package hudson.plugins.gradle;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.MarkupText;
 import org.junit.After;
 import org.junit.Before;
@@ -17,6 +18,7 @@ public class GradleTaskNoteTest {
     }
 
     @After
+    @SuppressFBWarnings(value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD", justification = "Done for testing purposes")
     public void tearDown() {
         // Restore the original setting.
         GradleTaskNote.ENABLED = enabled;
@@ -66,6 +68,7 @@ public class GradleTaskNoteTest {
     }
 
     @Test
+    @SuppressFBWarnings(value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD", justification = "Done for testing purposes")
     public void testDisabled() {
         GradleTaskNote.ENABLED = false;
         assertEquals("TASK:", annotate("TASK:"));
