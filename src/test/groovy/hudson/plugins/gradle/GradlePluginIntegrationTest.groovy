@@ -24,6 +24,8 @@
 
 package hudson.plugins.gradle
 
+import static org.jvnet.hudson.test.JenkinsRule.getLog
+
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.html.HtmlPage
@@ -38,7 +40,6 @@ import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule.WebClient
 import spock.lang.Unroll
 
-import static org.jvnet.hudson.test.JenkinsRule.getLog
 /**
  * Tests for the Gradle build step.
  */

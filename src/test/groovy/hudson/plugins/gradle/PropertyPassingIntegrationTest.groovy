@@ -1,5 +1,7 @@
 package hudson.plugins.gradle
 
+import static org.jvnet.hudson.test.JenkinsRule.getLog
+
 import hudson.model.Cause
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
@@ -11,8 +13,6 @@ import hudson.model.queue.QueueTaskFuture
 import hudson.remoting.Launcher
 import org.jvnet.hudson.test.CreateFileBuilder
 import spock.lang.Unroll
-
-import static org.jvnet.hudson.test.JenkinsRule.getLog
 
 @Unroll
 class PropertyPassingIntegrationTest extends AbstractIntegrationTest {

@@ -85,7 +85,7 @@ public class GetGradleCommand extends CLICommand {
         }
 
         GradleInstallation[] installations =
-            Jenkins.getInstance().getDescriptorByType(GradleInstallation.DescriptorImpl.class).getInstallations();
+            Jenkins.getActiveInstance().getDescriptorByType(GradleInstallation.DescriptorImpl.class).getInstallations();
 
         Map<String,List<String>> map = new HashMap<String,List<String>>();
 
