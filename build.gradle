@@ -22,7 +22,7 @@ jenkinsPlugin {
   displayName = "Gradle Plugin"
 
   // URL for plugin on Jenkins wiki or elsewhere.
-  url = "http://wiki.jenkins-ci.org/display/JENKINS/Gradle+Plugin"   
+  url = "http://wiki.jenkins-ci.org/display/JENKINS/Gradle+Plugin"
 
   // Plugin URL on GitHub. Optional.
   gitHubUrl = "https://github.com/jenkinsci/gradle-plugin"
@@ -65,20 +65,30 @@ animalsniffer {
   sourceSets = [sourceSets.main]
 }
 
+configurations {
+  animalsnifferCompileClasspath.extendsFrom compile
+  // We need to exclude this class from animalsniffer since contains an invalid class
+  animalsnifferCompileClasspath.exclude group: 'com.ibm.icu', module: 'icu4j'
+}
+
 findbugs {
-  // Some errors are logged due to https://github.com/gradle/gradle/issues/1094, but Findbugs checks are working fine
-  toolVersion '3.0.0'
+  toolVersion '3.0.1'
+  // This prevents logging some errors when Findbugs tries to open files as jar files.
+  // See https://github.com/gradle/gradle/issues/1094.
   sourceSets = [sourceSets.main]
+}
+
+findbugsMain {
+  classes = sourceSets.main.output
+}
+
+animalsnifferMain {
+  classpath = configurations.animalsnifferCompileClasspath
 }
 
 codenarc {
   toolVersion '0.27.0'
   sourceSets = [sourceSets.test]
-}
-
-configurations {
-  // https://github.com/gradle/gradle/issues/1305
-  compile.exclude group: 'com.ibm.icu', module: 'icu4j'
 }
 
 test {
