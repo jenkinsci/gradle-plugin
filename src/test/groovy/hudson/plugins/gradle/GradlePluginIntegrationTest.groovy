@@ -24,11 +24,12 @@
 
 package hudson.plugins.gradle
 
+import static org.jvnet.hudson.test.JenkinsRule.getLog
+
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.html.HtmlPage
 import com.google.common.base.Joiner
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import hudson.EnvVars
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
@@ -39,12 +40,10 @@ import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule.WebClient
 import spock.lang.Unroll
 
-import static org.jvnet.hudson.test.JenkinsRule.getLog
 /**
  * Tests for the Gradle build step.
  */
 @Unroll
-@SuppressFBWarnings(value = "SE_NO_SERIALVERSIONID", justification = "Due to closure")
 class GradlePluginIntegrationTest extends AbstractIntegrationTest {
     def 'run the default tasks'() {
         given:

@@ -1,6 +1,7 @@
 package hudson.plugins.gradle
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
+import static org.jvnet.hudson.test.JenkinsRule.getLog
+
 import hudson.model.Cause
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
@@ -13,10 +14,7 @@ import hudson.remoting.Launcher
 import org.jvnet.hudson.test.CreateFileBuilder
 import spock.lang.Unroll
 
-import static org.jvnet.hudson.test.JenkinsRule.getLog
-
 @Unroll
-@SuppressFBWarnings(value = "SE_NO_SERIALVERSIONID", justification = "Due to closure")
 class PropertyPassingIntegrationTest extends AbstractIntegrationTest {
     def "pass '#escapedPropertyValue' via parameter in system properties"() {
         given:

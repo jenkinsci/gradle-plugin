@@ -2,6 +2,7 @@ plugins {
   id "org.jenkins-ci.jpi" version "0.22.0"
   id 'ru.vyarus.animalsniffer' version '1.3.0'
   id 'findbugs'
+  id 'codenarc'
 }
 
 group = "org.jenkins-ci.plugins"
@@ -68,6 +69,13 @@ findbugs {
   // Some errors are logged due to https://github.com/gradle/gradle/issues/1094, but Findbugs checks are working fine
   toolVersion '3.0.0'
   ignoreFailures false
+  sourceSets = [sourceSets.main]
+}
+
+codenarc {
+  // Some errors are logged due to https://github.com/gradle/gradle/issues/1094, but Findbugs checks are working fine
+  toolVersion '0.27.0'
+  sourceSets = [sourceSets.test]
 }
 
 test {
