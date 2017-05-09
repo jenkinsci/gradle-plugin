@@ -72,7 +72,6 @@ findbugs {
 }
 
 codenarc {
-  // Some errors are logged due to https://github.com/gradle/gradle/issues/1094, but Findbugs checks are working fine
   toolVersion '0.27.0'
   sourceSets = [sourceSets.test]
 }
