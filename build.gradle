@@ -67,7 +67,7 @@ animalsniffer {
 
 configurations {
   animalsnifferCompileClasspath.extendsFrom compile
-  // We need to exclude this class from animalsniffer since contains an invalid class
+  // We need to exclude this dependency from animalsniffer since contains an invalid class
   animalsnifferCompileClasspath.exclude group: 'com.ibm.icu', module: 'icu4j'
 }
 
