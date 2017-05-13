@@ -20,6 +20,8 @@ class GradleTaskNoteTest extends Specification {
         ':TASK'                   | ':<b class=gradle-task>TASK</b>'
         ':TASK UP-TO-DATE'        | ':<b class=gradle-task>TASK</b> <span class=gradle-task-progress-status>UP-TO-DATE</span>'
         ':TASK SKIPPED'           | ':<b class=gradle-task>TASK</b> <span class=gradle-task-progress-status>SKIPPED</span>'
+        ':TASK FROM-CACHE'        | ':<b class=gradle-task>TASK</b> <span class=gradle-task-progress-status>FROM-CACHE</span>'
+        ':TASK NO-SOURCE'         | ':<b class=gradle-task>TASK</b> <span class=gradle-task-progress-status>NO-SOURCE</span>'
         ':TASK DUMMY'             | ':<b class=gradle-task>TASK</b> DUMMY'
         ':::: ERRORS'             | ':::: ERRORS'
         ':PARENT:TASK'            | ':<b class=gradle-task>PARENT:TASK</b>'

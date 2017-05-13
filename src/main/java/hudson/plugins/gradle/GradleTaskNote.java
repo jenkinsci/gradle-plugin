@@ -1,5 +1,6 @@
 package hudson.plugins.gradle;
 
+import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
 import hudson.MarkupText;
 import hudson.console.ConsoleAnnotationDescriptor;
@@ -7,18 +8,16 @@ import hudson.console.ConsoleAnnotator;
 import hudson.console.ConsoleNote;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.regex.Pattern;
 
 public final class GradleTaskNote extends ConsoleNote {
 
-    private static Collection<String> progressStatuses = new HashSet<String>();
-
-    static {
-        // add to this collection if other words should be contained.
-        progressStatuses.add("UP-TO-DATE");
-        progressStatuses.add("SKIPPED");
-    }
+    private static final Collection<String> progressStatuses = ImmutableSet.of(
+            "UP-TO-DATE",
+            "SKIPPED",
+            "FROM-CACHE",
+            "NO-SOURCE"
+    );
 
     @Override
     public ConsoleAnnotator annotate(Object context, MarkupText text,
