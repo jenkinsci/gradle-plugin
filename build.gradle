@@ -62,8 +62,10 @@ dependencies {
 
   // NOTE: All plugins needed at test time need to be explicitly stated here or they won't show up.
   jenkinsTest('org.jenkins-ci.plugins.workflow:workflow-job:2.11@jar')
-  jenkinsTest('org.jenkins-ci.plugins.workflow:workflow-api:2.15@jar')
-  jenkinsTest('org.jenkins-ci.plugins.workflow:workflow-step-api:2.10@jar')
+  jenkinsTest('org.jenkins-ci.plugins.workflow:workflow-api:2.15@jar') {
+    transitive = true
+  }
+  jenkinsPlugins('org.jenkins-ci.plugins.workflow:workflow-step-api:2.10@jar')
   jenkinsTest('org.jenkins-ci.plugins.workflow:workflow-cps:2.32@jar') {
     // This is to pick up groovy-cps.jar from inside workflow-cps.hpi.
     transitive = true

@@ -47,11 +47,11 @@ public class WithGradleExecution extends StepExecution {
 
     public WithGradleExecution (StepContext context, WithGradle step) throws Exception { // TODO: do better
         super(context);
-        this.step = step;
+        //this.step = step;
 
-        workspace = context.get(FilePath.class);
+        /*workspace = context.get(FilePath.class);
         run = context.get(Run.class);
-        listener = context.get(TaskListener.class);
+        listener = context.get(TaskListener.class);*/
     }
 
     @Override
@@ -60,7 +60,9 @@ public class WithGradleExecution extends StepExecution {
         //ConsoleLogFilter annotator = BodyInvoker.mergeConsoleLogFilters(null, getContext().get(ConsoleLogFilter.class));
         //EnvironmentExpander expander = EnvironmentExpander.merge(null, getContext().get(EnvironmentExpander.class));
 
-        block = getContext().newBodyInvoker().withContexts(workspace).start();
+        if (getContext().hasBody()) {
+           block = getContext().newBodyInvoker().start();
+        }
         getContext().onSuccess(Result.SUCCESS);
         return false;
     }
