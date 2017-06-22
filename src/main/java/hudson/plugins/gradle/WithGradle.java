@@ -31,6 +31,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -41,9 +42,7 @@ import java.util.Set;
 /**
  * @author Alex Johnson
  */
-public class WithGradle extends Step implements Serializable {
-
-    public static final long serialVersionUID = 1L;
+public class WithGradle extends Step {
 
     @DataBoundConstructor
     public WithGradle () {
@@ -64,7 +63,7 @@ public class WithGradle extends Step implements Serializable {
 
         @Override
         public Set<? extends Class<?>> getRequiredContext() {
-            return ImmutableSet.of(Run.class, FilePath.class, TaskListener.class);
+            return Collections.EMPTY_SET;//ImmutableSet.of(Run.class, FilePath.class, TaskListener.class);
         }
 
         @Override
