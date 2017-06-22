@@ -19,6 +19,7 @@ In order to release this plugin have a look at [here](RELEASING.md).
   * Add option to pass only selected system properties to Gradle
   * Add option to pass only selected project properties to Gradle
   * Progress status `FROM-CACHE` and `NO-SOURCE` are highlighted in the console, too.
+  * Support build scan plugin 1.8
 * 1.26 (Feb 13 2016)
   * Use `@DataBoundSetter` instead of a (too) large `@DataBoundConstructor`
   * Add @Symbol annotations for step and tool [JENKINS-37394](https://issues.jenkins-ci.org/browse/JENKINS-37394)
