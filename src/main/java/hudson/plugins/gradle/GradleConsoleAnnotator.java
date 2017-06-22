@@ -6,12 +6,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.regex.Pattern;
 
 /**
  * @author ikikko
  * @see <a href="https://github.com/jenkinsci/ant-plugin/blob/master/src/main/java/hudson/tasks/_ant/AntConsoleAnnotator.java">AntConsoleAnnotator</a>
  */
 public class GradleConsoleAnnotator extends LineTransformationOutputStream {
+
+    private static final Pattern BUILD_SCAN_REGEX = Pattern.compile("Publishing (build scan|build information)\\.\\.\\.");
+
     private final OutputStream out;
     private final Charset charset;
     private boolean nextLineIsBuildScan;
@@ -40,7 +44,7 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
             scanUrl = line;
             nextLineIsBuildScan = false;
         }
-        if (line.equals("Publishing build information...")) {
+        if (BUILD_SCAN_REGEX.matcher(line).matches()) {
             nextLineIsBuildScan = true;
         }
 
