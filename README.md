@@ -9,7 +9,7 @@ For more information see the [Jenkins wiki page](http://wiki.jenkins-ci.org/disp
 In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
-* 1.27 (unreleased)
+* 1.27 (Jun 23 2017)
   * Increase required core version to 1.642.1
   * Make finding wrapper location more robust on Windows
   * Job parameters are now correctly quoted when passed as system properties ([JENKINS-42573](https://issues.jenkins-ci.org/browse/JENKINS-42573) and [JENKINS-20505](https://issues.jenkins-ci.org/browse/JENKINS-20505))
