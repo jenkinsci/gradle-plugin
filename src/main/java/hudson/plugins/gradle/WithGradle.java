@@ -24,30 +24,62 @@
 package hudson.plugins.gradle;
 
 import com.google.common.collect.ImmutableSet;
+import hudson.EnvVars;
+import hudson.Extension;
 import hudson.FilePath;
-import hudson.Launcher;
-import hudson.console.ConsoleLogFilter;
+
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Collections;
 import java.util.Set;
 
 /**
+ * The WithGradle pipeline step. For the most part only getters, setters and scaffolding code. The actual logic and
+ * configuration are in {@link WithGradleExecution}.
+ *
  * @author Alex Johnson
  */
 public class WithGradle extends Step {
+
+    /** The Gradle installation to use */
+    private String gradleName;
+    /** The name of the Java Installation */
+    private String javaName;
 
     @DataBoundConstructor
     public WithGradle () {
 
     }
+
+    /**
+     * Sets the globally configured gradle installation to set the GRADLE_HOME for
+     * @param gradleName the name of the installation to use
+     */
+    @DataBoundSetter
+    public void setGradle (String gradleName) {
+        this.gradleName = gradleName;
+    }
+
+    public String getGradle () {
+        return gradleName;
+    }
+
+    /**
+     * Sets the Java installation to use
+     * @param javaInstallation the path of the jdk to use
+     */
+    @DataBoundSetter
+    public void setJdk (String javaInstallation) {
+        this.javaName = javaInstallation;
+    }
+
+    public String getJdk () {
+        return javaName;
+    }
+
 
     @Override
     public StepExecution start(StepContext context) throws Exception {
@@ -59,11 +91,12 @@ public class WithGradle extends Step {
         return new DescriptorImpl();
     }
 
-    private static final class DescriptorImpl extends StepDescriptor {
+    @Extension
+    public static final class DescriptorImpl extends StepDescriptor {
 
         @Override
         public Set<? extends Class<?>> getRequiredContext() {
-            return Collections.EMPTY_SET;//ImmutableSet.of(Run.class, FilePath.class, TaskListener.class);
+            return ImmutableSet.of(Run.class, FilePath.class, TaskListener.class, EnvVars.class);
         }
 
         @Override
