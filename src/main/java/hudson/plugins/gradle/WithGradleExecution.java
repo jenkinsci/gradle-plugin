@@ -23,53 +23,147 @@
  */
 package hudson.plugins.gradle;
 
+import hudson.EnvVars;
 import hudson.FilePath;
-import hudson.Launcher;
 import hudson.console.ConsoleLogFilter;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
+import hudson.tools.ToolInstallation;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.workflow.steps.*;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.nio.charset.Charset;
 
 /**
+ * The execution of the {@link WithGradle} pipeline step. Configures the ConsoleAnnotator for a Gradle build and, if
+ * specified, configures Gradle and Java for the build.
+ *
  * @author Alex Johnson
  */
 public class WithGradleExecution extends StepExecution {
 
-    private WithGradle step;
+    /**
+     * The Step and it's required context
+     */
+    private transient WithGradle step;
+    private transient FilePath workspace;
+    private transient Run run;
+    private transient TaskListener listener;
+    private transient EnvVars envVars;
+
     private BodyExecution block;
 
-    private FilePath workspace;
-    private Run run;
-    private TaskListener listener;
-
-    public WithGradleExecution (StepContext context, WithGradle step) throws Exception { // TODO: do better
+    public WithGradleExecution(StepContext context, WithGradle step) throws IOException, InterruptedException {
         super(context);
-        //this.step = step;
+        this.step = step;
 
-        /*workspace = context.get(FilePath.class);
+        workspace = context.get(FilePath.class);
         run = context.get(Run.class);
-        listener = context.get(TaskListener.class);*/
+        listener = context.get(TaskListener.class);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean start() throws Exception {
+        listener.getLogger().printf("[WithGradle] Execution begin %n");
+        envVars = new EnvVars();
 
-        //ConsoleLogFilter annotator = BodyInvoker.mergeConsoleLogFilters(null, getContext().get(ConsoleLogFilter.class));
-        //EnvironmentExpander expander = EnvironmentExpander.merge(null, getContext().get(EnvironmentExpander.class));
-
-        if (getContext().hasBody()) {
-           block = getContext().newBodyInvoker().start();
+        String gradleName = step.getGradle();
+        if (gradleName != null) {
+            GradleInstallation gradleInstallation = null;
+            GradleInstallation[] installations = ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class).getInstallations();
+            for (GradleInstallation i : installations) {
+                if (i.getName().equals(gradleName)) {
+                    gradleInstallation = i;
+                }
+            }
+            if (gradleInstallation == null) {
+                listener.getLogger().printf("[WithGradle] Gradle Installation '%s' not found. Defaulting to system installation. %n", gradleName);
+            } else {
+                listener.getLogger().printf("[WithGradle] Gradle Installation found. Using '%s' %n", gradleInstallation.getName());
+                envVars.put("GRADLE_HOME", gradleInstallation.getHome());
+            }
+            // set build failure and return if incorrect
         }
+
+        String javaName = step.getJdk();
+        if (javaName != null) {
+            JDK javaInstallation = Jenkins.getActiveInstance().getJDK(javaName);
+            if (javaInstallation == null) {
+                listener.getLogger().printf("[WithGradle] Java Installation '%s' not found. Defaulting to system installation. %n", javaName);
+            } else {
+                listener.getLogger().printf("[WithGradle] Java Installation found. Using '%s' %n", javaInstallation.getName());
+                envVars.put("JAVA_HOME", javaInstallation.getHome());
+            }
+            // set build failure and return if incorrect
+        }
+
+        ConsoleLogFilter annotator = BodyInvoker.mergeConsoleLogFilters(getContext().get(ConsoleLogFilter.class), new GradleConsoleFilter());
+        EnvironmentExpander expander = EnvironmentExpander.merge(getContext().get(EnvironmentExpander.class), new GradleExpander(envVars));
+
+        block = getContext().newBodyInvoker().withContexts(annotator, expander).start();
         getContext().onSuccess(Result.SUCCESS);
+
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stop(@Nonnull Throwable cause) throws Exception {
 
     }
 
+    /**
+     * Wraps {@link GradleConsoleAnnotator} in a {@link ConsoleLogFilter} so it can be merged with the existing
+     * log filter.
+     */
+    private static class GradleConsoleFilter extends ConsoleLogFilter implements Serializable {
+
+        private static final long serialVersionUID = 1;
+
+        public GradleConsoleFilter() {
+        }
+
+        /**
+         * Creates a {@link GradleConsoleAnnotator} for an {@link OutputStream}
+         *
+         * @param build this is ignored
+         * @param out   the {@link OutputStream} to annotate
+         * @return the {@link GradleConsoleAnnotator} for the OutputStream
+         */
+        @Override
+        public OutputStream decorateLogger(AbstractBuild build, final OutputStream out) {
+            return new GradleConsoleAnnotator(out, Charset.forName("UTF-8"));
+        }
+    }
+
+    /**
+     * Overrides the existing environment with the pipeline Gradle settings
+     */
+    private static final class GradleExpander extends EnvironmentExpander {
+
+        private static final long serialVersionUID = 1;
+
+        private final EnvVars gradleEnv;
+
+        private GradleExpander(EnvVars env) {
+            this.gradleEnv = new EnvVars();
+            gradleEnv.putAll(env);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void expand(EnvVars env) throws IOException, InterruptedException {
+            env.overrideAll(gradleEnv);
+        }
+    }
 }

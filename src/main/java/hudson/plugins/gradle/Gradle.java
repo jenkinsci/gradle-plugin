@@ -20,7 +20,6 @@ import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.Symbol;
 import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -425,7 +424,7 @@ public class Gradle extends Builder implements DryRun {
         return (DescriptorImpl) super.getDescriptor();
     }
 
-    @Extension @Symbol("gradle")
+    @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
         @CopyOnWrite

@@ -23,7 +23,14 @@
  */
 package hudson.plugins.gradle;
 
+import hudson.model.JDK;
 import hudson.model.Label;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.queue.QueueTaskFuture;
+import hudson.tools.ToolDescriptor;
+import hudson.tools.ToolInstallation;
+import hudson.tools.ToolProperty;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -31,7 +38,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
+
 /**
+ * Tests the withGradle pipeline step
+ *
  * @author Alex Johnson
  */
 public class WithGradleWorkFlowTest {
@@ -39,24 +52,61 @@ public class WithGradleWorkFlowTest {
     @Rule
     public JenkinsRule j = new JenkinsRule();
 
+    private String build_gradle = "writeFile(file:'build.gradle', text:'defaultTasks \\\'hello\\\'\\ntask hello << { println \\\'Hello\\\' }') \n";
+
     @Test
-    public void testGradleWorkflowStep() throws Exception {
+    public void testStepDefaultTools() throws Exception {
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
-        p1.setDefinition(new CpsFlowDefinition("node {\n" +
-                "writeFile(file:'build.gradle', text:'defaultTasks \\\'hello\\\'\\ntask hello << { println \\\'Hello\\\' }') \n" +
-                    "withGradle () {\n" +
-                    "sh 'echo hello'\n" +
-                    "}\n" +
+        p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
+                "withGradle {\n" +
+                "sh 'gradle'\n" + // runs default task
+                "}\n" +
                 "}", false));
-        j.assertBuildStatusSuccess(p1.scheduleBuild2(0));
+        WorkflowRun r = p1.scheduleBuild2(0).get();
+        j.assertBuildStatusSuccess(r);
+        // TODO test Gradle ran correctly
+    }
+
+    //@Test TODO unskip
+    public void testGradleErrorFailsBuild() throws Exception {
+        WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
+        p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
+                "withGradle {\n" +
+                "sh 'gradle unknownTask'\n" +
+                "}\n" +
+                "}", false));
+        WorkflowRun r = p1.scheduleBuild2(0).get();
+        j.assertBuildStatus(Result.FAILURE, r);
     }
 
     @Test
-    public void testTests() throws Exception {
-        WorkflowJob p = j.getInstance().createProject(WorkflowJob.class, "DryRunTest");
-        j.createOnlineSlave(Label.get("remote"));
-        p.setDefinition(new CpsFlowDefinition("node { sh 'echo echo echo' }",
-                false));
-        WorkflowRun b = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
+    public void testStepWithConfiguredGradle() throws Exception {
+        WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
+        GradleInstallation g = new GradleInstallation("g2", "/no/such/home", Collections.EMPTY_LIST);
+        ToolInstallation.all().add((ToolDescriptor) g.getDescriptor());
+        p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
+                "withGradle (gradle: 'g2') {\n" +
+                "sh 'gradle'\n" +
+                "}\n" +
+                "}", false));
+        WorkflowRun r = p1.scheduleBuild2(0).get();
+        j.assertBuildStatusSuccess(r);
+        // TODO test Gradle ran correctly
+    }
+
+    @Test
+    public void testStepWithConfiguredGradleAndJava() throws Exception {
+        WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
+        GradleInstallation g = new GradleInstallation("g2", "/no/such/home", Collections.EMPTY_LIST);
+        j.jenkins.setJDKs(Collections.singleton(new JDK("jaba", "/no/such/home")));
+        ToolInstallation.all().add((ToolDescriptor) g.getDescriptor());
+        p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
+                "withGradle (gradle: 'g2', jdk: 'jaba') {" +
+                "sh 'gradle'\n" +
+                "}\n" +
+                "}", false));
+        WorkflowRun r = p1.scheduleBuild2(0).get();
+        j.assertBuildStatusSuccess(r);
+        // TODO test Gradle ran correctly
     }
 }
