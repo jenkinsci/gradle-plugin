@@ -14,6 +14,7 @@ import hudson.tools.ToolInstallation;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import jenkins.security.MasterToSlaveCallable;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.inject.Inject;
@@ -93,7 +94,7 @@ public class GradleInstallation extends ToolInstallation
         return new GradleInstallation(getName(), translateFor(node, log), getProperties().toList());
     }
 
-    @Extension
+    @Extension @Symbol("gradle")
     public static class DescriptorImpl extends ToolDescriptor<GradleInstallation> {
 
         public DescriptorImpl() {

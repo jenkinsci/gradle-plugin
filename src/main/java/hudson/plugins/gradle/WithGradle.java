@@ -86,11 +86,6 @@ public class WithGradle extends Step {
         return new WithGradleExecution(context, this);
     }
 
-    @Override
-    public DescriptorImpl getDescriptor() {
-        return new DescriptorImpl();
-    }
-
     @Extension
     public static final class DescriptorImpl extends StepDescriptor {
 
@@ -106,7 +101,7 @@ public class WithGradle extends Step {
 
         @Override
         public String getDisplayName() {
-            return "Builds with Gradle annotator";
+            return "Sets up a Gradle environment and annotates the console output";
         }
 
         @Override
