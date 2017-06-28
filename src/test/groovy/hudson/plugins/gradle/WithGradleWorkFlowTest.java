@@ -23,24 +23,13 @@
  */
 package hudson.plugins.gradle;
 
-import hudson.model.JDK;
-import hudson.model.Label;
 import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.queue.QueueTaskFuture;
-import hudson.tools.ToolDescriptor;
-import hudson.tools.ToolInstallation;
-import hudson.tools.ToolProperty;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
 
 /**
  * Tests the withGradle pipeline step
@@ -54,6 +43,15 @@ public class WithGradleWorkFlowTest {
 
     private String build_gradle = "writeFile(file:'build.gradle', text:'defaultTasks \\\'hello\\\'\\ntask hello << { println \\\'Hello\\\' }') \n";
 
+    /*
+        TODO DO NOT MERGE: when jenkins-test-harness-tools 2.1 is released add GradleInstallation tool. Right now
+        these tests use the system's default Gradle. If Gradle is not installed these tests will fail.
+
+        TODO: convert these tests to Groovy OR create src/test/java/.../WithGradleWorkFlowTest.java
+        TODO? add test for console annotation
+        TODO? add test for reloading annotator on Jenkins restart
+    */
+
     @Test
     public void testStepDefaultTools() throws Exception {
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
@@ -64,10 +62,9 @@ public class WithGradleWorkFlowTest {
                 "}", false));
         WorkflowRun r = p1.scheduleBuild2(0).get();
         j.assertBuildStatusSuccess(r);
-        // TODO test Gradle ran correctly
     }
 
-    //@Test TODO unskip
+    @Test
     public void testGradleErrorFailsBuild() throws Exception {
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
@@ -82,8 +79,6 @@ public class WithGradleWorkFlowTest {
     @Test
     public void testStepWithConfiguredGradle() throws Exception {
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
-        GradleInstallation g = new GradleInstallation("g2", "/no/such/home", Collections.EMPTY_LIST);
-        ToolInstallation.all().add((ToolDescriptor) g.getDescriptor());
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
                 "withGradle (gradle: 'g2') {\n" +
                 "sh 'gradle'\n" +
@@ -91,22 +86,5 @@ public class WithGradleWorkFlowTest {
                 "}", false));
         WorkflowRun r = p1.scheduleBuild2(0).get();
         j.assertBuildStatusSuccess(r);
-        // TODO test Gradle ran correctly
-    }
-
-    @Test
-    public void testStepWithConfiguredGradleAndJava() throws Exception {
-        WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
-        GradleInstallation g = new GradleInstallation("g2", "/no/such/home", Collections.EMPTY_LIST);
-        j.jenkins.setJDKs(Collections.singleton(new JDK("jaba", "/no/such/home")));
-        ToolInstallation.all().add((ToolDescriptor) g.getDescriptor());
-        p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle (gradle: 'g2', jdk: 'jaba') {" +
-                "sh 'gradle'\n" +
-                "}\n" +
-                "}", false));
-        WorkflowRun r = p1.scheduleBuild2(0).get();
-        j.assertBuildStatusSuccess(r);
-        // TODO test Gradle ran correctly
     }
 }

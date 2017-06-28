@@ -45,24 +45,13 @@ import java.nio.charset.Charset;
  */
 public class WithGradleExecution extends StepExecution {
 
-    /**
-     * The Step and it's required context
-     */
+    /** The step for the Execution */
     private transient WithGradle step;
-    private transient FilePath workspace;
-    private transient Run run;
-    private transient TaskListener listener;
-    private transient EnvVars envVars;
-
     private BodyExecution block;
 
     public WithGradleExecution(StepContext context, WithGradle step) throws IOException, InterruptedException {
         super(context);
         this.step = step;
-
-        workspace = context.get(FilePath.class);
-        run = context.get(Run.class);
-        listener = context.get(TaskListener.class);
     }
 
     /**
@@ -70,9 +59,10 @@ public class WithGradleExecution extends StepExecution {
      */
     @Override
     public boolean start() throws Exception {
-        listener.getLogger().printf("[WithGradle] Execution begin %n");
-        envVars = new EnvVars();
+        TaskListener listener = getContext().get(TaskListener.class);
+        EnvVars envVars = getContext().get(EnvVars.class);
 
+        listener.getLogger().printf("[WithGradle] Execution begin %n");
         String gradleName = step.getGradle();
         if (gradleName != null) {
             GradleInstallation gradleInstallation = null;
@@ -88,7 +78,6 @@ public class WithGradleExecution extends StepExecution {
                 listener.getLogger().printf("[WithGradle] Gradle Installation found. Using '%s' %n", gradleInstallation.getName());
                 envVars.put("GRADLE_HOME", gradleInstallation.getHome());
             }
-            // set build failure and return if incorrect
         }
 
         String javaName = step.getJdk();
@@ -100,14 +89,12 @@ public class WithGradleExecution extends StepExecution {
                 listener.getLogger().printf("[WithGradle] Java Installation found. Using '%s' %n", javaInstallation.getName());
                 envVars.put("JAVA_HOME", javaInstallation.getHome());
             }
-            // set build failure and return if incorrect
         }
 
         ConsoleLogFilter annotator = BodyInvoker.mergeConsoleLogFilters(getContext().get(ConsoleLogFilter.class), new GradleConsoleFilter());
-        EnvironmentExpander expander = EnvironmentExpander.merge(getContext().get(EnvironmentExpander.class), new GradleExpander(envVars));
+        EnvironmentExpander expander = EnvironmentExpander.merge(getContext().get(EnvironmentExpander.class), EnvironmentExpander.constant(envVars));
 
-        block = getContext().newBodyInvoker().withContexts(annotator, expander).start();
-        getContext().onSuccess(Result.SUCCESS);
+        block = getContext().newBodyInvoker().withCallback(BodyExecutionCallback.wrap(getContext())).withContexts(annotator, expander).start();
 
         return false;
     }
@@ -141,29 +128,6 @@ public class WithGradleExecution extends StepExecution {
         @Override
         public OutputStream decorateLogger(AbstractBuild build, final OutputStream out) {
             return new GradleConsoleAnnotator(out, Charset.forName("UTF-8"));
-        }
-    }
-
-    /**
-     * Overrides the existing environment with the pipeline Gradle settings
-     */
-    private static final class GradleExpander extends EnvironmentExpander {
-
-        private static final long serialVersionUID = 1;
-
-        private final EnvVars gradleEnv;
-
-        private GradleExpander(EnvVars env) {
-            this.gradleEnv = new EnvVars();
-            gradleEnv.putAll(env);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void expand(EnvVars env) throws IOException, InterruptedException {
-            env.overrideAll(gradleEnv);
         }
     }
 }
