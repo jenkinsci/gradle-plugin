@@ -228,7 +228,6 @@ public class Gradle extends Builder implements DryRun {
         gradleLogger.info("Launching build.");
 
         EnvVars env = build.getEnvironment(listener);
-        env.overrideAll(build.getBuildVariables());
         final VariableResolver<String> resolver = new VariableResolver.ByMap<>(env);
 
         //Switches
