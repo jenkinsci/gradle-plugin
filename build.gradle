@@ -1,3 +1,5 @@
+import java.util.zip.ZipFile
+
 plugins {
   id "org.jenkins-ci.jpi" version "0.22.0"
   id 'ru.vyarus.animalsniffer' version '1.3.0'
@@ -95,6 +97,31 @@ test {
   systemProperties["hudson.model.DownloadService.noSignatureCheck"] = "true"
   ignoreFailures = ciBuild
   maxParallelForks = project.maxParallelForks
+}
+
+def checkArchiveManifest(File archive) {
+  ZipFile archiveZip = new ZipFile(archive)
+  archiveZip.getInputStream(archiveZip.getEntry("META-INF/MANIFEST.MF")).withStream {
+    assert it.text.contains("Plugin-Version: ${project.version}"): "Wrong metadate in file ${archive} - run a clean build"
+  }
+}
+
+tasks.withType(AbstractArchiveTask) {
+  inputs.property('pluginVersion') {
+    project.version
+  }
+}
+
+task checkArchiveManifests {
+  dependsOn jar, war
+  doLast {
+    checkArchiveManifest(jar.archivePath)
+    checkArchiveManifest(war.archivePath)
+  }
+}
+
+tasks.withType(AbstractPublishToMaven) {
+  dependsOn checkArchiveManifests
 }
 
 defaultTasks 'test', 'jpi'
