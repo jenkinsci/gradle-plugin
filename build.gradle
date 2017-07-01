@@ -100,9 +100,10 @@ test {
 }
 
 def checkArchiveManifest(File archive) {
-  ZipFile archiveZip = new ZipFile(archive)
-  archiveZip.getInputStream(archiveZip.getEntry("META-INF/MANIFEST.MF")).withStream {
-    assert it.text.contains("Plugin-Version: ${project.version}"): "Wrong metadate in file ${archive} - run a clean build"
+  new ZipFile(archive).withCloseable { archiveZip ->
+    archiveZip.getInputStream(archiveZip.getEntry("META-INF/MANIFEST.MF")).withStream {
+      assert it.text.contains("Plugin-Version: ${project.version}"): "Wrong metadate in file ${archive} - run a clean build"
+    }
   }
 }
 
