@@ -10,7 +10,7 @@ In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
 * 1.28 (unreleased)
-* 1.27 (Jun 23 2017)
+* 1.27.1 (Jul 1 2017)
   * Increase required core version to 1.642.1
   * Make finding wrapper location more robust on Windows
   * Job parameters are now correctly quoted when passed as system properties ([JENKINS-42573](https://issues.jenkins-ci.org/browse/JENKINS-42573) and [JENKINS-20505](https://issues.jenkins-ci.org/browse/JENKINS-20505))
@@ -21,6 +21,8 @@ In order to release this plugin have a look at [here](RELEASING.md).
   * Add option to pass only selected project properties to Gradle
   * Progress status `FROM-CACHE` and `NO-SOURCE` are highlighted in the console, too.
   * Support build scan plugin 1.8
+* 1.27 (Jun 23 2017)
+  * DO NOT USE - PROBLEMS WITH RELEASING [JENKINS-45126](https://issues.jenkins-ci.org/browse/JENKINS-45126)
 * 1.26 (Feb 13 2016)
   * Use `@DataBoundSetter` instead of a (too) large `@DataBoundConstructor`
   * Add @Symbol annotations for step and tool [JENKINS-37394](https://issues.jenkins-ci.org/browse/JENKINS-37394)
