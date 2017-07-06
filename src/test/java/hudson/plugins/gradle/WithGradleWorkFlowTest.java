@@ -24,12 +24,15 @@
 package hudson.plugins.gradle;
 
 import hudson.model.Result;
+import hudson.tools.ToolInstallation;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 
 /**
  * Tests the withGradle pipeline step
@@ -44,19 +47,16 @@ public class WithGradleWorkFlowTest {
     private String build_gradle = "writeFile(file:'build.gradle', text:'defaultTasks \\\'hello\\\'\\ntask hello << { println \\\'Hello\\\' }') \n";
 
     /*
-        TODO DO NOT MERGE: when jenkins-test-harness-tools 2.1 is released add GradleInstallation tool. Right now
-        these tests use the system's default Gradle. If Gradle is not installed these tests will fail.
-
-        TODO: convert these tests to Groovy OR create src/test/java/.../WithGradleWorkFlowTest.java
         TODO? add test for console annotation
         TODO? add test for reloading annotator on Jenkins restart
     */
 
     @Test
     public void testStepDefaultTools() throws Exception {
+        String name = ToolInstallations.configureDefaultGradle(new TemporaryFolder()).getName();
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle {\n" +
+                "withGradle(gradle:" + name + "){\n" +
                 "sh 'gradle'\n" + // runs default task
                 "}\n" +
                 "}", false));
@@ -66,9 +66,10 @@ public class WithGradleWorkFlowTest {
 
     @Test
     public void testGradleErrorFailsBuild() throws Exception {
+        String name = ToolInstallations.configureDefaultGradle(new TemporaryFolder()).getName();
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle {\n" +
+                "withGradle(gradle:" + name + "){\n" +
                 "sh 'gradle unknownTask'\n" +
                 "}\n" +
                 "}", false));
@@ -78,9 +79,10 @@ public class WithGradleWorkFlowTest {
 
     @Test
     public void testStepWithConfiguredGradle() throws Exception {
+        String name = ToolInstallations.configureDefaultGradle(new TemporaryFolder()).getName();
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle (gradle: 'g2') {\n" +
+                "withGradle(gradle:" + name + ") {\n" +
                 "sh 'gradle'\n" +
                 "}\n" +
                 "}", false));

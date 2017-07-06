@@ -66,6 +66,7 @@ dependencies {
 
   testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.22'
+  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
 
   jenkinsPlugins('org.jenkins-ci.plugins:structs:1.7') { transitive = true }
   jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.11'
