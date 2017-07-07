@@ -78,6 +78,8 @@ public class WithGradleExecution extends StepExecution {
                 listener.getLogger().printf("[WithGradle] Gradle Installation found. Using '%s' %n", gradleInstallation.getName());
                 envVars.put("GRADLE_HOME", gradleInstallation.getHome());
             }
+        } else {
+            listener.getLogger().printf("[WithGradle] Defaulting to system installation of Gradle. %n");
         }
 
         String javaName = step.getJdk();
@@ -121,12 +123,12 @@ public class WithGradleExecution extends StepExecution {
         /**
          * Creates a {@link GradleConsoleAnnotator} for an {@link OutputStream}
          *
-         * @param build this is ignored
-         * @param out   the {@link OutputStream} to annotate
+         * @param run this is ignored
+         * @param out the {@link OutputStream} to annotate
          * @return the {@link GradleConsoleAnnotator} for the OutputStream
          */
         @Override
-        public OutputStream decorateLogger(AbstractBuild build, final OutputStream out) {
+        public OutputStream decorateLogger(Run run, final OutputStream out) {
             return new GradleConsoleAnnotator(out, Charset.forName("UTF-8"));
         }
     }
