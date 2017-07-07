@@ -23,16 +23,22 @@
  */
 package hudson.plugins.gradle;
 
+import hudson.model.AbstractBuild;
+import hudson.model.Job;
 import hudson.model.Result;
 import hudson.tools.ToolInstallation;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.junit.rules.TemporaryFolder;
+import org.jvnet.hudson.test.ToolInstallations;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.ToolInstallations;
+
+import java.io.StringWriter;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the withGradle pipeline step
@@ -43,20 +49,17 @@ public class WithGradleWorkFlowTest {
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     private String build_gradle = "writeFile(file:'build.gradle', text:'defaultTasks \\\'hello\\\'\\ntask hello << { println \\\'Hello\\\' }') \n";
 
-    /*
-        TODO? add test for console annotation
-        TODO? add test for reloading annotator on Jenkins restart
-    */
-
     @Test
     public void testStepDefaultTools() throws Exception {
-        String name = ToolInstallations.configureDefaultGradle(new TemporaryFolder()).getName();
+        String name = ToolInstallations.configureDefaultGradle(folder).getName();
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle(gradle:" + name + "){\n" +
+                "withGradle(gradle:'" + name + "'){\n" +
                 "sh 'gradle'\n" + // runs default task
                 "}\n" +
                 "}", false));
@@ -66,10 +69,10 @@ public class WithGradleWorkFlowTest {
 
     @Test
     public void testGradleErrorFailsBuild() throws Exception {
-        String name = ToolInstallations.configureDefaultGradle(new TemporaryFolder()).getName();
+        String name = ToolInstallations.configureDefaultGradle(folder).getName();
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle(gradle:" + name + "){\n" +
+                "withGradle(gradle:'" + name + "'){\n" +
                 "sh 'gradle unknownTask'\n" +
                 "}\n" +
                 "}", false));
@@ -79,14 +82,31 @@ public class WithGradleWorkFlowTest {
 
     @Test
     public void testStepWithConfiguredGradle() throws Exception {
-        String name = ToolInstallations.configureDefaultGradle(new TemporaryFolder()).getName();
+        String name = ToolInstallations.configureDefaultGradle(folder).getName();
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle(gradle:" + name + ") {\n" +
+                "withGradle(gradle:'" + name + "') {\n" +
                 "sh 'gradle'\n" +
                 "}\n" +
                 "}", false));
         WorkflowRun r = p1.scheduleBuild2(0).get();
         j.assertBuildStatusSuccess(r);
+    }
+
+    @Test
+    public void testConsoleLogAnnotation () throws Exception {
+        String name = ToolInstallations.configureDefaultGradle(folder).getName();
+        WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
+        p1.setDefinition(new CpsFlowDefinition("node {\n" +
+                "writeFile(file:'build.gradle', text:'defaultTasks \\\'bird\\\'\\ntask bird << { println \\\'chirp\\\' }') \n" +
+                "withGradle(gradle:'" + name + "') {\n" +
+                "sh 'gradle'\n" +
+                "}\n" +
+                "}", false));
+        WorkflowRun r = p1.scheduleBuild2(0).get();
+
+        StringWriter log = new StringWriter();
+        r.getLogText().writeHtmlTo(0, log);
+        assertTrue(log.toString().contains("<b class=gradle-task>bird"));
     }
 }
