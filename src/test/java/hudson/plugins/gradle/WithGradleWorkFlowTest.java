@@ -86,11 +86,13 @@ public class WithGradleWorkFlowTest {
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
                 "withGradle(gradle:'" + name + "') {\n" +
+                "sh 'gradle -v'\n" +
                 "sh 'gradle'\n" +
                 "}\n" +
                 "}", false));
         WorkflowRun r = p1.scheduleBuild2(0).get();
         j.assertBuildStatusSuccess(r);
+        assertTrue(r.getLog().contains("Gradle 2.13")); // version bundled in jenkins-test-harness-tools
     }
 
     @Test
