@@ -77,6 +77,7 @@ public class WithGradleExecution extends StepExecution {
             } else {
                 listener.getLogger().printf("[WithGradle] Gradle Installation found. Using '%s' %n", gradleInstallation.getName());
                 envVars.put("GRADLE_HOME", gradleInstallation.getHome());
+                envVars.put("PATH+GRADLE", gradleInstallation.getHome() + "/bin");
             }
         } else {
             listener.getLogger().printf("[WithGradle] Defaulting to system installation of Gradle. %n");
