@@ -59,7 +59,7 @@ public class WithGradleWorkFlowTest {
         String name = ToolInstallations.configureDefaultGradle(folder).getName();
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle(gradle:'" + name + "'){\n" +
+                "withGradle(gradleName:'" + name + "'){\n" +
                 "sh 'gradle'\n" + // runs default task
                 "}\n" +
                 "}", false));
@@ -72,7 +72,7 @@ public class WithGradleWorkFlowTest {
         String name = ToolInstallations.configureDefaultGradle(folder).getName();
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle(gradle:'" + name + "'){\n" +
+                "withGradle(gradleName:'" + name + "'){\n" +
                 "sh 'gradle unknownTask'\n" +
                 "}\n" +
                 "}", false));
@@ -85,7 +85,7 @@ public class WithGradleWorkFlowTest {
         String name = ToolInstallations.configureDefaultGradle(folder).getName();
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
-                "withGradle(gradle:'" + name + "') {\n" +
+                "withGradle(gradleName:'" + name + "') {\n" +
                 "sh 'gradle -v'\n" +
                 "sh 'gradle'\n" +
                 "}\n" +
@@ -101,7 +101,7 @@ public class WithGradleWorkFlowTest {
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" +
                 "writeFile(file:'build.gradle', text:'defaultTasks \\\'bird\\\'\\ntask bird << { println \\\'chirp\\\' }') \n" +
-                "withGradle(gradle:'" + name + "') {\n" +
+                "withGradle(gradleName:'" + name + "') {\n" +
                 "sh 'gradle'\n" +
                 "}\n" +
                 "}", false));

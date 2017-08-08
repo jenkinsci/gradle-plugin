@@ -26,10 +26,17 @@ package hudson.plugins.gradle;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.console.ConsoleLogFilter;
-import hudson.model.*;
+import hudson.model.JDK;
+import hudson.model.TaskListener;
+import hudson.model.Run;
 import hudson.tools.ToolInstallation;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.workflow.steps.*;
+import org.jenkinsci.plugins.workflow.steps.BodyExecution;
+import org.jenkinsci.plugins.workflow.steps.BodyExecutionCallback;
+import org.jenkinsci.plugins.workflow.steps.BodyInvoker;
+import org.jenkinsci.plugins.workflow.steps.EnvironmentExpander;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -63,7 +70,7 @@ public class WithGradleExecution extends StepExecution {
         EnvVars envVars = getContext().get(EnvVars.class);
 
         listener.getLogger().printf("[WithGradle] Execution begin %n");
-        String gradleName = step.getGradle();
+        String gradleName = step.getGradleName();
         if (gradleName != null) {
             GradleInstallation gradleInstallation = null;
             GradleInstallation[] installations = ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class).getInstallations();
@@ -83,7 +90,7 @@ public class WithGradleExecution extends StepExecution {
             listener.getLogger().printf("[WithGradle] Defaulting to system installation of Gradle. %n");
         }
 
-        String javaName = step.getJdk();
+        String javaName = step.getJdkName();
         if (javaName != null) {
             JDK javaInstallation = Jenkins.getActiveInstance().getJDK(javaName);
             if (javaInstallation == null) {
