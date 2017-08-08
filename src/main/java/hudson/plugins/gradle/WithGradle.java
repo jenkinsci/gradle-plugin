@@ -28,9 +28,16 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 
+import hudson.Util;
+import hudson.model.JDK;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import org.jenkinsci.plugins.workflow.steps.*;
+import hudson.tools.ToolInstallation;
+import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.workflow.steps.Step;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -47,7 +54,7 @@ public class WithGradle extends Step {
     /** The Gradle installation to use */
     private String gradleName;
     /** The name of the Java Installation */
-    private String javaName;
+    private String jdkName;
 
     @DataBoundConstructor
     public WithGradle () {
@@ -59,25 +66,25 @@ public class WithGradle extends Step {
      * @param gradleName the name of the installation to use
      */
     @DataBoundSetter
-    public void setGradle (String gradleName) {
-        this.gradleName = gradleName;
+    public void setGradleName (String gradleName) {
+        this.gradleName = Util.fixEmpty(gradleName);
     }
 
-    public String getGradle () {
+    public String getGradleName () {
         return gradleName;
     }
 
     /**
      * Sets the Java installation to use
-     * @param javaInstallation the path of the jdk to use
+     * @param jdkName the path of the jdk to use
      */
     @DataBoundSetter
-    public void setJdk (String javaInstallation) {
-        this.javaName = javaInstallation;
+    public void setJdkName (String jdkName) {
+        this.jdkName = Util.fixEmpty(jdkName);
     }
 
-    public String getJdk () {
-        return javaName;
+    public String getJdkName () {
+        return jdkName;
     }
 
 
@@ -107,6 +114,20 @@ public class WithGradle extends Step {
         @Override
         public boolean takesImplicitBlockArgument() {
             return true;
+        }
+
+        /**
+         * Obtains the {@link GradleInstallation.DescriptorImpl} instance.
+         */
+        public GradleInstallation[] getInstallations() {
+            return ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class).getInstallations();
+        }
+
+        /**
+         * Obtains the {@link GradleInstallation.DescriptorImpl} instance.
+         */
+        public JDK[] getJdkInstallations() {
+            return ToolInstallation.all().get(JDK.DescriptorImpl.class).getInstallations();
         }
     }
 
