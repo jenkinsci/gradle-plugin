@@ -69,27 +69,20 @@ jenkinsPlugin {
 sourceCompatibility = '1.7'
 
 dependencies {
-  compile 'org.jenkins-ci.lib:dry-run-lib:0.1'
-  compile 'junit:junit:4.12' // TODO: remove. this should be included in jenkins-test-harness
+  jenkinsPlugins 'org.jenkins-ci.plugins:dry-run:0.9'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.11'
+  jenkinsPlugins 'org.jenkins-ci.plugins:structs:1.7'
+
   signature 'org.codehaus.mojo.signature:java17:1.0@signature'
 
   testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
-  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.22'
-  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
+  testCompile 'org.jenkins-ci.main:jenkins-test-harness:2.22@jar'
+  testCompile 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
 
-  jenkinsPlugins('org.jenkins-ci.plugins:structs:1.7') { transitive = true }
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.11'
-  jenkinsTest('org.jenkins-ci.plugins.workflow:workflow-api:2.15') { transitive = true }
-  jenkinsTest('org.jenkins-ci.plugins.workflow:workflow-cps:2.32') { transitive = true }
+  jenkinsTest 'org.jenkins-ci.plugins.workflow:workflow-cps:2.32'
   jenkinsTest 'org.jenkins-ci.plugins.workflow:workflow-job:2.11'
   jenkinsTest 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:2.5'
-  jenkinsTest 'org.jenkins-ci.plugins.workflow:workflow-scm-step:2.4'
-  jenkinsTest 'org.jenkins-ci.plugins.workflow:workflow-support:2.14'
   jenkinsTest 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:2.9'
-
-  jenkinsTest 'org.jenkins-ci.plugins:scm-api:2.0.7'
-  jenkinsTest 'org.jenkins-ci.plugins:script-security:1.26'
-  jenkinsTest 'org.jenkins-ci.plugins:durable-task:1.13'
 }
 
 if (project.hasProperty("maxParallelForks")) {
@@ -106,6 +99,9 @@ configurations {
   animalsnifferCompileClasspath.extendsFrom compile
   // We need to exclude this dependency from animalsniffer since contains an invalid class
   animalsnifferCompileClasspath.exclude group: 'com.ibm.icu', module: 'icu4j'
+  // junit-dep:4.10 cannot be replaced by junit:4.12 since the artifactIds are different
+  // gibut is causing binary compatibility issues. Exclude it completely from classpath
+  runtime.exclude group: 'junit', module: 'junit-dep'
 }
 
 findbugs {
