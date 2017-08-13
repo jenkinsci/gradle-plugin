@@ -150,6 +150,27 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         'build/some/build.gradle' | [rootBuildScriptDir: 'build']                                                               | [null]
     }
 
+    def "empty parameters are replaced"() {
+        given:
+        gradleInstallationRule.addInstallation()
+        def p = j.createFreeStyleProject()
+        p.buildersList.add(new CreateFileBuilder('build.gradle', """
+            task printParameter {
+                doLast {
+                    println "PASSED_PARAMETER='\$passedParameter'"
+                }
+            }
+        """.stripIndent()))
+        p.buildersList.add(new Gradle(defaults + [tasks: 'printParameter -PpassedParameter=$PASSED_PARAMETER']))
+        addParameter(p, 'PASSED_PARAMETER')
+
+        when:
+        def build = triggerBuildWithParameter(p, 'PASSED_PARAMETER', '').get()
+
+        then:
+        getLog(build).contains("PASSED_PARAMETER=''")
+    }
+
     def "Config roundtrip"() {
         given:
         gradleInstallationRule.addInstallation()
