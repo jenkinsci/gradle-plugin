@@ -2,14 +2,7 @@ package hudson.plugins.gradle
 
 import static org.jvnet.hudson.test.JenkinsRule.getLog
 
-import hudson.model.Cause
-import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
-import hudson.model.ParametersAction
-import hudson.model.ParametersDefinitionProperty
-import hudson.model.TextParameterDefinition
-import hudson.model.TextParameterValue
-import hudson.model.queue.QueueTaskFuture
 import hudson.remoting.Launcher
 import org.jvnet.hudson.test.CreateFileBuilder
 import spock.lang.Unroll
@@ -138,13 +131,5 @@ class PropertyPassingIntegrationTest extends AbstractIntegrationTest {
 
     private static String map2PropertiesString(Map<String, String> properties) {
         (properties.collect { k, v -> "${k}=${v}\n" }).join('')
-    }
-
-    private static QueueTaskFuture<FreeStyleBuild> triggerBuildWithParameter(FreeStyleProject p, String parameterName, String value) {
-        p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue(parameterName, value)))
-    }
-
-    private static addParameter(FreeStyleProject p, String parameterName) {
-        p.addProperty(new ParametersDefinitionProperty(new TextParameterDefinition(parameterName, null, null)))
     }
 }
