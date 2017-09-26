@@ -25,12 +25,12 @@ THE SOFTWARE.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
   <l:ajax>
-    <table class='pane' id='console-outline'>
+    <table class='pane' id='gradle-console-outline'>
       <tr>
         <td class='pane-header'>${%Executed Gradle Tasks}</td>
       </tr>
       <tr>
-        <td id='console-outline-body'>
+        <td id='gradle-console-outline-body'>
         	<ul></ul>
         </td>
       </tr>

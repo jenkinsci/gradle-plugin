@@ -1,8 +1,8 @@
-#console-outline-body ul {
+#gradle-console-outline-body ul {
 	padding-left:5%;
 	word-wrap:break-word;
 }
 
-#console-outline-body ul li a {
+#gradle-console-outline-body ul li a {
 	word-break:break-all;
 }
