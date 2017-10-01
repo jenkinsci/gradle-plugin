@@ -10,6 +10,8 @@ In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
 * 1.28 (unreleased)
+  * Empty job parameters are passed as empty ([JENKINS-45300](https://issues.jenkins-ci.org/browse/JENKINS-45300))
+  * Console annotator endless loop in combination with using the Ant plugin fixed ([JENKINS-46051](https://issues.jenkins-ci.org/browse/JENKINS-46051))
 * 1.27.1 (Jul 1 2017)
   * Increase required core version to 1.642.1
   * Make finding wrapper location more robust on Windows
