@@ -9,7 +9,7 @@ For more information see the [Jenkins wiki page](http://wiki.jenkins-ci.org/disp
 In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
-* 1.28 (unreleased)
+* 1.28 (Oct 2 2017)
   * Empty job parameters are passed as empty ([JENKINS-45300](https://issues.jenkins-ci.org/browse/JENKINS-45300))
   * Console annotator endless loop in combination with using the Ant plugin fixed ([JENKINS-46051](https://issues.jenkins-ci.org/browse/JENKINS-46051))
 * 1.27.1 (Jul 1 2017)
