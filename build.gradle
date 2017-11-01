@@ -45,6 +45,7 @@ jenkinsPlugin {
     license {
       name 'The MIT License'
       distribution 'repo'
+      url 'https://opensource.org/licenses/MIT'
     }
   }
 
