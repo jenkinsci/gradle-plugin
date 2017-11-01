@@ -41,6 +41,13 @@ jenkinsPlugin {
     }
   }
 
+  licenses {
+    license {
+      name 'The MIT License'
+      distribution 'repo'
+    }
+  }
+
   disabledTestInjection = false
 }
 
