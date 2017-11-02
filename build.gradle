@@ -43,7 +43,7 @@ jenkinsPlugin {
 
   licenses {
     license {
-      name 'The MIT License'
+      name 'MIT License'
       distribution 'repo'
       url 'https://opensource.org/licenses/MIT'
     }
