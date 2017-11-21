@@ -41,6 +41,14 @@ jenkinsPlugin {
     }
   }
 
+  licenses {
+    license {
+      name 'MIT License'
+      distribution 'repo'
+      url 'https://opensource.org/licenses/MIT'
+    }
+  }
+
   disabledTestInjection = false
 }
 
