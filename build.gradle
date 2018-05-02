@@ -1,7 +1,7 @@
 import java.util.zip.ZipFile
 
 plugins {
-  id "org.jenkins-ci.jpi" version "0.22.0"
+  id "org.jenkins-ci.jpi" version "0.24.0"
   id 'ru.vyarus.animalsniffer' version '1.3.0'
   id 'findbugs'
   id 'codenarc'
@@ -62,7 +62,8 @@ dependencies {
   signature 'org.codehaus.mojo.signature:java17:1.0@signature'
 
   testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
-  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.8@jar'
+  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.38@jar'
+  compile 'junit:junit:4.12'
 }
 
 if (project.hasProperty("maxParallelForks")) {
