@@ -1,6 +1,0 @@
-hudson.plugins.gradle.BuildScanAction
-hudson.plugins.gradle.Gradle
-hudson.plugins.gradle.Gradle$DescriptorImpl
-hudson.plugins.gradle.GradleInstallation
-hudson.plugins.gradle.GradleInstallation$DescriptorImpl
-hudson.plugins.gradle.GradleInstaller
