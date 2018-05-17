@@ -33,11 +33,11 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
         // trim off CR/LF from the end
         line = trimEOL(line);
 
-        if (line.startsWith(":"))
+        if (line.startsWith(":") || line.startsWith("> Task :"))
             // put the annotation
             new GradleTaskNote().encodeTo(out);
 
-        if (line.equals("BUILD SUCCESSFUL") || line.equals("BUILD FAILED"))
+        if (line.startsWith("BUILD SUCCESSFUL") || line.startsWith("BUILD FAILED"))
             new GradleOutcomeNote().encodeTo(out);
 
         if (nextLineIsBuildScan) {

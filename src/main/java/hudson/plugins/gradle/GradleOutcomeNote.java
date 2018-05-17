@@ -29,6 +29,8 @@ import hudson.console.ConsoleAnnotationDescriptor;
 import hudson.console.ConsoleAnnotator;
 import hudson.console.ConsoleNote;
 
+import java.util.regex.Pattern;
+
 /**
  * Annotates the BUILD SUCCESSFUL/FAILED line of the Ant execution.
  *
@@ -41,11 +43,17 @@ public class GradleOutcomeNote extends ConsoleNote {
     @Override
     public ConsoleAnnotator annotate(Object context, MarkupText text,
                                      int charPos) {
+        MarkupText.SubText t = text.findToken(Pattern
+            .compile("^(BUILD \\S*)"));
+        if (t==null) {
+            return null;
+        }
+        String buildStatus = t.group(1);
         if (text.getText().contains("FAIL"))
-            text.addMarkup(0, text.length(),
+            text.addMarkup(0, buildStatus.length(),
                     "<span class=gradle-outcome-failure>", "</span>");
         if (text.getText().contains("SUCCESS"))
-            text.addMarkup(0, text.length(),
+            text.addMarkup(0, buildStatus.length(),
                     "<span class=gradle-outcome-success>", "</span>");
         return null;
     }

@@ -26,8 +26,14 @@ public final class GradleTaskNote extends ConsoleNote {
         if (!ENABLED)
             return null;
 
+        int prefixLength = 1;
         MarkupText.SubText t = text.findToken(Pattern
                 .compile("^:([^:]\\S*)(\\s*)(\\S*)"));
+        if (t == null) {
+            t = text.findToken(Pattern
+                .compile("^> Task :([^:]\\S*)(\\s*)(\\S*)"));
+            prefixLength = 8;
+        }
         if (t == null) {
             return null;
         }
@@ -38,11 +44,11 @@ public final class GradleTaskNote extends ConsoleNote {
 
         // annotate task and progress status
         if (task != null && !task.isEmpty()) {
-            t.addMarkup(1, task.length() + 1, "<b class=gradle-task>", "</b>");
+            t.addMarkup(1, task.length() + prefixLength, "<b class=gradle-task>", "</b>");
         }
         if (progressStatus != null && !progressStatus.isEmpty()
                 && progressStatuses.contains(progressStatus)) {
-            t.addMarkup(task.length() + delimiterSpace.length() + 1,
+            t.addMarkup(task.length() + delimiterSpace.length() + prefixLength,
                     text.length(), "<span class=gradle-task-progress-status>",
                     "</span>");
         }
