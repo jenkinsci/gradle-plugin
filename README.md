@@ -9,6 +9,7 @@ For more information see the [Jenkins wiki page](http://wiki.jenkins-ci.org/disp
 In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
+* 1.30 (unreleased)
 * 1.29 (Jul 3rd 2018)
   * Update licensing information in pom.xml.
   * Support console annotations for Gradle 4.7 and later.
