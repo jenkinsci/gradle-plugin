@@ -2,26 +2,28 @@ package hudson.plugins.gradle;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+
 import hudson.CopyOnWrite;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
+import jenkins.tasks.SimpleBuildStep;
+
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
-import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -29,13 +31,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 
 /**
  * @author Gregory Boissinot
  */
-public class Gradle extends Builder implements DryRun {
+public class Gradle extends Builder implements SimpleBuildStep {
 
     private String switches;
     private String tasks;
@@ -46,6 +49,7 @@ public class Gradle extends Builder implements DryRun {
     private boolean makeExecutable;
     private boolean useWorkspaceAsHome;
     private String wrapperLocation;
+    @SuppressWarnings("unused")
     private transient Boolean passAsProperties;
     private String systemProperties;
     private boolean passAllAsSystemProperties;
@@ -53,6 +57,7 @@ public class Gradle extends Builder implements DryRun {
     private String projectProperties;
     private boolean passAllAsProjectProperties;
 
+    @SuppressWarnings("unused")
     private transient boolean fromRootBuildScriptDir;
 
     @DataBoundConstructor
@@ -215,43 +220,35 @@ public class Gradle extends Builder implements DryRun {
     }
 
     @Override
-    public boolean performDryRun(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        return performTask(true, build, launcher, listener);
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        if (!performTask(run, launcher, listener, workspace)) {
+            run.setResult(Result.FAILURE);
+        };
     }
 
-    @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-            throws InterruptedException, IOException {
-        return performTask(false, build, launcher, listener);
-    }
-
-    private boolean performTask(boolean dryRun, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+    private boolean performTask(Run<?, ?> build, Launcher launcher, TaskListener listener, FilePath workspace)
             throws InterruptedException, IOException {
 
         GradleLogger gradleLogger = new GradleLogger(listener);
         gradleLogger.info("Launching build.");
 
         EnvVars env = build.getEnvironment(listener);
-        VariableResolver.Union<String> resolver = new VariableResolver.Union<>(new VariableResolver.ByMap<>(env), build.getBuildVariableResolver());
+        VariableResolver.Union<String> resolver = new VariableResolver.Union<>(new VariableResolver.ByMap<>(env));
 
         //Switches
         String normalizedSwitches = getNormalized(switches, resolver, "GRADLE_EXT_SWITCHES");
 
-        //Add dry-run switch if needed
-        if (dryRun) {
-            normalizedSwitches = normalizedSwitches + " --dry-run";
-        }
-
         //Tasks
         String normalizedTasks = getNormalized(tasks, resolver, "GRADLE_EXT_TASKS");
 
-        FilePath normalizedRootBuildScriptDir = getNormalizedRootBuildScriptDir(build, resolver);
+        FilePath normalizedRootBuildScriptDir = getNormalizedRootBuildScriptDir(build, resolver, workspace);
 
         //Build arguments
         ArgumentListBuilder args = new ArgumentListBuilder();
         if (useWrapper) {
-            FilePath gradleWrapperFile = findGradleWrapper(normalizedRootBuildScriptDir, build, launcher, listener, resolver);
+            FilePath gradleWrapperFile = findGradleWrapper(normalizedRootBuildScriptDir, build, launcher, resolver, listener, workspace);
             if (gradleWrapperFile == null) {
+                build.setResult(Result.FAILURE);
                 return false;
             }
             if (makeExecutable) {
@@ -270,12 +267,14 @@ public class Gradle extends Builder implements DryRun {
                     String exe = ai.getExecutable(launcher);
                     if (exe == null) {
                         gradleLogger.error("Can't retrieve the Gradle executable.");
+                        build.setResult(Result.FAILURE);
                         return false;
                     }
                     env.put("GRADLE_HOME", ai.getHome());
                     args.add(exe);
                 } else {
                     gradleLogger.error("Not in a build node.");
+                    build.setResult(Result.FAILURE);
                     return false;
                 }
             } else {
@@ -285,14 +284,13 @@ public class Gradle extends Builder implements DryRun {
         }
 
 
-        Set<String> sensitiveVars = build.getSensitiveBuildVariables();
-        args.addKeyValuePairsFromPropertyString("-D", getSystemProperties(), resolver, sensitiveVars);
+        args.addKeyValuePairsFromPropertyString("-D", getSystemProperties(), resolver);
         if (isPassAllAsSystemProperties()) {
-            args.addKeyValuePairs("-D", build.getBuildVariables(), sensitiveVars);
+            args.addKeyValuePairs("-D", build.getEnvironment(listener));
         }
-        args.addKeyValuePairsFromPropertyString("-P", getProjectProperties(), resolver, sensitiveVars);
+        args.addKeyValuePairsFromPropertyString("-P", getProjectProperties(), resolver);
         if (isPassAllAsProjectProperties()) {
-            args.addKeyValuePairs("-P", build.getBuildVariables(), sensitiveVars);
+            args.addKeyValuePairs("-P", build.getEnvironment(listener));
         }
         args.addTokenized(normalizedSwitches);
         args.addTokenized(normalizedTasks);
@@ -302,7 +300,6 @@ public class Gradle extends Builder implements DryRun {
             args.add(buildFileNormalized);
         }
 
-        final FilePath workspace = build.getWorkspace();
         if (useWorkspaceAsHome && workspace != null) {
             // Make user home relative to the workspace, so that files aren't shared between builds
             env.put("GRADLE_USER_HOME", workspace.getRemote());
@@ -316,12 +313,7 @@ public class Gradle extends Builder implements DryRun {
         if (normalizedRootBuildScriptDir != null) {
             rootLauncher = normalizedRootBuildScriptDir;
         } else {
-            rootLauncher = build.getWorkspace();
-        }
-
-        //Not call from an Executor
-        if (rootLauncher == null) {
-            rootLauncher = build.getProject().getSomeWorkspace();
+            rootLauncher = workspace;
         }
 
         try {
@@ -353,8 +345,8 @@ public class Gradle extends Builder implements DryRun {
         }
     }
 
-    private FilePath findGradleWrapper(FilePath normalizedRootBuildScriptDir, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, VariableResolver<String> resolver) throws IOException, InterruptedException {
-        List<FilePath> possibleWrapperLocations = getPossibleWrapperLocations(build, launcher, resolver, normalizedRootBuildScriptDir);
+    private FilePath findGradleWrapper(FilePath normalizedRootBuildScriptDir, Run<?, ?> build, Launcher launcher, VariableResolver<String> resolver, TaskListener listener, FilePath workspace) throws IOException, InterruptedException {
+        List<FilePath> possibleWrapperLocations = getPossibleWrapperLocations(build, launcher, normalizedRootBuildScriptDir, resolver, workspace);
         String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
         FilePath gradleWrapperFile = null;
         for (FilePath possibleWrapperLocation : possibleWrapperLocations) {
@@ -370,12 +362,12 @@ public class Gradle extends Builder implements DryRun {
         return gradleWrapperFile;
     }
 
-    private FilePath getNormalizedRootBuildScriptDir(AbstractBuild<?, ?> build, VariableResolver<String> resolver) {
+    private FilePath getNormalizedRootBuildScriptDir(Run<?, ?> build, VariableResolver<String> resolver, FilePath workspace) {
         FilePath normalizedRootBuildScriptDir = null;
         if (rootBuildScriptDir != null && rootBuildScriptDir.trim().length() != 0) {
             String rootBuildScriptNormalized = replaceWhitespaceBySpace(rootBuildScriptDir.trim());
             rootBuildScriptNormalized = Util.replaceMacro(rootBuildScriptNormalized.trim(), resolver);
-            normalizedRootBuildScriptDir = new FilePath(build.getModuleRoot(), rootBuildScriptNormalized);
+            normalizedRootBuildScriptDir = new FilePath(workspace, rootBuildScriptNormalized);
         }
         return normalizedRootBuildScriptDir;
     }
@@ -389,24 +381,24 @@ public class Gradle extends Builder implements DryRun {
     }
 
     private String replaceWhitespaceBySpace(String argument) {
+        if (argument == null) return "";
         return argument.replaceAll("[\t\r\n]+", " ");
     }
 
-    private List<FilePath> getPossibleWrapperLocations(AbstractBuild<?, ?> build, Launcher launcher, VariableResolver<String> resolver, FilePath normalizedRootBuildScriptDir) throws IOException, InterruptedException {
-        FilePath moduleRoot = build.getModuleRoot();
+    private List<FilePath> getPossibleWrapperLocations(Run<?, ?> build, Launcher launcher, FilePath normalizedRootBuildScriptDir, VariableResolver<String> resolver, FilePath workspace) throws IOException, InterruptedException {
         if (wrapperLocation != null && wrapperLocation.trim().length() != 0) {
             // Override with provided relative path to gradlew
             String wrapperLocationNormalized = wrapperLocation.trim().replaceAll("[\t\r\n]+", "");
             wrapperLocationNormalized = Util.replaceMacro(wrapperLocationNormalized.trim(), resolver);
-            return ImmutableList.of(new FilePath(moduleRoot, wrapperLocationNormalized));
+            return ImmutableList.of(new FilePath(workspace, wrapperLocationNormalized));
         } else if (buildFile != null && !buildFile.isEmpty()) {
             // Check if the target project is located not at the root dir
-            FilePath parentOfBuildFile = new FilePath(normalizedRootBuildScriptDir == null ? moduleRoot : normalizedRootBuildScriptDir, buildFile).getParent();
-            if (parentOfBuildFile != null && !parentOfBuildFile.equals(moduleRoot)) {
-                return ImmutableList.of(parentOfBuildFile, moduleRoot);
+            FilePath parentOfBuildFile = new FilePath(normalizedRootBuildScriptDir == null ? workspace : normalizedRootBuildScriptDir, buildFile).getParent();
+            if (parentOfBuildFile != null && !parentOfBuildFile.equals(workspace)) {
+                return ImmutableList.of(parentOfBuildFile, workspace);
             }
         }
-        return ImmutableList.of(moduleRoot);
+        return ImmutableList.of(workspace);
     }
 
     private Object readResolve() {
@@ -436,6 +428,7 @@ public class Gradle extends Builder implements DryRun {
         private volatile GradleInstallation[] installations = new GradleInstallation[0];
 
         public DescriptorImpl() {
+            super();
             load();
         }
 
@@ -446,6 +439,7 @@ public class Gradle extends Builder implements DryRun {
         /**
          * Obtains the {@link GradleInstallation.DescriptorImpl} instance.
          */
+        @SuppressWarnings("unused")
         public GradleInstallation.DescriptorImpl getToolDescriptor() {
             return ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class);
         }
@@ -467,6 +461,7 @@ public class Gradle extends Builder implements DryRun {
         }
 
         @Override
+        @Nonnull
         public String getDisplayName() {
             return Messages.step_displayName();
         }
