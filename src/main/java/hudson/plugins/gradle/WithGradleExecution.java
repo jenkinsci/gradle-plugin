@@ -24,14 +24,12 @@
 package hudson.plugins.gradle;
 
 import hudson.EnvVars;
-import hudson.FilePath;
 import hudson.console.ConsoleLogFilter;
 import hudson.model.JDK;
 import hudson.model.TaskListener;
 import hudson.model.Run;
 import hudson.tools.ToolInstallation;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.workflow.steps.BodyExecution;
 import org.jenkinsci.plugins.workflow.steps.BodyExecutionCallback;
 import org.jenkinsci.plugins.workflow.steps.BodyInvoker;
 import org.jenkinsci.plugins.workflow.steps.EnvironmentExpander;
@@ -52,9 +50,10 @@ import java.nio.charset.Charset;
  */
 public class WithGradleExecution extends StepExecution {
 
+    private static final long serialVersionUID = -3527007655498751267L;
+
     /** The step for the Execution */
     private transient WithGradle step;
-    private BodyExecution block;
 
     public WithGradleExecution(StepContext context, WithGradle step) throws IOException, InterruptedException {
         super(context);
@@ -73,7 +72,13 @@ public class WithGradleExecution extends StepExecution {
         String gradleName = step.getGradleName();
         if (gradleName != null) {
             GradleInstallation gradleInstallation = null;
-            GradleInstallation[] installations = ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class).getInstallations();
+            GradleInstallation.DescriptorImpl gradleDescriptor = ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class);
+            final GradleInstallation[] installations;
+            if (gradleDescriptor == null) {
+                installations = new GradleInstallation[0];
+            } else {
+                    installations = gradleDescriptor.getInstallations();
+            }
             for (GradleInstallation i : installations) {
                 if (i.getName().equals(gradleName)) {
                     gradleInstallation = i;
@@ -104,7 +109,7 @@ public class WithGradleExecution extends StepExecution {
         ConsoleLogFilter annotator = BodyInvoker.mergeConsoleLogFilters(getContext().get(ConsoleLogFilter.class), new GradleConsoleFilter());
         EnvironmentExpander expander = EnvironmentExpander.merge(getContext().get(EnvironmentExpander.class), EnvironmentExpander.constant(envVars));
 
-        block = getContext().newBodyInvoker().withCallback(BodyExecutionCallback.wrap(getContext())).withContexts(annotator, expander).start();
+        getContext().newBodyInvoker().withCallback(BodyExecutionCallback.wrap(getContext())).withContexts(annotator, expander).start();
 
         return false;
     }
