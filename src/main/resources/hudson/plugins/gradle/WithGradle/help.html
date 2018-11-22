@@ -1,0 +1,16 @@
+<div>
+Prepares build environment to call gradle with an <code>bat</code> or <code>sh</code> step.
+More formally: Sets the GRADLE_HOME environment variable pointing to the selected Gradle Installation and
+adds the value to the PATH environment variable, so that in the block argument could simpley look like this:
+<pre>
+node {
+    dir('gradleProject') {
+        withGradle(gradleName: 'gradle-4.10.2', jdkName: 'JDK-1.8.0.144') {
+            bat 'gradle build'
+        }
+    }
+}
+</pre>
+<p>
+Additionally the console output will be parsed and executed tasks are linked as in default gradle plugin.
+</div>
