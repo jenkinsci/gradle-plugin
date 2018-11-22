@@ -428,7 +428,7 @@ public class Gradle extends Builder implements DryRun {
         return (DescriptorImpl) super.getDescriptor();
     }
 
-    @Extension @Symbol("gradle")
+    @Extension
     @Symbol("gradle")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
