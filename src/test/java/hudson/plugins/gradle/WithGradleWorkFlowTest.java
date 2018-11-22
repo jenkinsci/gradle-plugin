@@ -23,10 +23,7 @@
  */
 package hudson.plugins.gradle;
 
-import hudson.model.AbstractBuild;
-import hudson.model.Job;
 import hudson.model.Result;
-import hudson.tools.ToolInstallation;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
