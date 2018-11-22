@@ -57,7 +57,11 @@ public class WithGradleWorkFlowTest {
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
                 "withGradle(gradleName:'" + name + "'){\n" +
+                "if (isUnix()) {\n" + 
                 "sh 'gradle'\n" + // runs default task
+                "} else {\n" +
+                "bat 'gradle'\n" +
+                "}\n" +
                 "}\n" +
                 "}", false));
         WorkflowRun r = p1.scheduleBuild2(0).get();
@@ -70,7 +74,11 @@ public class WithGradleWorkFlowTest {
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
                 "withGradle(gradleName:'" + name + "'){\n" +
+                "if (isUnix()) {\n" + 
                 "sh 'gradle unknownTask'\n" +
+                "} else {\n" +
+                "bat 'gradle unknownTask'\n" +
+                "}\n" +
                 "}\n" +
                 "}", false));
         WorkflowRun r = p1.scheduleBuild2(0).get();
@@ -83,8 +91,13 @@ public class WithGradleWorkFlowTest {
         WorkflowJob p1 = j.jenkins.createProject(WorkflowJob.class, "FakeProject");
         p1.setDefinition(new CpsFlowDefinition("node {\n" + build_gradle +
                 "withGradle(gradleName:'" + name + "') {\n" +
+                "if (isUnix()) {\n" + 
                 "sh 'gradle -v'\n" +
                 "sh 'gradle'\n" +
+                "} else {\n" +
+                "bat 'gradle -v'\n" +
+                "bat 'gradle'\n" +
+                "}\n" +
                 "}\n" +
                 "}", false));
         WorkflowRun r = p1.scheduleBuild2(0).get();
@@ -99,7 +112,11 @@ public class WithGradleWorkFlowTest {
         p1.setDefinition(new CpsFlowDefinition("node {\n" +
                 "writeFile(file:'build.gradle', text:'defaultTasks \\\'bird\\\'\\ntask bird << { println \\\'chirp\\\' }') \n" +
                 "withGradle(gradleName:'" + name + "') {\n" +
+                "if (isUnix()) {\n" + 
                 "sh 'gradle'\n" +
+                "} else {\n" +
+                "bat 'gradle'\n" +
+                "}\n" +
                 "}\n" +
                 "}", false));
         WorkflowRun r = p1.scheduleBuild2(0).get();
