@@ -23,25 +23,25 @@
  */
 package hudson.plugins.gradle;
 
+import java.util.Set;
+
+import org.jenkinsci.plugins.workflow.steps.Step;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+
 import com.google.common.collect.ImmutableSet;
+
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
-
 import hudson.Util;
 import hudson.model.JDK;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tools.ToolInstallation;
-import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.workflow.steps.Step;
-import org.jenkinsci.plugins.workflow.steps.StepContext;
-import org.jenkinsci.plugins.workflow.steps.StepExecution;
-import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-
-import java.util.Set;
 
 /**
  * The WithGradle pipeline step. For the most part only getters, setters and scaffolding code. The actual logic and
@@ -120,14 +120,24 @@ public class WithGradle extends Step {
          * Obtains the {@link GradleInstallation.DescriptorImpl} instance.
          */
         public GradleInstallation[] getInstallations() {
-            return ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class).getInstallations();
+            GradleInstallation.DescriptorImpl gradleDescriptor = ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class);
+            if (gradleDescriptor == null) {
+                return new GradleInstallation[0];
+            } else {
+                return gradleDescriptor.getInstallations();
+            }
         }
 
         /**
          * Obtains the {@link GradleInstallation.DescriptorImpl} instance.
          */
         public JDK[] getJdkInstallations() {
-            return ToolInstallation.all().get(JDK.DescriptorImpl.class).getInstallations();
+            JDK.DescriptorImpl jdkDescriptor = ToolInstallation.all().get(JDK.DescriptorImpl.class);
+            if (jdkDescriptor == null) {
+                return new JDK[0];
+            } else {
+                return jdkDescriptor.getInstallations();
+            }
         }
     }
 
