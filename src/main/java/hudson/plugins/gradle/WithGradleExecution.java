@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * The execution of the {@link WithGradle} pipeline step. Configures the ConsoleAnnotator for a Gradle build and, if
@@ -66,7 +68,7 @@ public class WithGradleExecution extends StepExecution {
     @Override
     public boolean start() throws Exception {
         TaskListener listener = getContext().get(TaskListener.class);
-        EnvVars envVars = getContext().get(EnvVars.class);
+        Map<String, String> envVarUpdates = new TreeMap<>();
 
         listener.getLogger().printf("[WithGradle] Execution begin %n");
         String gradleName = step.getGradleName();
@@ -88,8 +90,8 @@ public class WithGradleExecution extends StepExecution {
                 listener.getLogger().printf("[WithGradle] Gradle Installation '%s' not found. Defaulting to system installation. %n", gradleName);
             } else {
                 listener.getLogger().printf("[WithGradle] Gradle Installation found. Using '%s' %n", gradleInstallation.getName());
-                envVars.put("GRADLE_HOME", gradleInstallation.getHome());
-                envVars.put("PATH+GRADLE", gradleInstallation.getHome() + "/bin");
+                envVarUpdates.put("GRADLE_HOME", gradleInstallation.getHome());
+                envVarUpdates.put("PATH+GRADLE", gradleInstallation.getHome() + "/bin");
             }
         } else {
             listener.getLogger().printf("[WithGradle] Defaulting to system installation of Gradle. %n");
@@ -102,12 +104,12 @@ public class WithGradleExecution extends StepExecution {
                 listener.getLogger().printf("[WithGradle] Java Installation '%s' not found. Defaulting to system installation. %n", javaName);
             } else {
                 listener.getLogger().printf("[WithGradle] Java Installation found. Using '%s' %n", javaInstallation.getName());
-                envVars.put("JAVA_HOME", javaInstallation.getHome());
+                envVarUpdates.put("JAVA_HOME", javaInstallation.getHome());
             }
         }
 
         ConsoleLogFilter annotator = BodyInvoker.mergeConsoleLogFilters(getContext().get(ConsoleLogFilter.class), new GradleConsoleFilter());
-        EnvironmentExpander expander = EnvironmentExpander.merge(getContext().get(EnvironmentExpander.class), EnvironmentExpander.constant(envVars));
+        EnvironmentExpander expander = EnvironmentExpander.merge(getContext().get(EnvironmentExpander.class), EnvironmentExpander.constant(envVarUpdates));
 
         getContext().newBodyInvoker().withCallback(BodyExecutionCallback.wrap(getContext())).withContexts(annotator, expander).start();
 
