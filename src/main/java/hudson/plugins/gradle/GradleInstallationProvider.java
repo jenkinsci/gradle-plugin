@@ -10,6 +10,6 @@ public interface GradleInstallationProvider {
     /**
      * Provides all available {@link GradleInstallation}.
      */
-    public abstract GradleInstallation[] getInstallations();
+    GradleInstallation[] getInstallations();
     
 }
