@@ -31,21 +31,21 @@ import hudson.util.VariableResolver;
  */
 public final class GradleExecution {
 
-    private String switches;
-    private String tasks;
-    private String rootBuildScriptDir;
-    private String buildFile;
-    private String gradleName;
-    private boolean useWrapper;
-    private boolean makeExecutable;
-    private boolean useWorkspaceAsHome;
-    private String wrapperLocation;
-    private String systemProperties;
-    private boolean passAllAsSystemProperties;
-    private String logEncoding;
+    private final String switches;
+    private final String tasks;
+    private final String rootBuildScriptDir;
+    private final String buildFile;
+    private final String gradleName;
+    private final boolean useWrapper;
+    private final boolean makeExecutable;
+    private final boolean useWorkspaceAsHome;
+    private final String wrapperLocation;
+    private final String systemProperties;
+    private final boolean passAllAsSystemProperties;
+    private final String logEncoding;
 
-    private String projectProperties;
-    private boolean passAllAsProjectProperties;
+    private final String projectProperties;
+    private final boolean passAllAsProjectProperties;
 
     private final GradleInstallationProvider installationProvider;
 
