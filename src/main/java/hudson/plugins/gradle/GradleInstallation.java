@@ -2,6 +2,7 @@ package hudson.plugins.gradle;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,7 +34,7 @@ import jenkins.security.MasterToSlaveCallable;
  */
 public class GradleInstallation 
         extends ToolInstallation
-        implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation> {
+        implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation>, Serializable {
 
     private static final long serialVersionUID = -1875114350592080381L;
     public static final String UNIX_GRADLE_COMMAND = "gradle";
