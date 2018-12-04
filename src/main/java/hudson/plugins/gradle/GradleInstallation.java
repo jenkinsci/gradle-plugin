@@ -1,5 +1,16 @@
 package hudson.plugins.gradle;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Functions;
@@ -14,21 +25,15 @@ import hudson.tools.ToolInstallation;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import jenkins.security.MasterToSlaveCallable;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.DataBoundConstructor;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
 
 
 /**
+ * Gradle Installation in Jenkins.
+ * 
  * @author Gregory Boissinot
  */
-public class GradleInstallation extends ToolInstallation
+public class GradleInstallation 
+        extends ToolInstallation
         implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation>, Serializable {
 
     public static final String UNIX_GRADLE_COMMAND = "gradle";
@@ -54,7 +59,6 @@ public class GradleInstallation extends ToolInstallation
         }
     }
 
-
     @Override
     public String getHome() {
         if (gradleHome != null) {
@@ -68,28 +72,42 @@ public class GradleInstallation extends ToolInstallation
         env.put("PATH+GRADLE", getHome() + "/bin");
     }
 
-    public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-        return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
-            public String call() throws IOException {
-                File exe = getExeFile();
-                if (exe.exists()) {
-                    return exe.getPath();
-                }
-                return null;
+    public String getExecutable(final Launcher launcher) throws IOException, InterruptedException {
+        final File exe = launcher.getChannel().call(new MasterToSlaveCallable<File, IOException>() {
+
+            @Override
+            public File call() throws IOException {
+                return getExeFile();
             }
         });
+
+        final boolean existis = launcher.getChannel().call(new MasterToSlaveCallable<Boolean, IOException>() {
+
+            @Override
+            public Boolean call() throws IOException {
+                return exe.exists();
+            }
+        });
+        if (!existis) {
+            launcher.getListener().error("Gradle executable does not exist: " + exe.getPath());
+            return null;
+        } else {
+            return exe.getPath();
+        }
     }
 
     private File getExeFile() {
         String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_COMMAND : UNIX_GRADLE_COMMAND;
-        String antHome = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
-        return new File(antHome, "bin/" + execName);
+        String gradleHomeDir = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
+        return new File(gradleHomeDir, "bin/" + execName);
     }
 
+    @Override
     public GradleInstallation forEnvironment(EnvVars environment) {
         return new GradleInstallation(getName(), environment.expand(gradleHome), getProperties().toList());
     }
 
+    @Override
     public GradleInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
         return new GradleInstallation(getName(), translateFor(node, log), getProperties().toList());
     }
@@ -114,7 +132,6 @@ public class GradleInstallation extends ToolInstallation
         }
 
         // for compatibility reasons, the persistence is done by GradleBuilder.DescriptorImpl
-
         @Override
         public GradleInstallation[] getInstallations() {
             return gradleDescriptor.getInstallations();
@@ -124,7 +141,6 @@ public class GradleInstallation extends ToolInstallation
         public void setInstallations(GradleInstallation... installations) {
             gradleDescriptor.setInstallations(installations);
         }
-
     }
 
 }

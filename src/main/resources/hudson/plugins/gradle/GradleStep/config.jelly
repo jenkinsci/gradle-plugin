@@ -34,16 +34,8 @@
             <f:textarea/>
         </f:entry>
 
-        <f:entry title="${%Pass all job parameters as System properties}" field="passAllAsSystemProperties">
-            <f:checkbox default="false"/>
-        </f:entry>
-
         <f:entry field="projectProperties" title="${%Project properties}">
             <f:textarea/>
-        </f:entry>
-
-        <f:entry title="${%Pass all job parameters as Project properties}" field="passAllAsProjectProperties">
-            <f:checkbox default="false"/>
         </f:entry>
 
         <f:entry title="${%Root Build script}" field="rootBuildScriptDir">
@@ -58,13 +50,22 @@
         ">
             <f:textbox/>
         </f:entry>
-
+                
         <f:entry title="${%Log Encoding}" field="logEncoding">
             <f:textbox/>
         </f:entry>
 
         <f:entry title="${%Force GRADLE_USER_HOME to use workspace}" field="useWorkspaceAsHome">
             <f:checkbox default="false"/>
+        </f:entry>
+                
+        <f:entry title="${%Jdk Version}" field="jdkName">
+            <select class="setting-input" name="jdkName">
+                <option value="">(Default)</option>
+                <j:forEach var="inst" items="${descriptor.jdkInstallations}">
+                    <f:option selected="${inst.name==instance.jdkName}">${inst.name}</f:option>
+                </j:forEach>
+            </select>
         </f:entry>
     </f:advanced>
 </j:jelly>
