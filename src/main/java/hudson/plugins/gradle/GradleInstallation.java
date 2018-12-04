@@ -36,7 +36,6 @@ public class GradleInstallation
         extends ToolInstallation
         implements EnvironmentSpecific<GradleInstallation>, NodeSpecific<GradleInstallation>, Serializable {
 
-    private static final long serialVersionUID = -1875114350592080381L;
     public static final String UNIX_GRADLE_COMMAND = "gradle";
     public static final String WINDOWS_GRADLE_COMMAND = "gradle.bat";
     public static final String UNIX_GRADLE_WRAPPER_COMMAND = "gradlew";
@@ -76,8 +75,6 @@ public class GradleInstallation
     public String getExecutable(final Launcher launcher) throws IOException, InterruptedException {
         final File exe = launcher.getChannel().call(new MasterToSlaveCallable<File, IOException>() {
 
-            private static final long serialVersionUID = 5572701806697595613L;
-
             @Override
             public File call() throws IOException {
                 return getExeFile();
@@ -85,8 +82,6 @@ public class GradleInstallation
         });
 
         final boolean existis = launcher.getChannel().call(new MasterToSlaveCallable<Boolean, IOException>() {
-
-            private static final long serialVersionUID = 5572701806697595613L;
 
             @Override
             public Boolean call() throws IOException {
