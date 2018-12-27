@@ -97,7 +97,7 @@ animalsnifferMain {
 }
 
 codenarc {
-  toolVersion '0.27.0'
+  toolVersion '1.2.1'
   sourceSets = [sourceSets.test]
 }
 
