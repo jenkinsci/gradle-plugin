@@ -8,7 +8,7 @@ import org.jvnet.hudson.test.JenkinsRule
 
 class GradleInstallationRule extends TestWatcher {
     static {
-        System.setProperty("hudson.model.DownloadService.noSignatureCheck", "true");
+        System.setProperty("hudson.model.DownloadService.noSignatureCheck", "true")
     }
 
     String gradleVersion
