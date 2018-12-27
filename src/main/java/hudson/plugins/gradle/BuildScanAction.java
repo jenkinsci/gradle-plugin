@@ -3,7 +3,7 @@ package hudson.plugins.gradle;
 import hudson.model.Action;
 
 public class BuildScanAction implements Action {
-    private String scanUrl;
+    private final String scanUrl;
 
     public BuildScanAction(String scanUrl) {
         this.scanUrl = scanUrl;

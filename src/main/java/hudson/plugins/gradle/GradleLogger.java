@@ -9,7 +9,7 @@ import java.io.Serializable;
  */
 public class GradleLogger implements Serializable {
 
-    private TaskListener listener;
+    private final TaskListener listener;
 
     public GradleLogger(TaskListener listener) {
         this.listener = listener;
