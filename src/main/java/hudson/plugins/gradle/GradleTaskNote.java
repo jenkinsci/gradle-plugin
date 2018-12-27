@@ -64,7 +64,7 @@ public final class GradleTaskNote extends ConsoleNote {
         }
     }
 
-    /** Non-private for use int tests. */
+    /** Non-private for use in tests. */
     static boolean ENABLED = !Boolean.getBoolean(GradleTaskNote.class
             .getName() + ".disabled");
 }
