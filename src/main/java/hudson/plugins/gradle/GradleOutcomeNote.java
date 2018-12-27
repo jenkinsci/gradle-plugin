@@ -37,15 +37,14 @@ import java.util.regex.Pattern;
  * @author ikikko
  */
 public class GradleOutcomeNote extends ConsoleNote {
+
     public GradleOutcomeNote() {
     }
 
     @Override
-    public ConsoleAnnotator annotate(Object context, MarkupText text,
-                                     int charPos) {
-        MarkupText.SubText t = text.findToken(Pattern
-            .compile("^(BUILD \\S*)"));
-        if (t==null) {
+    public ConsoleAnnotator annotate(Object context, MarkupText text, int charPos) {
+        MarkupText.SubText t = text.findToken(Pattern.compile("^(BUILD \\S*)"));
+        if (t == null) {
             return null;
         }
         String buildStatus = t.group(1);

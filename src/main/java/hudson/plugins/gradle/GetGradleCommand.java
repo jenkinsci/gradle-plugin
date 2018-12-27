@@ -85,18 +85,18 @@ public class GetGradleCommand extends CLICommand {
         }
 
         GradleInstallation[] installations =
-            Jenkins.getActiveInstance().getDescriptorByType(GradleInstallation.DescriptorImpl.class).getInstallations();
+                Jenkins.getActiveInstance().getDescriptorByType(GradleInstallation.DescriptorImpl.class).getInstallations();
 
-        Map<String,List<String>> map = new HashMap<String,List<String>>();
+        Map<String, List<String>> map = new HashMap<String, List<String>>();
 
-        for (GradleInstallation installation: installations) {
-            for (Map.Entry<ToolPropertyDescriptor,ToolProperty<?>> entry:
-                     installation.getProperties().toMap().entrySet()) {
-                DescribableList<ToolInstaller,Descriptor<ToolInstaller>> installers =
-                    ((InstallSourceProperty)entry.getValue()).installers;
+        for (GradleInstallation installation : installations) {
+            for (Map.Entry<ToolPropertyDescriptor, ToolProperty<?>> entry :
+                    installation.getProperties().toMap().entrySet()) {
+                DescribableList<ToolInstaller, Descriptor<ToolInstaller>> installers =
+                        ((InstallSourceProperty) entry.getValue()).installers;
                 List<String> list = new ArrayList<String>();
-                for (ToolInstaller installer: installers) {
-                    list.add(((DownloadFromUrlInstaller)installer).id);
+                for (ToolInstaller installer : installers) {
+                    list.add(((DownloadFromUrlInstaller) installer).id);
                 }
                 map.put(installation.getName(), list);
             }

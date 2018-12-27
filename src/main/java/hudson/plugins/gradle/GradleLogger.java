@@ -22,5 +22,4 @@ public class GradleLogger implements Serializable {
     public void error(String message) {
         listener.getLogger().println("[Gradle] - [ERROR] " + message);
     }
-
 }

@@ -24,7 +24,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-
 /**
  * @author Gregory Boissinot
  */
@@ -53,7 +52,6 @@ public class GradleInstallation extends ToolInstallation
             return home;
         }
     }
-
 
     @Override
     public String getHome() {
@@ -126,5 +124,4 @@ public class GradleInstallation extends ToolInstallation
         }
 
     }
-
 }
