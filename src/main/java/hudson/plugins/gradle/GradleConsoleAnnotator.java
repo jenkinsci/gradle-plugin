@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  */
 public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 
-    private static final Pattern BUILD_SCAN_REGEX = Pattern.compile("Publishing (build scan|build information)\\.\\.\\.");
+    private static final Pattern BUILD_SCAN_PATTERN = Pattern.compile("Publishing (build scan|build information)\\.\\.\\.");
 
     private final OutputStream out;
     private final Charset charset;
@@ -44,7 +44,7 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
             scanUrl = line;
             nextLineIsBuildScan = false;
         }
-        if (BUILD_SCAN_REGEX.matcher(line).matches()) {
+        if (BUILD_SCAN_PATTERN.matcher(line).matches()) {
             nextLineIsBuildScan = true;
         }
 
