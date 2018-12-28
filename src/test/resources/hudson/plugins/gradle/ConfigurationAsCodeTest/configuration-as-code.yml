@@ -1,0 +1,12 @@
+---
+tool:
+  gradle:
+    installations:
+    - name: "gradle-5.0"
+      home: "/opt/gradle/gradle-5.0"
+    - name: "gradle-4.0"
+      properties:
+      - installSource:
+          installers:
+          - gradleInstaller:
+              id: "4.0"

@@ -18,7 +18,7 @@ if (ciBuild) {
 
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = '1.642.1'
+  coreVersion = '2.60.3'
 
   // Human-readable name of plugin.
   displayName = 'Gradle Plugin'
@@ -61,8 +61,9 @@ dependencies {
 
   signature 'org.codehaus.mojo.signature:java17:1.0@signature'
 
-  testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
+  testCompile 'org.spockframework:spock-core:1.2-groovy-2.4', { exclude module: 'groovy-all' }
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.44@jar'
+  jenkinsTest 'io.jenkins:configuration-as-code:1.4'
 }
 
 if (project.hasProperty('maxParallelForks')) {
