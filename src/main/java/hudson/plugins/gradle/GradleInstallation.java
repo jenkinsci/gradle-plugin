@@ -13,11 +13,11 @@ import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
+import jenkins.model.Jenkins;
 import jenkins.security.MasterToSlaveCallable;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -44,7 +44,7 @@ public class GradleInstallation extends ToolInstallation
     }
 
     private static String launderHome(String home) {
-        if (home.endsWith("/") || home.endsWith("\\")) {
+        if (home != null && (home.endsWith("/") || home.endsWith("\\"))) {
             // see https://issues.apache.org/bugzilla/show_bug.cgi?id=26947
             // Ant doesn't like the trailing slash, especially on Windows
             return home.substring(0, home.length() - 1);
@@ -98,9 +98,6 @@ public class GradleInstallation extends ToolInstallation
         public DescriptorImpl() {
         }
 
-        @Inject
-        private Gradle.DescriptorImpl gradleDescriptor;
-
         @Override
         public String getDisplayName() {
             return Messages.installer_displayName();
@@ -111,17 +108,20 @@ public class GradleInstallation extends ToolInstallation
             return Collections.singletonList(new GradleInstaller(null));
         }
 
-        // for compatibility reasons, the persistence is done by GradleBuilder.DescriptorImpl
+        // for compatibility reasons, the persistence is done by Gradle.DescriptorImpl
 
         @Override
         public GradleInstallation[] getInstallations() {
-            return gradleDescriptor.getInstallations();
+            return getGradleDescriptor().getInstallations();
         }
 
         @Override
         public void setInstallations(GradleInstallation... installations) {
-            gradleDescriptor.setInstallations(installations);
+            getGradleDescriptor().setInstallations(installations);
         }
 
+        private static Gradle.DescriptorImpl getGradleDescriptor() {
+            return Jenkins.getActiveInstance().getDescriptorByType(Gradle.DescriptorImpl.class);
+        }
     }
 }
