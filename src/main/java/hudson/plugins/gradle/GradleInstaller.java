@@ -9,6 +9,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author Kohsuke Kawaguchi
  */
 public class GradleInstaller extends DownloadFromUrlInstaller {
+
     @DataBoundConstructor
     public GradleInstaller(String id) {
         super(id);
@@ -16,6 +17,7 @@ public class GradleInstaller extends DownloadFromUrlInstaller {
 
     @Extension
     public static final class DescriptorImpl extends DownloadFromUrlInstaller.DescriptorImpl<GradleInstaller> {
+
         public String getDisplayName() {
             return "Install from Gradle.org";
         }

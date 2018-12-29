@@ -19,19 +19,19 @@ public final class GradleTaskNote extends ConsoleNote {
             "NO-SOURCE"
     );
 
+    private static final Pattern TASK_PATTERN_1 = Pattern.compile("^:([^:]\\S*)(\\s*)(\\S*)");
+    private static final Pattern TASK_PATTERN_2 = Pattern.compile("^> Task :([^:]\\S*)(\\s*)(\\S*)");
+
     @Override
-    public ConsoleAnnotator annotate(Object context, MarkupText text,
-                                     int charPos) {
+    public ConsoleAnnotator annotate(Object context, MarkupText text, int charPos) {
         // still under development. too early to put into production
         if (!ENABLED)
             return null;
 
         int prefixLength = 1;
-        MarkupText.SubText t = text.findToken(Pattern
-                .compile("^:([^:]\\S*)(\\s*)(\\S*)"));
+        MarkupText.SubText t = text.findToken(TASK_PATTERN_1);
         if (t == null) {
-            t = text.findToken(Pattern
-                .compile("^> Task :([^:]\\S*)(\\s*)(\\S*)"));
+            t = text.findToken(TASK_PATTERN_2);
             prefixLength = 8;
         }
         if (t == null) {
@@ -57,14 +57,12 @@ public final class GradleTaskNote extends ConsoleNote {
     }
 
     @Extension
-    public static final class DescriptorImpl extends
-            ConsoleAnnotationDescriptor {
+    public static final class DescriptorImpl extends ConsoleAnnotationDescriptor {
         public String getDisplayName() {
             return "Gradle tasks";
         }
     }
 
-    /** Non-private for use int tests. */
-    static boolean ENABLED = !Boolean.getBoolean(GradleTaskNote.class
-            .getName() + ".disabled");
+    /** Non-private for use in tests. */
+    static boolean ENABLED = !Boolean.getBoolean(GradleTaskNote.class.getName() + ".disabled");
 }

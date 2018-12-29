@@ -2,7 +2,9 @@
 .gradle
 .project
 .settings
-build
+build/
+out/
+target/
 *.iml
 *.ipr
 *.iws

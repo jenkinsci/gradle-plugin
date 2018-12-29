@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  * @author Gregory Boissinot
  */
@@ -195,7 +194,7 @@ public class Gradle extends Builder implements DryRun {
     }
 
     /**
-     * Turns a null string into a blanck string.
+     * Turns a null string into a blank string.
      */
     private static String null2Blank(String input) {
         return input != null ? input : "";

@@ -1,14 +1,14 @@
 import java.util.zip.ZipFile
 
 plugins {
-  id "org.jenkins-ci.jpi" version "0.22.0"
-  id 'ru.vyarus.animalsniffer' version '1.3.0'
+  id 'org.jenkins-ci.jpi' version '0.28.1'
+  id 'ru.vyarus.animalsniffer' version '1.4.6'
   id 'findbugs'
   id 'codenarc'
 }
 
-group = "org.jenkins-ci.plugins"
-description = "This plugin adds Gradle support to Jenkins"
+group = 'org.jenkins-ci.plugins'
+description = 'This plugin adds Gradle support to Jenkins'
 
 ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
 
@@ -18,19 +18,19 @@ if (ciBuild) {
 
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = "1.642.1"
+  coreVersion = '1.642.1'
 
   // Human-readable name of plugin.
-  displayName = "Gradle Plugin"
+  displayName = 'Gradle Plugin'
 
   // URL for plugin on Jenkins wiki or elsewhere.
-  url = "http://wiki.jenkins-ci.org/display/JENKINS/Gradle+Plugin"
+  url = 'https://wiki.jenkins.io/display/JENKINS/Gradle+Plugin'
 
   // Plugin URL on GitHub. Optional.
-  gitHubUrl = "https://github.com/jenkinsci/gradle-plugin"
+  gitHubUrl = 'https://github.com/jenkinsci/gradle-plugin'
 
   // Plugin ID, defaults to the project name without trailing '-plugin'
-  shortName = "gradle"
+  shortName = 'gradle'
 
   compatibleSinceVersion = '1.0'
 
@@ -62,23 +62,20 @@ dependencies {
   signature 'org.codehaus.mojo.signature:java17:1.0@signature'
 
   testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
-  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.8@jar'
+  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.44@jar'
 }
 
-if (project.hasProperty("maxParallelForks")) {
+if (project.hasProperty('maxParallelForks')) {
   project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
 } else {
   ext.maxParallelForks = 3
 }
 
 animalsniffer {
+  toolVersion = '1.17'
   sourceSets = [sourceSets.main]
-}
-
-configurations {
-  animalsnifferCompileClasspath.extendsFrom compile
-  // We need to exclude this dependency from animalsniffer since contains an invalid class
-  animalsnifferCompileClasspath.exclude group: 'com.ibm.icu', module: 'icu4j'
+  // We need to exclude this dependency from animalsniffer since it contains an invalid class
+  excludeJars 'icu4j-*'
 }
 
 findbugs {
@@ -92,24 +89,20 @@ findbugsMain {
   classes = sourceSets.main.output
 }
 
-animalsnifferMain {
-  classpath = configurations.animalsnifferCompileClasspath
-}
-
 codenarc {
-  toolVersion '0.27.0'
+  toolVersion '1.2.1'
   sourceSets = [sourceSets.test]
 }
 
 test {
-  systemProperties["hudson.model.DownloadService.noSignatureCheck"] = "true"
+  systemProperties['hudson.model.DownloadService.noSignatureCheck'] = 'true'
   ignoreFailures = ciBuild
   maxParallelForks = project.maxParallelForks
 }
 
 def checkArchiveManifest(File archive) {
   new ZipFile(archive).withCloseable { archiveZip ->
-    archiveZip.getInputStream(archiveZip.getEntry("META-INF/MANIFEST.MF")).withStream {
+    archiveZip.getInputStream(archiveZip.getEntry('META-INF/MANIFEST.MF')).withStream {
       assert it.text.contains("Plugin-Version: ${project.version}"): "Wrong metadate in file ${archive} - run a clean build"
     }
   }
