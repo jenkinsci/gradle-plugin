@@ -62,7 +62,7 @@ dependencies {
   signature 'org.codehaus.mojo.signature:java17:1.0@signature'
 
   testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
-  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.8@jar'
+  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.44@jar'
 }
 
 if (project.hasProperty('maxParallelForks')) {
