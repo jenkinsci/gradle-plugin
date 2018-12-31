@@ -7,6 +7,8 @@ plugins {
   id 'codenarc'
 }
 
+apply from: "$rootDir/gradle/jcascTest.gradle"
+
 group = 'org.jenkins-ci.plugins'
 description = 'This plugin adds Gradle support to Jenkins'
 
@@ -18,7 +20,7 @@ if (ciBuild) {
 
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = '2.60.3'
+  coreVersion = '1.642.1'
 
   // Human-readable name of plugin.
   displayName = 'Gradle Plugin'
@@ -61,9 +63,8 @@ dependencies {
 
   signature 'org.codehaus.mojo.signature:java17:1.0@signature'
 
-  testCompile 'org.spockframework:spock-core:1.2-groovy-2.4', { exclude module: 'groovy-all' }
+  testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.44@jar'
-  jenkinsTest 'io.jenkins:configuration-as-code:1.4'
 }
 
 if (project.hasProperty('maxParallelForks')) {
@@ -127,4 +128,5 @@ tasks.withType(AbstractPublishToMaven) {
   dependsOn checkArchiveManifests
 }
 
-defaultTasks 'test', 'jpi'
+defaultTasks.add 'test'
+defaultTasks.add 'jpi'
