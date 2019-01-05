@@ -1,5 +1,6 @@
 package hudson.plugins.gradle
 
+import hudson.model.DownloadService
 import hudson.tools.InstallSourceProperty
 import hudson.util.FormValidation
 import org.junit.rules.TestWatcher
@@ -26,7 +27,7 @@ class GradleInstallationRule extends TestWatcher {
     }
 
     private void loadGradleToolInstallers() {
-        assert j.jenkins.getExtensionList(hudson.model.DownloadService.Downloadable).find {
+        assert j.jenkins.getExtensionList(DownloadService.Downloadable).find {
             it.id == GradleInstaller.name
         }.updateNow().kind == FormValidation.Kind.OK
     }
@@ -44,7 +45,7 @@ class GradleInstallationRule extends TestWatcher {
     }
 
     void addInstallations(GradleInstallation... installations) {
-        def gradleInstallationDescriptor = j.jenkins.getDescriptorByType(hudson.plugins.gradle.GradleInstallation.DescriptorImpl)
+        def gradleInstallationDescriptor = j.jenkins.getDescriptorByType(GradleInstallation.DescriptorImpl)
         gradleInstallationDescriptor.setInstallations(installations)
         assert gradleInstallationDescriptor.getInstallations()
     }

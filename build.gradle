@@ -5,6 +5,7 @@ plugins {
   id 'ru.vyarus.animalsniffer' version '1.4.6'
   id 'findbugs'
   id 'codenarc'
+  id 'hudson.plugins.gradle.gradlebuild.test-fixtures'
 }
 
 apply from: "$rootDir/gradle/jcascTest.gradle"
@@ -63,7 +64,9 @@ dependencies {
 
   signature 'org.codehaus.mojo.signature:java17:1.0@signature'
 
-  testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
+  testFixturesImplementation 'org.spockframework:spock-core:0.7-groovy-1.8'
+  testFixturesImplementation 'org.jenkins-ci.main:jenkins-test-harness:2.44'
+
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.44@jar'
 }
 
@@ -119,8 +122,8 @@ tasks.withType(AbstractArchiveTask) {
 task checkArchiveManifests {
   dependsOn jar, war
   doLast {
-    checkArchiveManifest(jar.archivePath)
-    checkArchiveManifest(war.archivePath)
+    checkArchiveManifest(jar.archiveFile.get().asFile)
+    checkArchiveManifest(war.archiveFile.get().asFile)
   }
 }
 
