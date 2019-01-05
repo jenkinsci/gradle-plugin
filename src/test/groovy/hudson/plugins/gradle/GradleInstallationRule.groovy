@@ -7,6 +7,7 @@ import org.junit.runner.Description
 import org.jvnet.hudson.test.JenkinsRule
 
 class GradleInstallationRule extends TestWatcher {
+
     static {
         System.setProperty("hudson.model.DownloadService.noSignatureCheck", "true")
     }
@@ -35,17 +36,16 @@ class GradleInstallationRule extends TestWatcher {
     }
 
     void addInstallations(String... installationNames) {
-        def gradleInstallationDescriptor = j.jenkins.getDescriptorByType(hudson.plugins.gradle.GradleInstallation.DescriptorImpl)
-
-        GradleInstallation[] installations = new GradleInstallation[installationNames.size()]
-
-        for (int i = 0; i < installationNames.size(); i++) {
-            String name = installationNames[i]
-            installations[i] = new GradleInstallation(name, "", [new InstallSourceProperty([new GradleInstaller(gradleVersion)])])
+        def installations = installationNames.collect{ name ->
+            new GradleInstallation(name, "", [new InstallSourceProperty([new GradleInstaller(gradleVersion)])])
         }
 
-        gradleInstallationDescriptor.setInstallations(installations)
+        addInstallations(*installations)
+    }
 
+    void addInstallations(GradleInstallation... installations) {
+        def gradleInstallationDescriptor = j.jenkins.getDescriptorByType(hudson.plugins.gradle.GradleInstallation.DescriptorImpl)
+        gradleInstallationDescriptor.setInstallations(installations)
         assert gradleInstallationDescriptor.getInstallations()
     }
 }

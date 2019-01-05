@@ -7,6 +7,8 @@ plugins {
   id 'codenarc'
 }
 
+apply from: "$rootDir/gradle/jcascTest.gradle"
+
 group = 'org.jenkins-ci.plugins'
 description = 'This plugin adds Gradle support to Jenkins'
 
@@ -126,4 +128,5 @@ tasks.withType(AbstractPublishToMaven) {
   dependsOn checkArchiveManifests
 }
 
-defaultTasks 'test', 'jpi'
+defaultTasks.add 'test'
+defaultTasks.add 'jpi'
