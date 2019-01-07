@@ -11,3 +11,9 @@ repositories {
     gradlePluginPortal()
     mavenCentral()
 }
+
+plugins.withType<KotlinDslPlugin> {
+    kotlinDslPluginOptions {
+        experimentalWarning.set(false)
+    }
+}
