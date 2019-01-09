@@ -31,8 +31,7 @@ fun Project.markAsTestSourceSet(sourceSet: SourceSet) {
     plugins.withType<IdeaPlugin> {
         configure<IdeaModel> {
             module {
-                testSourceDirs = testSourceDirs + sourceSet.java.srcDirs
-                testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs
+                testSourceDirs = testSourceDirs + sourceSet.java.srcDirs + sourceSet.groovy.srcDirs
                 testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
             }
         }
