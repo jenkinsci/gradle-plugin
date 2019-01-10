@@ -10,6 +10,7 @@ In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
 * 1.30 (unreleased)
+  * Fix configuration as code compatibility ([JENKINS-53575](https://issues.jenkins-ci.org/browse/JENKINS-53575))
 * 1.29 (Jul 3rd 2018)
   * Update licensing information in pom.xml.
   * Support console annotations for Gradle 4.7 and later.
