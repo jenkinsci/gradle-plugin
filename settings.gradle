@@ -1,2 +1,5 @@
 rootProject.name = 'gradle-plugin'
 
+if (!JavaVersion.current().java8) {
+    throw new GradleException("Build requires Java 8")
+}
