@@ -9,6 +9,7 @@ For more information see the [Jenkins wiki page](http://wiki.jenkins-ci.org/disp
 In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
+* 1.31 (unreleased)
 * 1.30 (Jan 11th 2019)
   * Fix configuration as code compatibility ([JENKINS-53575](https://issues.jenkins-ci.org/browse/JENKINS-53575))
 * 1.29 (Jul 3rd 2018)
