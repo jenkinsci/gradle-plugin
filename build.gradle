@@ -1,6 +1,7 @@
 import java.util.zip.ZipFile
 
 plugins {
+  id "com.gradle.build-scan" version "2.1"
   id 'org.jenkins-ci.jpi' version '0.28.1'
   id 'ru.vyarus.animalsniffer' version '1.4.6'
   id 'findbugs'
@@ -138,3 +139,17 @@ tasks.withType(AbstractPublishToMaven) {
 
 defaultTasks.add 'test'
 defaultTasks.add 'jpi'
+
+buildScan {
+  if (ciBuild) {
+    tag('CI')
+    tag(System.getenv('GIT_BRANCH'))
+    value("git-commit-id", System.getenv("GIT_COMMIT"))
+    link('Jenkins build', System.getenv('BUILD_URL'))
+    termsOfServiceUrl = "https://gradle.com/terms-of-service"
+    termsOfServiceAgree ="yes"
+    publishAlways()
+  } else {
+    tag 'LOCAL'
+  }
+}
