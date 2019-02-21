@@ -324,24 +324,14 @@ public class Gradle extends Builder implements DryRun {
         }
 
         try {
-            GradleConsoleAnnotator gca = new GradleConsoleAnnotator(
-                    listener.getLogger(), build.getCharset());
             int r;
-            try {
-                r = launcher.launch().cmds(args).envs(env).stdout(gca)
-                        .pwd(rootLauncher).join();
-            } finally {
-                gca.forceEol();
-            }
+            r = launcher.launch().cmds(args).envs(env).stdout(listener.getLogger())
+                    .pwd(rootLauncher).join();
             boolean success = r == 0;
             // if the build is successful then set it as success otherwise as a failure.
             build.setResult(Result.SUCCESS);
             if (!success) {
                 build.setResult(Result.FAILURE);
-            }
-            String scanUrl = gca.getScanUrl();
-            if (StringUtils.isNotEmpty(scanUrl)) {
-                build.addAction(new BuildScanAction(scanUrl));
             }
             return success;
         } catch (IOException e) {

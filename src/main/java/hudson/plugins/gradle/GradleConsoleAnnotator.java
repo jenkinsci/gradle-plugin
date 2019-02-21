@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -18,12 +20,14 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 
     private final OutputStream out;
     private final Charset charset;
+    private final boolean usesGradleBuilder;
     private boolean nextLineIsBuildScan;
-    private String scanUrl;
+    private List<BuildScanPublishedListener> buildScanListeners = new ArrayList<>();
 
-    public GradleConsoleAnnotator(OutputStream out, Charset charset) {
+    public GradleConsoleAnnotator(OutputStream out, Charset charset, boolean usesGradleBuilder) {
         this.out = out;
         this.charset = charset;
+        this.usesGradleBuilder = usesGradleBuilder;
     }
 
     @Override
@@ -33,15 +37,19 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
         // trim off CR/LF from the end
         line = trimEOL(line);
 
-        if (line.startsWith(":") || line.startsWith("> Task :"))
-            // put the annotation
-            new GradleTaskNote().encodeTo(out);
+        if (usesGradleBuilder) {
+            if (line.startsWith(":") || line.startsWith("> Task :"))
+                // put the annotation
+                new GradleTaskNote().encodeTo(out);
 
-        if (line.startsWith("BUILD SUCCESSFUL") || line.startsWith("BUILD FAILED"))
-            new GradleOutcomeNote().encodeTo(out);
+            if (line.startsWith("BUILD SUCCESSFUL") || line.startsWith("BUILD FAILED"))
+                new GradleOutcomeNote().encodeTo(out);
+        }
 
         if (nextLineIsBuildScan) {
-            scanUrl = line;
+            for (BuildScanPublishedListener listener : buildScanListeners) {
+                listener.onBuildScanPublished(line);
+            }
             nextLineIsBuildScan = false;
         }
         if (BUILD_SCAN_PATTERN.matcher(line).matches()) {
@@ -57,7 +65,7 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
         out.close();
     }
 
-    public String getScanUrl() {
-        return scanUrl;
+    public void addBuildScanPublishedListener(BuildScanPublishedListener listener) {
+        this.buildScanListeners.add(listener);
     }
 }

@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 
 plugins {
   id "com.gradle.build-scan" version "2.1"
-  id 'org.jenkins-ci.jpi' version '0.28.1'
+  id 'org.jenkins-ci.jpi' version '0.29.0'
   id 'ru.vyarus.animalsniffer' version '1.4.6'
   id 'findbugs'
   id 'codenarc'
@@ -22,7 +22,7 @@ if (ciBuild) {
 
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = '1.642.1'
+  coreVersion = '1.651.3'
 
   // Human-readable name of plugin.
   displayName = 'Gradle Plugin'
