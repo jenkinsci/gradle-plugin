@@ -1,6 +1,7 @@
 package hudson.plugins.gradle
 
 import hudson.model.FreeStyleProject
+import hudson.tasks.BatchFile
 import hudson.tasks.Shell
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.ExtractResourceSCM
@@ -39,7 +40,7 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
         FreeStyleProject p = j.createFreeStyleProject()
         p.setScm(new ExtractResourceSCM(this.class.getResource('/gradle/wrapper.zip')))
         p.buildersList.add(buildScriptBuilder())
-        p.buildersList.add(new Shell(isUnix() ? './gradlew --scan hello' : 'cmd /c "gradlew.bat --scan hello"'))
+        p.buildersList.add(isUnix() ? new Shell('./gradlew --scan hello') : new BatchFile('gradlew.bat --scan hello'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
