@@ -39,6 +39,7 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
         given:
         FreeStyleProject p = j.createFreeStyleProject()
         p.setScm(new ExtractResourceSCM(this.class.getResource('/gradle/wrapper.zip')))
+        p.buildWrappersList.add(new BuildScanBuildWrapper())
         p.buildersList.add(buildScriptBuilder('2.1'))
         p.buildersList.add(isUnix() ? new Shell('./gradlew --scan hello') : new BatchFile('gradlew.bat --scan hello'))
 

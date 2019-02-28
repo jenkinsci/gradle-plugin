@@ -224,7 +224,7 @@ public class Gradle extends Builder implements DryRun {
         return performTask(false, build, launcher, listener);
     }
 
-    private boolean performTask(boolean dryRun, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+    private boolean performTask(boolean dryRun, final AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
 
         GradleLogger gradleLogger = new GradleLogger(listener);
@@ -324,9 +324,16 @@ public class Gradle extends Builder implements DryRun {
         }
 
         try {
+            GradleConsoleAnnotator gca = new GradleConsoleAnnotator(listener.getLogger(), build.getCharset(), true);
+            gca.addBuildScanPublishedListener(new DefaultBuildScanPublishedListener(build));
+
             int r;
-            r = launcher.launch().cmds(args).envs(env).stdout(listener.getLogger())
-                    .pwd(rootLauncher).join();
+            try {
+                r = launcher.launch().cmds(args).envs(env).stdout(gca)
+                        .pwd(rootLauncher).join();
+            } finally {
+                gca.forceEol();
+            }
             boolean success = r == 0;
             // if the build is successful then set it as success otherwise as a failure.
             build.setResult(Result.SUCCESS);
@@ -341,6 +348,7 @@ public class Gradle extends Builder implements DryRun {
             return false;
         }
     }
+
 
     private FilePath findGradleWrapper(FilePath normalizedRootBuildScriptDir, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, VariableResolver<String> resolver) throws IOException, InterruptedException {
         List<FilePath> possibleWrapperLocations = getPossibleWrapperLocations(build, launcher, resolver, normalizedRootBuildScriptDir);
