@@ -39,7 +39,7 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
         given:
         FreeStyleProject p = j.createFreeStyleProject()
         p.setScm(new ExtractResourceSCM(this.class.getResource('/gradle/wrapper.zip')))
-        p.buildersList.add(buildScriptBuilder())
+        p.buildersList.add(buildScriptBuilder('2.1'))
         p.buildersList.add(isUnix() ? new Shell('./gradlew --scan hello') : new BatchFile('gradlew.bat --scan hello'))
 
         when:
@@ -59,8 +59,8 @@ plugins {
 }
 
 buildScan {
-    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-    licenseAgree = 'yes'
+    ${buildScanVersion.startsWith('2') ? 'termsOfServiceUrl' : 'licenseAgreementUrl'} = 'https://gradle.com/terms-of-service'
+    ${buildScanVersion.startsWith('2') ? 'termsOfServiceAgree' : 'licenseAgree'} = 'yes'
 }
 
 task hello { doLast { println 'Hello' } }""")

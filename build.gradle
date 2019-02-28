@@ -160,3 +160,15 @@ void ifNonNull(value, Closure action) {
         action.call(value)
     }
 }
+
+task createWrapperZip(type: Zip) {
+  archiveFileName = 'wrapper.zip'
+  destinationDirectory = new File(sourceSets.test.output.resourcesDir, 'gradle')
+
+  from(project.rootDir) {
+    include('gradle/**')
+    include('gradlew*')
+  }
+}
+
+processTestResources.dependsOn(createWrapperZip)
