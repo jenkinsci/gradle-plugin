@@ -25,7 +25,7 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
 
         then:
         println JenkinsRule.getLog(build)
-        def action = build.getAction(BuildScansAction)
+        def action = build.getAction(BuildScanAction)
         action.scanUrls.size() == 2
         action.scanUrls.each { new URL(it) }
 
@@ -47,7 +47,7 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
 
         then:
         println JenkinsRule.getLog(build)
-        def action = build.getAction(BuildScansAction)
+        def action = build.getAction(BuildScanAction)
         action.scanUrls.size() == 1
         new URL(action.scanUrls.get(0))
     }

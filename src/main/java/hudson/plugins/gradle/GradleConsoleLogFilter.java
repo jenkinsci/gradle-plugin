@@ -35,10 +35,10 @@ public class GradleConsoleLogFilter extends ConsoleLogFilter implements BuildSca
 
     @Override
     public void onBuildScanPublished(String scanUrl) {
-        BuildScansAction action = build.getAction(BuildScansAction.class);
+        BuildScanAction action = build.getAction(BuildScanAction.class);
 
         if (action == null) {
-            action = new BuildScansAction();
+            action = new BuildScanAction();
             action.addScanUrl(scanUrl);
 
             build.addAction(action);

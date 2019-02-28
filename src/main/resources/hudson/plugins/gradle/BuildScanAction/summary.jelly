@@ -1,4 +1,11 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <t:summary icon="/plugin/gradle/images/48x48/gradle-build-scan.png"> <a href="${it.scanUrl}">Gradle Build Scan</a></t:summary>
+    <t:summary icon="/plugin/gradle/images/48x48/gradle-build-scan.png">
+        <h2>Gradle Build Scans</h2>
+        <ul>
+        <j:forEach items="${it.scanUrls}" var="scanUrl">
+            <li><a href="${scanUrl}">${scanUrl}</a></li>
+        </j:forEach>
+        </ul>
+    </t:summary>
 </j:jelly>

@@ -2,19 +2,16 @@ package hudson.plugins.gradle;
 
 import hudson.model.Action;
 
-/**
- * @deprecated This class remains only for backwards compatibility so that actions persisted for old builds will
- * continue to render correctly. At some point this should probably be removed.
- *
- * @see BuildScansAction
- */
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class BuildScanAction implements Action {
 
-    private final String scanUrl;
+    // Backward compatibility for old plugins versions which created an action per-scan
+    private transient String scanUrl;
 
-    public BuildScanAction(String scanUrl) {
-        this.scanUrl = scanUrl;
-    }
+    private final List<String> scanUrls = new ArrayList<>();
 
     @Override
     public String getIconFileName() {
@@ -31,7 +28,19 @@ public class BuildScanAction implements Action {
         return null;
     }
 
-    public String getScanUrl() {
-        return scanUrl;
+    public void addScanUrl(String scanUrl) {
+        scanUrls.add(scanUrl);
+    }
+
+    public List<String> getScanUrls() {
+        return Collections.unmodifiableList(scanUrls);
+    }
+
+    private Object readResolve() {
+        if (scanUrl != null) {
+            scanUrls.add(scanUrl);
+        }
+
+        return this;
     }
 }
