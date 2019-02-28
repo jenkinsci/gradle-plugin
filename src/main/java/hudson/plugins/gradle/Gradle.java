@@ -349,7 +349,6 @@ public class Gradle extends Builder implements DryRun {
         }
     }
 
-
     private FilePath findGradleWrapper(FilePath normalizedRootBuildScriptDir, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, VariableResolver<String> resolver) throws IOException, InterruptedException {
         List<FilePath> possibleWrapperLocations = getPossibleWrapperLocations(build, launcher, resolver, normalizedRootBuildScriptDir);
         String execName = (launcher.isUnix()) ? GradleInstallation.UNIX_GRADLE_WRAPPER_COMMAND : GradleInstallation.WINDOWS_GRADLE_WRAPPER_COMMAND;
