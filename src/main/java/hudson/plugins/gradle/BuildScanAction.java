@@ -11,7 +11,7 @@ public class BuildScanAction implements Action {
     // Backward compatibility for old plugins versions which created an action per-scan
     private transient String scanUrl;
 
-    private final List<String> scanUrls = new ArrayList<>();
+    private List<String> scanUrls = new ArrayList<>();
 
     @Override
     public String getIconFileName() {
@@ -38,7 +38,7 @@ public class BuildScanAction implements Action {
 
     private Object readResolve() {
         if (scanUrl != null) {
-            scanUrls.add(scanUrl);
+            scanUrls = Collections.singletonList(scanUrl);
         }
 
         return this;
