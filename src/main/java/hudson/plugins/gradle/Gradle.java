@@ -224,7 +224,7 @@ public class Gradle extends Builder implements DryRun {
         return performTask(false, build, launcher, listener);
     }
 
-    private boolean performTask(boolean dryRun, final AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+    private boolean performTask(boolean dryRun, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
 
         GradleLogger gradleLogger = new GradleLogger(listener);
