@@ -224,7 +224,7 @@ public class Gradle extends Builder implements DryRun {
         return performTask(false, build, launcher, listener);
     }
 
-    private boolean performTask(boolean dryRun, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+    private boolean performTask(boolean dryRun, final AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
 
         GradleLogger gradleLogger = new GradleLogger(listener);
@@ -324,8 +324,9 @@ public class Gradle extends Builder implements DryRun {
         }
 
         try {
-            GradleConsoleAnnotator gca = new GradleConsoleAnnotator(
-                    listener.getLogger(), build.getCharset());
+            GradleConsoleAnnotator gca = new GradleConsoleAnnotator(listener.getLogger(), build.getCharset(), true);
+            gca.addBuildScanPublishedListener(new DefaultBuildScanPublishedListener(build));
+
             int r;
             try {
                 r = launcher.launch().cmds(args).envs(env).stdout(gca)
@@ -338,10 +339,6 @@ public class Gradle extends Builder implements DryRun {
             build.setResult(Result.SUCCESS);
             if (!success) {
                 build.setResult(Result.FAILURE);
-            }
-            String scanUrl = gca.getScanUrl();
-            if (StringUtils.isNotEmpty(scanUrl)) {
-                build.addAction(new BuildScanAction(scanUrl));
             }
             return success;
         } catch (IOException e) {

@@ -1,5 +1,6 @@
 package hudson.plugins.gradle
 
+
 import hudson.model.FreeStyleProject
 import org.junit.Rule
 import org.junit.Test
@@ -62,6 +63,18 @@ class CompatibilityTest {
         def installations = j.jenkins.getDescriptorByType(hudson.plugins.gradle.Gradle.DescriptorImpl).getInstallations()
         assert installations.size() == 1
         assert installations[0].name == '2.14'
+    }
+
+    @Test
+    @LocalData
+    void convert_old_build_scan_actions() {
+        FreeStyleProject p = (FreeStyleProject) j.jenkins.getItem("old")
+        def build = p.getBuildByNumber(1)
+        def buildScanActions = build.getAllActions().findAll { it instanceof BuildScanAction } as List<BuildScanAction>
+
+        assert buildScanActions.size() == 2
+        assert buildScanActions[0].scanUrls == ['https://gradle.com/s/trs4je7zh3ysc']
+        assert buildScanActions[1].scanUrls == ['https://gradle.com/s/uaxunlpjhzoda']
     }
 
     private Gradle configuredGradle() {
