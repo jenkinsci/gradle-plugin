@@ -16,7 +16,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 public class BuildScanBuildWrapper extends SimpleBuildWrapper {
 
@@ -25,7 +24,7 @@ public class BuildScanBuildWrapper extends SimpleBuildWrapper {
     }
 
     @Override
-    public void setUp(Context context, Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) throws IOException, InterruptedException {
+    public void setUp(Context context, Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) {
         // do nothing
     }
 
@@ -35,18 +34,8 @@ public class BuildScanBuildWrapper extends SimpleBuildWrapper {
         return new GradleConsoleLogFilter();
     }
 
-    @Override
-    public DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) super.getDescriptor();
-    }
-
     @Extension
     public static final class DescriptorImpl extends BuildWrapperDescriptor {
-
-        public DescriptorImpl() {
-            super(BuildScanBuildWrapper.class);
-            load();
-        }
 
         @Nonnull
         @Override
