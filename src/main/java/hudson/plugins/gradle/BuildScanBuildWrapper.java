@@ -40,7 +40,7 @@ public class BuildScanBuildWrapper extends SimpleBuildWrapper {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "Inspect build log for published Gradle build scans";
+            return Messages.wrapper_displayName();
         }
 
         @Override
