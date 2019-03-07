@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -17,11 +18,12 @@ import java.util.regex.Pattern;
 public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 
     private static final Pattern BUILD_SCAN_PATTERN = Pattern.compile("Publishing (build scan|build information)\\.\\.\\.");
+    private static final Pattern URL_PATTERN = Pattern.compile("https?://\\S*");
 
     private final OutputStream out;
     private final Charset charset;
     private final boolean usesGradleBuilder;
-    private boolean nextLineIsBuildScan;
+    private int linesSinceBuildScanPublishingMessage = Integer.MAX_VALUE;
     private List<BuildScanPublishedListener> buildScanListeners = new ArrayList<>();
 
     public GradleConsoleAnnotator(OutputStream out, Charset charset, boolean usesGradleBuilder) {
@@ -32,28 +34,38 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 
     @Override
     protected void eol(byte[] b, int len) throws IOException {
-        String line = charset.decode(ByteBuffer.wrap(b, 0, len)).toString();
+        if (len < 500) { // Don't parse too long lines
+            String line = charset.decode(ByteBuffer.wrap(b, 0, len)).toString();
 
-        // trim off CR/LF from the end
-        line = trimEOL(line);
+            // trim off CR/LF from the end
+            line = trimEOL(line);
 
-        if (usesGradleBuilder) {
-            if (line.startsWith(":") || line.startsWith("> Task :"))
+            if (usesGradleBuilder) {
+                if (line.startsWith(":") || line.startsWith("> Task :"))
                 // put the annotation
-                new GradleTaskNote().encodeTo(out);
+                {
+                    new GradleTaskNote().encodeTo(out);
+                }
 
-            if (line.startsWith("BUILD SUCCESSFUL") || line.startsWith("BUILD FAILED"))
-                new GradleOutcomeNote().encodeTo(out);
-        }
-
-        if (nextLineIsBuildScan) {
-            for (BuildScanPublishedListener listener : buildScanListeners) {
-                listener.onBuildScanPublished(line);
+                if (line.startsWith("BUILD SUCCESSFUL") || line.startsWith("BUILD FAILED")) {
+                    new GradleOutcomeNote().encodeTo(out);
+                }
             }
-            nextLineIsBuildScan = false;
-        }
-        if (BUILD_SCAN_PATTERN.matcher(line).matches()) {
-            nextLineIsBuildScan = true;
+
+            if (linesSinceBuildScanPublishingMessage < 10) {
+                linesSinceBuildScanPublishingMessage++;
+                Matcher matcher = URL_PATTERN.matcher(line);
+                if (matcher.find()) {
+                    linesSinceBuildScanPublishingMessage = Integer.MAX_VALUE;
+                    String buildScanUrl = matcher.group();
+                    for (BuildScanPublishedListener listener : buildScanListeners) {
+                        listener.onBuildScanPublished(buildScanUrl);
+                    }
+                }
+            }
+            if (len < 70 && BUILD_SCAN_PATTERN.matcher(line).find()) {
+                linesSinceBuildScanPublishingMessage = 0;
+            }
         }
 
         out.write(b, 0, len);

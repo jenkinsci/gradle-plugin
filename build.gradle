@@ -40,16 +40,16 @@ jenkinsPlugin {
 
   developers {
     developer {
-      id 'wolfs'
-      name 'Stefan Wolf'
+      id = 'wolfs'
+      name = 'Stefan Wolf'
     }
   }
 
   licenses {
     license {
-      name 'MIT License'
-      distribution 'repo'
-      url 'https://opensource.org/licenses/MIT'
+      name = 'MIT License'
+      distribution = 'repo'
+      url = 'https://opensource.org/licenses/MIT'
     }
   }
 
@@ -67,6 +67,7 @@ dependencies {
   testFixturesImplementation 'org.jenkins-ci.main:jenkins-test-harness:2.44'
 
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.44'
+  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
 
   testImplementation 'org.spockframework:spock-core:0.7-groovy-1.8'
 
