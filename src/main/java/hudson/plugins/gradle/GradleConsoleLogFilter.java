@@ -7,8 +7,9 @@ import hudson.tasks.Builder;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 
-public class GradleConsoleLogFilter extends ConsoleLogFilter {
+public class GradleConsoleLogFilter extends ConsoleLogFilter implements Serializable {
 
     @Override
     public OutputStream decorateLogger(Run build, OutputStream logger) throws IOException, InterruptedException {
@@ -22,9 +23,7 @@ public class GradleConsoleLogFilter extends ConsoleLogFilter {
             }
         }
 
-        GradleConsoleAnnotator gradleConsoleAnnotator = new GradleConsoleAnnotator(logger, build.getCharset(), usesGradleBuilder);
-        gradleConsoleAnnotator.addBuildScanPublishedListener(new DefaultBuildScanPublishedListener(build));
-
-        return gradleConsoleAnnotator;
+        DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build);
+        return new GradleConsoleAnnotator(logger, build.getCharset(), usesGradleBuilder, buildScanListener);
     }
 }

@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,28 +17,33 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 
     private static final Pattern BUILD_SCAN_PATTERN = Pattern.compile("Publishing (build scan|build information)\\.\\.\\.");
     private static final Pattern URL_PATTERN = Pattern.compile("https?://\\S*");
+    private static final int MAX_PUBLISHED_MESSAGE_LENGTH = 70;
 
     private final OutputStream out;
     private final Charset charset;
-    private final boolean usesGradleBuilder;
-    private int linesSinceBuildScanPublishingMessage = Integer.MAX_VALUE;
-    private List<BuildScanPublishedListener> buildScanListeners = new ArrayList<>();
+    private final boolean annotateGradleOutput;
+    private final BuildScanPublishedListener buildScanListener;
+    private final int maxLineLength;
 
-    public GradleConsoleAnnotator(OutputStream out, Charset charset, boolean usesGradleBuilder) {
+    private int linesSinceBuildScanPublishingMessage = Integer.MAX_VALUE;
+
+    public GradleConsoleAnnotator(OutputStream out, Charset charset, boolean annotateGradleOutput, BuildScanPublishedListener buildScanListener) {
         this.out = out;
         this.charset = charset;
-        this.usesGradleBuilder = usesGradleBuilder;
+        this.annotateGradleOutput = annotateGradleOutput;
+        this.buildScanListener = buildScanListener;
+        this.maxLineLength = annotateGradleOutput ? 500 : MAX_PUBLISHED_MESSAGE_LENGTH;
     }
 
     @Override
     protected void eol(byte[] b, int len) throws IOException {
-        if (len < 500) { // Don't parse too long lines
+        if (len < maxLineLength) { // Don't parse too long lines
             String line = charset.decode(ByteBuffer.wrap(b, 0, len)).toString();
 
             // trim off CR/LF from the end
             line = trimEOL(line);
 
-            if (usesGradleBuilder) {
+            if (annotateGradleOutput) {
                 if (line.startsWith(":") || line.startsWith("> Task :"))
                 // put the annotation
                 {
@@ -58,12 +61,10 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
                 if (matcher.find()) {
                     linesSinceBuildScanPublishingMessage = Integer.MAX_VALUE;
                     String buildScanUrl = matcher.group();
-                    for (BuildScanPublishedListener listener : buildScanListeners) {
-                        listener.onBuildScanPublished(buildScanUrl);
-                    }
+                    buildScanListener.onBuildScanPublished(buildScanUrl);
                 }
             }
-            if (len < 70 && BUILD_SCAN_PATTERN.matcher(line).find()) {
+            if (len < MAX_PUBLISHED_MESSAGE_LENGTH && BUILD_SCAN_PATTERN.matcher(line).find()) {
                 linesSinceBuildScanPublishingMessage = 0;
             }
         }
@@ -75,9 +76,5 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
     public void close() throws IOException {
         super.close();
         out.close();
-    }
-
-    public void addBuildScanPublishedListener(BuildScanPublishedListener listener) {
-        this.buildScanListeners.add(listener);
     }
 }

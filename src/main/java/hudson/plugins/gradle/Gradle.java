@@ -324,8 +324,8 @@ public class Gradle extends Builder implements DryRun {
         }
 
         try {
-            GradleConsoleAnnotator gca = new GradleConsoleAnnotator(listener.getLogger(), build.getCharset(), true);
-            gca.addBuildScanPublishedListener(new DefaultBuildScanPublishedListener(build));
+            DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build);
+            GradleConsoleAnnotator gca = new GradleConsoleAnnotator(listener.getLogger(), build.getCharset(), true, buildScanListener);
 
             int r;
             try {
