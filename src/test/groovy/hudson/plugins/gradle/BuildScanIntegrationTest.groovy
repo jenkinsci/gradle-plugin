@@ -89,6 +89,27 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
         new URL(action.scanUrls.get(0))
     }
 
+    def 'build scan action is exposed via rest API'() {
+        given:
+        gradleInstallationRule.gradleVersion = '3.4'
+        gradleInstallationRule.addInstallation()
+        FreeStyleProject p = j.createFreeStyleProject()
+        p.buildersList.add(buildScriptBuilder())
+        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: '3.4', switches: '-Dscan --no-daemon'))
+
+
+        when:
+        def build = j.buildAndAssertSuccess(p)
+
+        then:
+        println JenkinsRule.getLog(build)
+
+        def json = j.getJSON("${build.url}/api/json?tree=actions[*]")
+        def scanUrls = json.getJSONObject().get('actions').get(1).get('scanUrls')
+        scanUrls.size() == 1
+        new URL(scanUrls.get(0))
+    }
+
     private static String getGradleEnterpriseConfiguration() {
         """<gradleEnterprise
     xmlns="https://www.gradle.com/gradle-enterprise-maven" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

@@ -1,11 +1,14 @@
 package hudson.plugins.gradle;
 
 import hudson.model.Action;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@ExportedBean
 public class BuildScanAction implements Action {
 
     // Backward compatibility for old plugins versions which created an action per-scan
@@ -32,6 +35,7 @@ public class BuildScanAction implements Action {
         scanUrls.add(scanUrl);
     }
 
+    @Exported
     public List<String> getScanUrls() {
         return Collections.unmodifiableList(scanUrls);
     }
