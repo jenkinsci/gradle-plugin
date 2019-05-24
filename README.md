@@ -9,7 +9,8 @@ For more information see the [Jenkins wiki page](http://wiki.jenkins-ci.org/disp
 In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
-* 1.32 (unreleased)
+* 1.32 (May 24th 2019)
+  * Expose build scan action via Jenkins API ([#70](https://github.com/jenkinsci/gradle-plugin/pull/70))
 * 1.31 (Mar 16th 2019)
   * Support detecting build scans for non-Gradle build steps #66
   * Support for detecting Maven build scans #68
