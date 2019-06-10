@@ -32,7 +32,9 @@ public class BuildScanAction implements Action {
     }
 
     public void addScanUrl(String scanUrl) {
-        scanUrls.add(scanUrl);
+        if (!scanUrls.contains(scanUrl)) {
+            scanUrls.add(scanUrl);
+        }
     }
 
     @Exported
