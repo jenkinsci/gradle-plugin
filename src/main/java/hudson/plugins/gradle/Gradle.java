@@ -21,7 +21,6 @@ import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
-import org.jenkinsci.lib.dryrun.DryRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -34,7 +33,7 @@ import java.util.Set;
 /**
  * @author Gregory Boissinot
  */
-public class Gradle extends Builder implements DryRun {
+public class Gradle extends Builder {
 
     private String switches;
     private String tasks;
@@ -214,17 +213,7 @@ public class Gradle extends Builder implements DryRun {
     }
 
     @Override
-    public boolean performDryRun(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        return performTask(true, build, launcher, listener);
-    }
-
-    @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-            throws InterruptedException, IOException {
-        return performTask(false, build, launcher, listener);
-    }
-
-    private boolean performTask(boolean dryRun, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
 
         GradleLogger gradleLogger = new GradleLogger(listener);
@@ -235,11 +224,6 @@ public class Gradle extends Builder implements DryRun {
 
         //Switches
         String normalizedSwitches = getNormalized(switches, resolver, "GRADLE_EXT_SWITCHES");
-
-        //Add dry-run switch if needed
-        if (dryRun) {
-            normalizedSwitches = normalizedSwitches + " --dry-run";
-        }
 
         //Tasks
         String normalizedTasks = getNormalized(tasks, resolver, "GRADLE_EXT_TASKS");
