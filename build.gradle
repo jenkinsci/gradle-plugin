@@ -6,8 +6,6 @@ plugins {
   id 'ru.vyarus.animalsniffer' version '1.4.6'
   id 'findbugs'
   id 'codenarc'
-  id 'hudson.plugins.gradle.gradlebuild.test-fixtures'
-  id 'hudson.plugins.gradle.gradlebuild.jenkins-next-tests'
 }
 
 group = 'org.jenkins-ci.plugins'
@@ -22,7 +20,7 @@ if (ciBuild) {
 
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = '1.651.3'
+  coreVersion = '2.60.3'
 
   // Human-readable name of plugin.
   displayName = 'Gradle Plugin'
@@ -64,17 +62,11 @@ dependencies {
 
   signature 'org.codehaus.mojo.signature:java17:1.0@signature'
 
-  testFixturesImplementation 'org.jenkins-ci.main:jenkins-test-harness:2.44'
-
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.44'
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
+  jenkinsTest 'io.jenkins:configuration-as-code:1.4'
 
-  testImplementation 'org.spockframework:spock-core:0.7-groovy-1.8'
-
-  jenkinsNextTestImplementation "org.jenkins-ci.main:jenkins-war:${nextJenkinsVersion}"
-  jenkinsNextTestImplementation 'org.spockframework:spock-core:1.2-groovy-2.4', { exclude module: 'groovy-all' }
-  jenkinsNextTestImplementation 'io.jenkins:configuration-as-code:1.4@jar'
-  jenkinsNextTestImplementation 'io.jenkins:configuration-as-code:1.4'
+  testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
 }
 
 if (project.hasProperty('maxParallelForks')) {
