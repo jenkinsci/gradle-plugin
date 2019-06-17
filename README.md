@@ -10,6 +10,7 @@ In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
 * 1.33 (unreleased)
+  * Remove support for dry-run plugin
 * 1.32 (May 24th 2019)
   * Expose build scan action via Jenkins API ([#70](https://github.com/jenkinsci/gradle-plugin/pull/70))
 * 1.31 (Mar 16th 2019)
