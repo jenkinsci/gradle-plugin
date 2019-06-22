@@ -65,7 +65,7 @@ dependencies {
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.44'
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
   jenkinsTest 'io.jenkins:configuration-as-code:1.4'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-aggregator:2.5'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-aggregator:2.6'
 
   testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
 }
