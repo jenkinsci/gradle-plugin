@@ -59,19 +59,17 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
 
     def 'detects build scan in pipeline log'() {
         given:
-        gradleInstallationRule.gradleVersion = '5.1'
+        gradleInstallationRule.gradleVersion = '5.5'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
 node {
-   def gradleHome
-   stage('Preparation') {
-      gradleHome = tool '${gradleInstallationRule.gradleVersion}'
-   }
    stage('Build') {
       // Run the maven build
+      def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+      writeFile file: 'settings.gradle', text: ''
+      writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
       if (isUnix()) {
-         sh 'touch settings.gradle'
          sh "'\${gradleHome}/bin/gradle' help --scan"
       } else {
          bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
