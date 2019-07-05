@@ -63,7 +63,7 @@ class PropertyPassingIntegrationTest extends AbstractIntegrationTest {
         def p = j.createFreeStyleProject()
         createBuildScript(p, """
             task printParam {
-                doLast { 
+                doLast {
                 ${criticalProperties.collect { k, v ->
                     "println('${k}=' + ${k})"
                 }.join('\n')}
@@ -86,7 +86,7 @@ class PropertyPassingIntegrationTest extends AbstractIntegrationTest {
         def p = j.createFreeStyleProject()
         createBuildScript(p, """
             task printParam {
-                doLast { 
+                doLast {
                 ${criticalProperties.collect { k, v ->
                     "println('${k}=' + System.getProperty('${k}'))"
                 }.join('\n')}
