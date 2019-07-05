@@ -49,7 +49,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\ntask hello << { println 'Hello' }"))
+        p.buildersList.add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\n${helloTask}"))
         p.buildersList.add(new Gradle(defaults))
 
         when:
@@ -63,7 +63,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
+        p.buildersList.add(new CreateFileBuilder("build.gradle", getHelloTask()))
         p.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         when:
@@ -77,7 +77,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build/build.gradle", "task hello << { println 'Hello' }"))
+        p.buildersList.add(new CreateFileBuilder("build/build.gradle", helloTask))
         p.buildersList.add(new Gradle(tasks: 'hello', buildFile: 'build/build.gradle', *: defaults))
 
         when:
@@ -91,7 +91,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "task hello << { println 'Hello' }"))
+        p.buildersList.add(new CreateFileBuilder("build.gradle", helloTask))
         p.buildersList.add(new Gradle(tasks: 'wrapper', *: defaults))
         p.buildersList.add(new Gradle(useWrapper: true, tasks: 'hello', *: defaults))
 
@@ -103,7 +103,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
+        p.buildersList.add(new CreateFileBuilder(buildFile, helloTask))
         p.buildersList.add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *: defaults))
         p.buildersList.add(new Gradle(
                 defaults + [useWrapper: true, tasks: 'hello'] + settings))
@@ -130,7 +130,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
     def 'wrapper was not found'() {
         given:
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder(buildFile, "task hello << { println 'Hello' }"))
+        p.buildersList.add(new CreateFileBuilder(buildFile, helloTask))
         p.buildersList.add(new Gradle(defaults + [useWrapper: true, tasks: 'hello'] + settings))
 
         when:
@@ -248,5 +248,14 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         def installers = props.get(InstallSourceProperty).installers
         assert installers.size() == 1
         assert installers.get(GradleInstaller)
+    }
+
+    private String getHelloTask() {
+        """
+        task hello {
+            doLast {
+                println 'Hello'
+            }
+        }"""
     }
 }

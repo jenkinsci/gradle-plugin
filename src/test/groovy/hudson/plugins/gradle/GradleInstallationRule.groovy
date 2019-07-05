@@ -16,7 +16,7 @@ class GradleInstallationRule extends TestWatcher {
     String gradleVersion
     private final JenkinsRule j
 
-    GradleInstallationRule(String gradleVersion = '3.2.1', JenkinsRule j) {
+    GradleInstallationRule(String gradleVersion = '5.5', JenkinsRule j) {
         this.gradleVersion = gradleVersion
         this.j = j
     }
