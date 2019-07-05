@@ -9,8 +9,12 @@ For more information see the [Jenkins wiki page](http://wiki.jenkins-ci.org/disp
 In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
-* 1.33 (unreleased)
-  * Remove support for dry-run plugin
+* 1.33 (July 5th 2019)
+  * Remove support for dry-run plugin [#72](https://github.com/jenkinsci/gradle-plugin/pull/72)
+  * Support detecting build scans in pipeline jobs ([#71](https://github.com/jenkinsci/gradle-plugin/pull/71))
+  * Increase required core version to 2.60.3 [#73](https://github.com/jenkinsci/gradle-plugin/pull/73)
+  * Use consistent file formatting for sources [#74](https://github.com/jenkinsci/gradle-plugin/pull/74).
+    Thanks @darxriggs.
 * 1.32 (May 24th 2019)
   * Expose build scan action via Jenkins API ([#70](https://github.com/jenkinsci/gradle-plugin/pull/70))
 * 1.31 (Mar 16th 2019)
