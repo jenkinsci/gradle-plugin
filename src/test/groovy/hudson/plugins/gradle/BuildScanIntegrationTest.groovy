@@ -4,6 +4,8 @@ import hudson.model.FreeStyleProject
 import hudson.tasks.BatchFile
 import hudson.tasks.Maven
 import hudson.tasks.Shell
+import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
+import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.ExtractResourceSCM
 import org.jvnet.hudson.test.JenkinsRule
@@ -47,6 +49,40 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
 
         when:
         def build = j.buildAndAssertSuccess(p)
+
+        then:
+        println JenkinsRule.getLog(build)
+        def action = build.getAction(BuildScanAction)
+        action.scanUrls.size() == 1
+        new URL(action.scanUrls.get(0))
+    }
+
+    def 'detects build scan in pipeline log'() {
+        given:
+        gradleInstallationRule.gradleVersion = '5.5'
+        gradleInstallationRule.addInstallation()
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+node {
+   stage('Build') {
+      // Run the maven build
+      def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+      writeFile file: 'settings.gradle', text: ''
+      writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
+      if (isUnix()) {
+         sh "'\${gradleHome}/bin/gradle' help --scan"
+      } else {
+         bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+      }
+   }
+   stage('Final') {
+       findBuildScans()
+   }
+}
+""", false))
+
+        when:
+        def build = pipelineJob.scheduleBuild2(0).get()
 
         then:
         println JenkinsRule.getLog(build)

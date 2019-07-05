@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author ikikko
@@ -15,24 +13,18 @@ import java.util.regex.Pattern;
  */
 public class GradleConsoleAnnotator extends LineTransformationOutputStream {
 
-    private static final Pattern BUILD_SCAN_PATTERN = Pattern.compile("Publishing (build scan|build information)\\.\\.\\.");
-    private static final Pattern URL_PATTERN = Pattern.compile("https?://\\S*");
-    private static final int MAX_PUBLISHED_MESSAGE_LENGTH = 70;
-
     private final OutputStream out;
     private final Charset charset;
     private final boolean annotateGradleOutput;
-    private final BuildScanPublishedListener buildScanListener;
     private final int maxLineLength;
-
-    private int linesSinceBuildScanPublishingMessage = Integer.MAX_VALUE;
+    private final BuildScanLogScanner buildScanLogScanner;
 
     public GradleConsoleAnnotator(OutputStream out, Charset charset, boolean annotateGradleOutput, BuildScanPublishedListener buildScanListener) {
         this.out = out;
         this.charset = charset;
         this.annotateGradleOutput = annotateGradleOutput;
-        this.buildScanListener = buildScanListener;
-        this.maxLineLength = annotateGradleOutput ? 500 : MAX_PUBLISHED_MESSAGE_LENGTH;
+        this.maxLineLength = annotateGradleOutput ? 500 : BuildScanLogScanner.MAX_PUBLISHED_MESSAGE_LENGTH;
+        this.buildScanLogScanner = new BuildScanLogScanner(buildScanListener);
     }
 
     @Override
@@ -55,18 +47,7 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
                 }
             }
 
-            if (linesSinceBuildScanPublishingMessage < 10) {
-                linesSinceBuildScanPublishingMessage++;
-                Matcher matcher = URL_PATTERN.matcher(line);
-                if (matcher.find()) {
-                    linesSinceBuildScanPublishingMessage = Integer.MAX_VALUE;
-                    String buildScanUrl = matcher.group();
-                    buildScanListener.onBuildScanPublished(buildScanUrl);
-                }
-            }
-            if (len < MAX_PUBLISHED_MESSAGE_LENGTH && BUILD_SCAN_PATTERN.matcher(line).find()) {
-                linesSinceBuildScanPublishingMessage = 0;
-            }
+            buildScanLogScanner.scanLine(line);
         }
 
         out.write(b, 0, len);
