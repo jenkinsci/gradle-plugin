@@ -9,6 +9,7 @@ For more information see the [Jenkins wiki page](http://wiki.jenkins-ci.org/disp
 In order to release this plugin have a look at [here](RELEASING.md).
 
 ## Release Notes
+* 1.34 (unreleased)
 * 1.33 (July 5th 2019)
   * Remove support for dry-run plugin [#72](https://github.com/jenkinsci/gradle-plugin/pull/72)
   * Support detecting build scans in pipeline jobs ([#71](https://github.com/jenkinsci/gradle-plugin/pull/71))
