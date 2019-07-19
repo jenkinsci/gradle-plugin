@@ -380,8 +380,9 @@ public class Gradle extends Builder {
             wrapperLocationNormalized = Util.replaceMacro(wrapperLocationNormalized.trim(), resolver);
             return ImmutableList.of(new FilePath(moduleRoot, wrapperLocationNormalized));
         } else if (buildFile != null && !buildFile.isEmpty()) {
+            String buildFileNormalized = Util.replaceMacro(buildFile.trim(), resolver);
             // Check if the target project is located not at the root dir
-            FilePath parentOfBuildFile = new FilePath(normalizedRootBuildScriptDir == null ? moduleRoot : normalizedRootBuildScriptDir, buildFile).getParent();
+            FilePath parentOfBuildFile = new FilePath(normalizedRootBuildScriptDir == null ? moduleRoot : normalizedRootBuildScriptDir, buildFileNormalized).getParent();
             if (parentOfBuildFile != null && !parentOfBuildFile.equals(moduleRoot)) {
                 return ImmutableList.of(parentOfBuildFile, moduleRoot);
             }
