@@ -12,6 +12,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -43,8 +45,11 @@ public class BuildScanPublisher extends Step {
             ) {
                 lines.forEach(scanner::scanLine);
             }
-
-            return run.getAction(BuildScanAction.class).getScanUrls();
+            BuildScanAction action = run.getAction(BuildScanAction.class);
+            if (action != null) {
+                return action.getScanUrls();
+            }
+            return Collections.emptyList();
         }
     }
 
