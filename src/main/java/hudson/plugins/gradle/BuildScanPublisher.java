@@ -12,6 +12,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -25,7 +28,7 @@ public class BuildScanPublisher extends Step {
         return new Execution(context);
     }
 
-    static class Execution extends SynchronousNonBlockingStepExecution<Void> {
+    static class Execution extends SynchronousNonBlockingStepExecution<List<String>> {
         private static final long serialVersionUID = 1L;
 
         protected Execution(@Nonnull StepContext context) {
@@ -33,7 +36,7 @@ public class BuildScanPublisher extends Step {
         }
 
         @Override
-        protected Void run() throws Exception {
+        protected List<String> run() throws Exception {
             Run run = getContext().get(Run.class);
             BuildScanLogScanner scanner = new BuildScanLogScanner(new DefaultBuildScanPublishedListener(run));
             try (
@@ -42,7 +45,11 @@ public class BuildScanPublisher extends Step {
             ) {
                 lines.forEach(scanner::scanLine);
             }
-            return null;
+            BuildScanAction action = run.getAction(BuildScanAction.class);
+            if (action != null) {
+                return action.getScanUrls();
+            }
+            return Collections.emptyList();
         }
     }
 

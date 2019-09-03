@@ -76,7 +76,8 @@ node {
       }
    }
    stage('Final') {
-       findBuildScans()
+       def scans = findBuildScans()
+       assert scans.size() == 1
    }
 }
 """, false))
@@ -89,6 +90,37 @@ node {
         def action = build.getAction(BuildScanAction)
         action.scanUrls.size() == 1
         new URL(action.scanUrls.get(0))
+    }
+
+    def 'checks when no build scan in pipeline log'() {
+        given:
+        gradleInstallationRule.gradleVersion = '5.5'
+        gradleInstallationRule.addInstallation()
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+node {
+   stage('Build') {
+      // Run the maven build
+      def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+      writeFile file: 'settings.gradle', text: ''
+      if (isUnix()) {
+         sh "'\${gradleHome}/bin/gradle' help --no-scan"
+      } else {
+         bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan/)
+      }
+   }
+   stage('Final') {
+       def scans = findBuildScans()
+       assert scans.size() == 0
+   }
+}
+""", false))
+
+        when:
+        def build = pipelineJob.scheduleBuild2(0).get()
+
+        then:
+        println JenkinsRule.getLog(build)
     }
 
     def 'build scan is discovered from Maven build'() {
