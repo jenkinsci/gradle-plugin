@@ -26,7 +26,7 @@ jenkinsPlugin {
   displayName = 'Gradle Plugin'
 
   // URL for plugin on Jenkins wiki or elsewhere.
-  url = 'https://wiki.jenkins.io/display/JENKINS/Gradle+Plugin'
+  url = 'https://github.com/jenkinsci/gradle-plugin'
 
   // Plugin URL on GitHub. Optional.
   gitHubUrl = 'https://github.com/jenkinsci/gradle-plugin'

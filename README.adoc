@@ -2,33 +2,111 @@
 
 image:https://ci.jenkins.io/buildStatus/icon?job=Plugins/gradle-plugin/master[Build Status,link=https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Fgradle-plugin/branches/]
 
-This plugin allows Jenkins to invoke href="http://www.gradle.org/[Gradle] build scripts directly.
+== Description
+
+This plugin adds http://www.gradle.org/[Gradle] Support to Jenkins.
+http://www.gradle.org/[Gradle] is managed as another tool inside Jenkins (the same way as Ant or Maven), including support for automatic installation and a new build step is provided to execute Gradle tasks.
+
+It also allows detecting https://gradle.com/build-scans/[Build Scans] in arbitrary console logs, for Maven and Gradle builds and display them in the Jenkins UI.
 
 In order to release this plugin have a look at link:RELEASING.md[here].
 
+== Configuration
+
+Gradle configuration is performed in the *Configure System* (before Jenkins 2.0) or *Global Tool Configuration* (starting in Jenkins 2.0).
+In both cases these options reside in the *Manage Jenkins* section.
+
+In the *Gradle* section provided by this plugin, several installations can be configured:
+
+image::images/gradle-tool-installation.png[Tool installations]
+
+The system provides both automatic installation, which can be performed by directly downloading from the http://www.gradle.org/[Gradle web site], extracting a compressed final or executing some shell commands.
+Besides, for nodes which already has Gradle installed, the tool can by manually configured, by unchecking the *Install automatically* checkbox and providing the base path (`GRADLE_HOME`) of the installation.
+
+== Usage
+
+The Gradle plugin provides an *Invoke Gradle script* build step.
+
+image::images/gradle-build-step.png[Build step]
+
+The first configuration option is whether to use one of the installation configured in Jenkins (see previous section) of use the https://docs.gradle.org/current/userguide/gradle_wrapper.html[Gradle Wrapper] which is the Gradle-provided mechanism to "embed" the use of a specific Gradle version in a build, installing it if necessary.
+
+Other configuration options include:
+
+* A description to use for the build step.
+* Switches (options) to provide to the Gradle execution.
+* Tasks to execute (if blanck the defaults tasks of the build will be invoked).
+* Path to the build script if different from the root directory of the build.
+* Name of the build script if different from build.gradle.
+
+If a https://scans.gradle.com/[Gradle Build Scan] is produced during a build, then a link to it is added to the build page.
+
+image::images/jenkins-build-scan.png[Build Scan link]
+
+== Capturing build scans from console log
+
+If you are not using the provided build scan, you can still configure to detect published (Maven or Gradle) https://gradle.com/build-scans/[Build Scans] from the console log.
+For doing so, go to *Build Environment* and check *Inspect build log for published Gradle build scans*.
+
+image::images/inspect-logs-for-build-scans.png[Inspect build log for Build Scan]
+
+If build scans are detected in the console log of a build, a badge will be added to the build page.
+This works for https://gradle.com/build-scans/[Build Scans] produced by Gradle and Maven builds.
+
+image::images/jenkins-build-scan.png[Build Scan link]
+
+== Capturing build scans from Jenkins Pipeline
+
+When using Jenkins pipeline, there is the step `findBuildScans()` which can be used to find the build scans emitted by Gradle builds and show them on the build page.
+
+image::images/find-build-scans.png[Find build scans]
+
+== Roadmap
+
+* Using the Gradle API for accessing all the Gradle functionalities
+* Providing a Maven-like or Ivy-like integration
+** Multi-project detection
+** Adding automatic tests result path detection
+** Listing executed tasks with time execution for each task
+** Providing a log for each module in a multi-project
+
 == Release Notes
 
-* 1.34 (unreleased)
-* 1.33 (July 5th 2019)
+=== 1.34 (unreleased)
+
+=== 1.33 (July 5th 2019)
+
 * Remove support for dry-run plugin https://github.com/jenkinsci/gradle-plugin/pull/72[#72]
 * Support detecting build scans in pipeline jobs (https://github.com/jenkinsci/gradle-plugin/pull/71[#71])
 * Increase required core version to 2.60.3 https://github.com/jenkinsci/gradle-plugin/pull/73[#73]
 * Use consistent file formatting for sources https://github.com/jenkinsci/gradle-plugin/pull/74[#74].
 Thanks @darxriggs.
-* 1.32 (May 24th 2019)
+
+=== 1.32 (May 24th 2019)
+
 * Expose build scan action via Jenkins API (https://github.com/jenkinsci/gradle-plugin/pull/70[#70])
-* 1.31 (Mar 16th 2019)
+
+=== 1.31 (Mar 16th 2019)
+
 * Support detecting build scans for non-Gradle build steps #66
 * Support for detecting Maven build scans #68
-* 1.30 (Jan 11th 2019)
+
+=== 1.30 (Jan 11th 2019)
+
 * Fix configuration as code compatibility (https://issues.jenkins-ci.org/browse/JENKINS-53575[JENKINS-53575])
-* 1.29 (Jul 3rd 2018)
+
+=== 1.29 (Jul 3rd 2018)
+
 * Update licensing information in pom.xml.
 * Support console annotations for Gradle 4.7 and later.
-* 1.28 (Oct 2 2017)
+
+=== 1.28 (Oct 2 2017)
+
 * Empty job parameters are passed as empty (https://issues.jenkins-ci.org/browse/JENKINS-45300[JENKINS-45300])
 * Console annotator endless loop in combination with using the Ant plugin fixed (https://issues.jenkins-ci.org/browse/JENKINS-46051[JENKINS-46051])
-* 1.27.1 (Jul 1 2017)
+
+=== 1.27.1 (Jul 1 2017)
+
 * Increase required core version to 1.642.1
 * Make finding wrapper location more robust on Windows
 * Job parameters are now correctly quoted when passed as system properties (https://issues.jenkins-ci.org/browse/JENKINS-42573[JENKINS-42573] and https://issues.jenkins-ci.org/browse/JENKINS-20505[JENKINS-20505])
@@ -39,9 +117,13 @@ Thanks @darxriggs.
 * Add option to pass only selected project properties to Gradle
 * Progress status `FROM-CACHE` and `NO-SOURCE` are highlighted in the console, too.
 * Support build scan plugin 1.8
-* 1.27 (Jun 23 2017)
+
+=== 1.27 (Jun 23 2017)
+
 * DO NOT USE - PROBLEMS WITH RELEASING https://issues.jenkins-ci.org/browse/JENKINS-45126[JENKINS-45126]
-* 1.26 (Feb 13 2016)
+
+=== 1.26 (Feb 13 2016)
+
 * Use `@DataBoundSetter` instead of a (too) large `@DataBoundConstructor`
 * Add @Symbol annotations for step and tool https://issues.jenkins-ci.org/browse/JENKINS-37394[JENKINS-37394]
 * Make it possible to configure the wrapper location https://issues.jenkins-ci.org/browse/JENKINS-35029[JENKINS-35029]
