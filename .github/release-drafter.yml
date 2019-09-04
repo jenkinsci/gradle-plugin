@@ -1,0 +1,2 @@
+_extends: .github
+tag-template: gradle-$NEXT_MINOR_VERSION
