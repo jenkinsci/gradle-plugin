@@ -12,7 +12,6 @@ group = 'org.jenkins-ci.plugins'
 description = 'This plugin adds Gradle support to Jenkins'
 
 ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
-ext.nextJenkinsVersion = "2.60.3"
 
 if (ciBuild) {
   println 'This build is running on CI'
@@ -70,6 +69,7 @@ dependencies {
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.49'
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
   jenkinsTest 'io.jenkins:configuration-as-code:1.4'
+  jenkinsTest 'org.jenkins-ci.plugins:timestamper:1.9'
 
   jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-aggregator:2.5'
   jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-api:2.20'
