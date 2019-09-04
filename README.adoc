@@ -1,3 +1,6 @@
+:imagesdir: images
+:thumbnail: width=80%
+
 = Jenkins Gradle Plugin
 
 image:https://ci.jenkins.io/buildStatus/icon?job=Plugins/gradle-plugin/master[Build Status,link=https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Fgradle-plugin/branches/]
@@ -18,7 +21,7 @@ In both cases these options reside in the *Manage Jenkins* section.
 
 In the *Gradle* section provided by this plugin, several installations can be configured:
 
-image::images/gradle-tool-installation.png[Tool installations]
+image::gradle-tool-installation.png[Tool installations,{thumbnail}]
 
 The system provides both automatic installation, which can be performed by directly downloading from the http://www.gradle.org/[Gradle web site], extracting a compressed final or executing some shell commands.
 Besides, for nodes which already has Gradle installed, the tool can by manually configured, by unchecking the *Install automatically* checkbox and providing the base path (`GRADLE_HOME`) of the installation.
@@ -27,7 +30,7 @@ Besides, for nodes which already has Gradle installed, the tool can by manually 
 
 The Gradle plugin provides an *Invoke Gradle script* build step.
 
-image::images/gradle-build-step.png[Build step]
+image::gradle-build-step.png[Build step,{thumbnail}]
 
 The first configuration option is whether to use one of the installation configured in Jenkins (see previous section) of use the https://docs.gradle.org/current/userguide/gradle_wrapper.html[Gradle Wrapper] which is the Gradle-provided mechanism to "embed" the use of a specific Gradle version in a build, installing it if necessary.
 
@@ -41,25 +44,25 @@ Other configuration options include:
 
 If a https://scans.gradle.com/[Gradle Build Scan] is produced during a build, then a link to it is added to the build page.
 
-image::images/jenkins-build-scan.png[Build Scan link]
+image::jenkins-build-scan.png[Build Scan link,{thumbnail}]
 
 == Capturing build scans from console log
 
 If you are not using the provided build scan, you can still configure to detect published (Maven or Gradle) https://gradle.com/build-scans/[Build Scans] from the console log.
 For doing so, go to *Build Environment* and check *Inspect build log for published Gradle build scans*.
 
-image::images/inspect-logs-for-build-scans.png[Inspect build log for Build Scan]
+image::inspect-logs-for-build-scans.png[Inspect build log for Build Scan,{thumbnail}]
 
 If build scans are detected in the console log of a build, a badge will be added to the build page.
 This works for https://gradle.com/build-scans/[Build Scans] produced by Gradle and Maven builds.
 
-image::images/jenkins-build-scan.png[Build Scan link]
+image::jenkins-build-scan.png[Build Scan link,{thumbnail}]
 
 == Capturing build scans from Jenkins Pipeline
 
 When using Jenkins pipeline, there is the step `findBuildScans()` which can be used to find the build scans emitted by Gradle builds and show them on the build page.
 
-image::images/find-build-scans.png[Find build scans]
+image::find-build-scans.png[Find build scans,{thumbnail}]
 
 == Roadmap
 
