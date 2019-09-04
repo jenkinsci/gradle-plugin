@@ -1,6 +1,7 @@
 package hudson.plugins.gradle
 
 import hudson.model.FreeStyleProject
+import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.tasks.BatchFile
 import hudson.tasks.Maven
 import hudson.tasks.Shell
@@ -37,6 +38,25 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
         buildScanVersion | gradleVersion | args
         "1.6"            | "3.4"         | "-Dscan"
         "1.8"            | "4.0"         | "--scan"
+    }
+
+    def 'build scans are discovered when timestamper is used'() {
+        given:
+        gradleInstallationRule.gradleVersion = '5.6'
+        gradleInstallationRule.addInstallation()
+        FreeStyleProject p = j.createFreeStyleProject()
+        p.buildersList.add(buildScriptKtsBuilder())
+        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleInstallationRule.gradleVersion, switches: "--scan --no-daemon"))
+        p.getBuildWrappersList().add(new TimestamperBuildWrapper())
+
+        when:
+        def build = j.buildAndAssertSuccess(p)
+
+        then:
+        println JenkinsRule.getLog(build)
+        def action = build.getAction(BuildScanAction)
+        action.scanUrls.size() == 1
+        action.scanUrls.each { new URL(it) }
     }
 
     def 'build scan is discovered when using non-gradle build step'() {
@@ -92,7 +112,7 @@ node {
         new URL(action.scanUrls.get(0))
     }
 
-    def 'checks when no build scan in pipeline log'() {
+    def 'does not find build scans in pipeline logs when none have been published'() {
         given:
         gradleInstallationRule.gradleVersion = '5.5'
         gradleInstallationRule.addInstallation()
@@ -217,6 +237,20 @@ buildScan {
 }
 
 task hello { doLast { println 'Hello' } }""")
+    }
+
+    private static CreateFileBuilder buildScriptKtsBuilder() {
+        return new CreateFileBuilder('build.gradle.kts', """
+plugins {
+    `build-scan`
+}
+
+buildScan {
+    termsOfServiceUrl = "https://gradle.com/terms-of-service"
+    termsOfServiceAgree = "yes"
+}
+
+tasks.register("hello") { doLast { println("Hello") } }""")
     }
 
     private static boolean isUnix() {
