@@ -1,5 +1,5 @@
 :imagesdir: images
-:thumbnail: width=80%
+:thumbnail: width=80%,align="center"
 
 = Jenkins Gradle Plugin
 
@@ -44,7 +44,7 @@ Other configuration options include:
 
 If a https://scans.gradle.com/[Gradle Build Scan] is produced during a build, then a link to it is added to the build page.
 
-image::jenkins-build-scan.png[Build Scan link,{thumbnail}]
+image::jenkins-build-scan.png[Build Scan link,width=60%,align="center"]
 
 == Capturing build scans from console log
 
@@ -56,7 +56,7 @@ image::inspect-logs-for-build-scans.png[Inspect build log for Build Scan,{thumbn
 If build scans are detected in the console log of a build, a badge will be added to the build page.
 This works for https://gradle.com/build-scans/[Build Scans] produced by Gradle and Maven builds.
 
-image::jenkins-build-scan.png[Build Scan link,{thumbnail}]
+image::jenkins-build-scan.png[Build Scan link,width=60%,align="center"]
 
 == Capturing build scans from Jenkins Pipeline
 
