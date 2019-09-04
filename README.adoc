@@ -1,0 +1,49 @@
+= Jenkins Gradle Plugin
+
+image:https://ci.jenkins.io/buildStatus/icon?job=Plugins/gradle-plugin/master[Build Status,link=https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Fgradle-plugin/branches/]
+
+This plugin allows Jenkins to invoke href="http://www.gradle.org/[Gradle] build scripts directly.
+
+In order to release this plugin have a look at link:RELEASING.md[here].
+
+== Release Notes
+
+* 1.34 (unreleased)
+* 1.33 (July 5th 2019)
+* Remove support for dry-run plugin https://github.com/jenkinsci/gradle-plugin/pull/72[#72]
+* Support detecting build scans in pipeline jobs (https://github.com/jenkinsci/gradle-plugin/pull/71[#71])
+* Increase required core version to 2.60.3 https://github.com/jenkinsci/gradle-plugin/pull/73[#73]
+* Use consistent file formatting for sources https://github.com/jenkinsci/gradle-plugin/pull/74[#74].
+Thanks @darxriggs.
+* 1.32 (May 24th 2019)
+* Expose build scan action via Jenkins API (https://github.com/jenkinsci/gradle-plugin/pull/70[#70])
+* 1.31 (Mar 16th 2019)
+* Support detecting build scans for non-Gradle build steps #66
+* Support for detecting Maven build scans #68
+* 1.30 (Jan 11th 2019)
+* Fix configuration as code compatibility (https://issues.jenkins-ci.org/browse/JENKINS-53575[JENKINS-53575])
+* 1.29 (Jul 3rd 2018)
+* Update licensing information in pom.xml.
+* Support console annotations for Gradle 4.7 and later.
+* 1.28 (Oct 2 2017)
+* Empty job parameters are passed as empty (https://issues.jenkins-ci.org/browse/JENKINS-45300[JENKINS-45300])
+* Console annotator endless loop in combination with using the Ant plugin fixed (https://issues.jenkins-ci.org/browse/JENKINS-46051[JENKINS-46051])
+* 1.27.1 (Jul 1 2017)
+* Increase required core version to 1.642.1
+* Make finding wrapper location more robust on Windows
+* Job parameters are now correctly quoted when passed as system properties (https://issues.jenkins-ci.org/browse/JENKINS-42573[JENKINS-42573] and https://issues.jenkins-ci.org/browse/JENKINS-20505[JENKINS-20505])
+* Do not pass all job parameters as (system) properties to Gradle by default
+* Include automated test for CLI command https://issues.jenkins-ci.org/browse/JENKINS-42847[JENKINS-42847]
+* Ensure that Gradle's bin directory is on the path for Pipeline tool steps https://issues.jenkins-ci.org/browse/JENKINS-42381[JENKINS-42381]
+* Add option to pass only selected system properties to Gradle
+* Add option to pass only selected project properties to Gradle
+* Progress status `FROM-CACHE` and `NO-SOURCE` are highlighted in the console, too.
+* Support build scan plugin 1.8
+* 1.27 (Jun 23 2017)
+* DO NOT USE - PROBLEMS WITH RELEASING https://issues.jenkins-ci.org/browse/JENKINS-45126[JENKINS-45126]
+* 1.26 (Feb 13 2016)
+* Use `@DataBoundSetter` instead of a (too) large `@DataBoundConstructor`
+* Add @Symbol annotations for step and tool https://issues.jenkins-ci.org/browse/JENKINS-37394[JENKINS-37394]
+* Make it possible to configure the wrapper location https://issues.jenkins-ci.org/browse/JENKINS-35029[JENKINS-35029]
+* Update icon for build scan integration
+* Remove description from build step
