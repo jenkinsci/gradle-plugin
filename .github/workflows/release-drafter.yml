@@ -13,6 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Drafts your next Release notes as Pull Requests are merged into "master"
-      - uses: oleg-nenashev/jenkins-release-drafter@v5.2.0-jenkins-2
+      - uses: oleg-nenashev/jenkins-release-drafter@v5.2.0-jenkins-3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
