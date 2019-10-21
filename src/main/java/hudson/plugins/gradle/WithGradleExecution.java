@@ -1,5 +1,6 @@
 package hudson.plugins.gradle;
 
+import hudson.EnvVars;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
@@ -10,10 +11,9 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 
 public class WithGradleExecution extends StepExecution {
-
-    private GradleTaskListenerDecorator decorator;
 
     public WithGradleExecution(StepContext context, WithGradle withGradle) {
         super(context);
@@ -21,11 +21,14 @@ public class WithGradleExecution extends StepExecution {
 
     @Override
     public boolean start() throws IOException, InterruptedException {
-        decorator = new GradleTaskListenerDecorator();
+        GradleTaskListenerDecorator decorator = new GradleTaskListenerDecorator();
+        EnvVars envVars = getContext().get(EnvVars.class);
+        String stage = envVars.get("STAGE_NAME");
+
         getContext().newBodyInvoker()
                 .withContext(TaskListenerDecorator.merge(getContext().get(TaskListenerDecorator.class), decorator))
                 .withCallback(BodyExecutionCallback.wrap(getContext()))
-                .withCallback(new BuildScanCallback()).start();
+                .withCallback(new BuildScanCallback(decorator, stage)).start();
 
         return false;
     }
@@ -35,41 +38,54 @@ public class WithGradleExecution extends StepExecution {
     }
 
 
-    private class BuildScanCallback extends BodyExecutionCallback {
-        @Override
-        public void onSuccess(StepContext context, Object result) {
-            extractBuildScans(context, "Success");
+    private static class BuildScanCallback extends BodyExecutionCallback {
+        private final GradleTaskListenerDecorator decorator;
+        private final String stage;
+
+        public BuildScanCallback(GradleTaskListenerDecorator decorator, String stage) {
+            this.decorator = decorator;
+            this.stage = stage;
         }
 
-        private void extractBuildScans(StepContext context, final String listener) {
+        @Override
+        public void onSuccess(StepContext context, Object result) {
+            extractBuildScans(context);
+        }
+
+        private void extractBuildScans(StepContext context) {
             try {
                 PrintStream logger = context.get(TaskListener.class).getLogger();
-                logger.println("Hello from on" + listener + "!");
+                logger.println("Collecting build scans from stage " + stage);
 
                 GradleTaskListenerDecorator newDecorator = decorator;
                 logger.println("Found decorator: " + newDecorator);
 
                 if (newDecorator == null) {
+                    logger.println("WARNING: No decorator found, not looking for build scans");
                     return;
                 }
                 context.onSuccess(newDecorator.getBuildScans());
-                BuildScanAction buildScanAction = new BuildScanAction();
-                newDecorator.getBuildScans().forEach(buildScanAction::addScanUrl);
-                logger.println("Hello from on" + listener + "!");
                 Run run = context.get(Run.class);
-                logger.println("Got run :" + run);
-                run.addAction(buildScanAction);
-                logger.println("Done with on" + listener);
+                BuildScanAction existingAction = run.getAction(BuildScanAction.class);
+
+                BuildScanAction buildScanAction = existingAction == null
+                        ? new BuildScanAction()
+                        : existingAction;
+                newDecorator.getBuildScans().forEach(scanUrl -> buildScanAction.addScanUrl(stage, scanUrl));
+                if (existingAction == null) {
+                    run.addAction(buildScanAction);
+                }
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new UncheckedIOException(e);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
             }
         }
 
         @Override
         public void onFailure(StepContext context, Throwable t) {
-            extractBuildScans(context, "Failure");
+            extractBuildScans(context);
         }
     }
 }

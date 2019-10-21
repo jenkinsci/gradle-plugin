@@ -15,12 +15,12 @@ public class GradleTaskListenerDecorator extends TaskListenerDecorator {
     @Nonnull
     @Override
     public OutputStream decorate(@Nonnull OutputStream logger) throws IOException, InterruptedException {
-        return new GradleConsoleAnnotator(logger, StandardCharsets.UTF_8, false, new BuildScanPublishedListener() {
-            @Override
-            public void onBuildScanPublished(String scanUrl) {
-                buildScans.add(scanUrl);
-            }
-        });
+        return new GradleConsoleAnnotator(
+                logger,
+                StandardCharsets.UTF_8,
+                true,
+                scanUrl -> buildScans.add(scanUrl)
+        );
     }
 
     public List<String> getBuildScans() {

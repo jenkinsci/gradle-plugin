@@ -114,24 +114,27 @@ node {
 
     def 'detects build scan in pipeline log using withGradle'() {
         given:
-        gradleInstallationRule.gradleVersion = '5.6.0'
+        gradleInstallationRule.gradleVersion = '5.6.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
-node {
-   stage('Build') {
-      // Run the maven build
-      withGradle {
-//      def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
-      writeFile file: 'settings.gradle', text: ''
-      writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
-      if (isUnix()) {
-         sh "echo -e 'Publishing build scan...\\nhttps://e.grdev.net/s/72ba65mg3rnqg'"
-      } else {
-         bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+    stage('Build') {
+        def stepToExecuteInParallel = { node {
+          // Run the maven build
+          withGradle {
+          def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+          writeFile file: 'settings.gradle', text: ''
+          writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
+          if (isUnix()) {
+             sh 'env'
+             sh "'\${gradleHome}/bin/gradle' help --scan"
+             sh "'\${gradleHome}/bin/gradle' --stop"
+          } else {
+             bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+          }
       }
-      }
-   }
+   } }
+   parallel first: stepToExecuteInParallel, second: stepToExecuteInParallel
 }
 """, false))
 
@@ -141,8 +144,8 @@ node {
         then:
         println JenkinsRule.getLog(build)
         def action = build.getAction(BuildScanAction)
-        action.scanUrls.size() == 1
-        new URL(action.scanUrls.get(0))
+        action.scanUrlsPerStage["Build"].size() == 1
+        new URL(action.scanUrlsPerStage["Build"].get(0))
     }
 
     def 'does not find build scans in pipeline logs when none have been published'() {
