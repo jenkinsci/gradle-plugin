@@ -3,6 +3,8 @@ package hudson.plugins.gradle;
 import hudson.EnvVars;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.jenkinsci.plugins.workflow.actions.ThreadNameAction;
+import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
 import org.jenkinsci.plugins.workflow.steps.BodyExecutionCallback;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
@@ -12,6 +14,9 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 public class WithGradleExecution extends StepExecution {
 
@@ -24,11 +29,21 @@ public class WithGradleExecution extends StepExecution {
         GradleTaskListenerDecorator decorator = new GradleTaskListenerDecorator();
         EnvVars envVars = getContext().get(EnvVars.class);
         String stage = envVars.get("STAGE_NAME");
+        FlowNode flowNode = getContext().get(FlowNode.class);
+        PrintStream logger = getContext().get(TaskListener.class).getLogger();
+        Optional<String> nearestParallelStart = StreamSupport.stream(flowNode.iterateEnclosingBlocks().spliterator(), false)
+                .map(node -> node.getAction(ThreadNameAction.class))
+                .filter(Objects::nonNull)
+                .map(ThreadNameAction::getThreadName)
+                .findFirst();
+        nearestParallelStart.ifPresent(branchName -> {
+            logger.println("On branch: " + branchName);
+        });
 
         getContext().newBodyInvoker()
                 .withContext(TaskListenerDecorator.merge(getContext().get(TaskListenerDecorator.class), decorator))
                 .withCallback(BodyExecutionCallback.wrap(getContext()))
-                .withCallback(new BuildScanCallback(decorator, stage)).start();
+                .withCallback(new BuildScanCallback(decorator, stage, nearestParallelStart.orElse(null))).start();
 
         return false;
     }
@@ -41,10 +56,12 @@ public class WithGradleExecution extends StepExecution {
     private static class BuildScanCallback extends BodyExecutionCallback {
         private final GradleTaskListenerDecorator decorator;
         private final String stage;
+        private final String parallelBranchName;
 
-        public BuildScanCallback(GradleTaskListenerDecorator decorator, String stage) {
+        public BuildScanCallback(GradleTaskListenerDecorator decorator, String stage, String parallelBranchName) {
             this.decorator = decorator;
             this.stage = stage;
+            this.parallelBranchName = parallelBranchName;
         }
 
         @Override
@@ -71,7 +88,7 @@ public class WithGradleExecution extends StepExecution {
                 BuildScanAction buildScanAction = existingAction == null
                         ? new BuildScanAction()
                         : existingAction;
-                newDecorator.getBuildScans().forEach(scanUrl -> buildScanAction.addScanUrl(stage, scanUrl));
+                newDecorator.getBuildScans().forEach(scanUrl -> buildScanAction.addScanUrl(stage, scanUrl, parallelBranchName));
                 if (existingAction == null) {
                     run.addAction(buildScanAction);
                 }

@@ -144,8 +144,8 @@ node {
         then:
         println JenkinsRule.getLog(build)
         def action = build.getAction(BuildScanAction)
-        action.scanUrlsPerStage["Build"].size() == 1
-        new URL(action.scanUrlsPerStage["Build"].get(0))
+        action.scanUrlsPerStagePerParallelBranch["Build"].size() == 1
+        new URL(action.scanUrlsPerStagePerParallelBranch["Build"].get(0))
     }
 
     def 'does not find build scans in pipeline logs when none have been published'() {
