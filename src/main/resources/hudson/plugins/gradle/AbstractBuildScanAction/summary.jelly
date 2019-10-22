@@ -7,13 +7,5 @@
                 <li><a href="${scanUrl}">${scanUrl}</a></li>
             </j:forEach>
         </ul>
-        <j:forEach items="${it.scanUrlsPerStage.keySet()}" var="stage">
-            <h3>${stage}</h3>
-            <ul>
-                <j:forEach items="${it.scanUrlsPerStage.get(stage)}" var="scanUrl">
-                    <li><a href="${scanUrl}">${scanUrl}</a></li>
-                </j:forEach>
-            </ul>
-        </j:forEach>
     </t:summary>
 </j:jelly>
