@@ -1,5 +1,6 @@
 package hudson.plugins.gradle;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Functions;
@@ -66,6 +67,7 @@ public class GradleInstallation extends ToolInstallation
         env.put("PATH+GRADLE", getHome() + "/bin");
     }
 
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
         return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
             public String call() throws IOException {
