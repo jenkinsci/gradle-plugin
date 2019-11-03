@@ -17,9 +17,27 @@ if (ciBuild) {
   println 'This build is running on CI'
 }
 
+configurations {
+  jenkinsBom
+  compileClasspath.extendsFrom(jenkinsBom)
+  runtimeClasspath.extendsFrom(jenkinsBom)
+  jenkinsPlugins.extendsFrom(jenkinsBom)
+  optionalJenkinsPlugins.extendsFrom(jenkinsBom)
+  jenkinsServer.extendsFrom(jenkinsBom)
+  jenkinsWar.extendsFrom(jenkinsBom)
+  jenkinsTest.extendsFrom(jenkinsBom)
+  pluginResources.extendsFrom(jenkinsBom)
+}
+
+ext {
+  coreBaseVersion = '2.138'
+  corePatchVersion = '4'
+  coreBomVersion = '3'
+}
+
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = '2.60.3'
+  coreVersion = "${coreBaseVersion}.${corePatchVersion}"
 
   // Human-readable name of plugin.
   displayName = 'Gradle Plugin'
@@ -56,13 +74,15 @@ jenkinsPlugin {
 sourceCompatibility = '1.8'
 
 dependencies {
-  jenkinsPlugins 'org.jenkins-ci.plugins:structs:1.5'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-api:2.20'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps:2.24'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job:2.9'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:2.3'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:2.8'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.10'
+  jenkinsBom platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}")
+
+  jenkinsPlugins 'org.jenkins-ci.plugins:structs:1.20'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-api:2.37'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps:2.74'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job:2.35'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:2.16.1'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:2.28'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.20'
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
 
@@ -72,13 +92,14 @@ dependencies {
   jenkinsTest 'org.jenkins-ci.plugins:timestamper:1.8.10'
   jenkinsTest 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
 
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-aggregator:2.5'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-api:2.20'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-cps:2.24'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-job:2.9'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:2.3'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:2.8'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.10'
+  jenkinsServer 'org.jenkins-ci.plugins:structs'
+  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-api'
+  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-cps'
+  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-job'
+  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-basic-steps'
+  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
+  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-step-api'
+  jenkinsServer 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
 
   testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
 }
@@ -148,24 +169,24 @@ defaultTasks.add 'test'
 defaultTasks.add 'jpi'
 
 buildScan {
-    if (ciBuild) {
-        tag('CI')
-        ifNonNull(System.getenv('GIT_BRANCH')) { tag(it) }
-        ifNonNull(System.getenv("GIT_COMMIT")) { value("git-commit-id", it) }
-        ifNonNull(System.getenv('BUILD_URL')) { link('Jenkins build', it) }
+  if (ciBuild) {
+    tag('CI')
+    ifNonNull(System.getenv('GIT_BRANCH')) { tag(it) }
+    ifNonNull(System.getenv("GIT_COMMIT")) { value("git-commit-id", it) }
+    ifNonNull(System.getenv('BUILD_URL')) { link('Jenkins build', it) }
 
-        termsOfServiceUrl = "https://gradle.com/terms-of-service"
-        termsOfServiceAgree ="yes"
-        publishAlways()
-    } else {
-        tag 'LOCAL'
-    }
+    termsOfServiceUrl = "https://gradle.com/terms-of-service"
+    termsOfServiceAgree ="yes"
+    publishAlways()
+  } else {
+    tag 'LOCAL'
+  }
 }
 
 void ifNonNull(value, Closure action) {
-    if (value) {
-        action.call(value)
-    }
+  if (value) {
+    action.call(value)
+  }
 }
 
 task createWrapperZip(type: Zip) {
