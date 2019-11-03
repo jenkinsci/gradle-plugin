@@ -86,7 +86,7 @@ dependencies {
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
 
-  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.49'
+  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.56'
   jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
   jenkinsTest 'io.jenkins:configuration-as-code:1.4'
   jenkinsTest 'org.jenkins-ci.plugins:timestamper:1.8.10'
