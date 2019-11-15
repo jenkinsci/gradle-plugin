@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
+import java.util.Collections;
 import java.util.List;
 
 public class WithGradleExecution extends StepExecution {
@@ -25,36 +26,36 @@ public class WithGradleExecution extends StepExecution {
 
         getContext().newBodyInvoker()
                 .withContext(TaskListenerDecorator.merge(getContext().get(TaskListenerDecorator.class), decorator))
-                .withCallback(BodyExecutionCallback.wrap(getContext()))
-                .withCallback(new BuildScanCallback(decorator)).start();
+                .withCallback(new BuildScanCallback(decorator, getContext())).start();
 
         return false;
     }
 
     private static class BuildScanCallback extends BodyExecutionCallback {
         private final GradleTaskListenerDecorator decorator;
+        private final StepContext parentContext;
 
-        public BuildScanCallback(GradleTaskListenerDecorator decorator) {
+        public BuildScanCallback(GradleTaskListenerDecorator decorator, StepContext parentContext) {
             this.decorator = decorator;
+            this.parentContext = parentContext;
         }
 
         @Override
         public void onSuccess(StepContext context, Object result) {
-            extractBuildScans(context);
+            parentContext.onSuccess(extractBuildScans(context));
         }
 
-        private void extractBuildScans(StepContext context) {
+        private List<String> extractBuildScans(StepContext context) {
             try {
                 PrintStream logger = context.get(TaskListener.class).getLogger();
 
                 if (decorator == null) {
                     logger.println("WARNING: No decorator found, not looking for build scans");
-                    return;
+                    return Collections.emptyList();
                 }
                 List<String> buildScans = decorator.getBuildScans();
-                context.onSuccess(buildScans);
                 if (buildScans.isEmpty()) {
-                    return;
+                    return Collections.emptyList();
                 }
                 Run run = context.get(Run.class);
                 FlowNode flowNode = context.get(FlowNode.class);
@@ -72,6 +73,7 @@ public class WithGradleExecution extends StepExecution {
                 if (existingAction == null) {
                     run.addAction(buildScanAction);
                 }
+                return buildScans;
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             } catch (InterruptedException e) {
@@ -82,6 +84,7 @@ public class WithGradleExecution extends StepExecution {
 
         @Override
         public void onFailure(StepContext context, Throwable t) {
+            parentContext.onFailure(t);
             extractBuildScans(context);
         }
     }

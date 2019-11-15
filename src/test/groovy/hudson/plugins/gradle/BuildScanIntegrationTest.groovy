@@ -103,7 +103,7 @@ node {
 """, false))
 
         when:
-        def build = pipelineJob.scheduleBuild2(0).get()
+        def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
         println JenkinsRule.getLog(build)
@@ -114,32 +114,44 @@ node {
 
     def 'detects build scan in pipeline log using withGradle'() {
         given:
-        gradleInstallationRule.gradleVersion = '5.6.3'
+        gradleInstallationRule.gradleVersion = '5.6.4'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
+    def scans = []
     stage('Build') {
-        def stepToExecuteInParallel = { node {
-          // Run the maven build
-          withGradle {
-          def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
-          writeFile file: 'settings.gradle', text: ''
-          writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
-          if (isUnix()) {
-             sh 'env'
-             sh "'\${gradleHome}/bin/gradle' help --scan"
-             sh "'\${gradleHome}/bin/gradle' --stop"
-          } else {
-             bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
-          }
+      node {
+        def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+        if (isUnix()) {
+          sh "'\${gradleHome}/bin/gradle' --stop"
+        } else {
+          bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
+        }
       }
-   } }
-   parallel first: stepToExecuteInParallel, second: stepToExecuteInParallel
-}
+      def stepToExecuteInParallel = {
+        node {
+          // Run the maven build
+          scans.addAll(withGradle {
+            def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+            writeFile file: 'settings.gradle', text: ''
+            writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
+            if (isUnix()) {
+              sh "'\${gradleHome}/bin/gradle' help --scan"
+            } else {
+              bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+            }
+          })
+        }
+      }
+      parallel first: stepToExecuteInParallel, second: stepToExecuteInParallel
+    }
+    stage('Final') {
+      assert scans.size() == 2
+    }
 """, false))
 
         when:
-        def build = pipelineJob.scheduleBuild2(0).get()
+        def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
         println JenkinsRule.getLog(build)
@@ -151,18 +163,19 @@ node {
 
     def 'does not find build scans in pipeline logs when none have been published'() {
         given:
-        gradleInstallationRule.gradleVersion = '5.5'
+        gradleInstallationRule.gradleVersion = '5.6.4'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
 node {
    stage('Build') {
-      // Run the maven build
       def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
       writeFile file: 'settings.gradle', text: ''
       if (isUnix()) {
+         sh "'\${gradleHome}/bin/gradle' --stop"
          sh "'\${gradleHome}/bin/gradle' help --no-scan"
       } else {
+         bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
          bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan/)
       }
    }
@@ -174,7 +187,42 @@ node {
 """, false))
 
         when:
-        def build = pipelineJob.scheduleBuild2(0).get()
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        println JenkinsRule.getLog(build)
+    }
+
+    def 'does not find build scans in pipeline logs when none have been published with withGradle'() {
+        given:
+        gradleInstallationRule.gradleVersion = '5.6.4'
+        gradleInstallationRule.addInstallation()
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+def scans = []
+stage('Build') {
+  node {
+    // Run the maven build
+    def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+    writeFile file: 'settings.gradle', text: ''
+    scans.addAll(withGradle {
+      if (isUnix()) {
+        sh "'\${gradleHome}/bin/gradle' --stop"
+        sh "'\${gradleHome}/bin/gradle' help --no-scan"
+      } else {
+        bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
+        bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan/)
+      }
+    })
+  }
+}
+stage('Final') {
+  assert scans.size() == 0
+}
+""", false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
         println JenkinsRule.getLog(build)
