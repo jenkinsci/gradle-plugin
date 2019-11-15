@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
+import java.util.List;
 
 public class WithGradleExecution extends StepExecution {
 
@@ -50,12 +51,16 @@ public class WithGradleExecution extends StepExecution {
                     logger.println("WARNING: No decorator found, not looking for build scans");
                     return;
                 }
-                context.onSuccess(decorator.getBuildScans());
+                List<String> buildScans = decorator.getBuildScans();
+                context.onSuccess(buildScans);
+                if (buildScans.isEmpty()) {
+                    return;
+                }
                 Run run = context.get(Run.class);
                 FlowNode flowNode = context.get(FlowNode.class);
                 flowNode.getParents().stream().findFirst().ifPresent(parent -> {
                     BuildScanFlowAction nodeBuildScanAction = new BuildScanFlowAction(parent);
-                    decorator.getBuildScans().forEach(nodeBuildScanAction::addScanUrl);
+                    buildScans.forEach(nodeBuildScanAction::addScanUrl);
                     parent.addAction(nodeBuildScanAction);
                 });
 
@@ -63,7 +68,7 @@ public class WithGradleExecution extends StepExecution {
                 BuildScanAction buildScanAction = existingAction == null
                         ? new BuildScanAction()
                         : existingAction;
-                decorator.getBuildScans().forEach(buildScanAction::addScanUrl);
+                buildScans.forEach(buildScanAction::addScanUrl);
                 if (existingAction == null) {
                     run.addAction(buildScanAction);
                 }
