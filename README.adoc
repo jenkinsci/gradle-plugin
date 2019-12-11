@@ -63,7 +63,26 @@ image::jenkins-build-scan.png[Build Scan link,width=60%,align="center"]
 
 == Capturing build scans from Jenkins Pipeline
 
-When using Jenkins pipeline, there is the step `findBuildScans()` which can be used to find the build scans emitted by Gradle builds and show them on the build page.
+When using Jenkins pipeline, there is the build step wrapper `withGradle` which can be used to find the build scans emitted by Gradle builds and show them on the build page.
+In order to do so, wrap your `sh` or `bat` steps which invoke Gradle into `withGradle`.
+
+For example:
+[source]
+----
+node {
+  withGradle {
+    sh './gradlew build'
+  }
+}
+----
+
+This causes the shell output to be highlighted and build scan links, which are emitted, are captured.
+The captured build scan links are then shown on the build page and in the pipeline steps view.
+
+image::pipeline-steps-scan.png[Build scan in pipeline view,{thumbnail}]
+
+There is also the `findBuildScans()` step, which finds the build scans in the complete log of the pipeline job.
+The `withGradle` wrapper should be used instead, since it also deals well with parallel output.
 
 image::find-build-scans.png[Find build scans,{thumbnail}]
 

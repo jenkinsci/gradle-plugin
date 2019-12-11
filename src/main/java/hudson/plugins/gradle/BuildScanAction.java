@@ -1,52 +1,20 @@
 package hudson.plugins.gradle;
 
-import hudson.model.Action;
-import org.kohsuke.stapler.export.Exported;
+import hudson.model.Run;
+import jenkins.model.RunAction2;
+import org.jenkinsci.plugins.workflow.actions.PersistentAction;
 import org.kohsuke.stapler.export.ExportedBean;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 @ExportedBean
-public class BuildScanAction implements Action {
-
-    // Backward compatibility for old plugins versions which created an action per-scan
-    private transient String scanUrl;
-
-    private List<String> scanUrls = new ArrayList<>();
+public class BuildScanAction extends AbstractBuildScanAction implements PersistentAction, RunAction2 {
 
     @Override
-    public String getIconFileName() {
-        return null;
+    public void onAttached(Run<?, ?> r) {
+        this.target = r;
     }
 
     @Override
-    public String getDisplayName() {
-        return "Build Scan";
-    }
-
-    @Override
-    public String getUrlName() {
-        return null;
-    }
-
-    public void addScanUrl(String scanUrl) {
-        if (!scanUrls.contains(scanUrl)) {
-            scanUrls.add(scanUrl);
-        }
-    }
-
-    @Exported
-    public List<String> getScanUrls() {
-        return Collections.unmodifiableList(scanUrls);
-    }
-
-    private Object readResolve() {
-        if (scanUrl != null) {
-            scanUrls = Collections.singletonList(scanUrl);
-        }
-
-        return this;
+    public void onLoad(Run<?, ?> r) {
+        this.target = r;
     }
 }
