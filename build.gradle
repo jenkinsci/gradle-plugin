@@ -1,22 +1,15 @@
 import java.util.zip.ZipFile
 
 plugins {
-  id 'com.gradle.build-scan' version '2.4.2'
   id 'org.gradle.test-retry' version '1.0.0'
   id 'org.jenkins-ci.jpi' version '0.33.0'
   id 'ru.vyarus.animalsniffer' version '1.5.0'
-  id 'findbugs'
+  id 'com.github.spotbugs' version '3.0.0'
   id 'codenarc'
 }
 
 group = 'org.jenkins-ci.plugins'
 description = 'This plugin adds Gradle support to Jenkins'
-
-ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
-
-if (ciBuild) {
-  println 'This build is running on CI'
-}
 
 configurations {
   jenkinsBom
@@ -118,14 +111,14 @@ animalsniffer {
   excludeJars 'icu4j-*'
 }
 
-findbugs {
-  toolVersion '3.0.1'
-  // This prevents logging some errors when Findbugs tries to open files as jar files.
+spotbugs {
+  toolVersion '3.1.12'
+  // This prevents logging some errors when SpotBugs tries to open files as jar files.
   // See https://github.com/gradle/gradle/issues/1094.
   sourceSets = [sourceSets.main]
 }
 
-findbugsMain {
+spotbugsMain {
   classes = sourceSets.main.output
 }
 
@@ -136,7 +129,7 @@ codenarc {
 
 test {
   systemProperties['hudson.model.DownloadService.noSignatureCheck'] = 'true'
-  ignoreFailures = ciBuild
+  ignoreFailures = gradle.ciBuild
   maxParallelForks = project.maxParallelForks
   retry {
     maxRetries = 1
@@ -172,27 +165,6 @@ tasks.withType(AbstractPublishToMaven) {
 
 defaultTasks.add 'test'
 defaultTasks.add 'jpi'
-
-buildScan {
-  if (ciBuild) {
-    tag('CI')
-    ifNonNull(System.getenv('GIT_BRANCH')) { tag(it) }
-    ifNonNull(System.getenv('GIT_COMMIT')) { value('git-commit-id', it) }
-    ifNonNull(System.getenv('BUILD_URL')) { link('Jenkins build', it) }
-
-    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-    termsOfServiceAgree = 'yes'
-    publishAlways()
-  } else {
-    tag 'LOCAL'
-  }
-}
-
-void ifNonNull(value, Closure action) {
-  if (value) {
-    action.call(value)
-  }
-}
 
 task createWrapperZip(type: Zip) {
   archiveFileName = 'wrapper.zip'

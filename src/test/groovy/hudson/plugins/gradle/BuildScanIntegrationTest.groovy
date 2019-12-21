@@ -64,7 +64,8 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
         FreeStyleProject p = j.createFreeStyleProject()
         p.setScm(new ExtractResourceSCM(this.class.getResource('/gradle/wrapper.zip')))
         p.buildWrappersList.add(new BuildScanBuildWrapper())
-        p.buildersList.add(buildScriptBuilder('2.1'))
+        p.buildersList.add(buildScriptBuilder('3.1.1'))
+        p.buildersList.add(settingsScriptBuilder('3.1.1'))
         p.buildersList.add(isUnix() ? new Shell('./gradlew --scan hello') : new BatchFile('gradlew.bat --scan hello'))
 
         when:
@@ -267,7 +268,7 @@ stage('Final') {
         gradleInstallationRule.gradleVersion = '3.4'
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(buildScriptBuilder())
+        p.buildersList.add(buildScriptBuilder('1.8'))
         p.buildersList.add(new Gradle(tasks: 'hello', gradleName: '3.4', switches: '-Dscan --no-daemon'))
 
 
@@ -310,15 +311,19 @@ stage('Final') {
 '''
     }
 
-    private static CreateFileBuilder buildScriptBuilder(String buildScanVersion = '1.8') {
+    private static CreateFileBuilder buildScriptBuilder(String buildScanVersion) {
+        def plugins
+        if (buildScanVersion.startsWith('1') || buildScanVersion.startsWith('2')) {
+            plugins = "plugins { id 'com.gradle.build-scan' version '${buildScanVersion}' }"
+        } else {
+            plugins = ''
+        }
         return new CreateFileBuilder('build.gradle', """
-plugins {
-    id 'com.gradle.build-scan' version '${buildScanVersion}'
-}
+${plugins}
 
 buildScan {
-    ${buildScanVersion.startsWith('2') ? 'termsOfServiceUrl' : 'licenseAgreementUrl'} = 'https://gradle.com/terms-of-service'
-    ${buildScanVersion.startsWith('2') ? 'termsOfServiceAgree' : 'licenseAgree'} = 'yes'
+    ${buildScanVersion.startsWith('1') ? 'licenseAgreementUrl' : 'termsOfServiceUrl'} = 'https://gradle.com/terms-of-service'
+    ${buildScanVersion.startsWith('1') ? 'licenseAgree' : 'termsOfServiceAgree'} = 'yes'
 }
 
 task hello { doLast { println 'Hello' } }""")
@@ -336,6 +341,10 @@ buildScan {
 }
 
 tasks.register("hello") { doLast { println("Hello") } }''')
+    }
+
+    private static CreateFileBuilder settingsScriptBuilder(String buildScanVersion) {
+        return new CreateFileBuilder('settings.gradle', "plugins { id 'com.gradle.enterprise' version '${buildScanVersion}' }")
     }
 
     private static boolean isUnix() {

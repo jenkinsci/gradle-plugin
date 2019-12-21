@@ -1,5 +1,34 @@
+plugins {
+  id 'com.gradle.enterprise' version '3.1.1'
+}
+
 rootProject.name = 'gradle-plugin'
 
 if (!JavaVersion.current().java8) {
-    throw new GradleException('Build requires Java 8')
+  throw new GradleException('Build requires Java 8')
+}
+
+gradle.ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
+
+gradleEnterprise {
+  buildScan {
+    if (gradle.ciBuild) {
+      tag('CI')
+      ifNonNull(System.getenv('GIT_BRANCH')) { tag(it) }
+      ifNonNull(System.getenv('GIT_COMMIT')) { value('git-commit-id', it) }
+      ifNonNull(System.getenv('BUILD_URL')) { link('Jenkins build', it) }
+
+      termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+      termsOfServiceAgree = 'yes'
+      publishAlways()
+    } else {
+      tag 'LOCAL'
+    }
+  }
+}
+
+void ifNonNull(value, Closure action) {
+  if (value) {
+    action.call(value)
+  }
 }
