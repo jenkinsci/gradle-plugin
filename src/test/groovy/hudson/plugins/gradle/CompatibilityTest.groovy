@@ -13,7 +13,7 @@ class CompatibilityTest {
     @Test
     @LocalData
     void read_old_configuration_files() {
-        FreeStyleProject p = (FreeStyleProject) j.jenkins.getItem("old")
+        FreeStyleProject p = (FreeStyleProject) j.jenkins.getItem('old')
         Gradle gradle = p.getBuildersList().get(Gradle)
         Gradle reference = configuredGradle()
 
@@ -39,7 +39,7 @@ class CompatibilityTest {
     @Test
     @LocalData
     void read_configuration_files_older_than_1_27() {
-        FreeStyleProject p = (FreeStyleProject) j.jenkins.getItem("old")
+        FreeStyleProject p = (FreeStyleProject) j.jenkins.getItem('old')
         Gradle gradle = p.getBuildersList().get(Gradle)
         Gradle reference = configuredGradle()
         reference.passAllAsSystemProperties = true
@@ -67,7 +67,7 @@ class CompatibilityTest {
     @Test
     @LocalData
     void convert_old_build_scan_actions() {
-        FreeStyleProject p = (FreeStyleProject) j.jenkins.getItem("old")
+        FreeStyleProject p = (FreeStyleProject) j.jenkins.getItem('old')
         def build = p.getBuildByNumber(1)
         def buildScanActions = build.getAllActions().findAll { it instanceof BuildScanAction } as List<BuildScanAction>
 
@@ -77,8 +77,8 @@ class CompatibilityTest {
     }
 
     private Gradle configuredGradle() {
-        new Gradle(switches: "switches", tasks: 'tasks', rootBuildScriptDir: "rootBuildScript",
-                buildFile: "buildFile.gradle", gradleName: '2.14', useWrapper: true, makeExecutable: true, wrapperLocation: "rootBuildScript",
+        new Gradle(switches: 'switches', tasks: 'tasks', rootBuildScriptDir: 'rootBuildScript',
+                buildFile: 'buildFile.gradle', gradleName: '2.14', useWrapper: true, makeExecutable: true, wrapperLocation: 'rootBuildScript',
                 useWorkspaceAsHome: true, passAllAsProjectProperties: true)
     }
 }
