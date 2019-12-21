@@ -111,7 +111,7 @@ if (project.hasProperty('maxParallelForks')) {
 }
 
 animalsniffer {
-  toolVersion = '1.17'
+  toolVersion = '1.18'
   sourceSets = [sourceSets.main]
   // We need to exclude this dependency from animalsniffer since it contains an invalid class
   excludeJars 'icu4j-*'
