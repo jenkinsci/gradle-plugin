@@ -36,8 +36,8 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
 
         where:
         buildScanVersion | gradleVersion | args
-        "1.6"            | "3.4"         | "-Dscan"
-        "1.8"            | "4.0"         | "--scan"
+        '1.6'            | '3.4'         | '-Dscan'
+        '1.8'            | '4.0'         | '--scan'
     }
 
     def 'build scans are discovered when timestamper is used'() {
@@ -46,7 +46,7 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(buildScriptKtsBuilder())
-        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleInstallationRule.gradleVersion, switches: "--scan --no-daemon"))
+        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleInstallationRule.gradleVersion, switches: '--scan --no-daemon'))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
@@ -232,8 +232,8 @@ stage('Final') {
         given:
         def p = j.createFreeStyleProject()
         p.buildWrappersList.add(new BuildScanBuildWrapper())
-        p.buildersList.add(new CreateFileBuilder("pom.xml",
-"""<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        p.buildersList.add(new CreateFileBuilder('pom.xml',
+'''<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>hudson.plugins.gradle</groupId>
@@ -246,11 +246,11 @@ stage('Final') {
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
-</project>"""))
-        p.buildersList.add(new CreateFileBuilder(".mvn/extensions.xml", buildScanExtension))
-        p.buildersList.add(new CreateFileBuilder(".mvn/gradle-enterprise.xml", gradleEnterpriseConfiguration))
+</project>'''))
+        p.buildersList.add(new CreateFileBuilder('.mvn/extensions.xml', buildScanExtension))
+        p.buildersList.add(new CreateFileBuilder('.mvn/gradle-enterprise.xml', gradleEnterpriseConfiguration))
         def mavenInstallation = ToolInstallations.configureMaven35()
-        p.buildersList.add(new Maven("package", mavenInstallation.name, null, "", "", false, null, null))
+        p.buildersList.add(new Maven('package', mavenInstallation.name, null, '', '', false, null, null))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -284,7 +284,7 @@ stage('Final') {
     }
 
     private static String getGradleEnterpriseConfiguration() {
-        """<gradleEnterprise
+        '''<gradleEnterprise
     xmlns="https://www.gradle.com/gradle-enterprise-maven" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="https://www.gradle.com/gradle-enterprise-maven https://www.gradle.com/schema/gradle-enterprise-maven.xsd">
   <buildScan>
@@ -295,11 +295,11 @@ stage('Final') {
     </termsOfService>
   </buildScan>
 </gradleEnterprise>
-"""
+'''
     }
 
     private static String getBuildScanExtension() {
-        """<?xml version="1.0" encoding="UTF-8"?>
+        '''<?xml version="1.0" encoding="UTF-8"?>
 <extensions>
     <extension>
         <groupId>com.gradle</groupId>
@@ -307,7 +307,7 @@ stage('Final') {
         <version>1.0.2</version>
     </extension>
 </extensions>
-"""
+'''
     }
 
     private static CreateFileBuilder buildScriptBuilder(String buildScanVersion = '1.8') {
@@ -325,7 +325,7 @@ task hello { doLast { println 'Hello' } }""")
     }
 
     private static CreateFileBuilder buildScriptKtsBuilder() {
-        return new CreateFileBuilder('build.gradle.kts', """
+        return new CreateFileBuilder('build.gradle.kts', '''
 plugins {
     `build-scan`
 }
@@ -335,7 +335,7 @@ buildScan {
     termsOfServiceAgree = "yes"
 }
 
-tasks.register("hello") { doLast { println("Hello") } }""")
+tasks.register("hello") { doLast { println("Hello") } }''')
     }
 
     private static boolean isUnix() {

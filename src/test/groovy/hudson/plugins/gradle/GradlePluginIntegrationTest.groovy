@@ -49,49 +49,49 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build.gradle", "defaultTasks 'hello'\n${helloTask}"))
+        p.buildersList.add(new CreateFileBuilder('build.gradle', "defaultTasks 'hello'\n${helloTask}"))
         p.buildersList.add(new Gradle(defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
 
         then:
-        getLog(build).contains "Hello"
+        getLog(build).contains 'Hello'
     }
 
     def 'run a task'() {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build.gradle", getHelloTask()))
+        p.buildersList.add(new CreateFileBuilder('build.gradle', getHelloTask()))
         p.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
 
         then:
-        getLog(build).contains "Hello"
+        getLog(build).contains 'Hello'
     }
 
     def 'build file in different directory'() {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build/build.gradle", helloTask))
+        p.buildersList.add(new CreateFileBuilder('build/build.gradle', helloTask))
         p.buildersList.add(new Gradle(tasks: 'hello', buildFile: 'build/build.gradle', *: defaults))
 
         when:
         FreeStyleBuild build = j.buildAndAssertSuccess(p)
 
         then:
-        getLog(build).contains "Hello"
+        getLog(build).contains 'Hello'
     }
 
     def 'wrapper in base dir'() {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build.gradle", helloTask))
+        p.buildersList.add(new CreateFileBuilder('build.gradle', helloTask))
         p.buildersList.add(new Gradle(tasks: 'wrapper', *: defaults))
         p.buildersList.add(new Gradle(useWrapper: true, tasks: 'hello', *: defaults))
 
@@ -122,8 +122,8 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         'build/build.gradle'      | null         | [rootBuildScriptDir: 'build', buildFile: 'build.gradle']
         'build/build.gradle'      | null         | [buildFile: 'build/build.gradle']
 
-        description = "configuration with buildScriptDir '${settings.rootBuildScriptDir}', ${settings.buildFile ?: ""} and the wrapper " +
-                "from ${settings.wrapperLocation ?: "workspace root"}"
+        description = "configuration with buildScriptDir '${settings.rootBuildScriptDir}', ${settings.buildFile ?: ''} and the wrapper " +
+                "from ${settings.wrapperLocation ?: 'workspace root'}"
         wrapperDirDescription = wrapperDir ?: 'workspace root'
     }
 
@@ -150,17 +150,17 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         'build/some/build.gradle' | [rootBuildScriptDir: 'build']                                                               | [null]
     }
 
-    def "empty parameters are replaced"() {
+    def 'empty parameters are replaced'() {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder('build.gradle', """
+        p.buildersList.add(new CreateFileBuilder('build.gradle', '''
             task printParameter {
                 doLast {
-                    println "PASSED_PARAMETER='\$passedParameter'"
+                    println "PASSED_PARAMETER='$passedParameter'"
                 }
             }
-        """.stripIndent()))
+        '''.stripIndent()))
         p.buildersList.add(new Gradle(defaults + [tasks: 'printParameter -PpassedParameter=$PASSED_PARAMETER']))
         addParameter(p, 'PASSED_PARAMETER')
 
@@ -171,7 +171,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         getLog(build).contains("PASSED_PARAMETER=''")
     }
 
-    def "Config roundtrip"() {
+    def 'Config roundtrip'() {
         given:
         gradleInstallationRule.addInstallation()
         def before = configuredGradle()
@@ -196,8 +196,8 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Gradle configuredGradle() {
-        new Gradle(switches: "switches", tasks: 'tasks', rootBuildScriptDir: "buildScriptDir",
-                buildFile: "buildFile.gradle", gradleName: gradleInstallationRule.gradleVersion,
+        new Gradle(switches: 'switches', tasks: 'tasks', rootBuildScriptDir: 'buildScriptDir',
+                buildFile: 'buildFile.gradle', gradleName: gradleInstallationRule.gradleVersion,
                 useWrapper: true, makeExecutable: true, wrapperLocation: 'path/to/wrapper',
                 useWorkspaceAsHome: true, passAllAsProjectProperties: true, passAllAsSystemProperties: true,
                 systemProperties: 'someProp=someValue', projectProperties: 'someOtherProp=someOtherValue')
@@ -205,16 +205,16 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
 
     def 'add Gradle installation'() {
         given:
-        String pagePath = j.jenkins.getVersion() >= (new VersionNumber("2.0")) ? "configureTools" : "configure"
+        String pagePath = j.jenkins.getVersion() >= (new VersionNumber('2.0')) ? 'configureTools' : 'configure'
         WebClient wc = j.createWebClient()
         HtmlPage p = wc.goTo(pagePath)
-        HtmlForm f = p.getFormByName("config")
-        HtmlButton b = j.getButtonByCaption(f, "Add Gradle")
+        HtmlForm f = p.getFormByName('config')
+        HtmlButton b = j.getButtonByCaption(f, 'Add Gradle')
 
         when:
         b.click()
-        j.findPreviousInputElement(b, "name").setValueAttribute("myGradle")
-        j.findPreviousInputElement(b, "home").setValueAttribute("/tmp/foo")
+        j.findPreviousInputElement(b, 'name').setValueAttribute('myGradle')
+        j.findPreviousInputElement(b, 'home').setValueAttribute('/tmp/foo')
         j.submit(f)
 
         then:
@@ -223,7 +223,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         // another submission and verify it survives a roundtrip
         when:
         p = wc.goTo(pagePath)
-        f = p.getFormByName("config")
+        f = p.getFormByName('config')
         j.submit(f)
 
         then:
@@ -239,8 +239,8 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
 
         def envVars = new EnvVars()
         installation.buildEnvVars(envVars)
-        assert envVars.containsKey("PATH+GRADLE")
-        assert envVars.get("PATH+GRADLE") == installation.home + "/bin"
+        assert envVars.containsKey('PATH+GRADLE')
+        assert envVars.get('PATH+GRADLE') == installation.home + '/bin'
 
         // by default we should get the auto installer
         def props = installations[0].getProperties()
@@ -251,11 +251,11 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
     }
 
     private String getHelloTask() {
-        """
+        '''
         task hello {
             doLast {
                 println 'Hello'
             }
-        }"""
+        }'''
     }
 }

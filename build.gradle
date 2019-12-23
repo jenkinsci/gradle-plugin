@@ -172,11 +172,11 @@ buildScan {
   if (ciBuild) {
     tag('CI')
     ifNonNull(System.getenv('GIT_BRANCH')) { tag(it) }
-    ifNonNull(System.getenv("GIT_COMMIT")) { value("git-commit-id", it) }
+    ifNonNull(System.getenv('GIT_COMMIT')) { value('git-commit-id', it) }
     ifNonNull(System.getenv('BUILD_URL')) { link('Jenkins build', it) }
 
-    termsOfServiceUrl = "https://gradle.com/terms-of-service"
-    termsOfServiceAgree ="yes"
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
     publishAlways()
   } else {
     tag 'LOCAL'

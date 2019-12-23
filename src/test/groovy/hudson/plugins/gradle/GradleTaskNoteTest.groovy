@@ -28,11 +28,11 @@ class GradleTaskNoteTest extends Specification {
         ':PARENT:TASK UP-TO-DATE' | ':<b class=gradle-task>PARENT:TASK</b> <span class=gradle-task-progress-status>UP-TO-DATE</span>'
     }
 
-    void "no annotation when disabled"() {
+    void 'no annotation when disabled'() {
         when:
         GradleTaskNote.ENABLED = false
         then:
-        annotate("TASK:") == "TASK:"
+        annotate('TASK:') == 'TASK:'
     }
 
     private static String annotate(String text) {

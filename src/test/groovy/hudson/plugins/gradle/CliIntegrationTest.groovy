@@ -8,33 +8,33 @@ import net.sf.json.JSONObject
 class CliIntegrationTest extends AbstractIntegrationTest {
     def 'list installations through CLI'() {
         when:
-        CLICommandInvoker.Result result = new CLICommandInvoker(j, "get-gradle").invoke()
+        CLICommandInvoker.Result result = new CLICommandInvoker(j, 'get-gradle').invoke()
 
         then:
         assertCLIResult(result, '{}')
 
         when:
-        gradleInstallationRule.addInstallations("inst1")
-        result = new CLICommandInvoker(j, "get-gradle").invoke()
+        gradleInstallationRule.addInstallations('inst1')
+        result = new CLICommandInvoker(j, 'get-gradle').invoke()
 
         then:
         assertCLIResult(result, expectedOutputForVersion('{"inst1":["%s"]}'))
 
         when:
-        gradleInstallationRule.addInstallations("inst1", "inst2")
-        result = new CLICommandInvoker(j, "get-gradle").invoke()
+        gradleInstallationRule.addInstallations('inst1', 'inst2')
+        result = new CLICommandInvoker(j, 'get-gradle').invoke()
 
         then:
         assertCLIResult(result, expectedOutputForVersion('{"inst1":["%s"],"inst2":["%s"]}'))
 
         when:
-        result = new CLICommandInvoker(j, "get-gradle").invokeWithArgs("--name=inst1")
+        result = new CLICommandInvoker(j, 'get-gradle').invokeWithArgs('--name=inst1')
 
         then:
         assertCLIResult(result, expectedOutputForVersion('["%s"]'))
 
         when:
-        result = new CLICommandInvoker(j, "get-gradle").invokeWithArgs("--name=unknown")
+        result = new CLICommandInvoker(j, 'get-gradle').invokeWithArgs('--name=unknown')
 
         then:
         assertCLIError(result, 'Requested gradle installation not found: unknown')
@@ -45,7 +45,7 @@ class CliIntegrationTest extends AbstractIntegrationTest {
 
         JSON expectedJson, resultJson
 
-        if (expectedOutput.startsWith("[")) {
+        if (expectedOutput.startsWith('[')) {
             expectedJson = JSONArray.fromObject(expectedOutput)
             resultJson = JSONArray.fromObject(result.stdout().trim())
         } else {
