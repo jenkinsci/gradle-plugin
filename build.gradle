@@ -2,6 +2,7 @@ import java.util.zip.ZipFile
 
 plugins {
   id 'com.gradle.build-scan' version '2.4.2'
+  id 'org.gradle.test-retry' version '1.0.0'
   id 'org.jenkins-ci.jpi' version '0.33.0'
   id 'ru.vyarus.animalsniffer' version '1.5.0'
   id 'findbugs'
@@ -137,6 +138,10 @@ test {
   systemProperties['hudson.model.DownloadService.noSignatureCheck'] = 'true'
   ignoreFailures = ciBuild
   maxParallelForks = project.maxParallelForks
+  retry {
+    maxRetries = 1
+    maxFailures = 10
+  }
 }
 
 def checkArchiveManifest(File archive) {
