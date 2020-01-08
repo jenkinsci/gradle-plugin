@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 
 plugins {
   id 'org.gradle.test-retry' version '1.0.0'
-  id 'org.jenkins-ci.jpi' version '0.36.1'
+  id 'org.jenkins-ci.jpi' version '0.37.1'
   id 'ru.vyarus.animalsniffer' version '1.5.0'
   id 'com.github.spotbugs' version '3.0.0'
   id 'codenarc'
@@ -70,13 +70,13 @@ sourceCompatibility = '1.8'
 dependencies {
   jenkinsBom platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}")
 
-  jenkinsPlugins 'org.jenkins-ci.plugins:structs:1.20'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-api:2.37'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps:2.74'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job:2.35'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-basic-steps:2.16.1'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step:2.28'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-step-api:2.20'
+  jenkinsPlugins 'org.jenkins-ci.plugins:structs'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-api'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-basic-steps'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
+  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
 
