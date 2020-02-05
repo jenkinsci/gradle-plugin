@@ -102,6 +102,10 @@ spotbugs {
   sourceSets = [sourceSets.main]
 }
 
+tasks.named("spotbugsMain", com.github.spotbugs.SpotBugsTask) {
+  classpath = sourceSets.main.compileClasspath
+}
+
 spotbugsMain {
   classes = sourceSets.main.output
 }
