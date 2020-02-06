@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 
 plugins {
   id 'org.gradle.test-retry' version '1.0.0'
-  id 'org.jenkins-ci.jpi' version '0.39.0-rc.1'
+  id 'org.jenkins-ci.jpi' version '0.39.0-rc.2'
   id 'ru.vyarus.animalsniffer' version '1.5.0'
   id 'com.github.spotbugs' version '3.0.0'
   id 'codenarc'
@@ -76,8 +76,6 @@ dependencies {
   testImplementation 'org.jenkins-ci.plugins:timestamper:1.8.10'
   testImplementation 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
   testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
-  // FIXME: workaround bug in RC of jpi plugin
-  testImplementation "org.jenkins-ci.main:jenkins-core:${jenkinsPlugin.coreVersion}"
 
   jenkinsServer 'org.jenkins-ci.plugins:git'
 }
