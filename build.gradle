@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 
 plugins {
   id 'org.gradle.test-retry' version '1.0.0'
-  id 'org.jenkins-ci.jpi' version '0.37.1'
+  id 'org.jenkins-ci.jpi' version '0.39.0'
   id 'ru.vyarus.animalsniffer' version '1.5.0'
   id 'com.github.spotbugs' version '3.0.0'
   id 'codenarc'
@@ -10,18 +10,6 @@ plugins {
 
 group = 'org.jenkins-ci.plugins'
 description = 'This plugin adds Gradle support to Jenkins'
-
-configurations {
-  jenkinsBom
-  compileClasspath.extendsFrom(jenkinsBom)
-  runtimeClasspath.extendsFrom(jenkinsBom)
-  jenkinsPlugins.extendsFrom(jenkinsBom)
-  optionalJenkinsPlugins.extendsFrom(jenkinsBom)
-  jenkinsServer.extendsFrom(jenkinsBom)
-  jenkinsWar.extendsFrom(jenkinsBom)
-  jenkinsTest.extendsFrom(jenkinsBom)
-  pluginResources.extendsFrom(jenkinsBom)
-}
 
 ext {
   coreBaseVersion = '2.138'
@@ -65,37 +53,31 @@ jenkinsPlugin {
   disabledTestInjection = false
 }
 
-sourceCompatibility = '1.8'
+java {
+  sourceCompatibility = 'VERSION_1_8'
+}
 
 dependencies {
-  jenkinsBom platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}")
+  api platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}")
 
-  jenkinsPlugins 'org.jenkins-ci.plugins:structs'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-api'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-basic-steps'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
-  jenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-step-api'
+  implementation 'org.jenkins-ci.plugins:structs'
+  implementation 'org.jenkins-ci.plugins.workflow:workflow-api'
+  implementation 'org.jenkins-ci.plugins.workflow:workflow-cps'
+  implementation 'org.jenkins-ci.plugins.workflow:workflow-job'
+  implementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps'
+  implementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
+  implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
 
-  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.56'
-  jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
-  jenkinsTest 'io.jenkins:configuration-as-code:1.4'
-  jenkinsTest 'org.jenkins-ci.plugins:timestamper:1.8.10'
-  jenkinsTest 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
-
-  jenkinsServer 'org.jenkins-ci.plugins:structs'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-api'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-cps'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-job'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-basic-steps'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
-  jenkinsServer 'org.jenkins-ci.plugins.workflow:workflow-step-api'
-  jenkinsServer 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
-
+  testImplementation 'org.jenkins-ci.main:jenkins-test-harness:2.56'
+  testImplementation 'org.jenkins-ci.main:jenkins-test-harness-tools:2.2'
+  testImplementation 'io.jenkins:configuration-as-code:1.4'
+  testImplementation 'org.jenkins-ci.plugins:timestamper:1.8.10'
+  testImplementation 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
   testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
+
+  jenkinsServer 'org.jenkins-ci.plugins:git'
 }
 
 if (project.hasProperty('maxParallelForks')) {
@@ -116,6 +98,10 @@ spotbugs {
   // This prevents logging some errors when SpotBugs tries to open files as jar files.
   // See https://github.com/gradle/gradle/issues/1094.
   sourceSets = [sourceSets.main]
+}
+
+tasks.named("spotbugsMain", com.github.spotbugs.SpotBugsTask) {
+  classpath = sourceSets.main.compileClasspath
 }
 
 spotbugsMain {
@@ -152,10 +138,10 @@ tasks.withType(AbstractArchiveTask) {
 }
 
 task checkArchiveManifests {
-  dependsOn jar, war
+  dependsOn jar, jpi
   doLast {
     checkArchiveManifest(jar.archiveFile.get().asFile)
-    checkArchiveManifest(war.archiveFile.get().asFile)
+    checkArchiveManifest(jpi.archiveFile.get().asFile)
   }
 }
 
