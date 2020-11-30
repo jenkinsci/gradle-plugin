@@ -69,21 +69,23 @@ public class GradleInstallation extends ToolInstallation
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-        return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
-            public String call() throws IOException {
-                File exe = getExeFile();
-                if (exe.exists()) {
-                    return exe.getPath();
-                }
-                return null;
-            }
-        });
+        return launcher.getChannel().call(new GetExeFile(gradleHome));
     }
-
-    private File getExeFile() {
-        String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_COMMAND : UNIX_GRADLE_COMMAND;
-        String antHome = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
-        return new File(antHome, "bin/" + execName);
+    private static final class GetExeFile extends MasterToSlaveCallable<String, IOException> {
+        private final String gradleHome;
+        GetExeFile(String gradleHome) {
+            this.gradleHome = gradleHome;
+        }
+        @Override
+        public String call() throws IOException {
+            String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_COMMAND : UNIX_GRADLE_COMMAND;
+            String gradleHomeSubstituted = Util.replaceMacro(gradleHome, EnvVars.masterEnvVars);
+            File exe = new File(gradleHomeSubstituted, "bin/" + execName);
+            if (exe.exists()) {
+                return exe.getPath();
+            }
+            return null;
+        }
     }
 
     public GradleInstallation forEnvironment(EnvVars environment) {
