@@ -1,23 +1,25 @@
 package hudson.plugins.gradle;
 
-import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
 import hudson.MarkupText;
 import hudson.console.ConsoleAnnotationDescriptor;
 import hudson.console.ConsoleAnnotator;
 import hudson.console.ConsoleNote;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.regex.Pattern;
 
 public final class GradleTaskNote extends ConsoleNote {
 
-    private static final Collection<String> progressStatuses = ImmutableSet.of(
+    private static final Collection<String> progressStatuses = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "UP-TO-DATE",
             "SKIPPED",
             "FROM-CACHE",
             "NO-SOURCE"
-    );
+    )));
 
     private static final Pattern TASK_PATTERN_1 = Pattern.compile("^:([^:]\\S*)(\\s*)(\\S*)");
     private static final Pattern TASK_PATTERN_2 = Pattern.compile("^> Task :([^:]\\S*)(\\s*)(\\S*)");
