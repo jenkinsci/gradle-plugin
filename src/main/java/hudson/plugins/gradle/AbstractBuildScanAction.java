@@ -21,7 +21,7 @@ public abstract class AbstractBuildScanAction implements Action {
 
     @Override
     public String getIconFileName() {
-        return "/plugin/gradle/images/48x48/gradle-build-scan.png";
+        return "/plugin/gradle/images/svgs/gradle-build-scan.svg";
     }
 
     @Override
