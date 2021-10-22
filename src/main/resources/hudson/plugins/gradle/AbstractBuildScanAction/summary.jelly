@@ -1,6 +1,6 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson">
-    <t:summary icon="/plugin/gradle/images/48x48/gradle-build-scan.png">
+    <t:summary icon="/plugin/gradle/images/svgs/gradle-build-scan.svg">
         <h2>Build Scans</h2>
         <ul>
             <j:forEach items="${it.scanUrls}" var="scanUrl">

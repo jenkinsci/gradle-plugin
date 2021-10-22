@@ -4,8 +4,8 @@
 
         <st:include page="sidepanel.jelly" it="${it.target}"/>
         <l:main-panel>
-            <h1><img src="${resURL}/plugin/gradle/images/48x48/gradle-build-scan.png" alt="Build Scan"
-                     class="icon48x48"/> Build Scans</h1>
+            <h1><img src="${resURL}/plugin/gradle/images/svgs/gradle-build-scan.svg" alt="Build Scan"
+                     width="48" height="48"/> Build Scans</h1>
             <ul>
                 <j:forEach items="${it.scanUrls}" var="scanUrl">
                     <li><a href="${scanUrl}">${scanUrl}</a></li>
