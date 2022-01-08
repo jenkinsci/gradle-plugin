@@ -1,1 +1,3 @@
 buildPluginWithGradle()
+
+findBuildScans()
