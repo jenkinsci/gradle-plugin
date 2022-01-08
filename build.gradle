@@ -77,6 +77,8 @@ dependencies {
   testImplementation 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
   testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
 
+  testRuntimeOnly "org.jenkins-ci.main:jenkins-war:${coreBaseVersion}"
+
   jenkinsServer 'org.jenkins-ci.plugins:git'
 }
 
