@@ -75,7 +75,7 @@ dependencies {
   testImplementation 'io.jenkins:configuration-as-code:1.4'
   testImplementation 'org.jenkins-ci.plugins:timestamper:1.8.10'
   testImplementation 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
-  testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
+  testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
 
   testRuntimeOnly "org.jenkins-ci.main:jenkins-war:${coreBaseVersion}"
 
