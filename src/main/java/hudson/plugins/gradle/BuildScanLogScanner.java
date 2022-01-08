@@ -9,8 +9,6 @@ public class BuildScanLogScanner {
     private static final Pattern BUILD_SCAN_PATTERN = Pattern.compile("Publishing (build scan|build information)\\.\\.\\.");
     private static final Pattern URL_PATTERN = Pattern.compile("https?://\\S*");
 
-    public static final int MAX_PUBLISHED_MESSAGE_LENGTH = 70;
-
     public BuildScanLogScanner(BuildScanPublishedListener listener) {
         this.listener = listener;
     }
@@ -25,7 +23,7 @@ public class BuildScanLogScanner {
                 listener.onBuildScanPublished(buildScanUrl);
             }
         }
-        if (line.length() < MAX_PUBLISHED_MESSAGE_LENGTH && BUILD_SCAN_PATTERN.matcher(line).find()) {
+        if (BUILD_SCAN_PATTERN.matcher(line).find()) {
             linesSinceBuildScanPublishingMessage = 0;
         }
 
