@@ -43,8 +43,8 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTe
         println JenkinsRule.getLog(build)
         if (mavenVersion >= '3.3.1') {
             def action = build.getAction(BuildScanAction)
-            action.scanUrls.size() == 1
-            new URL(action.scanUrls.get(0))
+            action.getBuildScans().size() == 1
+            new URL(action.getBuildScans().get(0).getUrl())
         } else {
             def action = build.getAction(BuildScanAction)
             action == null

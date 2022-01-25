@@ -3,8 +3,15 @@
     <t:summary icon="/plugin/gradle/images/svgs/gradle-build-scan.svg">
         <h2>Build Scans</h2>
         <ul>
-            <j:forEach items="${it.scanUrls}" var="scanUrl">
-                <li><a href="${scanUrl}">${scanUrl}</a></li>
+            <j:forEach items="${it.buildScans}" var="buildScan">
+                <li>
+                    <a href="${buildScan.url}">${buildScan.url}</a>
+                    <j:if test="${buildScan.label != null and buildScan.label != ''}">
+                        <j:whitespace trim="false">
+                            <label> (${buildScan.label})</label>
+                        </j:whitespace>
+                    </j:if>
+                </li>
             </j:forEach>
         </ul>
     </t:summary>

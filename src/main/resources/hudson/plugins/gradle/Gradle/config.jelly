@@ -59,6 +59,12 @@
             <f:textbox/>
         </f:entry>
 
+        <f:entry title="${%Build Scan Label}"
+                 field="buildScanLabel"
+                 description="Specify a label for the published build scan. (Optional)">
+            <f:textbox/>
+        </f:entry>
+
         <f:entry title="${%Force GRADLE_USER_HOME to use workspace}" field="useWorkspaceAsHome">
             <f:checkbox default="false"/>
         </f:entry>

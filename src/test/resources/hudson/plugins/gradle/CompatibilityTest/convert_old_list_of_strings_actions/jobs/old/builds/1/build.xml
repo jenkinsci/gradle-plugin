@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<build>
+  <actions>
+    <hudson.plugins.gradle.BuildScanAction plugin="gradle@1.38">
+      <scanUrls>
+        <string>https://gradle.com/s/trs4je7zh3ysc</string>
+        <string>https://gradle.com/s/uaxunlpjhzoda</string>
+      </scanUrls>
+    </hudson.plugins.gradle.BuildScanAction>
+  </actions>
+  <queueId>1</queueId>
+  <timestamp>1551392461319</timestamp>
+  <startTime>1551392461340</startTime>
+  <result>SUCCESS</result>
+  <duration>49800</duration>
+  <charset>UTF-8</charset>
+  <keepLog>false</keepLog>
+  <builtOn></builtOn>
+  <workspace>/var/jenkins_home/workspace/old</workspace>
+  <hudsonVersion>1.318-SNAPSHOT</hudsonVersion>
+  <culprits class="com.google.common.collect.EmptyImmutableSortedSet"/>
+</build>

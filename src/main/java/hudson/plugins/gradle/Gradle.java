@@ -51,6 +51,7 @@ public class Gradle extends Builder {
 
     private String projectProperties;
     private boolean passAllAsProjectProperties;
+    private String buildScanLabel;
 
     private transient boolean fromRootBuildScriptDir;
 
@@ -184,6 +185,15 @@ public class Gradle extends Builder {
         this.passAllAsProjectProperties = passAllAsProjectProperties;
     }
 
+    public String getBuildScanLabel() {
+        return buildScanLabel;
+    }
+
+    @DataBoundSetter
+    public void setBuildScanLabel(String buildScanLabel) {
+        this.buildScanLabel = buildScanLabel;
+    }
+
     public GradleInstallation getGradle() {
         for (GradleInstallation i : getDescriptor().getInstallations()) {
             if (gradleName != null && i.getName().equals(gradleName)) {
@@ -309,7 +319,7 @@ public class Gradle extends Builder {
         }
 
         try {
-            DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build);
+            DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, buildScanLabel);
             GradleConsoleAnnotator gca = new GradleConsoleAnnotator(listener.getLogger(), build.getCharset(), true, buildScanListener);
 
             int r;

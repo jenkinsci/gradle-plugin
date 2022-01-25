@@ -4,9 +4,15 @@ import hudson.model.Actionable;
 
 public class DefaultBuildScanPublishedListener implements BuildScanPublishedListener {
     private final Actionable target;
+    private final String scanLabel;
 
     DefaultBuildScanPublishedListener(Actionable target) {
+        this(target, null);
+    }
+
+    DefaultBuildScanPublishedListener(Actionable target, String scanLabel) {
         this.target = target;
+        this.scanLabel = scanLabel;
     }
 
     @Override
@@ -15,11 +21,11 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
 
         if (action == null) {
             action = new BuildScanAction();
-            action.addScanUrl(scanUrl);
+            action.addScanUrl(scanUrl, scanLabel);
 
             target.addAction(action);
         } else {
-            action.addScanUrl(scanUrl);
+            action.addScanUrl(scanUrl, scanLabel);
         }
     }
 }

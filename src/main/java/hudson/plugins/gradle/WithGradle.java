@@ -6,6 +6,10 @@ import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.steps.Step;
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
+
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
@@ -14,10 +18,14 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 
-public class WithGradle extends Step {
-
-    @DataBoundConstructor
+public class WithGradle extends BuildScanStep {
+	@DataBoundConstructor
     public WithGradle() {
     }
 

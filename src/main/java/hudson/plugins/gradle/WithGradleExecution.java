@@ -15,9 +15,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class WithGradleExecution extends StepExecution {
+    private final String buildScanLabel;
 
     public WithGradleExecution(StepContext context, WithGradle withGradle) {
         super(context);
+        this.buildScanLabel = withGradle.getBuildScanLabel();
     }
 
     @Override
@@ -26,7 +28,7 @@ public class WithGradleExecution extends StepExecution {
 
         getContext().newBodyInvoker()
                 .withContext(TaskListenerDecorator.merge(getContext().get(TaskListenerDecorator.class), decorator))
-                .withCallback(new BuildScanCallback(decorator, getContext())).start();
+                .withCallback(new BuildScanCallback(decorator, getContext(), buildScanLabel)).start();
 
         return false;
     }
@@ -34,10 +36,12 @@ public class WithGradleExecution extends StepExecution {
     private static class BuildScanCallback extends BodyExecutionCallback {
         private final GradleTaskListenerDecorator decorator;
         private final StepContext parentContext;
+        private final String buildScanLabel;
 
-        public BuildScanCallback(GradleTaskListenerDecorator decorator, StepContext parentContext) {
+        public BuildScanCallback(GradleTaskListenerDecorator decorator, StepContext parentContext, String buildScanLabel) {
             this.decorator = decorator;
             this.parentContext = parentContext;
+            this.buildScanLabel = buildScanLabel;
         }
 
         @Override
@@ -61,7 +65,7 @@ public class WithGradleExecution extends StepExecution {
                 FlowNode flowNode = context.get(FlowNode.class);
                 flowNode.getParents().stream().findFirst().ifPresent(parent -> {
                     BuildScanFlowAction nodeBuildScanAction = new BuildScanFlowAction(parent);
-                    buildScans.forEach(nodeBuildScanAction::addScanUrl);
+                    buildScans.forEach(buildScanUrl -> nodeBuildScanAction.addScanUrl(buildScanUrl, buildScanLabel));
                     parent.addAction(nodeBuildScanAction);
                 });
 
@@ -69,7 +73,7 @@ public class WithGradleExecution extends StepExecution {
                 BuildScanAction buildScanAction = existingAction == null
                         ? new BuildScanAction()
                         : existingAction;
-                buildScans.forEach(buildScanAction::addScanUrl);
+                buildScans.forEach(buildScanUrl -> buildScanAction.addScanUrl(buildScanUrl, buildScanLabel));
                 if (existingAction == null) {
                     run.addAction(buildScanAction);
                 }

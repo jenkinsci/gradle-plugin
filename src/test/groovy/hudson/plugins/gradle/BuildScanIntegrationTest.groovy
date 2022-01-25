@@ -34,8 +34,8 @@ class BuildScanIntegrationTest extends GradleAbstractIntegrationTest {
         then:
         println JenkinsRule.getLog(build)
         def action = build.getAction(BuildScanAction)
-        action.scanUrls.size() == 2
-        action.scanUrls.each { new URL(it) }
+        action.buildScans.size() == 2
+        action.buildScans.each { new URL(it.url) }
 
         where:
         buildScanVersion | gradleVersion | args
@@ -58,8 +58,8 @@ class BuildScanIntegrationTest extends GradleAbstractIntegrationTest {
         then:
         println JenkinsRule.getLog(build)
         def action = build.getAction(BuildScanAction)
-        action.scanUrls.size() == 1
-        action.scanUrls.each { new URL(it) }
+        action.buildScans.size() == 1
+        action.buildScans.each { new URL(it.url) }
     }
 
     def 'build scan is discovered when using non-gradle build step'() {
@@ -77,8 +77,8 @@ class BuildScanIntegrationTest extends GradleAbstractIntegrationTest {
         then:
         println JenkinsRule.getLog(build)
         def action = build.getAction(BuildScanAction)
-        action.scanUrls.size() == 1
-        new URL(action.scanUrls.get(0))
+        action.buildScans.size() == 1
+        new URL(action.buildScans.get(0).url)
     }
 
     def 'detects build scan in pipeline log'() {
@@ -111,8 +111,45 @@ node {
         then:
         println JenkinsRule.getLog(build)
         def action = build.getAction(BuildScanAction)
-        action.scanUrls.size() == 1
-        new URL(action.scanUrls.get(0))
+        action.buildScans.size() == 1
+        new URL(action.buildScans.get(0).url)
+        action.buildScans.get(0).label == null
+    }
+
+    def 'detects build scan in pipeline log and labels it'() {
+        given:
+        gradleInstallationRule.gradleVersion = '5.5'
+        gradleInstallationRule.addInstallation()
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+node {
+   stage('Build') {
+      // Run the maven build
+      def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+      writeFile file: 'settings.gradle', text: ''
+      writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
+      if (isUnix()) {
+         sh "'\${gradleHome}/bin/gradle' help --scan"
+      } else {
+         bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+      }
+   }
+   stage('Final') {
+       def scans = findBuildScans(buildScanLabel: 'Build Scan Label')
+       assert scans.size() == 1
+   }
+}
+""", false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        println JenkinsRule.getLog(build)
+        def action = build.getAction(BuildScanAction)
+        action.buildScans.size() == 1
+        new URL(action.buildScans.get(0).url)
+        action.buildScans.get(0).label == 'Build Scan Label'
     }
 
     def 'detects build scan in pipeline log using withGradle'() {
@@ -159,9 +196,64 @@ node {
         then:
         println JenkinsRule.getLog(build)
         def action = build.getAction(BuildScanAction)
-        action.scanUrls.size() == 2
-        new URL(action.scanUrls.get(0))
-        new URL(action.scanUrls.get(1))
+        action.buildScans.size() == 2
+        new URL(action.buildScans.get(0).url)
+        action.buildScans.get(0).label == null
+        new URL(action.buildScans.get(1).url)
+        action.buildScans.get(1).label == null
+    }
+
+    def 'detects build scan in pipeline log using withGradle and labels it'() {
+        given:
+        gradleInstallationRule.gradleVersion = '5.6.4'
+        gradleInstallationRule.addInstallation()
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+    def scans = []
+    stage('Build') {
+      node {
+        def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+        if (isUnix()) {
+          sh "'\${gradleHome}/bin/gradle' --stop"
+        } else {
+          bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
+        }
+      }
+      def stepToExecuteInParallel = { String aBuildScanLabel ->
+        return {
+          node {
+            // Run the maven build
+            scans.addAll(withGradle(buildScanLabel: "\${aBuildScanLabel}") {
+            def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+              writeFile file: 'settings.gradle', text: ''
+              writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
+              if (isUnix()) {
+                sh "'\${gradleHome}/bin/gradle' help --scan"
+              } else {
+                bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+              }
+            })
+          }
+        }
+      }
+      parallel first: stepToExecuteInParallel('first'), second: stepToExecuteInParallel('second')
+    }
+    stage('Final') {
+      assert scans.size() == 2
+    }
+""", false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        println JenkinsRule.getLog(build)
+        def buildScans = build.getAction(BuildScanAction).buildScans
+        buildScans.size() == 2
+        new URL(buildScans.get(0).url)
+        new URL(buildScans.get(1).url)
+        buildScans.any { it.label == 'first' }
+        buildScans.any { it.label == 'second' }
     }
 
     def 'does not find build scans in pipeline logs when none have been published'() {
@@ -247,8 +339,8 @@ stage('Final') {
         then:
         println JenkinsRule.getLog(build)
         def action = build.getAction(BuildScanAction)
-        action.scanUrls.size() == 1
-        new URL(action.scanUrls.get(0))
+        action.buildScans.size() == 1
+        new URL(action.buildScans.get(0).url)
     }
 
     def 'build scan action is exposed via rest API'() {
@@ -257,7 +349,7 @@ stage('Final') {
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(buildScriptBuilder('1.8'))
-        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: '3.4', switches: '-Dscan --no-daemon'))
+        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: '3.4', switches: '-Dscan --no-daemon', buildScanLabel: 'Label'))
 
 
         when:
@@ -266,10 +358,11 @@ stage('Final') {
         then:
         println JenkinsRule.getLog(build)
 
-        def json = j.getJSON("${build.url}/api/json?tree=actions[*]")
-        def scanUrls = json.getJSONObject().get('actions').get(1).get('scanUrls')
-        scanUrls.size() == 1
-        new URL(scanUrls.get(0))
+        def json = j.getJSON("${build.url}/api/json?tree=actions[hudson.plugins.gradle.BuildScanAction,buildScans[*]]")
+        def buildScans = json.getJSONObject().get('actions').get(1).get('buildScans')
+        buildScans.size() == 1
+        new URL(buildScans[0].url)
+        buildScans[0].label == 'Label'
     }
 
     private static CreateFileBuilder buildScriptBuilder(String buildScanVersion) {

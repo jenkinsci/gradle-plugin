@@ -72,8 +72,21 @@ class CompatibilityTest {
         def buildScanActions = build.getAllActions().findAll { it instanceof BuildScanAction } as List<BuildScanAction>
 
         assert buildScanActions.size() == 2
-        assert buildScanActions[0].scanUrls == ['https://gradle.com/s/trs4je7zh3ysc']
-        assert buildScanActions[1].scanUrls == ['https://gradle.com/s/uaxunlpjhzoda']
+        assert buildScanActions[0].buildScans[0].url == 'https://gradle.com/s/trs4je7zh3ysc'
+        assert buildScanActions[1].buildScans[0].url == 'https://gradle.com/s/uaxunlpjhzoda'
+    }
+
+    @Test
+    @LocalData
+    void convert_old_list_of_strings_actions() {
+        FreeStyleProject p = (FreeStyleProject) j.jenkins.getItem('old')
+        def build = p.getBuildByNumber(1)
+        def buildScanActions = build.getAllActions().findAll { it instanceof BuildScanAction } as List<BuildScanAction>
+
+        assert buildScanActions.size() == 1
+        assert buildScanActions[0].buildScans.size() == 2
+        assert buildScanActions[0].buildScans[0].url == 'https://gradle.com/s/trs4je7zh3ysc'
+        assert buildScanActions[0].buildScans[1].url == 'https://gradle.com/s/uaxunlpjhzoda'
     }
 
     private Gradle configuredGradle() {

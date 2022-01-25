@@ -219,6 +219,32 @@ By default, all nodes are enabled.
 
 |===
 
+== Label a Build-Scan
+
+Sometimes a Jenkins job can produce multiple build scans (for example when you are having multiple stages with gradle builds). 
+To make each of these scans clearly identifiable, it is possible to add a label to each build scan.
+
+Examples:
+[source]
+----
+node {
+  withGradle(buildScanLabel: 'Build') {
+    sh './gradlew build'
+  }
+}
+----
+[source]
+----
+node {
+  sh './gradlew test'
+}
+findBuildScans(buildScanLabel: 'Stage: Test')
+----
+
+This label will be displayed after the build scan url:
+
+image::jenkins-build-scan-labeled.png[Build Scan labeled,align="center"]
+
 == Disabling/uninstalling Gradle Jenkins plugin
 
 To ensure that all Gradle Enterprise resources are cleaned up from the agents, before disabling/uninstalling the plugin the auto-injection has to be manually disabled. Please, refer to the <<Disable auto-injection>> section for details.
