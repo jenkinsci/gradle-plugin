@@ -1,6 +1,5 @@
 package hudson.plugins.gradle;
 
-import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -12,7 +11,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -58,7 +56,7 @@ public class BuildScanPublisher extends Step {
 
         @Override
         public Set<? extends Class<?>> getRequiredContext() {
-            return ImmutableSet.of(Run.class);
+            return Collections.singleton(Run.class);
         }
 
         @Nonnull

@@ -1,7 +1,5 @@
 package hudson.plugins.gradle;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import hudson.CopyOnWrite;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -19,13 +17,16 @@ import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -345,7 +346,7 @@ public class Gradle extends Builder {
             }
         }
         if (gradleWrapperFile == null) {
-            listener.fatalError("The Gradle wrapper has not been found in these directories: %s", Joiner.on(", ").join(possibleWrapperLocations));
+            listener.fatalError("The Gradle wrapper has not been found in these directories: %s", possibleWrapperLocations.stream().map(Object::toString).collect(Collectors.joining(", ")));
         }
         return gradleWrapperFile;
     }
@@ -378,16 +379,18 @@ public class Gradle extends Builder {
             // Override with provided relative path to gradlew
             String wrapperLocationNormalized = wrapperLocation.trim().replaceAll("[\t\r\n]+", "");
             wrapperLocationNormalized = Util.replaceMacro(wrapperLocationNormalized.trim(), resolver);
-            return ImmutableList.of(new FilePath(moduleRoot, wrapperLocationNormalized));
+            return Collections.singletonList(new FilePath(moduleRoot, wrapperLocationNormalized));
         } else if (buildFile != null && !buildFile.isEmpty()) {
             String buildFileNormalized = Util.replaceMacro(buildFile.trim(), resolver);
             // Check if the target project is located not at the root dir
             FilePath parentOfBuildFile = new FilePath(normalizedRootBuildScriptDir == null ? moduleRoot : normalizedRootBuildScriptDir, buildFileNormalized).getParent();
             if (parentOfBuildFile != null && !parentOfBuildFile.equals(moduleRoot)) {
-                return ImmutableList.of(parentOfBuildFile, moduleRoot);
+                List<FilePath> locations = new ArrayList<>();
+                Collections.addAll(locations, parentOfBuildFile, moduleRoot);
+                return Collections.unmodifiableList(locations);
             }
         }
-        return ImmutableList.of(moduleRoot);
+        return Collections.singletonList(moduleRoot);
     }
 
     private Object readResolve() {

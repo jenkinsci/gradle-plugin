@@ -1,6 +1,5 @@
 package hudson.plugins.gradle;
 
-import com.google.common.collect.ImmutableSet;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -12,6 +11,8 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 public class WithGradle extends Step {
@@ -29,7 +30,9 @@ public class WithGradle extends Step {
     public static final class DescriptorImpl extends StepDescriptor {
         @Override
         public Set<? extends Class<?>> getRequiredContext() {
-            return ImmutableSet.of(Run.class, FilePath.class, TaskListener.class, EnvVars.class);
+            Set<Class<?>> context = new HashSet<>();
+            Collections.addAll(context, Run.class, FilePath.class, TaskListener.class, EnvVars.class);
+            return Collections.unmodifiableSet(context);
         }
 
         @Override
