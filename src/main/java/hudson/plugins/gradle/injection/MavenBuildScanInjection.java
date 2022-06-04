@@ -100,11 +100,12 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private FilePath copyResourceToAgent(String resourceName, FilePath rootPath) throws IOException, InterruptedException {
         FilePath lib = rootPath.child(LIB_DIR_PATH).child(resourceName);
-        InputStream libIs = getClass().getResourceAsStream(resourceName);
-        if (libIs == null) {
-            throw new IllegalStateException("Could not find resource: " + resourceName);
+        try (InputStream libIs = getClass().getResourceAsStream(resourceName)) {
+            if (libIs == null) {
+                throw new IllegalStateException("Could not find resource: " + resourceName);
+            }
+            lib.copyFrom(libIs);
         }
-        lib.copyFrom(libIs);
         return lib;
     }
 
