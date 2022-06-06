@@ -44,13 +44,13 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         }
 
         if (isEnabled(envGlobal)) {
-            injectMavenExtension(rootPath);
+            injectMavenExtension(node, rootPath);
         } else {
             removeMavenExtension(rootPath);
         }
     }
 
-    private void injectMavenExtension(FilePath rootPath) {
+    private void injectMavenExtension(Node node, FilePath rootPath) {
         try {
             String cp = constructExtClasspath(copyResourceToAgent(GE_MVN_LIB_NAME, rootPath), copyResourceToAgent(CCUD_LIB_NAME, rootPath));
             List<String> mavenOptsKeyValuePairs = new ArrayList<>();
@@ -63,10 +63,20 @@ public class MavenBuildScanInjection implements BuildScanInjection {
             if (getGlobalEnvVar(GE_URL_VAR) != null) {
                 mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, getGlobalEnvVar(GE_URL_VAR)));
             }
-            rootPath.act(new SetMavenOpts(mavenOptsKeyValuePairs));
+            appendMavenOpts(node, mavenOptsKeyValuePairs);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    void appendMavenOpts(Node node, List<String> mavenOptsKeyValuePairs) throws IOException, InterruptedException {
+        EnvVars nodeEnvVars = EnvVars.getRemote(node.getChannel());
+        String mavenOpts = String.join(" ", mavenOptsKeyValuePairs);
+        String mavenOptsEnvName = "MAVEN_OPTS";
+        if (nodeEnvVars.get(mavenOptsEnvName) != null) {
+            mavenOpts = nodeEnvVars.get(mavenOptsEnvName) + " " + mavenOpts;
+        }
+        node.getNodeProperties().add(new EnvironmentVariablesNodeProperty(new EnvironmentVariablesNodeProperty.Entry(mavenOptsEnvName, mavenOpts)));
     }
 
     private void removeMavenExtension(FilePath rootPath) {
@@ -100,7 +110,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private FilePath copyResourceToAgent(String resourceName, FilePath rootPath) throws IOException, InterruptedException {
         FilePath lib = rootPath.child(LIB_DIR_PATH).child(resourceName);
-        try (InputStream libIs = getClass().getResourceAsStream(resourceName)) {
+        try (InputStream libIs = getClass().getResourceAsStream("/hudson/plugins/gradle/injection/" + resourceName)) {
             if (libIs == null) {
                 throw new IllegalStateException("Could not find resource: " + resourceName);
             }

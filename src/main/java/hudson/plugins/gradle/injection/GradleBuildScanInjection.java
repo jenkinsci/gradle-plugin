@@ -15,7 +15,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
 
-    private static final String RESOURCE_INIT_SCRIPT_GRADLE = "scripts/init-script.gradle";
+    private static final String RESOURCE_INIT_SCRIPT_GRADLE = "/hudson/plugins/gradle/injection/init-script.gradle";
     private static final String INIT_DIR = "init.d";
     private static final String GRADLE_DIR = ".gradle";
     private static final String GRADLE_INIT_FILE = "init-build-scan.gradle";
@@ -65,7 +65,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
                 LOGGER.fine("copy init script file");
                 gradleInitScriptFile.copyFrom(
-                        Objects.requireNonNull(BuildScanInjectionListener.class.getClassLoader().getResourceAsStream(RESOURCE_INIT_SCRIPT_GRADLE))
+                        Objects.requireNonNull(BuildScanInjectionListener.class.getResourceAsStream(RESOURCE_INIT_SCRIPT_GRADLE))
                 );
             }
         } catch (IOException | InterruptedException e) {
