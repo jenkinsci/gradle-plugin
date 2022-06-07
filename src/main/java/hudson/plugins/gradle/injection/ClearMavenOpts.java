@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ClearMavenOpts extends MasterToSlaveCallable<Void, RuntimeException> {
+public class ClearMavenOpts {
 
     private final Set<String> keys;
 
@@ -17,18 +17,10 @@ public class ClearMavenOpts extends MasterToSlaveCallable<Void, RuntimeException
         this.keys = new HashSet<>(Arrays.asList(keys));
     }
 
-    @Override
-    public Void call() throws RuntimeException {
-        String newMavenOpts = Optional.ofNullable(EnvVars.masterEnvVars.get("MAVEN_OPTS"))
+    public String removeSystemProperties(String mavenOpts) throws RuntimeException {
+        return Optional.ofNullable(mavenOpts)
                 .map(this::filterMavenOpts)
                 .orElse("");
-
-        if (newMavenOpts.isEmpty()) {
-            EnvVars.masterEnvVars.remove("MAVEN_OPTS");
-        } else {
-            EnvVars.masterEnvVars.put("MAVEN_OPTS", newMavenOpts);
-        }
-        return null;
     }
 
     /**

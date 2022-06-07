@@ -174,7 +174,13 @@ task createWrapperZip(type: Zip) {
 
 processTestResources.dependsOn(createWrapperZip)
 
-processResources {
+processTestResources {
+    from(configurations.includedLibs) {
+        into("hudson/plugins/gradle/injection")
+    }
+}
+
+jar {
     from(configurations.includedLibs) {
         into("hudson/plugins/gradle/injection")
     }
