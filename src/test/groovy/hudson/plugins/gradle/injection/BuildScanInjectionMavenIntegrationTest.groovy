@@ -1,6 +1,5 @@
 package hudson.plugins.gradle.injection
 
-
 import hudson.EnvVars
 import hudson.model.Label
 import hudson.plugins.gradle.AbstractIntegrationTest
@@ -19,13 +18,7 @@ import org.jvnet.hudson.test.ToolInstallations
 
 class BuildScanInjectionMavenIntegrationTest extends AbstractIntegrationTest {
 
-    def 'build scan is published without GE plugin with pipeline withMaven'() {
-        given:
-        setupBuildInjection()
-        def pipelineJob = j.createProject(WorkflowJob)
-        String mavenInstallationName = setupMavenInstallation()
-
-        def pomFile = '''<?xml version="1.0" encoding="UTF-8"?>
+    def pomFile = '''<?xml version="1.0" encoding="UTF-8"?>
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -36,6 +29,30 @@ class BuildScanInjectionMavenIntegrationTest extends AbstractIntegrationTest {
                     <name>my-pom</name>
                     <description>my-pom</description>
                 </project>'''
+
+    def 'build scan is published without GE plugin with simple pipeline'() {
+        given:
+        setupBuildInjection()
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(), false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        def log = JenkinsRule.getLog(build)
+        hasJarInMavenExt(log, 'gradle-enterprise-maven-extension')
+        !hasJarInMavenExt(log, 'common-custom-user-data-maven-extension')
+        hasBuildScanPublicationAttempt(log)
+    }
+
+
+
+    def 'build scan is published without GE plugin with Maven plugin'() {
+        given:
+        setupBuildInjection()
+        def pipelineJob = j.createProject(WorkflowJob)
+        String mavenInstallationName = setupMavenInstallation()
 
         pipelineJob.setDefinition(new CpsFlowDefinition("""
 node {
@@ -57,9 +74,60 @@ EOT'''
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        println JenkinsRule.getLog(build)
-        // requires accepting TOS to successfully publish
-        j.assertLogContains('The build scan was not published due to a configuration problem', build)
+        def log = JenkinsRule.getLog(build)
+        hasJarInMavenExt(log, 'gradle-enterprise-maven-extension')
+        !hasJarInMavenExt(log, 'common-custom-user-data-maven-extension')
+        hasBuildScanPublicationAttempt(log)
+    }
+
+    def 'build scan is published with CCUD extension applied'() {
+        given:
+        addGlobalEnvVar('JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION', '1.10.1')
+        setupBuildInjection()
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(), false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        def log = JenkinsRule.getLog(build)
+        hasJarInMavenExt(log, 'gradle-enterprise-maven-extension')
+        hasJarInMavenExt(log, 'common-custom-user-data-maven-extension')
+        hasBuildScanPublicationAttempt(log)
+    }
+
+    def 'build scan is not published when global MAVEN_OPTS is set'() {
+        given:
+        addGlobalEnvVar('MAVEN_OPTS', '-Dfoo=bar')
+        setupBuildInjection()
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(), false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        def log = JenkinsRule.getLog(build)
+        log =~ /MAVEN_OPTS=.*-Dfoo=bar.*/
+        !hasJarInMavenExt(log, 'gradle-enterprise-maven-extension')
+        !hasBuildScanPublicationAttempt(log)
+    }
+
+    private String simplePipeline() {
+        """
+node {
+   stage('Build') {
+        node('foo') {
+                sh "env"
+                sh '''cat <<EOT >> pom.xml
+$pomFile
+EOT'''
+                sh "mvn package -B"
+        }
+   }
+}
+"""
     }
 
     private String setupMavenInstallation() {
@@ -74,12 +142,25 @@ EOT'''
     }
 
     private DumbSlave setupBuildInjection() {
-        NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
-        EnvVars env = nodeProperty.getEnvVars()
-        env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION', '1.14.2')
-        j.jenkins.globalNodeProperties.add(nodeProperty)
+        EnvVars env = addGlobalEnvVar('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION', '1.14.2')
         DumbSlave slave = j.createOnlineSlave(Label.get("foo"), env)
         slave
+    }
+
+    private EnvVars addGlobalEnvVar(String key, String value) {
+        NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
+        EnvVars env = nodeProperty.getEnvVars()
+        env.put(key, value)
+        j.jenkins.globalNodeProperties.add(nodeProperty)
+        env
+    }
+
+    private static boolean hasJarInMavenExt(String log, String jar) {
+        (log =~ /MAVEN_OPTS=.*-Dmaven\.ext\.class\.path=.*${jar}-.*\.jar/).find()
+    }
+
+    private static boolean hasBuildScanPublicationAttempt(String log) {
+        (log =~ /The build scan was not published due to a configuration problem/).find()
     }
 
 }

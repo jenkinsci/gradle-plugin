@@ -7,8 +7,8 @@ import hudson.slaves.EnvironmentVariablesNodeProperty;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,6 +17,7 @@ import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
 
 public class MavenBuildScanInjection implements BuildScanInjection {
 
+    private static final String LIB_DIR_PATH = "jenkins-gradle-plugin/lib";
     private static final String GE_MVN_LIB_NAME = "gradle-enterprise-maven-extension-1.14.2.jar";
     private static final String CCUD_LIB_NAME = "common-custom-user-data-maven-extension-1.10.1.jar";
     // Maven system properties passed on the CLI to a Maven build
@@ -33,7 +34,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     );
     private static final String GE_ALLOW_UNTRUSTED_VAR = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER";
     private static final String GE_URL_VAR = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL";
-    private static final String LIB_DIR_PATH = "jenkins-gradle-plugin/lib";
+    private static final String GE_CCUD_VERSION_VAR = "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION";
     private static final String MAVEN_OPTS_VAR = "MAVEN_OPTS";
 
     @Override
@@ -61,7 +62,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private void injectMavenExtension(Node node, FilePath rootPath) {
         try {
-            String cp = constructExtClasspath(copyResourceToAgent(GE_MVN_LIB_NAME, rootPath), copyResourceToAgent(CCUD_LIB_NAME, rootPath));
+            String cp = constructExtClasspath(rootPath);
             List<String> mavenOptsKeyValuePairs = new ArrayList<>();
             mavenOptsKeyValuePairs.add(asSystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, cp));
             mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
@@ -103,8 +104,13 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         node.getNodeProperties().add(new EnvironmentVariablesNodeProperty(new EnvironmentVariablesNodeProperty.Entry(MAVEN_OPTS_VAR, mavenOpts)));
     }
 
-    private String constructExtClasspath(FilePath... libs) {
-        return Stream.of(libs).map(FilePath::getRemote).collect(Collectors.joining(":"));
+    private String constructExtClasspath(FilePath rootPath) throws IOException, InterruptedException {
+        List<FilePath> libs = new LinkedList<>();
+        libs.add(copyResourceToAgent(GE_MVN_LIB_NAME, rootPath));
+        if (getGlobalEnvVar(GE_CCUD_VERSION_VAR) != null) {
+            libs.add(copyResourceToAgent(CCUD_LIB_NAME, rootPath));
+        }
+        return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(":"));
     }
 
     private String getGlobalEnvVar(String varName) {
