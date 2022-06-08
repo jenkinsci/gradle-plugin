@@ -81,12 +81,6 @@ dependencies {
   testImplementation 'org.jenkins-ci.plugins:timestamper:1.8.10'
   testImplementation 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
   testImplementation 'org.jenkins-ci.plugins:pipeline-maven:3.10.0'
-  testImplementation 'org.jenkins-ci.plugins:git:4.9.2:tests'
-  testImplementation 'org.jenkins-ci.plugins:git:4.9.2'
-  testImplementation 'org.jenkins-ci.plugins:scm-api:608.vfa_f971c5a_a_e9:tests'
-  testImplementation 'org.jenkins-ci.test:docker-fixtures:1.11'
-  testImplementation 'org.jenkins-ci.plugins:ssh-slaves:1.33.0'
-
   testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
 
   testRuntimeOnly "org.jenkins-ci.main:jenkins-war:${coreBaseVersion}"
@@ -180,8 +174,14 @@ task createWrapperZip(type: Zip) {
 
 processTestResources.dependsOn(createWrapperZip)
 
+processTestResources {
+    from(configurations.includedLibs) {
+        into("hudson/plugins/gradle/injection")
+    }
+}
+
 jar {
-  from(configurations.includedLibs) {
-    into("hudson/plugins/gradle/injection")
-  }
+    from(configurations.includedLibs) {
+        into("hudson/plugins/gradle/injection")
+    }
 }

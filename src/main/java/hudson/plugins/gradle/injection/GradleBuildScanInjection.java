@@ -6,8 +6,9 @@ import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.logging.Logger;
+
+import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
 
 public class GradleBuildScanInjection implements BuildScanInjection {
 
@@ -15,7 +16,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
 
-    private static final String RESOURCE_INIT_SCRIPT_GRADLE = "scripts/init-script.gradle";
+    private static final String RESOURCE_INIT_SCRIPT_GRADLE = "init-script.gradle";
     private static final String INIT_DIR = "init.d";
     private static final String GRADLE_DIR = ".gradle";
     private static final String GRADLE_INIT_FILE = "init-build-scan.gradle";
@@ -64,9 +65,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
                 }
 
                 LOGGER.fine("copy init script file");
-                gradleInitScriptFile.copyFrom(
-                        Objects.requireNonNull(BuildScanInjectionListener.class.getClassLoader().getResourceAsStream(RESOURCE_INIT_SCRIPT_GRADLE))
-                );
+                copyResourceToNode(gradleInitScriptFile, RESOURCE_INIT_SCRIPT_GRADLE);
             }
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
