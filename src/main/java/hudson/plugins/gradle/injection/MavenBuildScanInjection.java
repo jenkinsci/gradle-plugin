@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
 
@@ -26,7 +25,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     // Environment variables set in Jenkins Global configuration
     private static final String GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY = "gradle.scan.uploadInBackground";
     private static final String MAVEN_EXT_CLASS_PATH_PROPERTY_KEY = "maven.ext.class.path";
-    private static final ClearMavenOpts clearMavenOpts = new ClearMavenOpts(
+    private static final MavenOptsSetter MAVEN_OPTS_SETTER = new MavenOptsSetter(
         MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
         GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
         GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
@@ -35,7 +34,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     private static final String GE_ALLOW_UNTRUSTED_VAR = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER";
     private static final String GE_URL_VAR = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL";
     private static final String GE_CCUD_VERSION_VAR = "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION";
-    private static final String MAVEN_OPTS_VAR = "MAVEN_OPTS";
+
 
     @Override
     public String getActivationEnvironmentVariableName() {
@@ -73,35 +72,21 @@ public class MavenBuildScanInjection implements BuildScanInjection {
             if (getGlobalEnvVar(GE_URL_VAR) != null) {
                 mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, getGlobalEnvVar(GE_URL_VAR)));
             }
-            appendMavenOpts(node, mavenOptsKeyValuePairs);
+            MAVEN_OPTS_SETTER.appendIfMissing(node, mavenOptsKeyValuePairs);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private void appendMavenOpts(Node node, List<String> mavenOptsKeyValuePairs) throws IOException, InterruptedException {
-        String mavenOpts = clearMavenOpts.removeSystemProperties(getMavenOpts(node)) + " " + String.join(" ", mavenOptsKeyValuePairs);
-        setMavenOpts(node, mavenOpts);
-    }
 
     private void removeMavenExtension(Node node, FilePath rootPath) {
         try {
             deleteResourceFromAgent(GE_MVN_LIB_NAME, rootPath);
             deleteResourceFromAgent(CCUD_LIB_NAME, rootPath);
-            String mavenOpts = clearMavenOpts.removeSystemProperties(getMavenOpts(node));
-            setMavenOpts(node, mavenOpts);
+            MAVEN_OPTS_SETTER.remove(node);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    private String getMavenOpts(Node node) throws IOException, InterruptedException {
-        EnvVars nodeEnvVars = EnvVars.getRemote(node.getChannel());
-        return nodeEnvVars.get(MAVEN_OPTS_VAR);
-    }
-
-    private void setMavenOpts(Node node, String mavenOpts) {
-        node.getNodeProperties().add(new EnvironmentVariablesNodeProperty(new EnvironmentVariablesNodeProperty.Entry(MAVEN_OPTS_VAR, mavenOpts)));
     }
 
     private String constructExtClasspath(FilePath rootPath) throws IOException, InterruptedException {
