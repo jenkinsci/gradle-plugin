@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 public class BuildScanInjectionListener extends ComputerListener {
 
     private static final Logger LOGGER = Logger.getLogger(BuildScanInjectionListener.class.getName());
+    private static final boolean DISABLED = Boolean.getBoolean(BuildScanInjectionListener.class.getName() + ".disabled");
 
     private final List<BuildScanInjection> injections = Arrays.asList(
             new GradleBuildScanInjection(),
@@ -25,6 +26,9 @@ public class BuildScanInjectionListener extends ComputerListener {
 
     @Override
     public void onOnline(Computer c, TaskListener listener) {
+        if (DISABLED) {
+            return;
+        }
         try {
             EnvVars envGlobal = c.buildEnvironment(listener);
             EnvVars envComputer = c.getEnvironment();
@@ -38,6 +42,9 @@ public class BuildScanInjectionListener extends ComputerListener {
 
     @Override
     public void onConfigurationChange() {
+        if (DISABLED) {
+            return;
+        }
         EnvironmentVariablesNodeProperty envProperty = Jenkins.get().getGlobalNodeProperties()
                 .get(EnvironmentVariablesNodeProperty.class);
         EnvVars envGlobal = envProperty != null ? envProperty.getEnvVars() : null;
