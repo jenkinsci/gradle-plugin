@@ -37,7 +37,9 @@ public class GradleBuildScanInjection implements BuildScanInjection {
                 removeInitScript(node.getChannel(), initScriptDirectory);
             }
         } catch (IllegalStateException e) {
-            LOGGER.warning("Error: " + e.getMessage());
+            if (isEnabled(envGlobal)) {
+                LOGGER.warning("Error: " + e.getMessage());
+            }
         }
     }
 

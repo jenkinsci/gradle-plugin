@@ -29,10 +29,9 @@ public class BuildScanInjectionListener extends ComputerListener {
             EnvVars envGlobal = c.buildEnvironment(listener);
             EnvVars envComputer = c.getEnvironment();
 
-            LOGGER.fine("onOnline " + c.getName());
             inject(c, envGlobal, envComputer);
         } catch (IOException | InterruptedException e) {
-            LOGGER.warning("Error processing scan injection - " + e.getMessage());
+            LOGGER.info("Error processing scan injection - " + e.getMessage());
         }
     }
 
@@ -44,11 +43,10 @@ public class BuildScanInjectionListener extends ComputerListener {
 
         for (Computer c : Jenkins.get().getComputers()) {
             try {
-                LOGGER.fine("onConfigurationChange " + c.getName());
                 final EnvVars envComputer = c.getEnvironment();
                 inject(c, envGlobal, envComputer);
             } catch (IOException | InterruptedException e) {
-                LOGGER.warning("Error processing scan injection - " + e.getMessage());
+                LOGGER.info("Error processing scan injection - " + e.getMessage());
             }
         }
     }
