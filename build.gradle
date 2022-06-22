@@ -91,7 +91,7 @@ dependencies {
 if (project.hasProperty('maxParallelForks')) {
   project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
 } else {
-  ext.maxParallelForks = 1
+  ext.maxParallelForks = 3
 }
 
 animalsniffer {

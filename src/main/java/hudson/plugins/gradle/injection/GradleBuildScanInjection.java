@@ -14,6 +14,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
     private static final Logger LOGGER = Logger.getLogger(GradleBuildScanInjection.class.getName());
 
+    private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME";
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
 
     private static final String RESOURCE_INIT_SCRIPT_GRADLE = "init-script.gradle";
@@ -44,8 +45,11 @@ public class GradleBuildScanInjection implements BuildScanInjection {
     }
 
     private String getInitScriptDirectory(EnvVars envGlobal, EnvVars envComputer) {
+        String gradleHomeOverride = getEnv(envGlobal, JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME);
         String homeOverride = getEnv(envGlobal, JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME);
-        if (homeOverride != null) {
+        if (gradleHomeOverride != null) {
+            return gradleHomeOverride + "/" + INIT_DIR;
+        } else if (homeOverride != null) {
             return homeOverride + "/" + GRADLE_DIR + "/" + INIT_DIR;
         } else {
             String home = getEnv(envComputer, "HOME");
