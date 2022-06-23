@@ -17,7 +17,7 @@ import spock.lang.Unroll
 @Unroll
 class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
 
-  private static final String MSG_PUBLISH_BUILD_SCAN = "Publishing build scan..."
+  private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 
   def 'Gradle #gradleVersion - manual step - conditional build scan publication'() {
     given:
@@ -38,7 +38,7 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
 
     then:
     println JenkinsRule.getLog(build)
-    j.assertLogNotContains(MSG_PUBLISH_BUILD_SCAN, build)
+    j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
 
     when:
     enableBuildInjection(slave, gradleVersion)
@@ -46,7 +46,7 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
 
     then:
     println JenkinsRule.getLog(build2)
-    j.assertLogContains(MSG_PUBLISH_BUILD_SCAN, build2)
+    j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
     where:
     gradleVersion << ['4.10.3', '5.6.4', '6.9.2', '7.4.2']
@@ -84,7 +84,7 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
 
     then:
     println JenkinsRule.getLog(build)
-    j.assertLogNotContains(MSG_PUBLISH_BUILD_SCAN, build)
+    j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
 
     when:
     enableBuildInjection(slave, gradleVersion)
@@ -92,7 +92,7 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
 
     then:
     println JenkinsRule.getLog(build2)
-    j.assertLogContains(MSG_PUBLISH_BUILD_SCAN, build2)
+    j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
     where:
     gradleVersion << ['4.10.3', '5.6.4', '6.9.2', '7.4.2']
