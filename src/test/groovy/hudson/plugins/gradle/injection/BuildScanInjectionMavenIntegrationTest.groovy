@@ -18,17 +18,7 @@ import org.jvnet.hudson.test.ToolInstallations
 
 class BuildScanInjectionMavenIntegrationTest extends AbstractIntegrationTest {
 
-    def pomFile = '''<?xml version="1.0" encoding="UTF-8"?>
-                <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>com.example</groupId>
-                    <artifactId>my-pom</artifactId>
-                    <version>0.1-SNAPSHOT</version>
-                    <packaging>pom</packaging>
-                    <name>my-pom</name>
-                    <description>my-pom</description>
-                </project>'''
+    def pomFile = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
 
     def 'build scan is published without GE plugin with simple pipeline'() {
         given:
@@ -59,11 +49,14 @@ node {
    stage('Build') {
         node('foo') {
             withMaven(maven: '$mavenInstallationName') {
-                sh "env"
-                sh '''cat <<EOT >> pom.xml
-$pomFile
-EOT'''
-                sh "mvn package -B"
+                writeFile file: 'pom.xml', text: '$pomFile'
+                if (isUnix()) {
+                    sh "env"
+                    sh "mvn package -B"
+                } else {
+                    bat "set"
+                    bat "mvn package -B"
+                }
             }
         }
    }
@@ -119,11 +112,14 @@ EOT'''
 node {
    stage('Build') {
         node('foo') {
-                sh "env"
-                sh '''cat <<EOT >> pom.xml
-$pomFile
-EOT'''
-                sh "mvn package -B"
+                writeFile file: 'pom.xml', text: '$pomFile'
+                if (isUnix()) {
+                    sh "env"
+                    sh "mvn package -B"
+                } else {
+                    bat "set"
+                    bat "mvn package -B"
+                }
         }
    }
 }

@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection;
 
 import hudson.EnvVars;
 import hudson.FilePath;
+import hudson.FilePathUtil;
 import hudson.model.Node;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import jenkins.model.Jenkins;
@@ -104,7 +105,11 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         if (getGlobalEnvVar(GE_CCUD_VERSION_VAR) != null) {
             libs.add(copyResourceToAgent(CCUD_LIB_NAME, rootPath));
         }
-        return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(":"));
+        return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(getDelimiter(rootPath)));
+    }
+
+    private String getDelimiter(FilePath path) {
+        return FilePathUtil.isUnix(path) ? ":" : ";";
     }
 
     private String getGlobalEnvVar(String varName) {
