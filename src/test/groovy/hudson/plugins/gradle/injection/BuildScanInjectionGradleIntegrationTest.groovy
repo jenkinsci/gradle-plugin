@@ -98,7 +98,7 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
     gradleVersion << ['4.10.3', '5.6.4', '6.9.2', '7.4.2']
   }
 
-  def 'init script is deleted without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION'() {
+  def 'init script is deleted without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION set'() {
     given:
     gradleInstallationRule.gradleVersion = gradleVersion
     gradleInstallationRule.addInstallation()
@@ -159,6 +159,7 @@ task hello {
     // we override the location of the init script to a workspace internal folder to allow parallel test runs
     env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
     env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', '3.10.1')
+    env.put('GRADLE_OPTS','-Dscan.uploadInBackground=false')
 
     j.jenkins.globalNodeProperties.add(nodeProperty)
 
