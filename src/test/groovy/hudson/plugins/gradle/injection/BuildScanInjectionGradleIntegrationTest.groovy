@@ -17,14 +17,15 @@ import spock.lang.Unroll
 @Unroll
 class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
 
-  private static final String MSG_PUBLISH_BUILD_SCAN = "Publishing build scan..."
+  private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 
-  def 'build scan is published without GE plugin with Gradle manual step #gradleVersion'() {
+  def 'Gradle #gradleVersion - manual step - conditional build scan publication'() {
     given:
     gradleInstallationRule.gradleVersion = gradleVersion
     gradleInstallationRule.addInstallation()
 
-    DumbSlave slave = setupBuildInjection(false)
+    DumbSlave slave = createSlave()
+
     FreeStyleProject p = j.createFreeStyleProject()
     p.setAssignedNode(slave)
 
@@ -32,49 +33,37 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
     p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
     when:
+    // first build to download Gradle
     def build = j.buildAndAssertSuccess(p)
 
     then:
     println JenkinsRule.getLog(build)
-    j.assertLogContains(MSG_PUBLISH_BUILD_SCAN, build)
+    j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
+
+    when:
+    enableBuildInjection(slave, gradleVersion)
+    def build2 = j.buildAndAssertSuccess(p)
+
+    then:
+    println JenkinsRule.getLog(build2)
+    j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
     where:
     gradleVersion << ['4.10.3', '5.6.4', '6.9.2', '7.4.2']
   }
 
-  def 'build scan is not published without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION on manual step'() {
-    given:
-    gradleInstallationRule.gradleVersion = gradleVersion
-    gradleInstallationRule.addInstallation()
-    DumbSlave slave = j.createOnlineSlave()
-    FreeStyleProject p = j.createFreeStyleProject()
-    p.setAssignedNode(slave)
-
-    p.buildersList.add(buildScriptBuilder())
-    p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
-
-    when:
-    def build = j.buildAndAssertSuccess(p)
-
-    then:
-    println JenkinsRule.getLog(build)
-    j.assertLogNotContains(MSG_PUBLISH_BUILD_SCAN, build)
-
-    where:
-    gradleVersion << ['7.4.2']
-  }
-
-  def 'build scan is published without GE plugin with Gradle pipeline #gradleVersion'() {
+  def 'Gradle #gradleVersion - pipeline - conditional build scan publication'() {
     given:
     gradleInstallationRule.gradleVersion = gradleVersion
     gradleInstallationRule.addInstallation()
 
-    setupBuildInjection(false)
+    DumbSlave slave = createSlave()
+
     def pipelineJob = j.createProject(WorkflowJob)
 
     pipelineJob.setDefinition(new CpsFlowDefinition("""
     stage('Build') {
-      node {
+      node('foo') {
         withGradle {
           def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
           writeFile file: 'settings.gradle', text: ''
@@ -90,132 +79,48 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
 """, false))
 
     when:
+    // first build to download Gradle
     def build = j.buildAndAssertSuccess(pipelineJob)
 
     then:
-    j.waitForCompletion(build)
     println JenkinsRule.getLog(build)
-    j.assertLogContains(MSG_PUBLISH_BUILD_SCAN, build)
+    j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
+
+    when:
+    enableBuildInjection(slave, gradleVersion)
+    def build2 = j.buildAndAssertSuccess(pipelineJob)
+
+    then:
+    println JenkinsRule.getLog(build2)
+    j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
     where:
     gradleVersion << ['4.10.3', '5.6.4', '6.9.2', '7.4.2']
   }
 
-  def 'build scan is not published without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION on pipeline'() {
-    given:
-    gradleInstallationRule.gradleVersion = gradleVersion
-    gradleInstallationRule.addInstallation()
-    def pipelineJob = j.createProject(WorkflowJob)
-
-    pipelineJob.setDefinition(new CpsFlowDefinition("""
-    stage('Build') {
-      node {
-        withGradle {
-          def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
-          writeFile file: 'settings.gradle', text: ''
-          writeFile file: 'build.gradle', text: ""
-          if (isUnix()) {
-            sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain"
-          } else {
-            bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain/)
-          }
-        }
-      }
-    }
-""", false))
-
-    when:
-    def build = j.buildAndAssertSuccess(pipelineJob)
-
-    then:
-    println JenkinsRule.getLog(build)
-    j.assertLogNotContains(MSG_PUBLISH_BUILD_SCAN, build)
-
-    where:
-    gradleVersion << ['7.4.2']
-  }
-
-  def 'init script is copied in a custom gradle home'() {
+  def 'init script is deleted without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION set'() {
     given:
     gradleInstallationRule.gradleVersion = gradleVersion
     gradleInstallationRule.addInstallation()
 
-    setupBuildInjection(true)
-    def pipelineJob = j.createProject(WorkflowJob)
+    DumbSlave slave = createSlave()
 
-    pipelineJob.setDefinition(new CpsFlowDefinition("""
-    stage('Build') {
-      node {
-        withEnv(['JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION=3.10.1','JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION=1.7','JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL=http://foo.com','JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME=/tmp']){
-          withGradle {
-            def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
-            writeFile file: 'settings.gradle', text: ''
-            writeFile file: 'build.gradle', text: ""
-            if (isUnix()) {
-              sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain"
-            } else {
-              bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain/)
-            }
-          }
+    File initScript = new File(getGradleHome(slave, gradleVersion) + "/init.d/init-build-scan.gradle")
 
-          def exists = fileExists '/tmp/.gradle/init.d/init-build-scan.gradle'
-          if (!exists) {
-            error "Gradle init script not found"
-          }
-        }
-      }
-    }
-""", false))
+    expect:
+    !initScript.exists()
 
     when:
-    def build = j.buildAndAssertSuccess(pipelineJob)
+    enableBuildInjection(slave, gradleVersion)
 
     then:
-    println JenkinsRule.getLog(build)
-
-    where:
-    gradleVersion << ['7.4.2']
-  }
-
-  def 'init script is deleted without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION'() {
-    given:
-    gradleInstallationRule.gradleVersion = gradleVersion
-    gradleInstallationRule.addInstallation()
-
-    NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
-    EnvVars env = nodeProperty.getEnvVars()
-    env.put('JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME','/tmp')
-    j.jenkins.globalNodeProperties.add(nodeProperty)
-    j.createOnlineSlave(Label.get("foo"), env)
-    def pipelineJob = j.createProject(WorkflowJob)
-
-    pipelineJob.setDefinition(new CpsFlowDefinition("""
-    stage('Build') {
-      node {
-        withGradle {
-          def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
-          writeFile file: 'settings.gradle', text: ''
-          writeFile file: 'build.gradle', text: ""
-          if (isUnix()) {
-            sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain"
-          } else {
-            bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain/)
-          }
-        }
-
-        def exists = fileExists '/tmp/.gradle/init.d/init-build-scan.gradle'
-        if (exists) {
-          error "Gradle init script not deleted"
-        }
-      }
-    }
-""", false))
+    initScript.exists()
 
     when:
-    def build = j.buildAndAssertSuccess(pipelineJob)
+    disableBuildInjection(slave, gradleVersion)
 
     then:
-    println JenkinsRule.getLog(build)
+    !initScript.exists()
 
     where:
     gradleVersion << ['7.4.2']
@@ -223,25 +128,56 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
 
   private static CreateFileBuilder buildScriptBuilder() {
     return new CreateFileBuilder('build.gradle', """
-task hello { doLast { println 'Hello' } }""")
+task hello { 
+  doLast { 
+    println 'Hello!'
+  } 
+}
+""")
   }
 
-  private static boolean isUnix() {
-    return File.pathSeparatorChar == ':' as char
-  }
-
-  private DumbSlave setupBuildInjection(boolean withCustomGradleHome) {
+  private DumbSlave createSlave() {
     NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
     EnvVars env = nodeProperty.getEnvVars()
-    env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', '3.10.1')
+
     env.put('JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION', '1.7')
     env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL', 'http://foo.com')
-    if(withCustomGradleHome){
-      env.put('JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME','/tmp')
-    }
-    j.jenkins.globalNodeProperties.add(nodeProperty)
+
     DumbSlave slave = j.createOnlineSlave(Label.get("foo"), env)
-    slave
+
+    return slave
+  }
+
+  private String getGradleHome(DumbSlave slave, String gradleVersion) {
+    return slave.getRemoteFS() + "/tools/hudson.plugins.gradle.GradleInstallation/" + gradleVersion
+  }
+
+  private void enableBuildInjection(DumbSlave slave, String gradleVersion) {
+    NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
+    EnvVars env = nodeProperty.getEnvVars()
+
+    // we override the location of the init script to a workspace internal folder to allow parallel test runs
+    env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
+    env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', '3.10.1')
+    env.put('GRADLE_OPTS','-Dscan.uploadInBackground=false')
+
+    j.jenkins.globalNodeProperties.add(nodeProperty)
+
+    // trigger BuildScanInjectionListener.onConfigurationChange()
+    j.createSlave()
+  }
+
+  private void disableBuildInjection(DumbSlave slave, String gradleVersion) {
+    NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
+    EnvVars env = nodeProperty.getEnvVars()
+
+    env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
+
+    j.jenkins.globalNodeProperties.clear()
+    j.jenkins.globalNodeProperties.add(nodeProperty)
+
+    // trigger BuildScanInjectionListener.onConfigurationChange()
+    j.createSlave()
   }
 
 }

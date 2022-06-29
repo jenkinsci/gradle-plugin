@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection;
 
 import hudson.EnvVars;
 import hudson.FilePath;
+import hudson.FilePathUtil;
 import hudson.model.Node;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import jenkins.model.Jenkins;
@@ -10,11 +11,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
 
 public class MavenBuildScanInjection implements BuildScanInjection {
+
+    private static final Logger LOGGER = Logger.getLogger(MavenBuildScanInjection.class.getName());
 
     private static final String LIB_DIR_PATH = "jenkins-gradle-plugin/lib";
     private static final String GE_MVN_LIB_NAME = "gradle-enterprise-maven-extension-1.14.2.jar";
@@ -43,19 +47,25 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
-        if (node == null) {
-            return;
-        }
+        try {
+            if (node == null) {
+                return;
+            }
 
-        FilePath rootPath = node.getRootPath();
-        if (rootPath == null) {
-            return;
-        }
+            FilePath rootPath = node.getRootPath();
+            if (rootPath == null) {
+                return;
+            }
 
-        if (isEnabled(envGlobal)) {
-            injectMavenExtension(node, rootPath);
-        } else {
-            removeMavenExtension(node, rootPath);
+            if (isEnabled(envGlobal)) {
+                injectMavenExtension(node, rootPath);
+            } else {
+                removeMavenExtension(node, rootPath);
+            }
+        } catch (IllegalStateException e) {
+            if (isEnabled(envGlobal)) {
+                LOGGER.warning("Error: " + e.getMessage());
+            }
         }
     }
 
@@ -95,7 +105,11 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         if (getGlobalEnvVar(GE_CCUD_VERSION_VAR) != null) {
             libs.add(copyResourceToAgent(CCUD_LIB_NAME, rootPath));
         }
-        return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(":"));
+        return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(getDelimiter(rootPath)));
+    }
+
+    private String getDelimiter(FilePath path) {
+        return FilePathUtil.isUnix(path) ? ":" : ";";
     }
 
     private String getGlobalEnvVar(String varName) {
