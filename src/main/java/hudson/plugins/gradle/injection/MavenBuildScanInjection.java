@@ -21,7 +21,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     private static final Logger LOGGER = Logger.getLogger(MavenBuildScanInjection.class.getName());
 
     private static final String LIB_DIR_PATH = "jenkins-gradle-plugin/lib";
-    private static final String GE_MVN_LIB_NAME = "gradle-enterprise-maven-extension-1.14.2.jar";
+    private static final String GE_MVN_LIB_NAME = "gradle-enterprise-maven-extension-1.14.3.jar";
     private static final String CCUD_LIB_NAME = "common-custom-user-data-maven-extension-1.10.1.jar";
     // Maven system properties passed on the CLI to a Maven build
     private static final String GRADLE_ENTERPRISE_URL_PROPERTY_KEY = "gradle.enterprise.url";
