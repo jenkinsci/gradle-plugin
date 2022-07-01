@@ -2,7 +2,7 @@ package hudson.plugins.gradle.injection;
 
 import hudson.EnvVars;
 import hudson.FilePath;
-import hudson.FilePathUtil;
+import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import jenkins.model.Jenkins;
@@ -71,7 +71,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private void injectMavenExtension(Node node, FilePath rootPath) {
         try {
-            String cp = constructExtClasspath(rootPath);
+            String cp = constructExtClasspath(rootPath, isUnix(node));
             List<String> mavenOptsKeyValuePairs = new ArrayList<>();
             mavenOptsKeyValuePairs.add(asSystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, cp));
             mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
@@ -88,6 +88,10 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         }
     }
 
+    private boolean isUnix(Node node) {
+        Computer computer = node.toComputer();
+        return computer == null || Boolean.TRUE.equals(computer.isUnix());
+    }
 
     private void removeMavenExtension(Node node, FilePath rootPath) {
         try {
@@ -99,17 +103,17 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         }
     }
 
-    private String constructExtClasspath(FilePath rootPath) throws IOException, InterruptedException {
+    private String constructExtClasspath(FilePath rootPath, boolean isUnix) throws IOException, InterruptedException {
         List<FilePath> libs = new LinkedList<>();
         libs.add(copyResourceToAgent(GE_MVN_LIB_NAME, rootPath));
         if (getGlobalEnvVar(GE_CCUD_VERSION_VAR) != null) {
             libs.add(copyResourceToAgent(CCUD_LIB_NAME, rootPath));
         }
-        return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(getDelimiter(rootPath)));
+        return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(getDelimiter(isUnix)));
     }
 
-    private String getDelimiter(FilePath path) {
-        return FilePathUtil.isUnix(path) ? ":" : ";";
+    private String getDelimiter(boolean isUnix) {
+        return isUnix ? ":" : ";";
     }
 
     private String getGlobalEnvVar(String varName) {
