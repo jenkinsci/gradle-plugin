@@ -163,8 +163,8 @@ task hello {
 
     j.jenkins.globalNodeProperties.add(nodeProperty)
 
-    // trigger BuildScanInjectionListener.onConfigurationChange()
-    j.createSlave()
+    // sync changes
+    restartSlave(slave)
   }
 
   private void disableBuildInjection(DumbSlave slave, String gradleVersion) {
@@ -176,8 +176,12 @@ task hello {
     j.jenkins.globalNodeProperties.clear()
     j.jenkins.globalNodeProperties.add(nodeProperty)
 
-    // trigger BuildScanInjectionListener.onConfigurationChange()
-    j.createSlave()
+    // sync changes
+    restartSlave(slave)
   }
 
+  private void restartSlave(DumbSlave slave) {
+    j.disconnectSlave(slave)
+    j.waitOnline(slave)
+  }
 }
