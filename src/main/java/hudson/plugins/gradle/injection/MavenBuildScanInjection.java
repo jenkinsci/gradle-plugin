@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
@@ -21,8 +22,6 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     private static final Logger LOGGER = Logger.getLogger(MavenBuildScanInjection.class.getName());
 
     private static final String LIB_DIR_PATH = "jenkins-gradle-plugin/lib";
-    private static final String GE_MVN_LIB_NAME = "gradle-enterprise-maven-extension-1.14.3.jar";
-    private static final String CCUD_LIB_NAME = "common-custom-user-data-maven-extension-1.10.1.jar";
     // Maven system properties passed on the CLI to a Maven build
     private static final String GRADLE_ENTERPRISE_URL_PROPERTY_KEY = "gradle.enterprise.url";
     private static final String GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = "gradle.enterprise.allowUntrustedServer";
@@ -39,6 +38,8 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     private static final String GE_URL_VAR = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL";
     private static final String GE_CCUD_VERSION_VAR = "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION";
 
+    private final CpPatternResource geLibName = new CpPatternResource(Pattern.compile("gradle-enterprise-maven-extension-.*\\.jar"));
+    private final CpPatternResource ccudLibName = new CpPatternResource(Pattern.compile("common-custom-user-data-maven-extension-.*\\.jar"));
 
     @Override
     public String getActivationEnvironmentVariableName() {
@@ -95,8 +96,8 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private void removeMavenExtension(Node node, FilePath rootPath) {
         try {
-            deleteResourceFromAgent(GE_MVN_LIB_NAME, rootPath);
-            deleteResourceFromAgent(CCUD_LIB_NAME, rootPath);
+            deleteResourceFromAgent(geLibName.resolve(), rootPath);
+            deleteResourceFromAgent(ccudLibName.resolve(), rootPath);
             MAVEN_OPTS_SETTER.remove(node);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
@@ -105,9 +106,9 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private String constructExtClasspath(FilePath rootPath, boolean isUnix) throws IOException, InterruptedException {
         List<FilePath> libs = new LinkedList<>();
-        libs.add(copyResourceToAgent(GE_MVN_LIB_NAME, rootPath));
+        libs.add(copyResourceToAgent(geLibName.resolve(), rootPath));
         if (getGlobalEnvVar(GE_CCUD_VERSION_VAR) != null) {
-            libs.add(copyResourceToAgent(CCUD_LIB_NAME, rootPath));
+            libs.add(copyResourceToAgent(ccudLibName.resolve(), rootPath));
         }
         return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(getDelimiter(isUnix)));
     }

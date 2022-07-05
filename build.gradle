@@ -83,6 +83,8 @@ dependencies {
   testImplementation 'org.jenkins-ci.plugins:pipeline-maven:3.10.0'
   testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
 
+  testImplementation files('src/test/resources/pattern-cp.jar')
+
   testRuntimeOnly "org.jenkins-ci.main:jenkins-war:${coreBaseVersion}"
 
   jenkinsServer 'org.jenkins-ci.plugins:git'
