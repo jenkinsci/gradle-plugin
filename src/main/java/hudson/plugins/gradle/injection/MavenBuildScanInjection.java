@@ -47,23 +47,23 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
-        try {
-            if (node == null) {
-                return;
-            }
+        if (isEnabled(envGlobal)) {
+            try {
+                if (node == null) {
+                    return;
+                }
 
-            FilePath rootPath = node.getRootPath();
-            if (rootPath == null) {
-                return;
-            }
+                FilePath rootPath = node.getRootPath();
+                if (rootPath == null) {
+                    return;
+                }
 
-            if (isEnabled(envGlobal)) {
-                injectMavenExtension(node, rootPath);
-            } else {
-                removeMavenExtension(node, rootPath);
-            }
-        } catch (IllegalStateException e) {
-            if (isEnabled(envGlobal)) {
+                if (isOn(envGlobal)) {
+                    injectMavenExtension(node, rootPath);
+                } else {
+                    removeMavenExtension(node, rootPath);
+                }
+            } catch (IllegalStateException e) {
                 LOGGER.warning("Error: " + e.getMessage());
             }
         }

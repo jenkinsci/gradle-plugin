@@ -29,16 +29,16 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
     @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
-        try {
-            String initScriptDirectory = getInitScriptDirectory(envGlobal, envComputer);
+        if (isEnabled(envGlobal)) {
+            try {
+                String initScriptDirectory = getInitScriptDirectory(envGlobal, envComputer);
 
-            if (isEnabled(envGlobal)) {
-                copyInitScript(node.getChannel(), initScriptDirectory);
-            } else {
-                removeInitScript(node.getChannel(), initScriptDirectory);
-            }
-        } catch (IllegalStateException e) {
-            if (isEnabled(envGlobal)) {
+                if (isOn(envGlobal)) {
+                    copyInitScript(node.getChannel(), initScriptDirectory);
+                } else {
+                    removeInitScript(node.getChannel(), initScriptDirectory);
+                }
+            } catch (IllegalStateException e) {
                 LOGGER.warning("Error: " + e.getMessage());
             }
         }

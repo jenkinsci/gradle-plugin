@@ -171,6 +171,7 @@ task hello {
     NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
     EnvVars env = nodeProperty.getEnvVars()
 
+    env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', 'off')
     env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
 
     j.jenkins.globalNodeProperties.clear()

@@ -97,11 +97,11 @@ The plugin can be configured to inject Build Scans into any Gradle or Maven buil
 This feature works by installing scripts and Jars on each agent depending on the environment variable settings.
 
 If the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` environment variable is present, injection is activated for Gradle builds.
-This causes an init script is installed in the user home of each connected agent.
-The init script is removed when the environment variable is removed, thus deactivating injection for Gradle builds.
+This causes an init script to be installed in the user home of each connected agent.
+The init script is removed when the environment variable is set to `off`, thus deactivating injection for Gradle builds.
 If the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable is present, injection is activated for Maven builds.
 This causes the Gradle Enterprise Maven Extension to be installed on each connected agent, and the `MAVEN_OPTS` environment variable will be modified so that each Maven process will load the extension.
-If the environment variable is removed again, the extension is deleted from all agents and the changes to `MAVEN_OPTS` are reverted.
+The extension is deleted from all agents and the changes to `MAVEN_OPTS` are reverted when the environment variable is set to `off`.
 
 === Configuration options
 
