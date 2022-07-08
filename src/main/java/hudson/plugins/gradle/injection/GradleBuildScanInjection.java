@@ -29,30 +29,30 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
     @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
-        if (isEnabled(envGlobal)) {
-            try {
-                String initScriptDirectory = getInitScriptDirectory(envGlobal, envComputer);
+        try {
+            String initScriptDirectory = getInitScriptDirectory(envGlobal, envComputer);
 
-                if (isOn(envGlobal)) {
-                    copyInitScript(node.getChannel(), initScriptDirectory);
-                } else {
-                    removeInitScript(node.getChannel(), initScriptDirectory);
-                }
-            } catch (IllegalStateException e) {
+            if (isOn(envGlobal)) {
+                copyInitScript(node.getChannel(), initScriptDirectory);
+            } else {
+                removeInitScript(node.getChannel(), initScriptDirectory);
+            }
+        } catch (IllegalStateException e) {
+            if (isOn(envGlobal)) {
                 LOGGER.warning("Error: " + e.getMessage());
             }
         }
     }
 
     private String getInitScriptDirectory(EnvVars envGlobal, EnvVars envComputer) {
-        String gradleHomeOverride = getEnv(envGlobal, JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME);
-        String homeOverride = getEnv(envGlobal, JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME);
+        String gradleHomeOverride = EnvUtil.getEnv(envGlobal, JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME);
+        String homeOverride = EnvUtil.getEnv(envGlobal, JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME);
         if (gradleHomeOverride != null) {
             return gradleHomeOverride + "/" + INIT_DIR;
         } else if (homeOverride != null) {
             return homeOverride + "/" + GRADLE_DIR + "/" + INIT_DIR;
         } else {
-            String home = getEnv(envComputer, "HOME");
+            String home = EnvUtil.getEnv(envComputer, "HOME");
             if(home == null){
                 throw new IllegalStateException("HOME is not set");
             }

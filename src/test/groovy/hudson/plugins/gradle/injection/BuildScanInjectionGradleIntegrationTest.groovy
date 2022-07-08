@@ -120,6 +120,12 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
     disableBuildInjection(slave, gradleVersion)
 
     then:
+    initScript.exists()
+
+    when:
+    turnOffBuildInjection(slave, gradleVersion)
+
+    then:
     !initScript.exists()
 
     where:
@@ -157,6 +163,7 @@ task hello {
     EnvVars env = nodeProperty.getEnvVars()
 
     // we override the location of the init script to a workspace internal folder to allow parallel test runs
+    env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION','on')
     env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
     env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', '3.10.1')
     env.put('GRADLE_OPTS','-Dscan.uploadInBackground=false')
@@ -171,7 +178,22 @@ task hello {
     NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
     EnvVars env = nodeProperty.getEnvVars()
 
-    env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', 'off')
+    env.remove('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION')
+    env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
+
+    j.jenkins.globalNodeProperties.clear()
+    j.jenkins.globalNodeProperties.add(nodeProperty)
+
+    // sync changes
+    restartSlave(slave)
+  }
+
+  private void turnOffBuildInjection(DumbSlave slave, String gradleVersion) {
+    NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
+    EnvVars env = nodeProperty.getEnvVars()
+
+    env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'on')
+    env.remove('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION')
     env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
 
     j.jenkins.globalNodeProperties.clear()
