@@ -138,7 +138,8 @@ node {
     }
 
     private DumbSlave setupBuildInjection() {
-        EnvVars env = addGlobalEnvVar('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION', '1.14.2')
+        EnvVars env = addGlobalEnvVar('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'on')
+        env = addGlobalEnvVar('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION', '1.14.2')
         DumbSlave slave = j.createOnlineSlave(Label.get("foo"), env)
         slave
     }

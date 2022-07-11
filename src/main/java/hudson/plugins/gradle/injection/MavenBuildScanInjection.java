@@ -57,13 +57,13 @@ public class MavenBuildScanInjection implements BuildScanInjection {
                 return;
             }
 
-            if (isEnabled(envGlobal)) {
+            if (isOn(envGlobal)) {
                 injectMavenExtension(node, rootPath);
             } else {
                 removeMavenExtension(node, rootPath);
             }
         } catch (IllegalStateException e) {
-            if (isEnabled(envGlobal)) {
+            if (isOn(envGlobal)) {
                 LOGGER.warning("Error: " + e.getMessage());
             }
         }

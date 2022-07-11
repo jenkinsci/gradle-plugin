@@ -5,12 +5,8 @@ import hudson.model.Node;
 
 public interface BuildScanInjection {
 
-    default String getEnv(EnvVars env, String key) {
-        return env != null ? env.get(key) : null;
-    }
-
-    default boolean isEnabled(EnvVars env) {
-        return getEnv(env, getActivationEnvironmentVariableName()) != null;
+    default boolean isOn(EnvVars env) {
+        return EnvUtil.getEnv(env, getActivationEnvironmentVariableName()) != null;
     }
 
     String getActivationEnvironmentVariableName();
