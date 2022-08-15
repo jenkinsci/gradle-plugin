@@ -70,7 +70,7 @@ dependencies {
   implementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
-  includedLibs 'com.gradle:gradle-enterprise-maven-extension:1.14.3'
+  includedLibs 'com.gradle:gradle-enterprise-maven-extension:1.15'
   includedLibs 'com.gradle:common-custom-user-data-maven-extension:1.10.1'
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
