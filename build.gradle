@@ -36,7 +36,7 @@ jenkinsPlugin {
 
   compatibleSinceVersion = '1.0'
 
-  pluginDevelopers {
+  developers {
     developer {
       id = 'wolfs'
       name = 'Stefan Wolf'
