@@ -1,21 +1,18 @@
 plugins {
     id 'java'
+    id 'groovy'
 }
 
 ext {
     athVersion = '1.118'
-    jenkinsVersion = '2.289.3'
+    jenkinsVersion = '2.356' // Last version that supports Java 8
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(8))
     }
 }
-
-//java {
-//    sourceCompatibility = JavaVersion.VERSION_1_8
-//}
 
 group = 'org.jenkins-ci.plugins'
 description = 'Acceptance tests of Gradle plugin'
@@ -31,14 +28,30 @@ dependencies {
     testImplementation "org.jenkins-ci:acceptance-test-harness:${athVersion}"
 }
 
-tasks.withType(Test).configureEach {
+def testDependenciesDir = new File("${buildDir}", "test-dependencies")
+
+def copyTestDependencies = tasks.create("copyTestDependencies", Copy) {
     doFirst {
-        mkdir "$buildDir/target"
+        mkdir "${buildDir}/target" // FIXME: use groovy script to configure workspace
     }
+
+    from("${rootProject.buildDir}/libs") {
+        include '*.hpi'
+        include '*.jpi'
+    }
+    from("${rootProject.buildDir}/jpi-plugin/generatedJenkinsTest/test-dependencies") {
+        include '*.hpi'
+        include '*.jpi'
+    }
+    into testDependenciesDir
+}
+
+tasks.withType(Test).configureEach {
+    dependsOn copyTestDependencies
 
     environment([
         JENKINS_VERSION: "${jenkinsVersion}",
-        LOCAL_JARS     : "${rootProject.buildDir}/libs/gradle.hpi",
+        PLUGINS_DIR    : testDependenciesDir,
         BROWSER        : 'chrome'
     ])
     systemProperties([
