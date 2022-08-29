@@ -30,14 +30,12 @@ dependencies {
 def testDependenciesDir = new File("${buildDir}", "test-dependencies")
 
 def copyTestDependencies = tasks.create("copyTestDependencies", Copy) {
-    from("${rootProject.buildDir}/libs") {
-        include '*.hpi'
-        include '*.jpi'
-    }
-    from("${rootProject.buildDir}/jpi-plugin/generatedJenkinsTest/test-dependencies") {
-        include '*.hpi'
-        include '*.jpi'
-    }
+    from "${rootProject.buildDir}/libs"
+    from "${rootProject.buildDir}/jpi-plugin/generatedJenkinsTest/test-dependencies"
+
+    include '*.hpi'
+    include '*.jpi'
+
     into testDependenciesDir
 }
 
