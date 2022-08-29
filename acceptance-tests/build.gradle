@@ -25,16 +25,12 @@ repositories {
 }
 
 dependencies {
-    testImplementation "org.jenkins-ci:acceptance-test-harness:${athVersion}"
+    implementation "org.jenkins-ci:acceptance-test-harness:${athVersion}"
 }
 
 def testDependenciesDir = new File("${buildDir}", "test-dependencies")
 
 def copyTestDependencies = tasks.create("copyTestDependencies", Copy) {
-    doFirst {
-        mkdir "${buildDir}/target" // FIXME: use groovy script to configure workspace
-    }
-
     from("${rootProject.buildDir}/libs") {
         include '*.hpi'
         include '*.jpi'
@@ -53,8 +49,5 @@ tasks.withType(Test).configureEach {
         JENKINS_VERSION: "${jenkinsVersion}",
         PLUGINS_DIR    : testDependenciesDir,
         BROWSER        : 'chrome'
-    ])
-    systemProperties([
-        'user.dir': "$buildDir"
     ])
 }
