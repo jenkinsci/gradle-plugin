@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+}
+
+ext {
+    athVersion = '1.118'
+    jenkinsVersion = '2.289.3'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+//java {
+//    sourceCompatibility = JavaVersion.VERSION_1_8
+//}
+
+group = 'org.jenkins-ci.plugins'
+description = 'Acceptance tests of Gradle plugin'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://repo.jenkins-ci.org/releases/'
+    }
+}
+
+dependencies {
+    testImplementation "org.jenkins-ci:acceptance-test-harness:${athVersion}"
+}
+
+tasks.withType(Test).configureEach {
+    doFirst {
+        mkdir "$buildDir/target"
+    }
+
+    environment([
+        JENKINS_VERSION: "${jenkinsVersion}",
+        LOCAL_JARS     : "${rootProject.buildDir}/libs/gradle.hpi",
+        BROWSER        : 'chrome'
+    ])
+    systemProperties([
+        'user.dir': "$buildDir"
+    ])
+}
