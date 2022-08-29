@@ -3,7 +3,7 @@ plugins {
 }
 
 ext {
-    athVersion = '1.118'
+    athVersion = '5412.vc75c82cc0c93'
     jenkinsVersion = '2.356' // Last version that supports Java 8
 }
 
