@@ -51,7 +51,7 @@ jenkinsPlugin {
     }
   }
 
-  disabledTestInjection = false
+  generateTests = true
 }
 
 java {
