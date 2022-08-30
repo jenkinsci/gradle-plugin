@@ -1,19 +1,11 @@
 package hudson.plugins.gradle;
 
-import org.apache.commons.io.FileUtils;
-import org.jenkinsci.test.acceptance.controller.JenkinsController;
-import org.jenkinsci.test.acceptance.controller.LocalController;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleInstallation;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleStep;
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
-import org.junit.Before;
 import org.junit.Test;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
@@ -22,19 +14,6 @@ import static org.jenkinsci.test.acceptance.Matchers.containsString;
 public class GradleInjectionTest extends AbstractAcceptanceTest {
 
     private static final String GRADLE_VERSION = "Gradle 7.5.1";
-
-    @Inject
-    private JenkinsController jenkinsController;
-
-    @Before
-    public void beforeEach() throws IOException {
-        if (jenkinsController instanceof LocalController) {
-            File jenkinsHome = ((LocalController) jenkinsController).getJenkinsHome();
-            File updatesDirectory = new File(jenkinsHome, "updates");
-            FileUtils.copyFileToDirectory(
-                resource("/hudson.plugins.gradle.GradleInstaller").asFile(), updatesDirectory);
-        }
-    }
 
     @Test
     public void freestyleJobSendsBuildScan() {
