@@ -52,6 +52,7 @@ tasks.withType(Test).configureEach {
     environment([
         JENKINS_VERSION: "${jenkinsVersion}",
         PLUGINS_DIR    : testDependenciesDir,
+//        LOCAL_JARS     : "${rootProject.buildDir}/libs/gradle.hpi",
         BROWSER        : 'chrome'
     ])
 }

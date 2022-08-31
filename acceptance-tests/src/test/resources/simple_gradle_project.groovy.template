@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('prepare_build') {
+            steps {
+                ${copy_resource_step}
+            }
+        }
+        stage('build_project') {
+            tools {
+                gradle '${gradle_version}'
+            }
+
+            steps {
+                script {
+                    withGradle {
+                        sh 'gradle ${tasks}'
+                    }
+                }
+            }
+        }
+    }
+}

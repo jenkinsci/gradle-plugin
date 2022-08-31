@@ -1,6 +1,5 @@
 package hudson.plugins.gradle;
 
-import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.plugins.maven.MavenBuildStep;
 import org.jenkinsci.test.acceptance.plugins.maven.MavenInstallation;
 import org.jenkinsci.test.acceptance.po.Build;
@@ -12,9 +11,8 @@ import java.net.URI;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.assumeNotNull;
 
-@WithPlugins("gradle")
 public class MavenInjectionTest extends AbstractAcceptanceTest {
 
     private static final String GE_TEST_INSTANCE = System.getenv("GRADLE_ENTERPRISE_TEST_INSTANCE");
@@ -24,7 +22,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
 
     @Test
     public void freestyleJobSendsBuildScan() {
-        assumeTrue("Environment variable GRADLE_ENTERPRISE_TEST_INSTANCE is not set", GE_URL != null);
+        assumeNotNull(GE_URL);
 
         // given
         MavenInstallation.installMaven(jenkins, MAVEN_VERSION, MAVEN_VERSION);
