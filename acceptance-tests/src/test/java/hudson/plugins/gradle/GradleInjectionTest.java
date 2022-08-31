@@ -19,10 +19,11 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     public void freestyleJobSendsBuildScan() {
         // given
         GradleInstallation.installGradle(jenkins, GRADLE_VERSION, GRADLE_VERSION);
+
         addGlobalEnvironmentVariables(
             "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION", "true",
             "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION", "3.11.1",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL", "https://scans.gradle.com"
+            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL", mockGeServerAddress().toString()
         );
 
         FreeStyleJob job = jenkins.jobs.create();
@@ -44,6 +45,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         assertThat(output, containsString("Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin via init script"));
         assertThat(output, containsString("> Task :helloWorld"));
         assertThat(output, containsString("Hello, World!"));
+        assertThat(output, containsString("Publishing build scan..." + System.lineSeparator() + publicBuildScanId()));
 
         // TODO: Check that build scan is visible on the page
     }
