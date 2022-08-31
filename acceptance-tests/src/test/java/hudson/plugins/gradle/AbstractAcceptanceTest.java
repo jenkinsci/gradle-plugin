@@ -8,19 +8,26 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import hudson.plugin.gradle.EnvironmentVariablesSettings;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.codehaus.plexus.util.Base64;
 import org.jenkinsci.test.acceptance.controller.JenkinsController;
 import org.jenkinsci.test.acceptance.controller.LocalController;
 import org.jenkinsci.test.acceptance.junit.AbstractJUnitTest;
+import org.jenkinsci.test.acceptance.junit.Resource;
 import org.junit.After;
 import org.junit.Before;
+import org.zeroturnaround.zip.ZipUtil;
 import ratpack.handling.Context;
 import ratpack.test.embed.EmbeddedApp;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -113,6 +120,32 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         }
 
         settings.save();
+    }
+
+    protected final String copyResourceDirStep(Resource dir) {
+        Preconditions.checkState(SystemUtils.IS_OS_UNIX, "only UNIX is supported");
+
+        File file = dir.asFile();
+        Preconditions.checkArgument(file.isDirectory(), "'%s' is not a directory", dir.getName());
+
+        File tmp = null;
+        try {
+            tmp = File.createTempFile("jenkins-acceptance-tests", "dir");
+            ZipUtil.pack(file, tmp);
+            byte[] archive = IOUtils.toByteArray(Files.newInputStream(tmp.toPath()));
+
+            String shell = String.format(
+                "base64 --decode << ENDOFFILE > archive.zip && unzip -o archive.zip \n%s\nENDOFFILE",
+                new String(Base64.encodeBase64Chunked(archive)));
+
+            return String.format("sh '''%s'''%n", shell);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            if (tmp != null) {
+                tmp.delete();
+            }
+        }
     }
 
     private static boolean isEven(int number) {

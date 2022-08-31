@@ -15,7 +15,7 @@ pipeline {
             steps {
                 script {
                     withGradle {
-                        sh 'gradle ${tasks}'
+                        sh 'gradle ${gradle_arguments}'
                     }
                 }
             }
