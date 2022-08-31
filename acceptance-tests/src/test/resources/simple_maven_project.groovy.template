@@ -3,10 +3,10 @@ node {
         ${copy_resource_step}
     }
     stage('build_project') {
-        tool name: '${gradle_version}'
+        tool name: '${maven_version}'
 
         withGradle {
-            sh 'gradle ${gradle_arguments}'
+            sh 'mvn ${maven_arguments}'
         }
     }
 }

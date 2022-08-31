@@ -16,6 +16,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 import static org.junit.Assume.assumeTrue;
 
+@WithPlugins("gradle")
 public class GradleInjectionTest extends AbstractAcceptanceTest {
 
     private static final String GRADLE_VERSION = "Gradle 7.5.1";
