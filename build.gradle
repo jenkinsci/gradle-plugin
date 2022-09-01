@@ -198,8 +198,8 @@ jar {
 }
 
 artifacts {
-    add("pluginsCollectionDist", jpi)
-    add("pluginsCollectionDist", copyTestPluginDependencies.outputDir) {
+    pluginsCollectionDist(jpi)
+    pluginsCollectionDist(copyTestPluginDependencies.outputDir) {
         builtBy(copyTestPluginDependencies)
     }
 }
