@@ -1,10 +1,10 @@
 plugins {
     id 'java'
+    id "de.undercouch.download" version "5.1.2"
 }
 
 ext {
     athVersion = '5412.vc75c82cc0c93'
-    jenkinsVersion = '2.356' // Last version that supports Java 8
 }
 
 java {
@@ -45,13 +45,95 @@ def copyTestDependencies = tasks.create("copyTestDependencies", Copy) {
     into testDependenciesDir
 }
 
-tasks.withType(Test).configureEach {
-    dependsOn copyTestDependencies
+def jenkinsVersions = [
+    JenkinsVersion.LATEST,
+    JenkinsVersion.LATEST_LTS,
+    JenkinsVersion.of('2.356')
+]
 
-    environment([
-        JENKINS_VERSION: "${jenkinsVersion}",
-        PLUGINS_DIR    : testDependenciesDir,
+def allTestTasks =
+    jenkinsVersions.collect { jenkinsVersion ->
+        def jenkinsWarLocation =
+            new File("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war")
+
+        def testTask =
+            jenkinsVersion.default
+                ? tasks.named("test")
+                : tasks.register("test_${jenkinsVersion.label}", Test)
+
+        testTask.configure {
+            dependsOn copyTestDependencies
+
+            doFirst {
+                download.run {
+                    src jenkinsVersion.downloadUrl
+                    dest jenkinsWarLocation
+                    onlyIfModified true
+                    overwrite false
+                    tempAndMove true
+                }
+            }
+
+            environment([
+                JENKINS_WAR: jenkinsWarLocation,
+                PLUGINS_DIR: testDependenciesDir,
 //        LOCAL_JARS     : "${rootProject.buildDir}/libs/gradle.hpi",
-        BROWSER        : 'chrome'
-    ])
+                BROWSER    : 'chrome'
+            ])
+
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = jenkinsVersion.javaVersion
+            }
+        }
+
+        testTask
+    }
+
+tasks.register("testAll") {
+    dependsOn allTestTasks
+}
+
+class JenkinsVersion {
+
+    private static final String LATEST_VERSION = "latest"
+    private static final String LATEST_LTS_VERSION = "latest-lts"
+
+    public static final JenkinsVersion LATEST = of(LATEST_VERSION, JavaLanguageVersion.of(11))
+    public static final JenkinsVersion LATEST_LTS = of(LATEST_LTS_VERSION)
+
+    private static final String MIRROR = 'https://get.jenkins.io'
+
+    final String version
+    final URL downloadUrl
+    final JavaLanguageVersion javaVersion
+
+    private JenkinsVersion(String version, URL downloadUrl, JavaLanguageVersion javaVersion) {
+        this.version = version
+        this.downloadUrl = downloadUrl
+        this.javaVersion = javaVersion
+    }
+
+    boolean isDefault() {
+        return version == LATEST_LTS_VERSION
+    }
+
+    String getLabel() {
+        return version.replaceAll("[\\.-]", '_')
+    }
+
+    static JenkinsVersion of(String version, JavaLanguageVersion javaVersion = JavaLanguageVersion.of(8)) {
+        String downloadUrl
+        if (version == LATEST_VERSION) {
+            downloadUrl = "${MIRROR}/war/latest/jenkins.war"
+        } else if (version == 'latest-lts') {
+            downloadUrl = "${MIRROR}/war-stable/latest/jenkins.war"
+        } else {
+            if (!(version ==~ /^\d+([.]\d+)*?$/)) {
+                throw new GradleException("Unsupported Jenkins version '${version}'")
+            }
+            downloadUrl = "https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${version}/jenkins-war-${version}.war"
+        }
+
+        return new JenkinsVersion(version, new URL(downloadUrl), javaVersion)
+    }
 }

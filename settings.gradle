@@ -1,13 +1,13 @@
 plugins {
-  id 'com.gradle.enterprise' version '3.10.2'
+  id 'com.gradle.enterprise' version '3.11.1'
 }
 
 include ':acceptance-tests'
 
 rootProject.name = 'gradle-plugin'
 
-if (!JavaVersion.current().java8) {
-  throw new GradleException('Build requires Java 8')
+if (!JavaVersion.current().java11) {
+  throw new GradleException('Build requires Java 11')
 }
 
 gradle.ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
@@ -29,7 +29,7 @@ gradleEnterprise {
   }
 }
 
-void ifNonNull(value, Closure action) {
+static void ifNonNull(value, Closure action) {
   if (value) {
     action.call(value)
   }
