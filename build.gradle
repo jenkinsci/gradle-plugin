@@ -60,7 +60,13 @@ java {
     }
 }
 
-configurations.create('includedLibs')
+configurations {
+    includedLibs
+    pluginsCollectionDist {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
 
 dependencies {
   api platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}")
@@ -188,5 +194,12 @@ processTestResources {
 jar {
     from(configurations.includedLibs) {
         into("hudson/plugins/gradle/injection")
+    }
+}
+
+artifacts {
+    add("pluginsCollectionDist", jpi)
+    add("pluginsCollectionDist", copyTestPluginDependencies.outputDir) {
+        builtBy(copyTestPluginDependencies)
     }
 }
