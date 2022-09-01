@@ -11,6 +11,7 @@ import org.jenkinsci.test.acceptance.plugins.gradle.GradleInstallation;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleStep;
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
+import org.jenkinsci.test.acceptance.po.Slave;
 import org.jenkinsci.test.acceptance.po.WorkflowJob;
 import org.junit.Before;
 import org.junit.Rule;
@@ -132,6 +133,31 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         MockGeServer.ScanTokenRequest scanTokenRequest = mockGeServer.getLastScanTokenRequest();
         assertThat(scanTokenRequest, notNullValue());
         assertThat(scanTokenRequest.agentVersion, is(equalTo(expectedAgentVersion)));
+    }
+
+    @Test
+    public void injectionWorksOnAgents() throws Exception {
+        // given
+        Slave agent = agentController.install(jenkins).get();
+
+        FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
+        job.configure();
+        job.setLabelExpression(agent.getName());
+
+        job.copyDir(resource("/simple_gradle_project"));
+        GradleStep gradle = job.addBuildStep(GradleStep.class);
+        gradle.setVersion(GRADLE_VERSION);
+        gradle.setSwitches("--no-daemon");
+        gradle.setTasks("helloWorld");
+        job.save();
+
+        // when
+        Build build = job.startBuild();
+
+        // then
+        build.shouldSucceed();
+        assertThat(build.getNode().getName(), equalTo(agent.getName()));
+        assertBuildScanPublished(build);
     }
 
     private void assertBuildScanPublished(Build build) {

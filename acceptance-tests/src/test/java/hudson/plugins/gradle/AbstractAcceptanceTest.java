@@ -12,6 +12,7 @@ import org.jenkinsci.test.acceptance.controller.JenkinsController;
 import org.jenkinsci.test.acceptance.controller.LocalController;
 import org.jenkinsci.test.acceptance.junit.AbstractJUnitTest;
 import org.jenkinsci.test.acceptance.junit.Resource;
+import org.jenkinsci.test.acceptance.slave.SlaveController;
 import org.junit.Before;
 import org.junit.Rule;
 import org.zeroturnaround.zip.ZipUtil;
@@ -31,6 +32,9 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
     @Inject
     public JenkinsController jenkinsController;
+
+    @Inject
+    public SlaveController agentController;
 
     @Before
     public void commonBeforeEach() throws IOException {
