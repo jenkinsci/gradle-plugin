@@ -83,8 +83,8 @@ def allTestTasks =
             environment([
                 JENKINS_WAR: jenkinsWarLocation,
                 PLUGINS_DIR: testDependenciesDir,
-//        LOCAL_JARS     : "${rootProject.buildDir}/libs/gradle.hpi",
-                BROWSER    : 'chrome'
+                // LOCAL_JARS : "${testDependenciesDir}/gradle.hpi",
+                BROWSER    : 'firefox-container'
             ])
 
             javaLauncher = javaToolchains.launcherFor {
@@ -95,8 +95,12 @@ def allTestTasks =
         testTask
     }
 
-tasks.register("testAll") {
+def testAllTask = tasks.register("testAll") {
     dependsOn allTestTasks
+}
+
+tasks.named("check").configure {
+    dependsOn testAllTask
 }
 
 class JenkinsVersion {
