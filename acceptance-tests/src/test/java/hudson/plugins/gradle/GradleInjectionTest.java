@@ -3,9 +3,9 @@ package hudson.plugins.gradle;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
-import org.apache.commons.lang3.SystemUtils;
 import org.hamcrest.Matcher;
 import org.jenkinsci.test.acceptance.junit.Resource;
+import org.jenkinsci.test.acceptance.junit.WithOS;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleInstallation;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleStep;
@@ -26,7 +26,6 @@ import java.nio.charset.StandardCharsets;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
-import static org.junit.Assume.assumeTrue;
 
 @WithPlugins("gradle")
 public class GradleInjectionTest extends AbstractAcceptanceTest {
@@ -75,10 +74,9 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     }
 
     @Test
+    @WithOS(os = {WithOS.OS.MAC, WithOS.OS.LINUX})
     @WithPlugins("pipeline-model-definition")
     public void pipelineJobPublishesBuildScan() {
-        assumeTrue(SystemUtils.IS_OS_UNIX);
-
         // given
         WorkflowJob job = jenkins.jobs.create(WorkflowJob.class);
 
