@@ -3,10 +3,10 @@ node {
         ${copy_resource_step}
     }
     stage('build_project') {
-        tool name: '${maven_version}'
-
-        withGradle {
-            sh 'mvn ${maven_arguments}'
+        withEnv(["PATH+MAVEN=$${tool '${maven_version}'}/bin"]) {
+            withGradle {
+                sh 'mvn ${maven_arguments}'
+            }
         }
     }
 }

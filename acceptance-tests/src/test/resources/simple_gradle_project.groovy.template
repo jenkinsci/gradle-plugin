@@ -3,10 +3,10 @@ node {
         ${copy_resource_step}
     }
     stage('build_project') {
-        tool name: '${gradle_version}'
-
-        withGradle {
-            sh 'gradle ${gradle_arguments}'
+        withEnv(["PATH+GRADLE=$${tool '${gradle_version}'}/bin"]) {
+            withGradle {
+                sh 'gradle ${gradle_arguments}'
+            }
         }
     }
 }
