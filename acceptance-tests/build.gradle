@@ -84,7 +84,7 @@ def allTestTasks =
                 JENKINS_WAR: jenkinsWarLocation,
                 PLUGINS_DIR: testDependenciesDir,
                 // LOCAL_JARS : "${testDependenciesDir}/gradle.hpi",
-                BROWSER    : 'chrome'
+                BROWSER    : 'firefox-container'
             ])
 
             javaLauncher = javaToolchains.launcherFor {
