@@ -53,7 +53,7 @@ def copyTestDependencies = tasks.create("copyTestDependencies", Copy) {
 }
 
 def jenkinsVersions = [
-    JenkinsVersion.LATEST,
+//    JenkinsVersion.LATEST, // Requires java 11 on CI
     JenkinsVersion.LATEST_LTS,
     JenkinsVersion.of('2.356')
 ]
@@ -84,7 +84,7 @@ def allTestTasks =
                 JENKINS_WAR: jenkinsWarLocation,
                 PLUGINS_DIR: testDependenciesDir,
                 // LOCAL_JARS : "${testDependenciesDir}/gradle.hpi",
-                BROWSER    : 'firefox-container'
+                BROWSER    : 'chrome'
             ])
 
             javaLauncher = javaToolchains.launcherFor {
