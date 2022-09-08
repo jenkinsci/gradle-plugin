@@ -100,10 +100,13 @@ The feature can be enabled by setting the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE
 
 If the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` environment variable is present, injection is activated for Gradle builds.
 This causes an init script to be installed in the user home of each connected agent.
+It is required to set `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL` environment variable to the URL of the Gradle Enterprise instance to which to publish the Build Scan.
+
 The init script is removed when `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` is unset, thus deactivating injection for Gradle builds.
 
 If the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable is present, injection is activated for Maven builds.
 This causes the Gradle Enterprise Maven Extension to be installed on each connected agent, and the `MAVEN_OPTS` environment variable will be modified so that each Maven process will load the extension.
+
 The extension is deleted from all agents and the changes to `MAVEN_OPTS` are reverted when `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` is unset.
 
 === Configuration options

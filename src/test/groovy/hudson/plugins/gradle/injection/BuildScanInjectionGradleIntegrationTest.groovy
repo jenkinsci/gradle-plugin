@@ -3,7 +3,6 @@ package hudson.plugins.gradle.injection
 import hudson.EnvVars
 import hudson.model.FreeStyleProject
 import hudson.model.Label
-import hudson.model.Run
 import hudson.plugins.gradle.AbstractIntegrationTest
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
@@ -65,7 +64,46 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
         proxy.close()
     }
 
-    def 'Gradle #gradleVersion - manual step - conditional build scan publication'() {
+    def 'skips the injection if GE url is not set'(String gradleVersion) {
+        given:
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave slave = createSlave(false)
+
+        FreeStyleProject p = j.createFreeStyleProject()
+        p.setAssignedNode(slave)
+
+        p.buildersList.add(buildScriptBuilder())
+        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
+
+        when:
+        // first build to download Gradle
+        def build = j.buildAndAssertSuccess(p)
+
+        then:
+        println JenkinsRule.getLog(build)
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
+
+        when:
+        enableBuildInjection(slave, gradleVersion)
+
+        then:
+        def initScript = new File(getGradleHome(slave, gradleVersion) + "/init.d/init-build-scan.gradle")
+        !initScript.exists()
+
+        when:
+        def build2 = j.buildAndAssertSuccess(p)
+
+        then:
+        println JenkinsRule.getLog(build2)
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build2)
+
+        where:
+        gradleVersion << GRADLE_VERSIONS
+    }
+
+    def 'Gradle #gradleVersion - freestyle - conditional build scan publication'(String gradleVersion) {
         given:
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -98,7 +136,7 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
         gradleVersion << GRADLE_VERSIONS
     }
 
-    def 'Gradle #gradleVersion - pipeline - conditional build scan publication'() {
+    def 'Gradle #gradleVersion - pipeline - conditional build scan publication'(String gradleVersion) {
         given:
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -144,7 +182,7 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
         gradleVersion << GRADLE_VERSIONS
     }
 
-    def 'init script is deleted without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION set'() {
+    def 'init script is deleted without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION set'(String gradleVersion) {
         given:
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -188,12 +226,14 @@ task hello {
 """)
     }
 
-    private DumbSlave createSlave() {
+    private DumbSlave createSlave(boolean setGeUrl = true) {
         NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
         EnvVars env = nodeProperty.getEnvVars()
 
         env.put('JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION', '1.7')
-        env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL', 'http://foo.com')
+        if (setGeUrl) {
+            env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL', 'http://foo.com')
+        }
 
         DumbSlave slave = j.createOnlineSlave(Label.get("foo"), env)
 

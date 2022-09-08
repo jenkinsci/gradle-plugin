@@ -16,6 +16,8 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME";
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
+    private static final String JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION";
+    private static final String JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL";
 
     private static final String RESOURCE_INIT_SCRIPT_GRADLE = "init-script.gradle";
     private static final String INIT_DIR = "init.d";
@@ -24,16 +26,15 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
     @Override
     public String getActivationEnvironmentVariableName() {
-        return "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION";
+        return JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION;
     }
 
     @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
         try {
             String initScriptDirectory = getInitScriptDirectory(envGlobal, envComputer);
-
             if (isOn(envGlobal)) {
-                copyInitScript(node.getChannel(), initScriptDirectory);
+                copyInitScript(envGlobal, envComputer, node.getChannel(), initScriptDirectory);
             } else {
                 removeInitScript(node.getChannel(), initScriptDirectory);
             }
@@ -53,17 +54,26 @@ public class GradleBuildScanInjection implements BuildScanInjection {
             return homeOverride + "/" + GRADLE_DIR + "/" + INIT_DIR;
         } else {
             String home = EnvUtil.getEnv(envComputer, "HOME");
-            if(home == null){
+            if (home == null) {
                 throw new IllegalStateException("HOME is not set");
             }
             return home + "/" + GRADLE_DIR + "/" + INIT_DIR;
         }
     }
 
-    private void copyInitScript(VirtualChannel channel, String initScriptDirectory) {
+    private void copyInitScript(EnvVars envGlobal,
+                                EnvVars envComputer,
+                                VirtualChannel channel,
+                                String initScriptDirectory) {
         try {
             FilePath gradleInitScriptFile = getInitScriptFile(channel, initScriptDirectory);
             if (!gradleInitScriptFile.exists()) {
+                if (!isGradleEnterpriseUrlSet(envGlobal, envComputer)) {
+                    throw new IllegalStateException(
+                        String.format("Required environment variable '%s' is not set",
+                            JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL));
+                }
+
                 FilePath gradleInitScriptDirectory = new FilePath(channel, initScriptDirectory);
                 if (!gradleInitScriptDirectory.exists()) {
                     LOGGER.fine("create init script directory");
@@ -99,4 +109,10 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         return new FilePath(channel, initScriptDirectory + "/" + GRADLE_INIT_FILE);
     }
 
+    private static boolean isGradleEnterpriseUrlSet(EnvVars envGlobal, EnvVars envComputer) {
+        if (EnvUtil.isSet(envGlobal, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL)) {
+            return true;
+        }
+        return EnvUtil.isSet(envComputer, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL);
+    }
 }

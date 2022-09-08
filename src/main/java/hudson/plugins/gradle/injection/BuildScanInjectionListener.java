@@ -3,6 +3,7 @@ package hudson.plugins.gradle.injection;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.Computer;
+import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
@@ -20,27 +21,16 @@ public class BuildScanInjectionListener extends ComputerListener {
 
     private static final String FEATURE_TOGGLE_INJECTION = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION";
 
-    private final List<BuildScanInjection> injections = Arrays.asList(
-            new GradleBuildScanInjection(),
-            new MavenBuildScanInjection()
-    );
-
-    private boolean isInjectionEnabled(EnvVars env) {
-        return EnvUtil.getEnv(env, FEATURE_TOGGLE_INJECTION) != null;
-    }
+    private final List<BuildScanInjection> injections =
+        Arrays.asList(new GradleBuildScanInjection(), new MavenBuildScanInjection());
 
     @Override
-    public void onOnline(Computer c, TaskListener listener) {
+    public void onOnline(Computer computer, TaskListener listener) {
         try {
-            EnvVars envGlobal = c.buildEnvironment(listener);
-            if(isInjectionEnabled(envGlobal)) {
-                try {
-                    EnvVars envComputer = c.getEnvironment();
+            EnvVars envGlobal = computer.buildEnvironment(listener);
 
-                    inject(c, envGlobal, envComputer);
-                } catch (IOException | InterruptedException e) {
-                    LOGGER.info("Error processing scan injection - " + e.getMessage());
-                }
+            if (isInjectionEnabled(envGlobal)) {
+                inject(computer, envGlobal);
             }
         } catch (IOException | InterruptedException e) {
             // nothing can be done
@@ -49,24 +39,34 @@ public class BuildScanInjectionListener extends ComputerListener {
 
     @Override
     public void onConfigurationChange() {
-        EnvironmentVariablesNodeProperty envProperty = Jenkins.get().getGlobalNodeProperties()
-                .get(EnvironmentVariablesNodeProperty.class);
-        EnvVars envGlobal = envProperty != null ? envProperty.getEnvVars() : null;
+        EnvVars envGlobal = getGlobalEnv();
 
-        if(isInjectionEnabled(envGlobal)) {
-            for (Computer c : Jenkins.get().getComputers()) {
-                try {
-                    final EnvVars envComputer = c.getEnvironment();
-                    inject(c, envGlobal, envComputer);
-                } catch (IOException | InterruptedException e) {
-                    LOGGER.info("Error processing scan injection - " + e.getMessage());
-                }
+        if (isInjectionEnabled(envGlobal)) {
+            for (Computer computer : Jenkins.get().getComputers()) {
+                inject(computer, envGlobal);
             }
         }
     }
 
-    private void inject(Computer c, EnvVars envGlobal, EnvVars envComputer) {
-        injections.forEach(injection -> injection.inject(c.getNode(), envGlobal, envComputer));
+    private void inject(Computer computer, EnvVars envGlobal) {
+        try {
+            Node node = computer.getNode();
+            EnvVars envComputer = computer.getEnvironment();
+
+            injections.forEach(injection -> injection.inject(node, envGlobal, envComputer));
+        } catch (IOException | InterruptedException e) {
+            LOGGER.info("Error processing scan injection - {}" + e.getMessage());
+        }
     }
 
+    private static EnvVars getGlobalEnv() {
+        EnvironmentVariablesNodeProperty envProperty =
+            Jenkins.get().getGlobalNodeProperties().get(EnvironmentVariablesNodeProperty.class);
+
+        return envProperty != null ? envProperty.getEnvVars() : null;
+    }
+
+    private static boolean isInjectionEnabled(EnvVars env) {
+        return EnvUtil.isSet(env, FEATURE_TOGGLE_INJECTION);
+    }
 }

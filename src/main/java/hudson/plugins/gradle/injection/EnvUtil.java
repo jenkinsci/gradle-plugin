@@ -1,15 +1,17 @@
 package hudson.plugins.gradle.injection;
 
 import hudson.EnvVars;
-import hudson.FilePath;
 
-import java.io.IOException;
-import java.io.InputStream;
+public final class EnvUtil {
 
-public class EnvUtil {
+    private EnvUtil() {
+    }
+
+    public static boolean isSet(EnvVars env, String key) {
+        return getEnv(env, key) != null;
+    }
 
     public static String getEnv(EnvVars env, String key) {
         return env != null ? env.get(key) : null;
     }
-
 }
