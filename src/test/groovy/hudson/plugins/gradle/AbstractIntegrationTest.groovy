@@ -40,9 +40,9 @@ class AbstractIntegrationTest extends Specification {
     // avoid DB locking between tests
     // https://github.com/jenkinsci/pipeline-maven-plugin/blob/d1f54279b2cd55266e8a9dd0eb2e600fe1d64f76/jenkins-plugin/src/test/java/org/jenkinsci/plugins/pipeline/maven/AbstractIntegrationTest.java#L53
     void cleanup() throws IOException {
-        PipelineMavenPluginDao dao = GlobalPipelineMavenConfig.get().getDao();
+        PipelineMavenPluginDao dao = GlobalPipelineMavenConfig.get().getDao()
         if (dao instanceof Closeable) {
-            ((Closeable) dao).close();
+            ((Closeable) dao).close()
         }
     }
 

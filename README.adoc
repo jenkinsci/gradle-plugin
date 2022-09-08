@@ -29,7 +29,7 @@ In the *Gradle* section provided by this plugin, several installations can be co
 image::gradle-tool-installation.png[Tool installations,{thumbnail}]
 
 The system provides both automatic installation, which can be performed by directly downloading from the http://www.gradle.org/[Gradle web site], extracting a compressed final or executing some shell commands.
-Besides, for nodes which already has Gradle installed, the tool can by manually configured, by unchecking the *Install automatically* checkbox and providing the base path (`GRADLE_HOME`) of the installation.
+Besides, for nodes which already has Gradle installed, the tool can be manually configured, by unchecking the *Install automatically* checkbox and providing the base path (`GRADLE_HOME`) of the installation.
 
 == Usage
 
@@ -43,7 +43,7 @@ Other configuration options include:
 
 * A description to use for the build step.
 * Switches (options) to provide to the Gradle execution.
-* Tasks to execute (if blanck the defaults tasks of the build will be invoked).
+* Tasks to execute (if blank the defaults tasks of the build will be invoked).
 * Path to the build script if different from the root directory of the build.
 * Name of the build script if different from build.gradle.
 
@@ -117,10 +117,11 @@ The following table lists all available configuration options.
 |JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION|Both|Enable the feature if set.
 |JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL|Both|The URL of the Gradle Enterprise server to publish Build Scans to.
 |JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER|Both|Whether to allow publishing to a server with a self-signed certificate. Defaults to `false`.
+|JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL|Gradle|The URL of the repository to use when resolving the Gradle Enterprise Gradle plugin and the Common Custom User Data Gradle plugin. Required if Jenkins agents are not able to access the Gradle Plugin Portal at https://plugins.gradle.org.
 |JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION|Gradle|Enables injection for Gradle builds and defines which version of the https://plugins.gradle.org/plugin/com.gradle.enterprise[Gradle Enterprise Gradle plugin] to use.
-|JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION|Gradle|Defines which version of the https://plugins.gradle.org/plugin/com.gradle.common-custom-user-data-gradle-plugin[Gradle Enterprise Gradle plugin] to use.
-|JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION|Maven|Enables injection for Maven builds.
-|JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION|Maven|Defines which version of the https://docs.gradle.com/enterprise/maven-extension[Gradle Enterprise Maven extension] to use.
+|JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION|Gradle|Defines which version of the https://plugins.gradle.org/plugin/com.gradle.common-custom-user-data-gradle-plugin[Common Custom User Data Gradle Plugin] to use.
+|JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION|Maven|Enables injection for Maven builds and defines which version of the https://docs.gradle.com/enterprise/maven-extension[Gradle Enterprise Maven extension] to use.
+|JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION|Maven|Defines which version of the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension] to use.
 |===
 
 In addition to the variables above you might want to set the `GRADLE_ENTERPRISE_ACCESS_KEY` variable if you're Gradle Enterprise server requires authentication for publishing Build Scans. Refer to the https://docs.gradle.com/enterprise/gradle-plugin/#via_environment_variable[Gradle Enterprise Gradle plugin manual] and the https://docs.gradle.com/enterprise/maven-extension/#via_environment_variable[Gradle Enterprise Maven Extension manual] for more information.
@@ -128,7 +129,9 @@ In addition to the variables above you might want to set the `GRADLE_ENTERPRISE_
 === Limitations
 
 - The configuration is based on global environment variables and applies to all builds on the server and all connected agents.
-- Injecting Build Scans into Maven builds only works in `MAVEN_OPTS` is not set.
+- Injecting Build Scans into Maven builds only works if `MAVEN_OPTS` is not set.
+- Values of `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` and `JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION` environment variables are ignored at the moment.
+These variables are only used as triggers for the injection of the corresponding extensions.
 
 == Roadmap
 

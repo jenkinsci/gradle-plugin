@@ -5,6 +5,7 @@ import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.tasks.BatchFile
 import hudson.tasks.Maven
 import hudson.tasks.Shell
+import org.apache.commons.lang3.SystemUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
@@ -66,7 +67,7 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
         p.buildWrappersList.add(new BuildScanBuildWrapper())
         p.buildersList.add(buildScriptBuilder('3.1.1'))
         p.buildersList.add(settingsScriptBuilder('3.1.1'))
-        p.buildersList.add(isUnix() ? new Shell('./gradlew --scan hello') : new BatchFile('gradlew.bat --scan hello'))
+        p.buildersList.add(SystemUtils.IS_OS_UNIX ? new Shell('./gradlew --scan hello') : new BatchFile('gradlew.bat --scan hello'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -312,12 +313,10 @@ stage('Final') {
     }
 
     private static CreateFileBuilder buildScriptBuilder(String buildScanVersion) {
-        def plugins
-        if (buildScanVersion.startsWith('1') || buildScanVersion.startsWith('2')) {
-            plugins = "plugins { id 'com.gradle.build-scan' version '${buildScanVersion}' }"
-        } else {
-            plugins = ''
-        }
+        def plugins =
+            buildScanVersion.startsWith('1') || buildScanVersion.startsWith('2')
+                ? "plugins { id 'com.gradle.build-scan' version '${buildScanVersion}' }"
+                : ''
         return new CreateFileBuilder('build.gradle', """
 ${plugins}
 
@@ -343,11 +342,7 @@ buildScan {
 tasks.register("hello") { doLast { println("Hello") } }''')
     }
 
-    private static CreateFileBuilder settingsScriptBuilder(String buildScanVersion) {
-        return new CreateFileBuilder('settings.gradle', "plugins { id 'com.gradle.enterprise' version '${buildScanVersion}' }")
-    }
-
-    private static boolean isUnix() {
-        return File.pathSeparatorChar == ':' as char
+    private static CreateFileBuilder settingsScriptBuilder(String gePluginVersion) {
+        return new CreateFileBuilder('settings.gradle', "plugins { id 'com.gradle.enterprise' version '${gePluginVersion}' }")
     }
 }
