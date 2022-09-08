@@ -1,0 +1,155 @@
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    id 'java'
+    id "de.undercouch.download" version "5.1.2"
+}
+
+ext {
+    athVersion = '5412.vc75c82cc0c93'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
+group = 'org.jenkins-ci.plugins'
+description = 'Acceptance tests of Gradle plugin'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://repo.jenkins-ci.org/releases/'
+    }
+}
+
+configurations {
+    pluginsCollection {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
+
+dependencies {
+    // same version as used by ATH
+    annotationProcessor "org.jenkins-ci:annotation-indexer:1.12"
+
+    implementation "org.jenkins-ci:acceptance-test-harness:${athVersion}"
+
+    testImplementation platform("io.netty:netty-bom:4.1.80.Final")
+    testImplementation "io.ratpack:ratpack-test:1.9.0"
+
+    pluginsCollection project(path: ':', configuration: 'pluginsCollectionDist')
+}
+
+def testDependenciesDir = layout.buildDirectory.dir('test-dependencies')
+
+def copyTestDependencies = tasks.create("copyTestDependencies", Copy) {
+    from configurations.pluginsCollection
+    into testDependenciesDir
+
+    include '*.hpi'
+    include '*.jpi'
+}
+
+def jenkinsVersions = [
+//    JenkinsVersion.LATEST, // Requires java 11 on CI
+    JenkinsVersion.LATEST_LTS,
+    JenkinsVersion.of('2.356')
+]
+
+def allTestTasks =
+    jenkinsVersions.collect { jenkinsVersion ->
+        def jenkinsWarLocation =
+            new File("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war")
+
+        def testTask =
+            jenkinsVersion.default
+                ? tasks.named("test")
+                : tasks.register("test_${jenkinsVersion.label}", Test)
+
+        testTask.configure {
+            dependsOn copyTestDependencies
+
+            onlyIf {
+                // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
+                !OperatingSystem.current().isWindows()
+            }
+
+            doFirst {
+                download.run {
+                    src jenkinsVersion.downloadUrl
+                    dest jenkinsWarLocation
+                    onlyIfModified true
+                    tempAndMove true
+                }
+            }
+
+            environment([
+                JENKINS_WAR: jenkinsWarLocation,
+                PLUGINS_DIR: testDependenciesDir,
+                BROWSER    : 'firefox-container'
+            ])
+
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = jenkinsVersion.javaVersion
+            }
+        }
+
+        testTask
+    }
+
+def testAllTask = tasks.register("testAll") {
+    dependsOn allTestTasks
+}
+
+tasks.named("check").configure {
+    dependsOn testAllTask
+}
+
+class JenkinsVersion {
+
+    private static final String LATEST_VERSION = "latest"
+    private static final String LATEST_LTS_VERSION = "latest-lts"
+
+    public static final JenkinsVersion LATEST = of(LATEST_VERSION, JavaLanguageVersion.of(11))
+    public static final JenkinsVersion LATEST_LTS = of(LATEST_LTS_VERSION)
+
+    private static final String MIRROR = 'https://get.jenkins.io'
+
+    final String version
+    final URL downloadUrl
+    final JavaLanguageVersion javaVersion
+
+    private JenkinsVersion(String version, URL downloadUrl, JavaLanguageVersion javaVersion) {
+        this.version = version
+        this.downloadUrl = downloadUrl
+        this.javaVersion = javaVersion
+    }
+
+    boolean isDefault() {
+        return version == LATEST_LTS_VERSION
+    }
+
+    String getLabel() {
+        return version.replaceAll("[\\.-]", '_')
+    }
+
+    static JenkinsVersion of(String version, JavaLanguageVersion javaVersion = JavaLanguageVersion.of(8)) {
+        String downloadUrl
+        if (version == LATEST_VERSION) {
+            downloadUrl = "${MIRROR}/war/latest/jenkins.war"
+        } else if (version == 'latest-lts') {
+            downloadUrl = "${MIRROR}/war-stable/latest/jenkins.war"
+        } else {
+            if (!(version ==~ /^\d+([.]\d+)*?$/)) {
+                throw new GradleException("Unsupported Jenkins version '${version}'")
+            }
+            downloadUrl = "https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${version}/jenkins-war-${version}.war"
+        }
+
+        return new JenkinsVersion(version, new URL(downloadUrl), javaVersion)
+    }
+}

@@ -19,6 +19,8 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
 
   private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 
+  private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.2', '7.5.1']
+
   def 'Gradle #gradleVersion - manual step - conditional build scan publication'() {
     given:
     gradleInstallationRule.gradleVersion = gradleVersion
@@ -49,7 +51,7 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
     j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
     where:
-    gradleVersion << ['4.10.3', '5.6.4', '6.9.2', '7.4.2']
+    gradleVersion << GRADLE_VERSIONS
   }
 
   def 'Gradle #gradleVersion - pipeline - conditional build scan publication'() {
@@ -95,7 +97,7 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
     j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
     where:
-    gradleVersion << ['4.10.3', '5.6.4', '6.9.2', '7.4.2']
+    gradleVersion << GRADLE_VERSIONS
   }
 
   def 'init script is deleted without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION set'() {
@@ -129,15 +131,15 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
     !initScript.exists()
 
     where:
-    gradleVersion << ['7.4.2']
+    gradleVersion << GRADLE_VERSIONS
   }
 
   private static CreateFileBuilder buildScriptBuilder() {
     return new CreateFileBuilder('build.gradle', """
-task hello { 
-  doLast { 
+task hello {
+  doLast {
     println 'Hello!'
-  } 
+  }
 }
 """)
   }

@@ -1,4 +1,5 @@
 import java.util.zip.ZipFile
+import com.github.spotbugs.SpotBugsTask
 
 plugins {
   id 'org.gradle.test-retry' version '1.4.0'
@@ -19,7 +20,7 @@ ext {
 
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = "${coreBaseVersion}.${corePatchVersion}"
+  jenkinsVersion = "${coreBaseVersion}.${corePatchVersion}"
 
   // Human-readable name of plugin.
   displayName = 'Gradle Plugin'
@@ -50,14 +51,22 @@ jenkinsPlugin {
     }
   }
 
-  disabledTestInjection = false
+  generateTests = true
 }
 
 java {
-  sourceCompatibility = 'VERSION_1_8'
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
-configurations.create('includedLibs')
+configurations {
+    includedLibs
+    pluginsCollectionDist {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
 
 dependencies {
   api platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}")
@@ -81,7 +90,7 @@ dependencies {
   testImplementation 'org.jenkins-ci.plugins:timestamper:1.8.10'
   testImplementation 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
   testImplementation 'org.jenkins-ci.plugins:pipeline-maven:3.10.0'
-  testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
+  testImplementation 'org.spockframework:spock-core:1.3-groovy-2.4'
 
   testRuntimeOnly "org.jenkins-ci.main:jenkins-war:${coreBaseVersion}"
 
@@ -108,7 +117,7 @@ spotbugs {
   sourceSets = [sourceSets.main]
 }
 
-tasks.named("spotbugsMain", com.github.spotbugs.SpotBugsTask) {
+tasks.named("spotbugsMain", SpotBugsTask) {
   classpath = sourceSets.main.compileClasspath
 }
 
@@ -185,5 +194,12 @@ processTestResources {
 jar {
     from(configurations.includedLibs) {
         into("hudson/plugins/gradle/injection")
+    }
+}
+
+artifacts {
+    pluginsCollectionDist(jpi)
+    pluginsCollectionDist(copyTestPluginDependencies.outputDir) {
+        builtBy(copyTestPluginDependencies)
     }
 }
