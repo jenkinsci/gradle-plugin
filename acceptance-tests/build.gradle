@@ -54,52 +54,58 @@ def copyTestDependencies = tasks.create("copyTestDependencies", Copy) {
     include '*.jpi'
 }
 
+def currentJava = JavaVersion.current()
+
 def jenkinsVersions = [
-//    JenkinsVersion.LATEST, // Requires java 11 on CI
+    JenkinsVersion.LATEST,
     JenkinsVersion.LATEST_LTS,
-    JenkinsVersion.of('2.356')
+    JenkinsVersion.V2_356
 ]
 
 def allTestTasks =
-    jenkinsVersions.collect { jenkinsVersion ->
-        def jenkinsWarLocation =
-            new File("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war")
+    jenkinsVersions
+        .findAll { jenkinsVersion ->
+            jenkinsVersion.default || currentJava.isCompatibleWith(jenkinsVersion.requiredJavaVersion)
+        }
+        .collect { jenkinsVersion ->
+            def jenkinsWarLocation =
+                new File("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war")
 
-        def testTask =
-            jenkinsVersion.default
-                ? tasks.named("test")
-                : tasks.register("test_${jenkinsVersion.label}", Test)
+            def testTask =
+                jenkinsVersion.default
+                    ? tasks.named("test")
+                    : tasks.register("test_${jenkinsVersion.label}", Test)
 
-        testTask.configure {
-            dependsOn copyTestDependencies
+            testTask.configure {
+                dependsOn copyTestDependencies
 
-            onlyIf {
-                // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
-                !OperatingSystem.current().isWindows()
-            }
+                onlyIf {
+                    // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
+                    !OperatingSystem.current().isWindows()
+                }
 
-            doFirst {
-                download.run {
-                    src jenkinsVersion.downloadUrl
-                    dest jenkinsWarLocation
-                    onlyIfModified true
-                    tempAndMove true
+                doFirst {
+                    download.run {
+                        src jenkinsVersion.downloadUrl
+                        dest jenkinsWarLocation
+                        onlyIfModified true
+                        tempAndMove true
+                    }
+                }
+
+                environment([
+                    JENKINS_WAR: jenkinsWarLocation,
+                    PLUGINS_DIR: testDependenciesDir,
+                    BROWSER    : gradle.ciBuild ? 'firefox-container' : 'chrome'
+                ])
+
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = jenkinsVersion.javaVersion
                 }
             }
 
-            environment([
-                JENKINS_WAR: jenkinsWarLocation,
-                PLUGINS_DIR: testDependenciesDir,
-                BROWSER    : 'firefox-container'
-            ])
-
-            javaLauncher = javaToolchains.launcherFor {
-                languageVersion = jenkinsVersion.javaVersion
-            }
+            testTask
         }
-
-        testTask
-    }
 
 def testAllTask = tasks.register("testAll") {
     dependsOn allTestTasks
@@ -113,9 +119,14 @@ class JenkinsVersion {
 
     private static final String LATEST_VERSION = "latest"
     private static final String LATEST_LTS_VERSION = "latest-lts"
+    private static final String V2_356_VERSION = '2.356'
 
-    public static final JenkinsVersion LATEST = of(LATEST_VERSION, JavaLanguageVersion.of(11))
-    public static final JenkinsVersion LATEST_LTS = of(LATEST_LTS_VERSION)
+    private static final JavaLanguageVersion JAVA_11 = JavaLanguageVersion.of(11)
+    private static final JavaLanguageVersion JAVA_8 = JavaLanguageVersion.of(8)
+
+    public static final JenkinsVersion LATEST = of(LATEST_VERSION, JAVA_11)
+    public static final JenkinsVersion LATEST_LTS = of(LATEST_LTS_VERSION, JAVA_11)
+    public static final JenkinsVersion V2_356 = of(V2_356_VERSION)
 
     private static final String MIRROR = 'https://get.jenkins.io'
 
@@ -130,14 +141,18 @@ class JenkinsVersion {
     }
 
     boolean isDefault() {
-        return version == LATEST_LTS_VERSION
+        return version == V2_356_VERSION
     }
 
     String getLabel() {
         return version.replaceAll("[\\.-]", '_')
     }
 
-    static JenkinsVersion of(String version, JavaLanguageVersion javaVersion = JavaLanguageVersion.of(8)) {
+    JavaVersion getRequiredJavaVersion() {
+        return JavaVersion.toVersion(javaVersion.toString())
+    }
+
+    static JenkinsVersion of(String version, JavaLanguageVersion javaVersion = JAVA_8) {
         String downloadUrl
         if (version == LATEST_VERSION) {
             downloadUrl = "${MIRROR}/war/latest/jenkins.war"
