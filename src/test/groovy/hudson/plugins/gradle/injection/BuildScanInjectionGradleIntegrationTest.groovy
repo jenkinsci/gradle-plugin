@@ -2,8 +2,6 @@ package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
 import hudson.model.FreeStyleProject
-import hudson.model.Label
-import hudson.plugins.gradle.AbstractIntegrationTest
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
@@ -16,7 +14,7 @@ import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Unroll
 
 @Unroll
-class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
+class BuildScanInjectionGradleIntegrationTest extends BaseInjectionIntegrationTest {
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 
@@ -216,6 +214,55 @@ class BuildScanInjectionGradleIntegrationTest extends AbstractIntegrationTest {
         gradleVersion << GRADLE_VERSIONS
     }
 
+    def 'injection is enabled and disabled based on node labels'(String gradleVersion) {
+        given:
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave slave = createSlave()
+
+        File initScript = new File(getGradleHome(slave, gradleVersion) + "/init.d/init-build-scan.gradle")
+
+        expect:
+        !initScript.exists()
+
+        when:
+        enableBuildInjection(slave, gradleVersion)
+
+        then:
+        initScript.exists()
+
+        when:
+        withAdditionalGlobalEnvVars { put(GradleBuildScanInjection.FEATURE_TOGGLE_DISABLED_NODES, 'bar,foo') }
+        restartSlave(slave)
+
+        then:
+        !initScript.exists()
+
+        when:
+        withAdditionalGlobalEnvVars {
+            put(GradleBuildScanInjection.FEATURE_TOGGLE_DISABLED_NODES, '')
+            put(GradleBuildScanInjection.FEATURE_TOGGLE_ENABLED_NODES, 'daz,foo')
+        }
+        restartSlave(slave)
+
+        then:
+        initScript.exists()
+
+        when:
+        withAdditionalGlobalEnvVars {
+            put(GradleBuildScanInjection.FEATURE_TOGGLE_DISABLED_NODES, '')
+            put(GradleBuildScanInjection.FEATURE_TOGGLE_ENABLED_NODES, 'daz')
+        }
+        restartSlave(slave)
+
+        then:
+        !initScript.exists()
+
+        where:
+        gradleVersion << GRADLE_VERSIONS
+    }
+
     private static CreateFileBuilder buildScriptBuilder() {
         return new CreateFileBuilder('build.gradle', """
 task hello {
@@ -227,21 +274,19 @@ task hello {
     }
 
     private DumbSlave createSlave(boolean setGeUrl = true) {
-        NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
-        EnvVars env = nodeProperty.getEnvVars()
+        def nodeProperty = new EnvironmentVariablesNodeProperty()
+        def env = nodeProperty.getEnvVars()
 
         env.put('JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION', '1.7')
         if (setGeUrl) {
             env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL', 'http://foo.com')
         }
 
-        DumbSlave slave = j.createOnlineSlave(Label.get("foo"), env)
-
-        return slave
+        return createSlave('foo', env)
     }
 
     private static String getGradleHome(DumbSlave slave, String gradleVersion) {
-        return slave.getRemoteFS() + "/tools/hudson.plugins.gradle.GradleInstallation/" + gradleVersion
+        return "${slave.getRemoteFS()}/tools/hudson.plugins.gradle.GradleInstallation/${gradleVersion}"
     }
 
     private void enableBuildInjection(DumbSlave slave, String gradleVersion, URI repositoryAddress = null) {
@@ -256,6 +301,7 @@ task hello {
         if (repositoryAddress != null) {
             env.put('JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL', repositoryAddress.toASCIIString())
         }
+        j.jenkins.globalNodeProperties.clear()
         j.jenkins.globalNodeProperties.add(nodeProperty)
 
         // sync changes
@@ -289,10 +335,5 @@ task hello {
 
         // sync changes
         restartSlave(slave)
-    }
-
-    private void restartSlave(DumbSlave slave) {
-        j.disconnectSlave(slave)
-        j.waitOnline(slave)
     }
 }

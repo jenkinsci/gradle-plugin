@@ -16,6 +16,8 @@ ext {
   coreBaseVersion = '2.138'
   corePatchVersion = '4'
   coreBomVersion = '3'
+  gradleEnterpriseMavenExtensionVersion = "1.15.2"
+  commonCustomUserDataMavenExtensionVersion = "1.11.1"
 }
 
 jenkinsPlugin {
@@ -79,8 +81,8 @@ dependencies {
   implementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
-  includedLibs 'com.gradle:gradle-enterprise-maven-extension:1.14.3'
-  includedLibs 'com.gradle:common-custom-user-data-maven-extension:1.10.1'
+  includedLibs "com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}"
+  includedLibs "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}"
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
 
@@ -192,15 +194,38 @@ task createWrapperZip(type: Zip) {
 
 processTestResources.dependsOn(createWrapperZip)
 
+task generateVersionFile() {
+  var versionsDir = layout.buildDirectory.dir('versions')
+  doLast {
+      def outputDir = versionsDir.get().asFile
+      outputDir.mkdirs()
+
+      new File(outputDir, "gradle-enterprise-maven-extension-version.txt").text = "${gradleEnterpriseMavenExtensionVersion}"
+      new File(outputDir, "common-custom-user-data-maven-extension-version.txt").text = "${commonCustomUserDataMavenExtensionVersion}"
+  }
+
+  inputs.property('gradleEnterpriseMavenExtensionVersion', gradleEnterpriseMavenExtensionVersion)
+  inputs.property('commonCustomUserDataMavenExtensionVersion', commonCustomUserDataMavenExtensionVersion)
+
+  outputs.dir(versionsDir)
+      .withPropertyName('versionsDir')
+}
+
 processTestResources {
     from(configurations.includedLibs) {
         into("hudson/plugins/gradle/injection")
+    }
+    from(generateVersionFile.outputs.files) {
+        into("versions")
     }
 }
 
 jar {
     from(configurations.includedLibs) {
         into("hudson/plugins/gradle/injection")
+    }
+    from(generateVersionFile.outputs.files) {
+        into("versions")
     }
 }
 

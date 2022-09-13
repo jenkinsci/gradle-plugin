@@ -5,14 +5,18 @@ import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.TaskListener;
+import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static java.util.logging.Level.WARNING;
 
 @Extension
 public class BuildScanInjectionListener extends ComputerListener {
@@ -29,11 +33,21 @@ public class BuildScanInjectionListener extends ComputerListener {
         try {
             EnvVars envGlobal = computer.buildEnvironment(listener);
 
-            if (isInjectionEnabled(envGlobal)) {
+            if (injectionEnabled(envGlobal)) {
                 inject(computer, envGlobal);
             }
-        } catch (IOException | InterruptedException e) {
-            // nothing can be done
+        } catch (Throwable t) {
+            /**
+             * We should catch everything because this is not handled by {@link hudson.slaves.SlaveComputer#setChannel(Channel, OutputStream, Channel.Listener)}
+             * and handle it the same way as Jenkins.
+             */
+
+            if (t instanceof Error) {
+                // We propagate Runtime errors, because they are fatal.
+                throw (Error) t;
+            }
+
+            LOGGER.log(WARNING, "Invocation of onOnline failed for " + computer.getName(), t);
         }
     }
 
@@ -41,7 +55,7 @@ public class BuildScanInjectionListener extends ComputerListener {
     public void onConfigurationChange() {
         EnvVars envGlobal = getGlobalEnv();
 
-        if (isInjectionEnabled(envGlobal)) {
+        if (injectionEnabled(envGlobal)) {
             for (Computer computer : Jenkins.get().getComputers()) {
                 inject(computer, envGlobal);
             }
@@ -66,7 +80,7 @@ public class BuildScanInjectionListener extends ComputerListener {
         return envProperty != null ? envProperty.getEnvVars() : null;
     }
 
-    private static boolean isInjectionEnabled(EnvVars env) {
+    private static boolean injectionEnabled(EnvVars env) {
         return EnvUtil.isSet(env, FEATURE_TOGGLE_INJECTION);
     }
 }
