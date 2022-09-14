@@ -6,8 +6,8 @@ include ':acceptance-tests'
 
 rootProject.name = 'gradle-plugin'
 
-if (!JavaVersion.current().java8) {
-  throw new GradleException('Build requires Java 8')
+if (!JavaVersion.current().java11) {
+  throw new GradleException('Build requires Java 11')
 }
 
 gradle.ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
