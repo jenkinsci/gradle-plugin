@@ -1,6 +1,5 @@
 package hudson.plugins.gradle.injection
 
-
 import hudson.FilePath
 import hudson.slaves.DumbSlave
 import hudson.tasks.Maven
@@ -12,8 +11,6 @@ import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
-
-import java.util.stream.Collectors
 
 class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTest {
 
@@ -61,7 +58,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
         then:
         def expected = ["common-custom-user-data-maven-extension-${ccudExtensionFileName}.jar", "gradle-enterprise-maven-extension-${geExtensionFileName}.jar"] as List<String>
         extensionDirectory.list().size() == 2
-        extensionDirectory.list().stream().map({ it.name }).sorted().collect(Collectors.toList()) == expected
+        extensionDirectory.list().collect { it.name }.toSorted() == expected
 
         when:
         turnOnBuildInjectionAndRestart(slave, false)
@@ -77,7 +74,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
 
         then:
         extensionDirectory.list().size() == 2
-        extensionDirectory.list().stream().map({ it.name }).sorted().collect(Collectors.toList()) == expected
+        extensionDirectory.list().collect { it.name }.toSorted() == expected
 
         when:
         turnOffBuildInjectionAndRestart(slave)
