@@ -1,6 +1,5 @@
 package hudson.plugins.gradle;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -34,7 +33,6 @@ public class BuildScanPublisher extends Step {
             super(context);
         }
 
-        @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
         @Override
         protected List<String> run() throws Exception {
             Run run = getContext().get(Run.class);
