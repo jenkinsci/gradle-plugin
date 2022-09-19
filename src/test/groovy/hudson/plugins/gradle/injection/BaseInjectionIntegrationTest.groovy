@@ -14,8 +14,8 @@ class BaseInjectionIntegrationTest extends AbstractIntegrationTest {
         j.waitOnline(slave)
     }
 
-    DumbSlave createSlave(String label, EnvVars env = null) {
-        return j.createOnlineSlave(Label.get(label), env)
+    DumbSlave createSlave(String label) {
+        return j.createOnlineSlave(Label.get(label))
     }
 
     void configureEnvironmentVariables(DumbSlave slave, @DelegatesTo(EnvVars) Closure closure = {}) {

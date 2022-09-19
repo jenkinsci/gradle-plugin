@@ -274,15 +274,14 @@ task hello {
     }
 
     private DumbSlave createSlave(boolean setGeUrl = true) {
-        def nodeProperty = new EnvironmentVariablesNodeProperty()
-        def env = nodeProperty.getEnvVars()
-
-        env.put('JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION', '1.7')
-        if (setGeUrl) {
-            env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL', 'http://foo.com')
+        withGlobalEnvVars {
+            put('JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION', '1.7')
+            if (setGeUrl) {
+                put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL', 'http://foo.com')
+            }
         }
 
-        return createSlave('foo', env)
+        return createSlave('foo')
     }
 
     private static String getGradleHome(DumbSlave slave, String gradleVersion) {
@@ -290,21 +289,15 @@ task hello {
     }
 
     private void enableBuildInjection(DumbSlave slave, String gradleVersion, URI repositoryAddress = null) {
-        NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
-        EnvVars env = nodeProperty.getEnvVars()
-
-        // we override the location of the init script to a workspace internal folder to allow parallel test runs
-        env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'on')
-        env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
-        env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', '3.10.1')
-        env.put('GRADLE_OPTS', '-Dscan.uploadInBackground=false')
-        if (repositoryAddress != null) {
-            env.put('JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL', repositoryAddress.toASCIIString())
+        withAdditionalGlobalEnvVars {
+            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'on')
+            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
+            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', '3.10.1')
+            put('GRADLE_OPTS', '-Dscan.uploadInBackground=false')
+            if (repositoryAddress != null) {
+                put('JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL', repositoryAddress.toASCIIString())
+            }
         }
-        j.jenkins.globalNodeProperties.clear()
-        j.jenkins.globalNodeProperties.add(nodeProperty)
-
-        // sync changes
         restartSlave(slave)
     }
 

@@ -39,7 +39,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
             removeInitScript(node.getChannel(), initScriptDirectory);
             if (injectionEnabledForNode(node, envGlobal)) {
-                if (!isGradleEnterpriseUrlSet(envGlobal, envComputer)) {
+                if (!isGradleEnterpriseUrlSet(envGlobal)) {
                     throw new IllegalStateException(
                         String.format("Required environment variable '%s' is not set",
                             JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL));
@@ -117,10 +117,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         return new FilePath(channel, initScriptDirectory + "/" + GRADLE_INIT_FILE);
     }
 
-    private static boolean isGradleEnterpriseUrlSet(EnvVars envGlobal, EnvVars envComputer) {
-        if (EnvUtil.isSet(envGlobal, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL)) {
-            return true;
-        }
-        return EnvUtil.isSet(envComputer, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL);
+    private static boolean isGradleEnterpriseUrlSet(EnvVars envGlobal) {
+        return EnvUtil.isSet(envGlobal, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL);
     }
 }
