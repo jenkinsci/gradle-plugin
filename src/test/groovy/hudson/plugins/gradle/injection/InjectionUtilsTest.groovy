@@ -2,7 +2,9 @@ package hudson.plugins.gradle.injection
 
 import com.google.common.collect.Sets
 import spock.lang.Specification
+import spock.lang.Unroll
 
+@Unroll
 class InjectionUtilsTest extends Specification {
 
     def 'isInjectionEnabledForNode - #labels - #disabledNodes - #enabledNodes'(List<String> labels, String disabledNodes, String enabledNodes, boolean shouldInject) {
