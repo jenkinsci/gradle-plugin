@@ -1,0 +1,10 @@
+plugins {
+    id 'base'
+}
+
+tasks.create("helloWorld") {
+    doLast {
+        println "Hello, World!"
+    }
+}
+

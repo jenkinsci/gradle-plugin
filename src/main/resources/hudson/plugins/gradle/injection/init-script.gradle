@@ -4,38 +4,43 @@ import org.gradle.util.GradleVersion
 
 // conditionally apply the GE / Build Scan plugin to the classpath so it can be applied to the build further down in this script
 initscript {
-  def isTopLevelBuild = !gradle.parent
-  if (!isTopLevelBuild) {
-    return
-  }
-
-  def getInputParam = { String name ->
-    def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
-    return System.getProperty(name) ?: System.getenv(envVarName)
-  }
-  def gePluginVersion = getInputParam('jenkinsGradlePlugin.gradle-enterprise.plugin.version')
-  def ccudPluginVersion = getInputParam('jenkinsGradlePlugin.ccud.plugin.version')
-
-  def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
-  def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
-
-  if (gePluginVersion || ccudPluginVersion && atLeastGradle4) {
-    repositories {
-      maven { url 'https://plugins.gradle.org/m2' }
-    }
-  }
-
-  dependencies {
-    if (gePluginVersion) {
-      classpath atLeastGradle5 ?
-              "com.gradle:gradle-enterprise-gradle-plugin:$gePluginVersion" :
-              "com.gradle:build-scan-plugin:1.16"
+    def isTopLevelBuild = !gradle.parent
+    if (!isTopLevelBuild) {
+        return
     }
 
-    if (ccudPluginVersion && atLeastGradle4) {
-      classpath "com.gradle:common-custom-user-data-gradle-plugin:$ccudPluginVersion"
+    def getInputParam = { String name ->
+        def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
+        return System.getProperty(name) ?: System.getenv(envVarName)
     }
-  }
+
+    def pluginRepositoryUrl = getInputParam('jenkinsGradlePlugin.gradle.plugin-repository.url')
+    def gePluginVersion = getInputParam('jenkinsGradlePlugin.gradle-enterprise.plugin.version')
+    def ccudPluginVersion = getInputParam('jenkinsGradlePlugin.ccud.plugin.version')
+
+    def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
+    def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
+
+    if (gePluginVersion || ccudPluginVersion && atLeastGradle4) {
+        pluginRepositoryUrl = pluginRepositoryUrl ?: 'https://plugins.gradle.org/m2'
+        logger.quiet("Gradle Enterprise plugins resolution: $pluginRepositoryUrl")
+
+        repositories {
+            maven { url pluginRepositoryUrl }
+        }
+    }
+
+    dependencies {
+        if (gePluginVersion) {
+            classpath atLeastGradle5 ?
+                "com.gradle:gradle-enterprise-gradle-plugin:$gePluginVersion" :
+                "com.gradle:build-scan-plugin:1.16"
+        }
+
+        if (ccudPluginVersion && atLeastGradle4) {
+            classpath "com.gradle:common-custom-user-data-gradle-plugin:$ccudPluginVersion"
+        }
+    }
 }
 
 def BUILD_SCAN_PLUGIN_CLASS = 'com.gradle.scan.plugin.BuildScanPlugin'
@@ -49,13 +54,14 @@ def CCUD_PLUGIN_CLASS = 'com.gradle.CommonCustomUserDataGradlePlugin'
 
 def isTopLevelBuild = !gradle.parent
 if (!isTopLevelBuild) {
-  return
+    return
 }
 
 def getInputParam = { String name ->
-  def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
-  return System.getProperty(name) ?: System.getenv(envVarName)
+    def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
+    return System.getProperty(name) ?: System.getenv(envVarName)
 }
+
 def geUrl = getInputParam('jenkinsGradlePlugin.gradle-enterprise.url')
 def geAllowUntrustedServer = Boolean.parseBoolean(getInputParam('jenkinsGradlePlugin.gradle-enterprise.allow-untrusted-server'))
 def gePluginVersion = getInputParam('jenkinsGradlePlugin.gradle-enterprise.plugin.version')
@@ -65,86 +71,86 @@ def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
 
 // finish early if configuration parameters passed in via system properties are not valid/supported
 if (ccudPluginVersion && isNotAtLeast(ccudPluginVersion, '1.7')) {
-  logger.warn("Common Custom User Data Gradle plugin must be at least 1.7. Configured version is $ccudPluginVersion.")
-  return
+    logger.warn("Common Custom User Data Gradle plugin must be at least 1.7. Configured version is $ccudPluginVersion.")
+    return
 }
 
 // register buildScanPublished listener and optionally apply the GE / Build Scan plugin
 if (GradleVersion.current() < GradleVersion.version('6.0')) {
-  rootProject {
-    buildscript.configurations.getByName("classpath").incoming.afterResolve { ResolvableDependencies incoming ->
-      def resolutionResult = incoming.resolutionResult
+    rootProject {
+        buildscript.configurations.getByName("classpath").incoming.afterResolve { ResolvableDependencies incoming ->
+            def resolutionResult = incoming.resolutionResult
 
-      if (gePluginVersion) {
-        def scanPluginComponent = resolutionResult.allComponents.find {
-          it.moduleVersion.with { group == "com.gradle" && (name == "build-scan-plugin" || name == "gradle-enterprise-gradle-plugin") }
-        }
-        if (!scanPluginComponent) {
-          logger.quiet("Applying $BUILD_SCAN_PLUGIN_CLASS via init script")
-          logger.quiet("Connection to Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
-          pluginManager.apply(initscript.classLoader.loadClass(BUILD_SCAN_PLUGIN_CLASS))
-          buildScan.server = geUrl
-          buildScan.allowUntrustedServer = geAllowUntrustedServer
-          buildScan.publishAlways()
-        }
-      }
+            if (gePluginVersion) {
+                def scanPluginComponent = resolutionResult.allComponents.find {
+                    it.moduleVersion.with { group == "com.gradle" && (name == "build-scan-plugin" || name == "gradle-enterprise-gradle-plugin") }
+                }
+                if (!scanPluginComponent) {
+                    logger.quiet("Applying $BUILD_SCAN_PLUGIN_CLASS via init script")
+                    logger.quiet("Connection to Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                    pluginManager.apply(initscript.classLoader.loadClass(BUILD_SCAN_PLUGIN_CLASS))
+                    buildScan.server = geUrl
+                    buildScan.allowUntrustedServer = geAllowUntrustedServer
+                    buildScan.publishAlways()
+                }
+            }
 
-      if (ccudPluginVersion && atLeastGradle4) {
-        def ccudPluginComponent = resolutionResult.allComponents.find {
-          it.moduleVersion.with { group == "com.gradle" && name == "common-custom-user-data-gradle-plugin" }
+            if (ccudPluginVersion && atLeastGradle4) {
+                def ccudPluginComponent = resolutionResult.allComponents.find {
+                    it.moduleVersion.with { group == "com.gradle" && name == "common-custom-user-data-gradle-plugin" }
+                }
+                if (!ccudPluginComponent) {
+                    logger.quiet("Applying $CCUD_PLUGIN_CLASS via init script")
+                    pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
+                }
+            }
         }
-        if (!ccudPluginComponent) {
-          logger.quiet("Applying $CCUD_PLUGIN_CLASS via init script")
-          pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
-        }
-      }
     }
-  }
 } else {
-  gradle.settingsEvaluated { settings ->
-    if (gePluginVersion) {
-      if (!settings.pluginManager.hasPlugin(GRADLE_ENTERPRISE_PLUGIN_ID)) {
-        logger.quiet("Applying $GRADLE_ENTERPRISE_PLUGIN_CLASS via init script")
-        logger.quiet("Connection to Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
-        settings.pluginManager.apply(initscript.classLoader.loadClass(GRADLE_ENTERPRISE_PLUGIN_CLASS))
-        extensionsWithPublicType(settings, GRADLE_ENTERPRISE_EXTENSION_CLASS).collect { settings[it.name] }.each { ext ->
-          ext.server = geUrl
-          ext.allowUntrustedServer = geAllowUntrustedServer
-          ext.buildScan.publishAlways()
+    gradle.settingsEvaluated { settings ->
+        if (gePluginVersion) {
+            if (!settings.pluginManager.hasPlugin(GRADLE_ENTERPRISE_PLUGIN_ID)) {
+                logger.quiet("Applying $GRADLE_ENTERPRISE_PLUGIN_CLASS via init script")
+                logger.quiet("Connection to Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                settings.pluginManager.apply(initscript.classLoader.loadClass(GRADLE_ENTERPRISE_PLUGIN_CLASS))
+                extensionsWithPublicType(settings, GRADLE_ENTERPRISE_EXTENSION_CLASS).collect { settings[it.name] }.each { ext ->
+                    ext.server = geUrl
+                    ext.allowUntrustedServer = geAllowUntrustedServer
+                    ext.buildScan.publishAlways()
+                }
+            }
         }
-      }
-    }
 
-    if (ccudPluginVersion) {
-      if (!settings.pluginManager.hasPlugin(CCUD_PLUGIN_ID)) {
-        logger.quiet("Applying $CCUD_PLUGIN_CLASS via init script")
-        settings.pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
-      }
+        if (ccudPluginVersion) {
+            if (!settings.pluginManager.hasPlugin(CCUD_PLUGIN_ID)) {
+                logger.quiet("Applying $CCUD_PLUGIN_CLASS via init script")
+                settings.pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
+            }
+        }
     }
-  }
 }
 
 static def extensionsWithPublicType(def container, String publicType) {
-  container.extensions.extensionsSchema.elements.findAll { it.publicType.concreteClass.name == publicType }
+    container.extensions.extensionsSchema.elements.findAll { it.publicType.concreteClass.name == publicType }
 }
 
 static String escape(String value) {
-  return value?.toCharArray()?.collect { ch -> escapeChar(ch) }?.join()
+    return value?.toCharArray()?.collect { ch -> escapeChar(ch) }?.join()
 }
 
 static String escapeChar(char ch) {
-  String escapeCharacter = "|"
-  switch (ch) {
-    case '\n': return escapeCharacter + "n"
-    case '\r': return escapeCharacter + "r"
-    case '|': return escapeCharacter + "|"
-    case '\'': return escapeCharacter + "\'"
-    case '[': return escapeCharacter + "["
-    case ']': return escapeCharacter + "]"
-    default: return ch < 128 ? ch as String : escapeCharacter + String.format("0x%04x", (int) ch)
-  }
+    String escapeCharacter = "|"
+    switch (ch) {
+        case '\n': return escapeCharacter + "n"
+        case '\r': return escapeCharacter + "r"
+        case '|': return escapeCharacter + "|"
+        case '\'': return escapeCharacter + "\'"
+        case '[': return escapeCharacter + "["
+        case ']': return escapeCharacter + "]"
+        default: return ch < 128 ? ch as String : escapeCharacter + String.format("0x%04x", (int) ch)
+    }
 }
 
 static boolean isNotAtLeast(String versionUnderTest, String referenceVersion) {
-  GradleVersion.version(versionUnderTest) < GradleVersion.version(referenceVersion)
+    GradleVersion.version(versionUnderTest) < GradleVersion.version(referenceVersion)
 }

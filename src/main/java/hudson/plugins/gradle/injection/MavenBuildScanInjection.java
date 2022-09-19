@@ -14,15 +14,11 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
-
 public class MavenBuildScanInjection implements BuildScanInjection {
 
     private static final Logger LOGGER = Logger.getLogger(MavenBuildScanInjection.class.getName());
 
-    private static final String LIB_DIR_PATH = "jenkins-gradle-plugin/lib";
-    private static final String GE_MVN_LIB_NAME = "gradle-enterprise-maven-extension-1.14.3.jar";
-    private static final String CCUD_LIB_NAME = "common-custom-user-data-maven-extension-1.10.1.jar";
+
     // Maven system properties passed on the CLI to a Maven build
     private static final String GRADLE_ENTERPRISE_URL_PROPERTY_KEY = "gradle.enterprise.url";
     private static final String GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = "gradle.enterprise.allowUntrustedServer";
@@ -38,7 +34,10 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     private static final String GE_ALLOW_UNTRUSTED_VAR = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER";
     private static final String GE_URL_VAR = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL";
     private static final String GE_CCUD_VERSION_VAR = "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION";
+    static final String FEATURE_TOGGLE_DISABLED_NODES = "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES";
+    static final String FEATURE_TOGGLE_ENABLED_NODES = "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES";
 
+    private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
 
     @Override
     public String getActivationEnvironmentVariableName() {
@@ -52,26 +51,46 @@ public class MavenBuildScanInjection implements BuildScanInjection {
                 return;
             }
 
-            FilePath rootPath = node.getRootPath();
-            if (rootPath == null) {
+            FilePath nodeRootPath = node.getRootPath();
+            if (nodeRootPath == null) {
                 return;
             }
 
-            if (isOn(envGlobal)) {
-                injectMavenExtension(node, rootPath);
-            } else {
-                removeMavenExtension(node, rootPath);
+            removeMavenExtensions(node, nodeRootPath);
+            if (injectionEnabledForNode(node, envGlobal)) {
+                injectMavenExtensions(node, nodeRootPath);
             }
         } catch (IllegalStateException e) {
-            if (isOn(envGlobal)) {
+            if (injectionEnabled(envGlobal)) {
                 LOGGER.warning("Error: " + e.getMessage());
             }
         }
     }
 
-    private void injectMavenExtension(Node node, FilePath rootPath) {
+    @Override
+    public String getEnabledNodesEnvironmentVariableName() {
+        return FEATURE_TOGGLE_ENABLED_NODES;
+    }
+
+    @Override
+    public String getDisabledNodesEnvironmentVariableName() {
+        return FEATURE_TOGGLE_DISABLED_NODES;
+    }
+
+    private void injectMavenExtensions(Node node, FilePath nodeRootPath) {
         try {
-            String cp = constructExtClasspath(rootPath, isUnix(node));
+            LOGGER.info("Injecting Maven extensions " + nodeRootPath);
+            List<FilePath> libs = new LinkedList<>();
+
+            extensionsHandler.copyGradleEnterpriseExtensionToAgent(nodeRootPath);
+            libs.add(extensionsHandler.getGradleEnterpriseExtensionPath(nodeRootPath));
+
+            if (getGlobalEnvVar(GE_CCUD_VERSION_VAR) != null) {
+                extensionsHandler.copyCCUDExtensionToAgent(nodeRootPath);
+                libs.add(extensionsHandler.getCCUDExtensionPath(nodeRootPath));
+            }
+
+            String cp = constructExtClasspath(libs, isUnix(node));
             List<String> mavenOptsKeyValuePairs = new ArrayList<>();
             mavenOptsKeyValuePairs.add(asSystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, cp));
             mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
@@ -93,22 +112,16 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         return computer == null || Boolean.TRUE.equals(computer.isUnix());
     }
 
-    private void removeMavenExtension(Node node, FilePath rootPath) {
+    private void removeMavenExtensions(Node node, FilePath rootPath) {
         try {
-            deleteResourceFromAgent(GE_MVN_LIB_NAME, rootPath);
-            deleteResourceFromAgent(CCUD_LIB_NAME, rootPath);
             MAVEN_OPTS_SETTER.remove(node);
+            extensionsHandler.deleteAllExtensionsFromAgent(rootPath);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private String constructExtClasspath(FilePath rootPath, boolean isUnix) throws IOException, InterruptedException {
-        List<FilePath> libs = new LinkedList<>();
-        libs.add(copyResourceToAgent(GE_MVN_LIB_NAME, rootPath));
-        if (getGlobalEnvVar(GE_CCUD_VERSION_VAR) != null) {
-            libs.add(copyResourceToAgent(CCUD_LIB_NAME, rootPath));
-        }
+    private String constructExtClasspath(List<FilePath> libs, boolean isUnix) throws IOException, InterruptedException {
         return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(getDelimiter(isUnix)));
     }
 
@@ -118,23 +131,11 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private String getGlobalEnvVar(String varName) {
         EnvironmentVariablesNodeProperty envProperty = Jenkins.get().getGlobalNodeProperties()
-                .get(EnvironmentVariablesNodeProperty.class);
+            .get(EnvironmentVariablesNodeProperty.class);
         return envProperty.getEnvVars().get(varName);
     }
 
     private String asSystemProperty(String sysProp, String value) {
         return "-D" + sysProp + "=" + value;
     }
-
-    private FilePath copyResourceToAgent(String resourceName, FilePath rootPath) throws IOException, InterruptedException {
-        FilePath lib = rootPath.child(LIB_DIR_PATH).child(resourceName);
-        copyResourceToNode(lib, resourceName);
-        return lib;
-    }
-
-    private void deleteResourceFromAgent(String resourceName, FilePath rootPath) throws IOException, InterruptedException {
-        FilePath lib = rootPath.child(LIB_DIR_PATH).child(resourceName);
-        lib.delete();
-    }
-
 }

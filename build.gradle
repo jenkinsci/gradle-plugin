@@ -1,4 +1,5 @@
 import java.util.zip.ZipFile
+import com.github.spotbugs.SpotBugsTask
 
 plugins {
   id 'org.gradle.test-retry' version '1.4.0'
@@ -15,11 +16,13 @@ ext {
   coreBaseVersion = '2.138'
   corePatchVersion = '4'
   coreBomVersion = '3'
+  gradleEnterpriseMavenExtensionVersion = "1.15.2"
+  commonCustomUserDataMavenExtensionVersion = "1.11.1"
 }
 
 jenkinsPlugin {
   // Version of Jenkins core this plugin depends on.
-  coreVersion = "${coreBaseVersion}.${corePatchVersion}"
+  jenkinsVersion = "${coreBaseVersion}.${corePatchVersion}"
 
   // Human-readable name of plugin.
   displayName = 'Gradle Plugin'
@@ -50,7 +53,7 @@ jenkinsPlugin {
     }
   }
 
-  disabledTestInjection = false
+  generateTests = true
 }
 
 java {
@@ -59,7 +62,13 @@ java {
     }
 }
 
-configurations.create('includedLibs')
+configurations {
+    includedLibs
+    pluginsCollectionDist {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
 
 dependencies {
   api platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}")
@@ -72,8 +81,8 @@ dependencies {
   implementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
-  includedLibs 'com.gradle:gradle-enterprise-maven-extension:1.14.3'
-  includedLibs 'com.gradle:common-custom-user-data-maven-extension:1.10.1'
+  includedLibs "com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}"
+  includedLibs "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}"
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
 
@@ -83,7 +92,14 @@ dependencies {
   testImplementation 'org.jenkins-ci.plugins:timestamper:1.8.10'
   testImplementation 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
   testImplementation 'org.jenkins-ci.plugins:pipeline-maven:3.10.0'
-  testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
+  testImplementation 'org.spockframework:spock-core:1.3-groovy-2.4'
+
+  testImplementation('io.ratpack:ratpack-groovy-test:1.9.0') {
+    exclude group: 'com.google.guava', module: 'guava'
+  }
+  testImplementation('com.google.guava:guava:19.0') {
+    because('Lowest possible version that works with Jenkins and Ratpack')
+  }
 
   testRuntimeOnly "org.jenkins-ci.main:jenkins-war:${coreBaseVersion}"
 
@@ -110,7 +126,7 @@ spotbugs {
   sourceSets = [sourceSets.main]
 }
 
-tasks.named("spotbugsMain", com.github.spotbugs.SpotBugsTask) {
+tasks.named("spotbugsMain", SpotBugsTask) {
   classpath = sourceSets.main.compileClasspath
 }
 
@@ -178,14 +194,44 @@ task createWrapperZip(type: Zip) {
 
 processTestResources.dependsOn(createWrapperZip)
 
+task generateVersionFile() {
+  var versionsDir = layout.buildDirectory.dir('versions')
+  doLast {
+      def outputDir = versionsDir.get().asFile
+      outputDir.mkdirs()
+
+      new File(outputDir, "gradle-enterprise-maven-extension-version.txt").text = "${gradleEnterpriseMavenExtensionVersion}"
+      new File(outputDir, "common-custom-user-data-maven-extension-version.txt").text = "${commonCustomUserDataMavenExtensionVersion}"
+  }
+
+  inputs.property('gradleEnterpriseMavenExtensionVersion', gradleEnterpriseMavenExtensionVersion)
+  inputs.property('commonCustomUserDataMavenExtensionVersion', commonCustomUserDataMavenExtensionVersion)
+
+  outputs.dir(versionsDir)
+      .withPropertyName('versionsDir')
+}
+
 processTestResources {
     from(configurations.includedLibs) {
         into("hudson/plugins/gradle/injection")
+    }
+    from(generateVersionFile.outputs.files) {
+        into("versions")
     }
 }
 
 jar {
     from(configurations.includedLibs) {
         into("hudson/plugins/gradle/injection")
+    }
+    from(generateVersionFile.outputs.files) {
+        into("versions")
+    }
+}
+
+artifacts {
+    pluginsCollectionDist(jpi)
+    pluginsCollectionDist(copyTestPluginDependencies.outputDir) {
+        builtBy(copyTestPluginDependencies)
     }
 }

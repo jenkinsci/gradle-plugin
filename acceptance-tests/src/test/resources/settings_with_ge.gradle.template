@@ -1,0 +1,9 @@
+plugins {
+    id 'com.gradle.enterprise' version '${ge_plugin_version}'
+}
+gradleEnterprise {
+    server = '${server}'
+    buildScan {
+        publishAlways()
+    }
+}

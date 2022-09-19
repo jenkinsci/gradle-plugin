@@ -5,7 +5,10 @@ import hudson.FilePath;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class CopyUtil {
+public final class CopyUtil {
+
+    private CopyUtil() {
+    }
 
     public static void copyResourceToNode(FilePath nodePath, String resourceName) throws IOException, InterruptedException {
         try (InputStream libIs = CopyUtil.class.getResourceAsStream("/hudson/plugins/gradle/injection/" + resourceName)) {
@@ -15,5 +18,4 @@ public class CopyUtil {
             nodePath.copyFrom(libIs);
         }
     }
-
 }
