@@ -20,10 +20,11 @@ import spock.lang.Specification
 class AbstractIntegrationTest extends Specification {
     final JenkinsRule j = new JenkinsRule()
     final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
+    final MavenInstallationRule mavenInstallationRule = new MavenInstallationRule(j)
     final TestRule noSpaceInTmpDirs = FlagRule.systemProperty("jenkins.test.noSpaceInTmpDirs", "true")
 
     @Rule
-    public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(gradleInstallationRule)
+    public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(gradleInstallationRule).around(mavenInstallationRule)
 
     Map getDefaults() {
         [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true, switches: '--no-daemon']

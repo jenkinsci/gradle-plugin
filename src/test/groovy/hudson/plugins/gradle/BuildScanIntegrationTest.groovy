@@ -1,6 +1,7 @@
 package hudson.plugins.gradle
 
 import hudson.model.FreeStyleProject
+import hudson.plugins.gradle.injection.MavenSnippets
 import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.tasks.BatchFile
 import hudson.tasks.Maven
@@ -234,23 +235,9 @@ stage('Final') {
         given:
         def p = j.createFreeStyleProject()
         p.buildWrappersList.add(new BuildScanBuildWrapper())
-        p.buildersList.add(new CreateFileBuilder('pom.xml',
-'''<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>hudson.plugins.gradle</groupId>
-  <artifactId>maven-build-scan</artifactId>
-  <packaging>jar</packaging>
-  <version>1.0</version>
-
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
-
-</project>'''))
-        p.buildersList.add(new CreateFileBuilder('.mvn/extensions.xml', buildScanExtension))
-        p.buildersList.add(new CreateFileBuilder('.mvn/gradle-enterprise.xml', gradleEnterpriseConfiguration))
+        p.buildersList.add(new CreateFileBuilder('pom.xml', MavenSnippets.simplePom()))
+        p.buildersList.add(new CreateFileBuilder('.mvn/extensions.xml', MavenSnippets.buildScanExtensions()))
+        p.buildersList.add(new CreateFileBuilder('.mvn/gradle-enterprise.xml', MavenSnippets.gradleEnterpriseConfiguration()))
         def mavenInstallation = ToolInstallations.configureMaven35()
         p.buildersList.add(new Maven('package', mavenInstallation.name, null, '', '', false, null, null))
 
@@ -283,33 +270,6 @@ stage('Final') {
         def scanUrls = json.getJSONObject().get('actions').get(1).get('scanUrls')
         scanUrls.size() == 1
         new URL(scanUrls.get(0))
-    }
-
-    private static String getGradleEnterpriseConfiguration() {
-        '''<gradleEnterprise
-    xmlns="https://www.gradle.com/gradle-enterprise-maven" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://www.gradle.com/gradle-enterprise-maven https://www.gradle.com/schema/gradle-enterprise-maven.xsd">
-  <buildScan>
-    <publish>ALWAYS</publish>
-    <termsOfService>
-      <url>https://gradle.com/terms-of-service</url>
-      <accept>true</accept>
-    </termsOfService>
-  </buildScan>
-</gradleEnterprise>
-'''
-    }
-
-    private static String getBuildScanExtension() {
-        '''<?xml version="1.0" encoding="UTF-8"?>
-<extensions>
-    <extension>
-        <groupId>com.gradle</groupId>
-        <artifactId>gradle-enterprise-maven-extension</artifactId>
-        <version>1.0.2</version>
-    </extension>
-</extensions>
-'''
     }
 
     private static CreateFileBuilder buildScriptBuilder(String buildScanVersion) {
