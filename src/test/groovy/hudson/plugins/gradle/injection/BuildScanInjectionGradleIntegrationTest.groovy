@@ -14,7 +14,7 @@ import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Unroll
 
 @Unroll
-class BuildScanInjectionGradleIntegrationTest extends BaseInjectionIntegrationTest {
+class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegrationTest {
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 

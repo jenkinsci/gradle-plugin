@@ -4,7 +4,7 @@ import hudson.tools.InstallSourceProperty
 import io.jenkins.plugins.casc.ConfigurationAsCode
 import io.jenkins.plugins.casc.snakeyaml.Yaml
 
-class ConfigurationAsCodeTest extends AbstractIntegrationTest {
+class ConfigurationAsCodeTest extends GradleAbstractIntegrationTest {
 
     def 'import configuration'() {
         given:

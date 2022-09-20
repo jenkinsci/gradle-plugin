@@ -16,7 +16,7 @@ import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Unroll
 
 @Unroll
-class BuildScanIntegrationTest extends AbstractIntegrationTest {
+class BuildScanIntegrationTest extends GradleAbstractIntegrationTest {
 
     def 'build scans for plugin version #buildScanVersion is discovered'() {
         given:
@@ -82,14 +82,13 @@ class BuildScanIntegrationTest extends AbstractIntegrationTest {
 
     def 'detects build scan in pipeline log'() {
         given:
-        gradleInstallationRule.gradleVersion = '5.5'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
 node {
    stage('Build') {
       // Run the maven build
-      def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+      def gradleHome = tool name: '5.5', type: 'gradle'
       writeFile file: 'settings.gradle', text: ''
       writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
       if (isUnix()) {

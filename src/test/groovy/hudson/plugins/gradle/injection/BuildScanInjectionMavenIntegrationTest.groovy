@@ -9,10 +9,15 @@ import jenkins.mvn.DefaultSettingsProvider
 import jenkins.mvn.GlobalMavenConfig
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
+import org.junit.Rule
+import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
 
 class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTest {
+
+    @Rule
+    public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j)
 
     def pomFile = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
 
