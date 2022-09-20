@@ -6,6 +6,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean
 public class BuildScanFlowAction extends AbstractBuildScanAction implements FlowNodeAction {
+
     public BuildScanFlowAction(FlowNode target) {
         this.target = target;
     }

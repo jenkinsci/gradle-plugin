@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter
+    xmlns="https://github.com/spotbugs/filter/3.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
+
+    <!-- Capturing of Actionable -->
+    <Match>
+        <Class name="hudson.plugins.gradle.AbstractBuildScanAction"/>
+        <Method name="getTarget"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="hudson.plugins.gradle.BuildScanAction"/>
+        <Field name="target"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="hudson.plugins.gradle.BuildScanFlowAction"/>
+        <Field name="target"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Capturing of OutputStream -->
+    <Match>
+        <Class name="hudson.plugins.gradle.GradleConsoleAnnotator"/>
+        <Field name="out"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+</FindBugsFilter>
