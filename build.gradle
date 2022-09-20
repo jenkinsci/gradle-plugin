@@ -1,11 +1,11 @@
 import java.util.zip.ZipFile
-import com.github.spotbugs.SpotBugsTask
+import com.github.spotbugs.snom.SpotBugsTask
 
 plugins {
   id 'org.gradle.test-retry' version '1.4.0'
   id 'org.jenkins-ci.jpi' version '0.43.0'
   id 'ru.vyarus.animalsniffer' version '1.5.4'
-  id 'com.github.spotbugs' version '3.0.0'
+  id 'com.github.spotbugs' version '5.0.12'
   id 'codenarc'
 }
 
@@ -120,18 +120,19 @@ animalsniffer {
 }
 
 spotbugs {
-  toolVersion '3.1.12'
-  // This prevents logging some errors when SpotBugs tries to open files as jar files.
-  // See https://github.com/gradle/gradle/issues/1094.
-  sourceSets = [sourceSets.main]
+    toolVersion = '4.7.2'
+    excludeFilter = file("spotbugs-exclude.xml")
 }
 
-tasks.named("spotbugsMain", SpotBugsTask) {
-  classpath = sourceSets.main.compileClasspath
+spotbugsTest {
+    enabled = false
 }
 
-spotbugsMain {
-  classes = sourceSets.main.output
+tasks.withType(SpotBugsTask) {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
 }
 
 codenarc {

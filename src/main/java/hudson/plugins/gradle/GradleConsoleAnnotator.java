@@ -20,7 +20,10 @@ public class GradleConsoleAnnotator extends LineTransformationOutputStream {
     private final boolean annotateGradleOutput;
     private final BuildScanLogScanner buildScanLogScanner;
 
-    public GradleConsoleAnnotator(OutputStream out, Charset charset, boolean annotateGradleOutput, BuildScanPublishedListener buildScanListener) {
+    public GradleConsoleAnnotator(OutputStream out,
+                                  Charset charset,
+                                  boolean annotateGradleOutput,
+                                  BuildScanPublishedListener buildScanListener) {
         this.out = out;
         this.charset = charset;
         this.annotateGradleOutput = annotateGradleOutput;
