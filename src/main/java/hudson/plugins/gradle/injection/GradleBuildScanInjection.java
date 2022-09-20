@@ -1,14 +1,19 @@
 package hudson.plugins.gradle.injection;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
 
 import java.io.IOException;
+import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
+import static hudson.plugins.gradle.injection.CopyUtil.unsafeResourceDigest;
 
 public class GradleBuildScanInjection implements BuildScanInjection {
 
@@ -27,6 +32,8 @@ public class GradleBuildScanInjection implements BuildScanInjection {
     private static final String GRADLE_DIR = ".gradle";
     private static final String GRADLE_INIT_FILE = "init-build-scan.gradle";
 
+    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
+
     @Override
     public String getActivationEnvironmentVariableName() {
         return JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION;
@@ -37,19 +44,19 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         try {
             String initScriptDirectory = getInitScriptDirectory(envGlobal, envComputer);
 
-            removeInitScript(node.getChannel(), initScriptDirectory);
             if (injectionEnabledForNode(node, envGlobal)) {
                 if (!isGradleEnterpriseUrlSet(envGlobal)) {
                     throw new IllegalStateException(
                         String.format("Required environment variable '%s' is not set",
                             JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL));
                 }
-
                 copyInitScript(node.getChannel(), initScriptDirectory);
+            } else {
+                removeInitScript(node.getChannel(), initScriptDirectory);
             }
         } catch (IllegalStateException e) {
-            if (injectionEnabled(envGlobal)) {
-                LOGGER.warning("Error: " + e.getMessage());
+            if (injectionEnabledForNode(node, envGlobal)) {
+                LOGGER.log(Level.WARNING, "Unexpected exception while injecting build scans for Gradle", e);
             }
         }
     }
@@ -64,7 +71,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         return FEATURE_TOGGLE_DISABLED_NODES;
     }
 
-    private String getInitScriptDirectory(EnvVars envGlobal, EnvVars envComputer) {
+    private static String getInitScriptDirectory(EnvVars envGlobal, EnvVars envComputer) {
         String gradleHomeOverride = EnvUtil.getEnv(envGlobal, JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME);
         String homeOverride = EnvUtil.getEnv(envGlobal, JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME);
         if (gradleHomeOverride != null) {
@@ -80,9 +87,18 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         }
     }
 
-    private void copyInitScript(VirtualChannel channel,
-                                String initScriptDirectory) {
+    private void copyInitScript(VirtualChannel channel, String initScriptDirectory) {
         try {
+            FilePath gradleInitScriptFile = getInitScriptFile(channel, initScriptDirectory);
+            if (gradleInitScriptFile.exists()) {
+                if (initScriptNotChanged(gradleInitScriptFile)) {
+                    LOGGER.fine("init script already exists");
+                    return;
+                }
+                // File has changed, remove the old version and copy the new one
+                removeInitScript(channel, initScriptDirectory);
+            }
+
             FilePath gradleInitScriptDirectory = new FilePath(channel, initScriptDirectory);
             if (!gradleInitScriptDirectory.exists()) {
                 LOGGER.fine("create init script directory");
@@ -90,10 +106,16 @@ public class GradleBuildScanInjection implements BuildScanInjection {
             }
 
             LOGGER.fine("copy init script file");
-            copyResourceToNode(getInitScriptFile(channel, initScriptDirectory), RESOURCE_INIT_SCRIPT_GRADLE);
+            copyResourceToNode(gradleInitScriptFile, RESOURCE_INIT_SCRIPT_GRADLE);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private boolean initScriptNotChanged(FilePath gradleInitScriptFile) throws IOException, InterruptedException {
+        String existingFileDigest = gradleInitScriptFile.digest();
+
+        return Objects.equals(existingFileDigest, initScriptDigest.get());
     }
 
     private void removeInitScript(VirtualChannel channel, String initScriptDirectory) {
@@ -110,7 +132,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         }
     }
 
-    private FilePath getInitScriptFile(VirtualChannel channel, String initScriptDirectory) {
+    private static FilePath getInitScriptFile(VirtualChannel channel, String initScriptDirectory) {
         if (initScriptDirectory == null) {
             throw new IllegalStateException("init script directory is null");
         }

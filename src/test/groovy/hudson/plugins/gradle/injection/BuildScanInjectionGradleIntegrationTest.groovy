@@ -1,6 +1,7 @@
 package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
+import hudson.Util
 import hudson.model.FreeStyleProject
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
@@ -263,6 +264,77 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         gradleVersion << GRADLE_VERSIONS
     }
 
+    def "doesn't copy init script if already exists"() {
+        given:
+        def gradleVersion = '7.5.1'
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+
+        def initScript = new File(getGradleHome(agent, gradleVersion) + "/init.d/init-build-scan.gradle")
+
+        when:
+        enableBuildInjection(agent, gradleVersion, URI.create("https://my-company.com/m2/"))
+
+        then:
+        initScript.exists()
+        def firstLastModified = initScript.lastModified()
+        firstLastModified > 0
+
+        when:
+        enableBuildInjection(agent, gradleVersion)
+
+        then:
+        initScript.exists()
+        def secondLastModified = initScript.lastModified()
+        firstLastModified == secondLastModified
+    }
+
+    def "copies init script if it was changed"() {
+        given:
+        def gradleVersion = '7.5.1'
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+
+        def initScript = new File(getGradleHome(agent, gradleVersion) + "/init.d/init-build-scan.gradle")
+
+        when:
+        enableBuildInjection(agent, gradleVersion, URI.create("https://my-company.com/m2/"))
+
+        then:
+        initScript.exists()
+        def firstLastModified = initScript.lastModified()
+        firstLastModified > 0
+        def firstDigest = Util.getDigestOf(initScript)
+        firstDigest != null
+
+        when:
+        initScript << "\n// comment"
+
+        then:
+        def secondLastModified = initScript.lastModified()
+        secondLastModified != firstLastModified
+        def secondDigest = Util.getDigestOf(initScript)
+        secondDigest != firstDigest
+
+        when:
+        enableBuildInjection(agent, gradleVersion)
+
+        then:
+        initScript.exists()
+        def thirdLastModified = initScript.lastModified()
+        thirdLastModified != firstLastModified
+        thirdLastModified != secondLastModified
+        def thirdDigest = Util.getDigestOf(initScript)
+        thirdDigest != secondDigest
+        thirdDigest == firstDigest
+    }
+
     private static CreateFileBuilder buildScriptBuilder() {
         return new CreateFileBuilder('build.gradle', """
 task hello {
@@ -295,7 +367,7 @@ task hello {
             put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', '3.10.1')
             put('GRADLE_OPTS', '-Dscan.uploadInBackground=false')
             if (repositoryAddress != null) {
-                put('JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL', repositoryAddress.toASCIIString())
+                put('JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL', repositoryAddress.toString())
             }
         }
         restartSlave(slave)
