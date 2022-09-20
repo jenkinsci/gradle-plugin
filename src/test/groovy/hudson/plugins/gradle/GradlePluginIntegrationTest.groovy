@@ -24,6 +24,8 @@
 
 package hudson.plugins.gradle
 
+import static org.jvnet.hudson.test.JenkinsRule.getLog
+
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.html.HtmlPage
@@ -37,8 +39,6 @@ import hudson.util.VersionNumber
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule.WebClient
 import spock.lang.Unroll
-
-import static org.jvnet.hudson.test.JenkinsRule.getLog
 
 /**
  * Tests for the Gradle build step.
@@ -106,7 +106,7 @@ class GradlePluginIntegrationTest extends GradleAbstractIntegrationTest {
         p.buildersList.add(new CreateFileBuilder(buildFile, helloTask))
         p.buildersList.add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *: defaults))
         p.buildersList.add(new Gradle(
-                defaults + [useWrapper: true, tasks: 'hello'] + settings))
+            defaults + [useWrapper: true, tasks: 'hello'] + settings))
 
         expect:
         j.buildAndAssertSuccess(p)
@@ -123,7 +123,7 @@ class GradlePluginIntegrationTest extends GradleAbstractIntegrationTest {
         'build/build.gradle'      | null         | [buildFile: 'build/build.gradle']
 
         description = "configuration with buildScriptDir '${settings.rootBuildScriptDir}', ${settings.buildFile ?: ''} and the wrapper " +
-                "from ${settings.wrapperLocation ?: 'workspace root'}"
+            "from ${settings.wrapperLocation ?: 'workspace root'}"
         wrapperDirDescription = wrapperDir ?: 'workspace root'
     }
 
@@ -197,10 +197,10 @@ class GradlePluginIntegrationTest extends GradleAbstractIntegrationTest {
 
     private Gradle configuredGradle() {
         new Gradle(switches: 'switches', tasks: 'tasks', rootBuildScriptDir: 'buildScriptDir',
-                buildFile: 'buildFile.gradle', gradleName: gradleInstallationRule.gradleVersion,
-                useWrapper: true, makeExecutable: true, wrapperLocation: 'path/to/wrapper',
-                useWorkspaceAsHome: true, passAllAsProjectProperties: true, passAllAsSystemProperties: true,
-                systemProperties: 'someProp=someValue', projectProperties: 'someOtherProp=someOtherValue')
+            buildFile: 'buildFile.gradle', gradleName: gradleInstallationRule.gradleVersion,
+            useWrapper: true, makeExecutable: true, wrapperLocation: 'path/to/wrapper',
+            useWorkspaceAsHome: true, passAllAsProjectProperties: true, passAllAsSystemProperties: true,
+            systemProperties: 'someProp=someValue', projectProperties: 'someOtherProp=someOtherValue')
     }
 
     def 'add Gradle installation'() {

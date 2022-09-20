@@ -16,6 +16,7 @@ import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Unroll
 
 @Unroll
+@SuppressWarnings("GStringExpressionWithinString")
 class BuildScanIntegrationTest extends GradleAbstractIntegrationTest {
 
     def 'build scans for plugin version #buildScanVersion is discovered'() {
