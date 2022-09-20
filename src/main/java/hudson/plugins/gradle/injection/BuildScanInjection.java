@@ -5,15 +5,10 @@ import hudson.model.Node;
 import hudson.model.labels.LabelAtom;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public interface BuildScanInjection {
-
-    default boolean injectionEnabled(EnvVars env) {
-        return EnvUtil.isSet(env, getActivationEnvironmentVariableName());
-    }
 
     String getActivationEnvironmentVariableName();
 

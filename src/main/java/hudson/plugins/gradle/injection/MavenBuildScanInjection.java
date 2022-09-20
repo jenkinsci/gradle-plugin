@@ -4,6 +4,7 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.Node;
+import hudson.plugins.gradle.injection.MavenExtensionsHandler.MavenExtension;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import jenkins.model.Jenkins;
 
@@ -11,13 +12,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class MavenBuildScanInjection implements BuildScanInjection {
 
     private static final Logger LOGGER = Logger.getLogger(MavenBuildScanInjection.class.getName());
-
 
     // Maven system properties passed on the CLI to a Maven build
     private static final String GRADLE_ENTERPRISE_URL_PROPERTY_KEY = "gradle.enterprise.url";
@@ -56,13 +57,14 @@ public class MavenBuildScanInjection implements BuildScanInjection {
                 return;
             }
 
-            removeMavenExtensions(node, nodeRootPath);
             if (injectionEnabledForNode(node, envGlobal)) {
                 injectMavenExtensions(node, nodeRootPath);
+            } else {
+                removeMavenExtensions(node, nodeRootPath);
             }
         } catch (IllegalStateException e) {
-            if (injectionEnabled(envGlobal)) {
-                LOGGER.warning("Error: " + e.getMessage());
+            if (injectionEnabledForNode(node, envGlobal)) {
+                LOGGER.log(Level.WARNING, "Unexpected exception while injecting build scans for Maven", e);
             }
         }
     }
@@ -82,12 +84,11 @@ public class MavenBuildScanInjection implements BuildScanInjection {
             LOGGER.info("Injecting Maven extensions " + nodeRootPath);
             List<FilePath> libs = new LinkedList<>();
 
-            extensionsHandler.copyGradleEnterpriseExtensionToAgent(nodeRootPath);
-            libs.add(extensionsHandler.getGradleEnterpriseExtensionPath(nodeRootPath));
-
+            libs.add(extensionsHandler.copyExtensionToAgent(MavenExtension.GRADLE_ENTERPRISE, nodeRootPath));
             if (getGlobalEnvVar(GE_CCUD_VERSION_VAR) != null) {
-                extensionsHandler.copyCCUDExtensionToAgent(nodeRootPath);
-                libs.add(extensionsHandler.getCCUDExtensionPath(nodeRootPath));
+                libs.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, nodeRootPath));
+            } else {
+                extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);
             }
 
             String cp = constructExtClasspath(libs, isUnix(node));
@@ -101,15 +102,11 @@ public class MavenBuildScanInjection implements BuildScanInjection {
             if (getGlobalEnvVar(GE_URL_VAR) != null) {
                 mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, getGlobalEnvVar(GE_URL_VAR)));
             }
+
             MAVEN_OPTS_SETTER.appendIfMissing(node, mavenOptsKeyValuePairs);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    private boolean isUnix(Node node) {
-        Computer computer = node.toComputer();
-        return computer == null || Boolean.TRUE.equals(computer.isUnix());
     }
 
     private void removeMavenExtensions(Node node, FilePath rootPath) {
@@ -129,13 +126,18 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         return isUnix ? ":" : ";";
     }
 
-    private String getGlobalEnvVar(String varName) {
-        EnvironmentVariablesNodeProperty envProperty = Jenkins.get().getGlobalNodeProperties()
-            .get(EnvironmentVariablesNodeProperty.class);
+    private static boolean isUnix(Node node) {
+        Computer computer = node.toComputer();
+        return computer == null || Boolean.TRUE.equals(computer.isUnix());
+    }
+
+    private static String getGlobalEnvVar(String varName) {
+        EnvironmentVariablesNodeProperty envProperty =
+            Jenkins.get().getGlobalNodeProperties().get(EnvironmentVariablesNodeProperty.class);
         return envProperty.getEnvVars().get(varName);
     }
 
-    private String asSystemProperty(String sysProp, String value) {
+    private static String asSystemProperty(String sysProp, String value) {
         return "-D" + sysProp + "=" + value;
     }
 }
