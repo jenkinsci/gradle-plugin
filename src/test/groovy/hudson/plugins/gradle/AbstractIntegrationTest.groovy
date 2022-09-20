@@ -10,8 +10,6 @@ import hudson.model.TextParameterValue
 import hudson.model.queue.QueueTaskFuture
 import org.jenkinsci.plugins.pipeline.maven.GlobalPipelineMavenConfig
 import org.jenkinsci.plugins.pipeline.maven.dao.PipelineMavenPluginDao
-import org.junit.Rule
-import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.jvnet.hudson.test.FlagRule
 import org.jvnet.hudson.test.JenkinsRule
