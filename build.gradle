@@ -16,7 +16,7 @@ ext {
   coreBaseVersion = '2.138'
   corePatchVersion = '4'
   coreBomVersion = '3'
-  gradleEnterpriseMavenExtensionVersion = "1.15.2"
+  gradleEnterpriseMavenExtensionVersion = "1.15.3"
   commonCustomUserDataMavenExtensionVersion = "1.11.1"
 }
 
@@ -208,8 +208,8 @@ task generateVersionFile() {
   inputs.property('gradleEnterpriseMavenExtensionVersion', gradleEnterpriseMavenExtensionVersion)
   inputs.property('commonCustomUserDataMavenExtensionVersion', commonCustomUserDataMavenExtensionVersion)
 
-    outputs.dir(versionsDir)
-        .withPropertyName('versionsDir')
+  outputs.dir(versionsDir)
+      .withPropertyName('versionsDir')
 }
 
 processTestResources {
