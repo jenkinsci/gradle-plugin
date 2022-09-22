@@ -1,8 +1,8 @@
 package hudson.plugins.gradle.injection
 
 class MavenSnippets {
-    static String simplePom() {
-        '''<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    static String simplePom(String extra = '') {
+        """<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>hudson.plugins.gradle</groupId>
@@ -14,8 +14,18 @@ class MavenSnippets {
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
+  ${extra}
+</project>"""
+    }
 
-</project>'''
+    static String httpsPluginRepositories() {
+        '''<pluginRepositories>
+                <pluginRepository>
+                    <id>central</id>
+                    <name>Central Repository</name>
+                    <url>https://repo.maven.apache.org/maven2</url>
+                </pluginRepository>
+            </pluginRepositories>'''
     }
 
     static String buildScanExtensions() {

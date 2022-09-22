@@ -27,7 +27,7 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTe
 
         def p = j.createFreeStyleProject()
         p.buildWrappersList.add(new BuildScanBuildWrapper())
-        p.buildersList.add(new CreateFileBuilder('pom.xml', MavenSnippets.simplePom()))
+        p.buildersList.add(new CreateFileBuilder('pom.xml', MavenSnippets.simplePom(MavenSnippets.httpsPluginRepositories())))
         p.buildersList.add(new CreateFileBuilder('.mvn/gradle-enterprise.xml', MavenSnippets.gradleEnterpriseConfiguration()))
         p.buildersList.add(new Maven('package', mavenVersion))
 
@@ -50,6 +50,8 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTe
 
         where:
         mavenVersion << [
+            '3.0.4',
+            '3.0.5',
             '3.1.1',
             '3.2.1',
             '3.2.5',
