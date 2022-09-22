@@ -10,10 +10,15 @@ import jenkins.mvn.DefaultSettingsProvider
 import jenkins.mvn.GlobalMavenConfig
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
+import org.junit.Rule
+import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
 
 class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTest {
+
+    @Rule
+    public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j)
 
     private static final String GE_EXTENSION_JAR = "gradle-enterprise-maven-extension.jar"
     private static final String CCUD_EXTENSION_JAR = "common-custom-user-data-maven-extension.jar"

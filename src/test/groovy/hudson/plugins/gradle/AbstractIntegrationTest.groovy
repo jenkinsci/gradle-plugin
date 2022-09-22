@@ -10,20 +10,17 @@ import hudson.model.TextParameterValue
 import hudson.model.queue.QueueTaskFuture
 import org.jenkinsci.plugins.pipeline.maven.GlobalPipelineMavenConfig
 import org.jenkinsci.plugins.pipeline.maven.dao.PipelineMavenPluginDao
-import org.junit.Rule
-import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.jvnet.hudson.test.FlagRule
 import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Specification
 
 class AbstractIntegrationTest extends Specification {
-    final JenkinsRule j = new JenkinsRule()
-    final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
-    final TestRule noSpaceInTmpDirs = FlagRule.systemProperty("jenkins.test.noSpaceInTmpDirs", "true")
+    public final JenkinsRule j = new JenkinsRule()
 
-    @Rule
-    public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(gradleInstallationRule)
+    public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
+    final MavenInstallationRule mavenInstallationRule = new MavenInstallationRule(j)
+    public final TestRule noSpaceInTmpDirs = FlagRule.systemProperty("jenkins.test.noSpaceInTmpDirs", "true")
 
     Map getDefaults() {
         [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true, switches: '--no-daemon']

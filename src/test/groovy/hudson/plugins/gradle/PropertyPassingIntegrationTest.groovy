@@ -8,7 +8,7 @@ import org.jvnet.hudson.test.CreateFileBuilder
 import spock.lang.Unroll
 
 @Unroll
-class PropertyPassingIntegrationTest extends AbstractIntegrationTest {
+class PropertyPassingIntegrationTest extends GradleAbstractIntegrationTest {
     def "pass '#escapedPropertyValue' via parameter in system properties"() {
         given:
         gradleInstallationRule.addInstallation()

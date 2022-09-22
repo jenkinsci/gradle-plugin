@@ -44,7 +44,7 @@ import spock.lang.Unroll
  * Tests for the Gradle build step.
  */
 @Unroll
-class GradlePluginIntegrationTest extends AbstractIntegrationTest {
+class GradlePluginIntegrationTest extends GradleAbstractIntegrationTest {
     def 'run the default tasks'() {
         given:
         gradleInstallationRule.addInstallation()
@@ -106,7 +106,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         p.buildersList.add(new CreateFileBuilder(buildFile, helloTask))
         p.buildersList.add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *: defaults))
         p.buildersList.add(new Gradle(
-                defaults + [useWrapper: true, tasks: 'hello'] + settings))
+            defaults + [useWrapper: true, tasks: 'hello'] + settings))
 
         expect:
         j.buildAndAssertSuccess(p)
@@ -123,7 +123,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
         'build/build.gradle'      | null         | [buildFile: 'build/build.gradle']
 
         description = "configuration with buildScriptDir '${settings.rootBuildScriptDir}', ${settings.buildFile ?: ''} and the wrapper " +
-                "from ${settings.wrapperLocation ?: 'workspace root'}"
+            "from ${settings.wrapperLocation ?: 'workspace root'}"
         wrapperDirDescription = wrapperDir ?: 'workspace root'
     }
 
@@ -197,10 +197,10 @@ class GradlePluginIntegrationTest extends AbstractIntegrationTest {
 
     private Gradle configuredGradle() {
         new Gradle(switches: 'switches', tasks: 'tasks', rootBuildScriptDir: 'buildScriptDir',
-                buildFile: 'buildFile.gradle', gradleName: gradleInstallationRule.gradleVersion,
-                useWrapper: true, makeExecutable: true, wrapperLocation: 'path/to/wrapper',
-                useWorkspaceAsHome: true, passAllAsProjectProperties: true, passAllAsSystemProperties: true,
-                systemProperties: 'someProp=someValue', projectProperties: 'someOtherProp=someOtherValue')
+            buildFile: 'buildFile.gradle', gradleName: gradleInstallationRule.gradleVersion,
+            useWrapper: true, makeExecutable: true, wrapperLocation: 'path/to/wrapper',
+            useWorkspaceAsHome: true, passAllAsProjectProperties: true, passAllAsSystemProperties: true,
+            systemProperties: 'someProp=someValue', projectProperties: 'someOtherProp=someOtherValue')
     }
 
     def 'add Gradle installation'() {
