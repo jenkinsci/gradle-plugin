@@ -45,15 +45,14 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTe
             new URL(action.scanUrls.get(0))
         } else {
             def action = build.getAction(BuildScanAction)
-            action.scanUrls.size() == 0
+            action == null
         }
 
         where:
         mavenVersion << [
-            // Uncomment after 1.15.3 is released
-            //    '3.1.1',
-            //    '3.2.1',
-            //    '3.2.5',
+            '3.1.1',
+            '3.2.1',
+            '3.2.5',
             '3.3.1',
             '3.5.4',
             '3.8.6'
