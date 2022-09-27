@@ -13,10 +13,11 @@ group = 'org.jenkins-ci.plugins'
 description = 'This plugin adds Gradle support to Jenkins'
 
 ext {
-  coreBaseVersion = '2.138'
-  corePatchVersion = '4'
-  coreBomVersion = '3'
-  gradleEnterpriseMavenExtensionVersion = "1.15.3"
+  // TODO: Rollback jenkins version
+  coreBaseVersion = '2.332'
+  corePatchVersion = '1'
+  coreBomVersion = '1370.vfa_e23fe119c3'
+  gradleEnterpriseMavenExtensionVersion = "1.15.2"
   commonCustomUserDataMavenExtensionVersion = "1.11.1"
 }
 
@@ -70,6 +71,24 @@ configurations {
     }
 }
 
+
+// see https://github.com/jenkinsci/gradle-jpi-plugin#customizing-further
+tasks.named('server').configure {
+    execSpec {
+        classpath(layout.buildDirectory.dir('resources/test'))
+
+//        systemProperty 'hudson.maven.debugPort', '5050'
+//        systemProperty 'hudson.maven.debug', 'true'
+    }
+}
+
+// required for newer jenkins
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module('com.google.inject:guice') using module('com.google.inject:guice:5.0.1') withoutClassifier()
+    }
+}
+
 dependencies {
   api platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}")
 
@@ -80,6 +99,8 @@ dependencies {
   implementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
+
+  implementation 'commons-validator:commons-validator:1.7'
 
   includedLibs "com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}"
   includedLibs "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}"
