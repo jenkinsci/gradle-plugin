@@ -140,6 +140,10 @@ In addition to the variables above you might want to set the `GRADLE_ENTERPRISE_
 - Values of `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` and `JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION` environment variables are ignored at the moment.
 These variables are only used as triggers for the injection of the corresponding extensions.
 
+> **Warning**
+> The current fixed injected version of the Gradle Enterprise Maven extension is `1.15.3` and of the Common Custom User Data Maven extension is `1.11.1`.
+For compatibility see the https://docs.gradle.com/enterprise/compatibility/#maven_extension[Gradle Enterprise Maven extension compatibility].
+
 == Roadmap
 
 * Using the Gradle API for accessing all the Gradle functionalities
