@@ -15,7 +15,9 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
+import java.util.List;
 
+// TODO: Consider splitting into two forms, one for Gradle, and one for Maven
 @Restricted(NoExternalUse.class)
 @Extension
 public class InjectionConfig extends GlobalConfiguration {
@@ -29,11 +31,13 @@ public class InjectionConfig extends GlobalConfiguration {
     private String gradlePluginVersion;
     private String ccudPluginVersion;
     private String gradlePluginRepositoryUrl;
+    private List<NodeLabelItem> gradleInjectionEnabledNodes;
+    private List<NodeLabelItem> gradleInjectionDisabledNodes;
 
     private String mavenExtensionVersion;
     private String ccudExtensionVersion;
-
-    // TODO: add labels
+    private List<NodeLabelItem> mavenInjectionEnabledNodes;
+    private List<NodeLabelItem> mavenInjectionDisabledNodes;
 
     public InjectionConfig() {
         load();
@@ -112,6 +116,26 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @CheckForNull
+    public List<NodeLabelItem> getGradleInjectionEnabledNodes() {
+        return gradleInjectionEnabledNodes;
+    }
+
+    @DataBoundSetter
+    public void setGradleInjectionEnabledNodes(List<NodeLabelItem> gradleInjectionEnabledNodes) {
+        this.gradleInjectionEnabledNodes = gradleInjectionEnabledNodes;
+    }
+
+    @CheckForNull
+    public List<NodeLabelItem> getGradleInjectionDisabledNodes() {
+        return gradleInjectionDisabledNodes;
+    }
+
+    @DataBoundSetter
+    public void setGradleInjectionDisabledNodes(List<NodeLabelItem> gradleInjectionDisabledNodes) {
+        this.gradleInjectionDisabledNodes = gradleInjectionDisabledNodes;
+    }
+
+    @CheckForNull
     public String getMavenExtensionVersion() {
         return mavenExtensionVersion;
     }
@@ -131,11 +155,40 @@ public class InjectionConfig extends GlobalConfiguration {
         this.ccudExtensionVersion = Util.fixEmptyAndTrim(ccudExtensionVersion);
     }
 
+    @CheckForNull
+    public List<NodeLabelItem> getMavenInjectionEnabledNodes() {
+        return mavenInjectionEnabledNodes;
+    }
+
+    @DataBoundSetter
+    public void setMavenInjectionEnabledNodes(List<NodeLabelItem> mavenInjectionEnabledNodes) {
+        this.mavenInjectionEnabledNodes = mavenInjectionEnabledNodes;
+    }
+
+    @CheckForNull
+    public List<NodeLabelItem> getMavenInjectionDisabledNodes() {
+        return mavenInjectionDisabledNodes;
+    }
+
+    @DataBoundSetter
+    public void setMavenInjectionDisabledNodes(List<NodeLabelItem> mavenInjectionDisabledNodes) {
+        this.mavenInjectionDisabledNodes = mavenInjectionDisabledNodes;
+    }
+
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) {
+        clearRepeatableProperties();
         req.bindJSON(this, json);
         save();
         return true;
+    }
+
+    private void clearRepeatableProperties() {
+        setGradleInjectionEnabledNodes(null);
+        setGradleInjectionDisabledNodes(null);
+
+        setMavenInjectionEnabledNodes(null);
+        setMavenInjectionDisabledNodes(null);
     }
 
     @Restricted(NoExternalUse.class)
