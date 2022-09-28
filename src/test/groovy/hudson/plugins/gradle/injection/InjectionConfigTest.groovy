@@ -28,8 +28,8 @@ class InjectionConfigTest extends Specification {
         "https://localhost"      || FormValidation.Kind.OK    | null
         "ftp://localhost"        || FormValidation.Kind.ERROR | "Not a valid URL."
         "localhost"              || FormValidation.Kind.ERROR | "Not a valid URL."
-        ""                       || FormValidation.Kind.OK    | null
-        null                     || FormValidation.Kind.OK    | null
+        ""                       || FormValidation.Kind.ERROR | "Required."
+        null                     || FormValidation.Kind.ERROR | "Required."
     }
 
     def "saves injection configuration"() {

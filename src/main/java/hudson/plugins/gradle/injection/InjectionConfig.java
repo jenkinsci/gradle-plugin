@@ -199,7 +199,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckServer(@QueryParameter String value) {
-        return checkUrl(value);
+        return checkRequiredUrl(value);
     }
 
     @Restricted(NoExternalUse.class)
