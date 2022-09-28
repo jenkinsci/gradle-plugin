@@ -1,5 +1,6 @@
 package hudson.plugins.gradle.injection;
 
+import com.google.common.collect.ImmutableList;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
@@ -31,13 +32,13 @@ public class InjectionConfig extends GlobalConfiguration {
     private String gradlePluginVersion;
     private String ccudPluginVersion;
     private String gradlePluginRepositoryUrl;
-    private List<NodeLabelItem> gradleInjectionEnabledNodes;
-    private List<NodeLabelItem> gradleInjectionDisabledNodes;
+    private ImmutableList<NodeLabelItem> gradleInjectionEnabledNodes;
+    private ImmutableList<NodeLabelItem> gradleInjectionDisabledNodes;
 
     private String mavenExtensionVersion;
     private String ccudExtensionVersion;
-    private List<NodeLabelItem> mavenInjectionEnabledNodes;
-    private List<NodeLabelItem> mavenInjectionDisabledNodes;
+    private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
+    private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
     public InjectionConfig() {
         load();
@@ -122,7 +123,8 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setGradleInjectionEnabledNodes(List<NodeLabelItem> gradleInjectionEnabledNodes) {
-        this.gradleInjectionEnabledNodes = gradleInjectionEnabledNodes;
+        this.gradleInjectionEnabledNodes =
+            gradleInjectionEnabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionEnabledNodes);
     }
 
     @CheckForNull
@@ -132,7 +134,8 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setGradleInjectionDisabledNodes(List<NodeLabelItem> gradleInjectionDisabledNodes) {
-        this.gradleInjectionDisabledNodes = gradleInjectionDisabledNodes;
+        this.gradleInjectionDisabledNodes =
+            gradleInjectionDisabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionDisabledNodes);
     }
 
     @CheckForNull
@@ -162,7 +165,8 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setMavenInjectionEnabledNodes(List<NodeLabelItem> mavenInjectionEnabledNodes) {
-        this.mavenInjectionEnabledNodes = mavenInjectionEnabledNodes;
+        this.mavenInjectionEnabledNodes =
+            mavenInjectionEnabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionEnabledNodes);
     }
 
     @CheckForNull
@@ -172,7 +176,8 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setMavenInjectionDisabledNodes(List<NodeLabelItem> mavenInjectionDisabledNodes) {
-        this.mavenInjectionDisabledNodes = mavenInjectionDisabledNodes;
+        this.mavenInjectionDisabledNodes =
+            mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
     }
 
     @Override
