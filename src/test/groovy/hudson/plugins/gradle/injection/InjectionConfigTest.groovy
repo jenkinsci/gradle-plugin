@@ -1,14 +1,19 @@
 package hudson.plugins.gradle.injection
 
 import hudson.util.FormValidation
+import hudson.util.XStream2
 import org.junit.Rule
 import org.jvnet.hudson.test.JenkinsRule
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 @Subject(InjectionConfig.class)
 class InjectionConfigTest extends Specification {
+
+    @Shared
+    FilenameFilter injectionConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.injection.InjectionConfig.xml" }
 
     @Rule
     JenkinsRule j = new JenkinsRule()
@@ -52,10 +57,11 @@ class InjectionConfigTest extends Specification {
         form.getInputByName("_.ccudExtensionVersion").setValueAttribute("1.11")
 
         j.submit(form)
-        j.jenkins.restart()
 
         then:
-        with(InjectionConfig.get()) {
+        def files = j.jenkins.root.listFiles(injectionConfigXmlFilter)
+        files.length == 1
+        with(fromXml(files.first().text)) {
             enabled
             server == "https://localhost"
             allowUntrusted
@@ -72,5 +78,9 @@ class InjectionConfigTest extends Specification {
             mavenInjectionEnabledNodes == null
             mavenInjectionDisabledNodes == null
         }
+    }
+
+    private static InjectionConfig fromXml(String xml) {
+        return (InjectionConfig) new XStream2().fromXML(xml)
     }
 }
