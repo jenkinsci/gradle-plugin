@@ -4,6 +4,7 @@ import hudson.Util
 import hudson.model.FreeStyleProject
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
+import hudson.slaves.EnvironmentVariablesNodeProperty
 import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -13,6 +14,9 @@ import spock.lang.Unroll
 
 @Unroll
 class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegrationTest {
+
+    private static final String GRADLE_ENTERPRISE_PLUGIN_VERSION = '3.11.1'
+    private static final String CCUD_PLUGIN_VERSION = '1.8.1'
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 
@@ -85,8 +89,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         enableBuildInjection(slave, gradleVersion)
 
         then:
-        def initScript = new File(getGradleHome(slave, gradleVersion) + "/init.d/init-build-scan.gradle")
-        !initScript.exists()
+        !initScriptFile(slave, gradleVersion).exists()
 
         when:
         def build2 = j.buildAndAssertSuccess(p)
@@ -185,7 +188,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         DumbSlave slave = createSlave()
 
-        File initScript = new File(getGradleHome(slave, gradleVersion) + "/init.d/init-build-scan.gradle")
+        File initScript = initScriptFile(slave, gradleVersion)
 
         expect:
         !initScript.exists()
@@ -219,7 +222,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         DumbSlave slave = createSlave()
 
-        File initScript = new File(getGradleHome(slave, gradleVersion) + "/init.d/init-build-scan.gradle")
+        File initScript = initScriptFile(slave, gradleVersion)
 
         expect:
         !initScript.exists()
@@ -272,7 +275,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         DumbSlave agent = createSlave()
 
-        def initScript = new File(getGradleHome(agent, gradleVersion) + "/init.d/init-build-scan.gradle")
+        def initScript = initScriptFile(agent, gradleVersion)
 
         when:
         enableBuildInjection(agent, gradleVersion, URI.create("https://my-company.com/m2/"))
@@ -300,7 +303,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         DumbSlave agent = createSlave()
 
-        def initScript = new File(getGradleHome(agent, gradleVersion) + "/init.d/init-build-scan.gradle")
+        def initScript = initScriptFile(agent, gradleVersion)
 
         when:
         enableBuildInjection(agent, gradleVersion, URI.create("https://my-company.com/m2/"))
@@ -334,6 +337,128 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         thirdDigest == firstDigest
     }
 
+    def "sets all mandatory environment variables"() {
+        given:
+        def gradleVersion = '7.5.1'
+
+        def agent = createSlave("test")
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        withGlobalEnvVars {
+            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(agent, gradleVersion))
+        }
+
+        when:
+        withInjectionConfig {
+            enabled = true
+            server = "http://localhost"
+            gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
+        }
+
+        restartSlave(agent)
+
+        then:
+        initScriptFile(agent, gradleVersion).exists()
+
+        with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
+            with(getEnvVars()) {
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.11.1'
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
+                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
+            }
+        }
+
+        when:
+        withInjectionConfig {
+            enabled = true
+            server = null
+            gradlePluginVersion = null
+        }
+
+        restartSlave(agent)
+
+        then:
+        !initScriptFile(agent, gradleVersion).exists()
+
+        with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
+            with(getEnvVars()) {
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
+                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
+            }
+        }
+    }
+
+    def "sets all optional environment variables"() {
+        given:
+        def gradleVersion = '7.5.1'
+
+        def agent = createSlave("test")
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        withGlobalEnvVars {
+            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(agent, gradleVersion))
+        }
+
+        when:
+        withInjectionConfig {
+            enabled = true
+            server = 'http://localhost'
+            allowUntrusted = true
+            gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
+            ccudPluginVersion = CCUD_PLUGIN_VERSION
+            gradlePluginRepositoryUrl = 'http://localhost/repository'
+        }
+
+        restartSlave(agent)
+
+        then:
+        initScriptFile(agent, gradleVersion).exists()
+
+        with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
+            with(getEnvVars()) {
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.11.1'
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == "true"
+                get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
+                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == "1.8.1"
+            }
+        }
+
+        when:
+        withInjectionConfig {
+            enabled = true
+            server = null
+            allowUntrusted = false
+            gradlePluginVersion = null
+            ccudPluginVersion = null
+            gradlePluginRepositoryUrl = null
+        }
+
+        restartSlave(agent)
+
+        then:
+        !initScriptFile(agent, gradleVersion).exists()
+
+        with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
+            with(getEnvVars()) {
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
+                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
+            }
+        }
+    }
+
     private static CreateFileBuilder buildScriptBuilder() {
         return new CreateFileBuilder('build.gradle', """
 task hello {
@@ -346,11 +471,15 @@ task hello {
 
     private DumbSlave createSlave(boolean setGeUrl = true) {
         withInjectionConfig {
-            ccudPluginVersion = '1.7'
+            ccudPluginVersion = CCUD_PLUGIN_VERSION
             server = setGeUrl ? 'http://foo.com' : null
         }
 
         return createSlave('foo')
+    }
+
+    private static File initScriptFile(DumbSlave agent, String gradleVersion) {
+        return new File("${getGradleHome(agent, gradleVersion)}/init.d/init-build-scan.gradle")
     }
 
     private static String getGradleHome(DumbSlave slave, String gradleVersion) {
@@ -365,7 +494,7 @@ task hello {
 
         withInjectionConfig {
             enabled = true
-            gradlePluginVersion = '3.10.1'
+            gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
             gradlePluginRepositoryUrl = repositoryAddress?.toString()
         }
 
@@ -381,7 +510,6 @@ task hello {
             enabled = false
         }
 
-        // sync changes
         restartSlave(slave)
     }
 
@@ -395,7 +523,6 @@ task hello {
             gradlePluginVersion = null
         }
 
-        // sync changes
         restartSlave(slave)
     }
 }
