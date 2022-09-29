@@ -53,8 +53,9 @@ class InjectionConfigTest extends Specification {
         form.getInputByName("_.ccudPluginVersion").setValueAttribute("1.8")
         form.getInputByName("_.gradlePluginRepositoryUrl").setValueAttribute("https://localhost/repostiry")
 
-        form.getInputByName("_.mavenExtensionVersion").setValueAttribute("1.15.3")
-        form.getInputByName("_.ccudExtensionVersion").setValueAttribute("1.11")
+        // We don't validate the values at the moment as they are used only as a trigger
+        form.getInputByName("_.mavenExtensionVersion").setValueAttribute("foo")
+        form.getInputByName("_.ccudExtensionVersion").setValueAttribute("bar")
 
         j.submit(form)
 
@@ -73,8 +74,8 @@ class InjectionConfigTest extends Specification {
             gradleInjectionEnabledNodes == null
             gradleInjectionDisabledNodes == null
 
-            mavenExtensionVersion == "1.15.3"
-            ccudExtensionVersion == "1.11"
+            mavenExtensionVersion == "foo"
+            ccudExtensionVersion == "bar"
             mavenInjectionEnabledNodes == null
             mavenInjectionDisabledNodes == null
         }

@@ -3,35 +3,51 @@ package hudson.plugins.gradle.injection;
 import hudson.EnvVars;
 import hudson.model.Node;
 import hudson.model.labels.LabelAtom;
+import hudson.plugins.gradle.util.CollectionUtil;
+import hudson.util.FormValidation;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public interface BuildScanInjection {
 
-    String getActivationEnvironmentVariableName();
+    boolean isEnabled(Node node);
 
     void inject(Node node, EnvVars envGlobal, EnvVars envComputer);
 
-    default boolean injectionEnabledForNode(Node node, EnvVars envGlobal) {
-        if (!EnvUtil.isSet(envGlobal, getActivationEnvironmentVariableName())) {
-            return false;
-        }
+    static boolean isNoOk(FormValidation validation) {
+        return !isOk(validation);
+    }
 
+    static boolean isOk(FormValidation validation) {
+        return validation.kind == FormValidation.Kind.OK;
+    }
+
+    static boolean isAnyNotOk(FormValidation... validations) {
+        return Arrays.stream(validations).anyMatch(v -> v.kind != FormValidation.Kind.OK);
+    }
+
+    static boolean isInjectionEnabledForNode(Node node, Set<String> disabledNodes, Set<String> enabledNodes) {
         Set<String> labels =
-            (node.getAssignedLabels() != null ? node.getAssignedLabels() : Collections.<LabelAtom>emptySet())
-                .stream()
+            CollectionUtil.safeStream(node.getAssignedLabels())
                 .map(LabelAtom::getName)
                 .collect(Collectors.toSet());
 
-        String disabledNodes = EnvUtil.getEnv(envGlobal, getDisabledNodesEnvironmentVariableName());
-        String enabledNodes = EnvUtil.getEnv(envGlobal, getEnabledNodesEnvironmentVariableName());
-
-        return InjectionUtils.isInjectionEnabledForNode(labels, disabledNodes, enabledNodes);
+        return isNotDisabled(labels, disabledNodes) && isEnabled(labels, enabledNodes);
     }
 
-    String getEnabledNodesEnvironmentVariableName();
+    static boolean isNotDisabled(Set<String> labels, Set<String> disabledNodes) {
+        if (disabledNodes.isEmpty()) {
+            return true;
+        }
+        return labels.stream().noneMatch(disabledNodes::contains);
+    }
 
-    String getDisabledNodesEnvironmentVariableName();
+    static boolean isEnabled(Set<String> labels, Set<String> enabledNodes) {
+        if (enabledNodes.isEmpty()) {
+            return true;
+        }
+        return enabledNodes.stream().anyMatch(labels::contains);
+    }
 }

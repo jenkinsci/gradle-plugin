@@ -220,23 +220,11 @@ public class InjectionConfig extends GlobalConfiguration {
         return checkUrl(value);
     }
 
-    @Restricted(NoExternalUse.class)
-    @POST
-    public FormValidation doCheckMavenExtensionVersion(@QueryParameter String value) {
-        return checkVersion(value);
-    }
-
-    @Restricted(NoExternalUse.class)
-    @POST
-    public FormValidation doCheckCcudExtensionVersion(@QueryParameter String value) {
-        return checkVersion(value);
-    }
-
-    private static FormValidation checkRequiredUrl(String value) {
+    public static FormValidation checkRequiredUrl(String value) {
         return checkUrl(value, true);
     }
 
-    private static FormValidation checkUrl(String value) {
+    public static FormValidation checkUrl(String value) {
         return checkUrl(value, false);
     }
 
@@ -255,7 +243,11 @@ public class InjectionConfig extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
-    private static FormValidation checkVersion(String value) {
+    public static FormValidation checkRequiredVersion(String value) {
+        return checkVersion(value, true);
+    }
+
+    public static FormValidation checkVersion(String value) {
         return checkVersion(value, false);
     }
 

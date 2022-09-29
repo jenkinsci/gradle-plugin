@@ -6,6 +6,7 @@ import hudson.Util;
 import java.io.IOException;
 import java.io.InputStream;
 
+// TODO: Move to util package
 public final class CopyUtil {
 
     private CopyUtil() {
