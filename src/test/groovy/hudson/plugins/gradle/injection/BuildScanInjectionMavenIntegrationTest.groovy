@@ -245,7 +245,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
         extensionDirectory.list().size() == 1
 
         when:
-        withAdditionalGlobalEnvVars { put(MavenBuildScanInjection.FEATURE_TOGGLE_DISABLED_NODES, 'bar,foo') }
+        withInjectionConfig {
+            mavenInjectionDisabledNodes = labels('bar', 'foo')
+        }
         restartSlave(slave)
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
@@ -253,9 +255,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
         extensionDirectory.list().size() == 0
 
         when:
-        withAdditionalGlobalEnvVars {
-            put(MavenBuildScanInjection.FEATURE_TOGGLE_DISABLED_NODES, '')
-            put(MavenBuildScanInjection.FEATURE_TOGGLE_ENABLED_NODES, 'daz,foo')
+        withInjectionConfig {
+            mavenInjectionDisabledNodes = null
+            mavenInjectionEnabledNodes = labels('daz', 'foo')
         }
         restartSlave(slave)
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
@@ -265,9 +267,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
         extensionDirectory.list().size() == 1
 
         when:
-        withAdditionalGlobalEnvVars {
-            put(MavenBuildScanInjection.FEATURE_TOGGLE_DISABLED_NODES, '')
-            put(MavenBuildScanInjection.FEATURE_TOGGLE_ENABLED_NODES, 'daz')
+        withInjectionConfig {
+            mavenInjectionDisabledNodes = null
+            mavenInjectionEnabledNodes = labels('daz')
         }
         restartSlave(slave)
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
@@ -313,10 +315,11 @@ node {
 
     def 'build scan is published with CCUD extension applied'() {
         given:
-        withGlobalEnvVars {
-            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'true')
-            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION', '1.14.2')
-            put('JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION', '1.10.1')
+        withInjectionConfig {
+            enabled = true
+            server = "https://scans.gradle.com"
+            mavenExtensionVersion = '1.14.2'
+            ccudExtensionVersion = '1.10.1'
         }
 
         createSlave('foo')
@@ -338,7 +341,9 @@ node {
         def slave = createSlaveAndTurnOnInjection()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(), false))
-        withAdditionalGlobalEnvVars { put('MAVEN_OPTS', '-Dfoo=bar') }
+        withGlobalEnvVars {
+            put('MAVEN_OPTS', '-Dfoo=bar')
+        }
         restartSlave(slave)
 
         when:
@@ -382,9 +387,10 @@ node {
     }
 
     private DumbSlave createSlaveAndTurnOnInjection() {
-        withGlobalEnvVars {
-            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'true')
-            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION', '1.14.2')
+        withInjectionConfig {
+            enabled = true
+            server = 'https://scans.gradle.com'
+            mavenExtensionVersion = '1.14.2'
         }
 
         createSlave('foo')
@@ -409,18 +415,25 @@ node {
     }
 
     void turnOffBuildInjectionAndRestart(DumbSlave slave) {
-        configureEnvironmentVariables(slave) {
-            remove('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION')
+        withInjectionConfig {
+            enabled = true
+            server = 'https://scans.gradle.com'
+            mavenExtensionVersion = null
         }
+
+        // sync changes
+        restartSlave(slave)
     }
 
     void turnOnBuildInjectionAndRestart(DumbSlave slave, Boolean useCCUD = true) {
-        configureEnvironmentVariables(slave) {
-            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION', '1.14.2')
-
-            if (useCCUD) {
-                put('JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION', '1.14.2')
-            }
+        withInjectionConfig {
+            enabled = true
+            server = 'https://scans.gradle.com'
+            mavenExtensionVersion = '1.14.2'
+            ccudExtensionVersion = useCCUD ? '1.11.1' : null
         }
+
+        // sync changes
+        restartSlave(slave)
     }
 }

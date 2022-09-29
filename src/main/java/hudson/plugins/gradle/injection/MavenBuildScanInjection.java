@@ -34,9 +34,6 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         GRADLE_ENTERPRISE_URL_PROPERTY_KEY
     );
 
-    static final String FEATURE_TOGGLE_DISABLED_NODES = "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES";
-    static final String FEATURE_TOGGLE_ENABLED_NODES = "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES";
-
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
 
     @Override

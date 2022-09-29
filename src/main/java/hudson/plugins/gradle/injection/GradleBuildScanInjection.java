@@ -43,9 +43,6 @@ public class GradleBuildScanInjection implements BuildScanInjection {
             JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION
         );
 
-    static final String FEATURE_TOGGLE_DISABLED_NODES = "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES";
-    static final String FEATURE_TOGGLE_ENABLED_NODES = "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES";
-
     private static final String HOME = "HOME";
 
     private static final String RESOURCE_INIT_SCRIPT_GRADLE = "init-script.gradle";
@@ -156,7 +153,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
         }
         String ccudPluginVersion = config.getCcudPluginVersion();
-        if (ccudPluginVersion != null && InjectionUtil.isOk(InjectionConfig.checkUrl(ccudPluginVersion))) {
+        if (ccudPluginVersion != null && InjectionUtil.isOk(InjectionConfig.checkVersion(ccudPluginVersion))) {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION, ccudPluginVersion);
         }
     }

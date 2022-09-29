@@ -1,12 +1,9 @@
 package hudson.plugins.gradle.injection
 
-import hudson.EnvVars
 import hudson.Util
 import hudson.model.FreeStyleProject
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
-import hudson.slaves.EnvironmentVariablesNodeProperty
-import hudson.slaves.NodeProperty
 import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -181,7 +178,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         gradleVersion << GRADLE_VERSIONS
     }
 
-    def 'init script is deleted without JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION set'(String gradleVersion) {
+    def 'init script is deleted without gradle plugin version set'(String gradleVersion) {
         given:
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -234,16 +231,18 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         initScript.exists()
 
         when:
-        withAdditionalGlobalEnvVars { put(GradleBuildScanInjection.FEATURE_TOGGLE_DISABLED_NODES, 'bar,foo') }
+        withInjectionConfig {
+            gradleInjectionDisabledNodes = labels('bar', 'foo')
+        }
         restartSlave(slave)
 
         then:
         !initScript.exists()
 
         when:
-        withAdditionalGlobalEnvVars {
-            put(GradleBuildScanInjection.FEATURE_TOGGLE_DISABLED_NODES, '')
-            put(GradleBuildScanInjection.FEATURE_TOGGLE_ENABLED_NODES, 'daz,foo')
+        withInjectionConfig {
+            gradleInjectionDisabledNodes = null
+            gradleInjectionEnabledNodes = labels('daz', 'foo')
         }
         restartSlave(slave)
 
@@ -251,9 +250,9 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         initScript.exists()
 
         when:
-        withAdditionalGlobalEnvVars {
-            put(GradleBuildScanInjection.FEATURE_TOGGLE_DISABLED_NODES, '')
-            put(GradleBuildScanInjection.FEATURE_TOGGLE_ENABLED_NODES, 'daz')
+        withInjectionConfig {
+            gradleInjectionDisabledNodes = null
+            gradleInjectionEnabledNodes = labels('daz')
         }
         restartSlave(slave)
 
@@ -346,11 +345,9 @@ task hello {
     }
 
     private DumbSlave createSlave(boolean setGeUrl = true) {
-        withGlobalEnvVars {
-            put('JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION', '1.7')
-            if (setGeUrl) {
-                put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL', 'http://foo.com')
-            }
+        withInjectionConfig {
+            ccudPluginVersion = '1.7'
+            server = setGeUrl ? 'http://foo.com' : null
         }
 
         return createSlave('foo')
@@ -361,42 +358,42 @@ task hello {
     }
 
     private void enableBuildInjection(DumbSlave slave, String gradleVersion, URI repositoryAddress = null) {
-        withAdditionalGlobalEnvVars {
-            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'on')
+        withGlobalEnvVars {
             put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
-            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION', '3.10.1')
             put('GRADLE_OPTS', '-Dscan.uploadInBackground=false')
-            if (repositoryAddress != null) {
-                put('JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL', repositoryAddress.toString())
-            }
         }
+
+        withInjectionConfig {
+            enabled = true
+            gradlePluginVersion = '3.10.1'
+            gradlePluginRepositoryUrl = repositoryAddress?.toString()
+        }
+
         restartSlave(slave)
     }
 
     private void disableBuildInjection(DumbSlave slave, String gradleVersion) {
-        NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
-        EnvVars env = nodeProperty.getEnvVars()
+        withGlobalEnvVars {
+            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
+        }
 
-        env.remove('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION')
-        env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
-
-        j.jenkins.globalNodeProperties.clear()
-        j.jenkins.globalNodeProperties.add(nodeProperty)
+        withInjectionConfig {
+            enabled = false
+        }
 
         // sync changes
         restartSlave(slave)
     }
 
     private void turnOffBuildInjection(DumbSlave slave, String gradleVersion) {
-        NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
-        EnvVars env = nodeProperty.getEnvVars()
+        withGlobalEnvVars {
+            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
+        }
 
-        env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'on')
-        env.remove('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION')
-        env.put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
-
-        j.jenkins.globalNodeProperties.clear()
-        j.jenkins.globalNodeProperties.add(nodeProperty)
+        withInjectionConfig {
+            enabled = true
+            gradlePluginVersion = null
+        }
 
         // sync changes
         restartSlave(slave)

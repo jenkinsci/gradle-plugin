@@ -11,6 +11,7 @@ import spock.lang.Unroll
 
 @Unroll
 class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTest {
+
     @Rule
     public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(mavenInstallationRule)
 
@@ -19,10 +20,11 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTe
         mavenInstallationRule.mavenVersion = mavenVersion
         mavenInstallationRule.addInstallation()
 
-        withGlobalEnvVars {
-            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'true')
-            put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION', '1.14.2')
-            put('JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION', '1.10.1')
+        withInjectionConfig {
+            enabled = true
+            server = 'https://scans.gradle.com'
+            mavenExtensionVersion = '1.14.2'
+            ccudExtensionVersion = '1.10.1'
         }
 
         def p = j.createFreeStyleProject()
