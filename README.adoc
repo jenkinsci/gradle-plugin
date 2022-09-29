@@ -91,55 +91,82 @@ image::find-build-scans.png[Find build scans,{thumbnail}]
 == Injecting Build Scans
 
 The plugin can be configured to inject Build Scans into any Gradle or Maven build that's running on the Jenkins server or any of its connected agents.
-
-=== How it works
-
 This feature works by installing scripts and Jars on each agent depending on the environment variable settings.
 
-The feature can be enabled by setting the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION` environment variable.
+> **Note**
+> - The configuration is based on global environment variables and applies to all builds on all connected agents matching the specified label criteria, or all in case no label criteria are defined.
 
-If the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` environment variable is present, injection is activated for Gradle builds.
-This causes an init script to be installed in the user home of each connected agent.
-It is required to set `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL` environment variable to the URL of the Gradle Enterprise instance to which to publish the Build Scan.
+=== How to enable Build Scan injection
 
-The init script is removed when `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` is unset, thus deactivating injection for Gradle builds.
+- Set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION` environment variable to any value.
+- Set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL` environment variable to the URL of the Gradle Enterprise instance to which to publish the Build Scan.
 
-If the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable is present, injection is activated for Maven builds.
-This causes the Gradle Enterprise Maven Extension to be installed on each connected agent, and the `MAVEN_OPTS` environment variable will be modified so that each Maven process will load the extension.
+==== Gradle
 
-The extension is deleted from all agents and the changes to `MAVEN_OPTS` are reverted when `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` is unset.
+- Set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` environment variable to the desired Gradle Enterprise plugin version to be injected.
+- Optionally set the `JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION` environment variable to the desired version of the Common Custom User Data Gradle plugin to be injected.
+
+==== Maven
+
+- Set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable to any value to enable the Gradle Enterprise Maven extension injection.
+Currently, this environment variable value is ignored and is used just as a trigger to enable injection. To see which version of the extension is injected, see link:#_compatibility[Compatibility].
+- Optionally set the `JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION` to any value to enable Common Custom User Data Maven extension injection.
+Currently, this environment variable value is ignored and is used just as a trigger to enable injection. To see which version of the extension is injected, see link:#_compatibility[Compatibility].
+
+> **Warning**
+> - Maven injection only works if `MAVEN_OPTS` is not configured as a global environment variable.
+
+=== How to disable Build Scan injection
+
+Disabling Build Scan injection requires that all Gradle Enterprise resources are cleaned up from the agents. To achieve this the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION` environment variable must be kept enable
+and instead the Gradle and Maven injections must be disabled individually.
+
+==== Gradle
+
+- Remove the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` environment variable.
+
+==== Maven
+
+- Remove the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable.
 
 === Configuration options
 
-The following table lists all available configuration options.
+The following tables list all available configuration options.
 
 .General variables
 |===
-|Environment variable|Build Tool|Description
+|Environment variable|Description
 
-|JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION|Both|Enable the feature if set.
-|JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL|Both|The URL of the Gradle Enterprise server to publish Build Scans to.
-|JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER|Both|Whether to allow publishing to a server with a self-signed certificate. Defaults to `false`.
-|JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL|Gradle|The URL of the repository to use when resolving the Gradle Enterprise Gradle plugin and the Common Custom User Data Gradle plugin. Required if Jenkins agents are not able to access the Gradle Plugin Portal at https://plugins.gradle.org.
-|JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION|Gradle|Enables injection for Gradle builds and defines which version of the https://plugins.gradle.org/plugin/com.gradle.enterprise[Gradle Enterprise Gradle plugin] to use.
-|JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION|Gradle|Defines which version of the https://plugins.gradle.org/plugin/com.gradle.common-custom-user-data-gradle-plugin[Common Custom User Data Gradle Plugin] to use.
-|JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES|Gradle|Comma separated list of node labels where the Gradle Enterprise Gradle plugin injection should be enabled. By default, all nodes are enabled.
-|JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES|Gradle|Comma separated list of node labels where the Gradle Enterprise Gradle plugin injection should be disabled. By default, all nodes are enabled.
-|JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION|Maven|Enables injection for Maven builds and defines which version of the https://docs.gradle.com/enterprise/maven-extension[Gradle Enterprise Maven extension] to use.
-|JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION|Maven|Defines which version of the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension] to use.
-|JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES|Maven|Comma separated list of node labels where the Gradle Enterprise Maven extension injection should be enabled. By default, all nodes are enabled.
-|JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES|Maven|Comma separated list of node labels where the Gradle Enterprise Maven extension injection should be disabled. By default, all nodes are enabled.
+|`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION`|Enable the feature if set.
+|`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL`|The URL of the Gradle Enterprise server to publish Build Scans to.
+|`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER`|Whether to allow publishing to a server with a self-signed certificate. Defaults to `false`.
 |===
 
-In addition to the variables above you might want to set the `GRADLE_ENTERPRISE_ACCESS_KEY` variable if you're Gradle Enterprise server requires authentication for publishing Build Scans. Refer to the https://docs.gradle.com/enterprise/gradle-plugin/#via_environment_variable[Gradle Enterprise Gradle plugin manual] and the https://docs.gradle.com/enterprise/maven-extension/#via_environment_variable[Gradle Enterprise Maven Extension manual] for more information.
 
-=== Limitations
+.Gradle variables
+|===
+|Environment variable|Description
 
-- The configuration is based on global environment variables and applies to all builds on the server and all connected agents.
-- Injecting Build Scans into Maven builds only works if `MAVEN_OPTS` is not set.
-- Values of `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` and `JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION` environment variables are ignored at the moment.
-These variables are only used as triggers for the injection of the corresponding extensions.
+|`JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL`|The URL of the repository to use when resolving the Gradle Enterprise Gradle plugin and the Common Custom User Data Gradle plugin. Required if Jenkins agents are not able to access the Gradle Plugin Portal at https://plugins.gradle.org.
+|`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION`|Enables injection for Gradle builds and defines which version of the https://plugins.gradle.org/plugin/com.gradle.enterprise[Gradle Enterprise Gradle plugin] to use.
+|`JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION`|Defines which version of the https://plugins.gradle.org/plugin/com.gradle.common-custom-user-data-gradle-plugin[Common Custom User Data Gradle Plugin] to use.
+|`JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES`|Comma separated list of node labels where the Gradle Enterprise Gradle plugin injection should be enabled. By default, all nodes are enabled.
+|`JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES`|Comma separated list of node labels where the Gradle Enterprise Gradle plugin injection should be disabled. By default, all nodes are enabled.
+|===
 
+.Maven variables
+|===
+|Environment variable|Description
+
+|`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION`|Enables injection for Maven builds and defines which version of the https://docs.gradle.com/enterprise/maven-extension[Gradle Enterprise Maven extension] to use.
+|`JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION`|Defines which version of the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension] to use.
+|`JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES`|Comma separated list of node labels where the Gradle Enterprise Maven extension injection should be enabled. By default, all nodes are enabled.
+|`JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES`|Comma separated list of node labels where the Gradle Enterprise Maven extension injection should be disabled. By default, all nodes are enabled.
+|===
+
+In addition to the variables above you might want to set the `GRADLE_ENTERPRISE_ACCESS_KEY` variable if you're Gradle Enterprise server requires authentication for publishing Build Scans.Refer to the https://docs.gradle.com/enterprise/gradle-plugin/#via_environment_variable[Gradle Enterprise Gradle plugin manual] and the https://docs.gradle.com/enterprise/maven-extension/#via_environment_variable[Gradle Enterprise Maven Extension manual] for more information.
+
+[#_compatibility]
 === Compatibility
 
 |===
