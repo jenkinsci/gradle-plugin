@@ -59,7 +59,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        return BuildScanInjection.isInjectionEnabledForNode(node, disabledNodes, enabledNodes);
+        return InjectionUtil.isInjectionEnabledForNode(node::getAssignedLabels, disabledNodes, enabledNodes);
     }
 
     private static boolean isMissingRequiredParameters(InjectionConfig config) {
@@ -67,7 +67,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         String mavenExtensionVersion = config.getMavenExtensionVersion();
 
         return mavenExtensionVersion == null
-            || BuildScanInjection.isNoOk(InjectionConfig.checkRequiredUrl(server));
+            || InjectionUtil.isNoOk(InjectionConfig.checkRequiredUrl(server));
     }
 
     @Override

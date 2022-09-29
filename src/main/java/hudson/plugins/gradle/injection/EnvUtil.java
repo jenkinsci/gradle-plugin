@@ -9,7 +9,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-// TODO: Move to util package
 public final class EnvUtil {
 
     private EnvUtil() {

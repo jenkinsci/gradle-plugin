@@ -75,14 +75,14 @@ public class GradleBuildScanInjection implements BuildScanInjection {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        return BuildScanInjection.isInjectionEnabledForNode(node, disabledNodes, enabledNodes);
+        return InjectionUtil.isInjectionEnabledForNode(node::getAssignedLabels, disabledNodes, enabledNodes);
     }
 
     private static boolean isMissingRequiredParameters(InjectionConfig config) {
         String server = config.getServer();
         String gradlePluginVersion = config.getGradlePluginVersion();
 
-        return BuildScanInjection.isAnyNotOk(
+        return InjectionUtil.isAnyNotOk(
             InjectionConfig.checkRequiredUrl(server),
             InjectionConfig.checkRequiredVersion(gradlePluginVersion)
         );
@@ -152,11 +152,11 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         }
 
         String pluginRepositoryUrl = config.getGradlePluginRepositoryUrl();
-        if (pluginRepositoryUrl != null && BuildScanInjection.isOk(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
+        if (pluginRepositoryUrl != null && InjectionUtil.isOk(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
         }
         String ccudPluginVersion = config.getCcudPluginVersion();
-        if (ccudPluginVersion != null && BuildScanInjection.isOk(InjectionConfig.checkUrl(ccudPluginVersion))) {
+        if (ccudPluginVersion != null && InjectionUtil.isOk(InjectionConfig.checkUrl(ccudPluginVersion))) {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION, ccudPluginVersion);
         }
     }
