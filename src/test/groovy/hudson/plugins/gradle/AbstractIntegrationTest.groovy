@@ -1,6 +1,12 @@
 package hudson.plugins.gradle
 
-import hudson.model.*
+import hudson.model.Cause
+import hudson.model.FreeStyleBuild
+import hudson.model.FreeStyleProject
+import hudson.model.ParametersAction
+import hudson.model.ParametersDefinitionProperty
+import hudson.model.TextParameterDefinition
+import hudson.model.TextParameterValue
 import hudson.model.queue.QueueTaskFuture
 import org.jenkinsci.plugins.pipeline.maven.GlobalPipelineMavenConfig
 import org.jenkinsci.plugins.pipeline.maven.dao.PipelineMavenPluginDao
