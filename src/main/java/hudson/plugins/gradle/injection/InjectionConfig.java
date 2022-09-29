@@ -19,7 +19,6 @@ import javax.annotation.CheckForNull;
 import java.util.List;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
-@Restricted(NoExternalUse.class)
 @Extension
 public class InjectionConfig extends GlobalConfiguration {
 
