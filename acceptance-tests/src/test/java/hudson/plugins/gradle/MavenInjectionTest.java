@@ -21,18 +21,14 @@ import static org.jenkinsci.test.acceptance.Matchers.containsString;
 @WithPlugins("gradle")
 public class MavenInjectionTest extends AbstractAcceptanceTest {
 
+    private static final String AGENT_VERSION = "1.15.3";
     private static final String MAVEN_VERSION = "3.8.6";
 
     @Before
     public void beforeEach() {
         MavenInstallation.installMaven(jenkins, MAVEN_VERSION, MAVEN_VERSION);
 
-        addGlobalEnvironmentVariables(
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION", "true",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION", "1.15.1"
-            // TODO: Uncomment after updating embedded maven extension version to 1.15.x
-            // , "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL", "https://scans.gradle.com"
-        );
+        enableBuildScansForMaven(AGENT_VERSION);
     }
 
     @Test

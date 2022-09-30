@@ -1,11 +1,9 @@
 package hudson.plugins.gradle;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import hudson.plugin.gradle.EnvironmentVariablesSettings;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.codehaus.plexus.util.Base64;
 import org.jenkinsci.test.acceptance.controller.JenkinsController;
@@ -21,11 +19,12 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.List;
 
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
+
+    private static final URI PUBLIC_GE_SERVER = URI.create("https://scans.gradle.com");
 
     @Rule
     public MockGeServer mockGeServer = new MockGeServer();
@@ -48,18 +47,24 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         }
     }
 
-    protected final void addGlobalEnvironmentVariables(String... variables) {
-        Preconditions.checkArgument(
-            isEven(ArrayUtils.getLength(variables)),
-            "variables array must have an even length");
-
+    protected final void enableBuildScansForGradle(URI server, String agentVersion) {
         EnvironmentVariablesSettings settings = new EnvironmentVariablesSettings(jenkins);
         settings.configure();
-        settings.clickEnvironmentVariables();
 
-        for (List<String> pair : Iterables.partition(Arrays.asList(variables), 2)) {
-            settings.addEnvironmentVariable(pair.get(0), pair.get(1));
-        }
+        settings.clickBuildScansInjection();
+        settings.setGradleEnterpriseServerUrl(server);
+        settings.setGradleEnterprisePluginVersion(agentVersion);
+
+        settings.save();
+    }
+
+    protected final void enableBuildScansForMaven(String agentVersion) {
+        EnvironmentVariablesSettings settings = new EnvironmentVariablesSettings(jenkins);
+        settings.configure();
+
+        settings.clickBuildScansInjection();
+        settings.setGradleEnterpriseServerUrl(PUBLIC_GE_SERVER);
+        settings.setGradleEnterpriseExtensionVersion(agentVersion);
 
         settings.save();
     }
@@ -88,9 +93,5 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
                 tmp.delete();
             }
         }
-    }
-
-    private static boolean isEven(int number) {
-        return (number & 1) == 0;
     }
 }

@@ -24,7 +24,10 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
 @WithPlugins("gradle")
@@ -40,11 +43,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     public void beforeEach() {
         GradleInstallation.installGradle(jenkins, GRADLE_VERSION, GRADLE_VERSION);
 
-        addGlobalEnvironmentVariables(
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION", "true",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION", AGENT_VERSION,
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL", mockGeServer.getAddress().toString()
-        );
+        enableBuildScansForGradle(mockGeServer.getAddress(), AGENT_VERSION);
     }
 
     @Test
