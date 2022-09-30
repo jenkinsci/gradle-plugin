@@ -27,8 +27,8 @@ In the *Gradle* section provided by this plugin, several installations can be co
 
 image::gradle-tool-installation.png[Tool installations,{thumbnail}]
 
-The system provides both automatic installation, which can be performed by directly downloading from the http://www.gradle.org/[Gradle web site], extracting a compressed final or executing some shell commands.
-Besides, for nodes which already has Gradle installed, the tool can be manually configured, by unchecking the *Install automatically* checkbox and providing the base path (`GRADLE_HOME`) of the installation.
+The system provides both automatic installation, which can be performed by directly downloading a Gradle distribution from the http://www.gradle.org/[Gradle web site] or executing some shell commands to achieve the same.
+Besides, for nodes which already have Gradle installed, the tool can be manually configured, by unchecking the *Install automatically* checkbox and providing the base path (as a `GRADLE_HOME` environment variable) of the installation.
 
 == Usage
 
