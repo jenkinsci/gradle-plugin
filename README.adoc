@@ -115,9 +115,9 @@ Optionally set the `JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION` environment variabl
 
 ==== Maven
 
-To enable the auto-injection for Maven builds, set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable to any value to enable the https://docs.gradle.com/enterprise/maven-extension/[Gradle Enterprise Maven extension] injection.
+To enable the auto-injection for Maven builds, set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable to any value.
 
-Optionally set the `JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION` to any value to enable https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven extension] injection.
+Optionally set the `JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION` to any value.
 
 Currently, the values of these environment variables are ignored and are just used as a trigger to enable the auto-injection.
 This may change in a future version of the plugin.
