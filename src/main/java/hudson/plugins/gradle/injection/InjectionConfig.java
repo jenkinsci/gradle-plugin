@@ -219,6 +219,20 @@ public class InjectionConfig extends GlobalConfiguration {
         return checkUrl(value);
     }
 
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckMavenExtensionVersion(@QueryParameter String value) {
+        // Noop validation because at the moment we only use this parameter as a trigger.
+        return FormValidation.ok();
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckCcudExtensionVersion(@QueryParameter String value) {
+        // Noop validation because at the moment we only use this parameter as a trigger.
+        return FormValidation.ok();
+    }
+
     public static FormValidation checkRequiredUrl(String value) {
         return checkUrl(value, true);
     }

@@ -25,10 +25,72 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         "http://gradle.com/test" || FormValidation.Kind.OK    | null
         "http://localhost"       || FormValidation.Kind.OK    | null
         "https://localhost"      || FormValidation.Kind.OK    | null
+        "  https://localhost"    || FormValidation.Kind.OK    | null
+        "https://localhost  "    || FormValidation.Kind.OK    | null
         "ftp://localhost"        || FormValidation.Kind.ERROR | "Not a valid URL."
         "localhost"              || FormValidation.Kind.ERROR | "Not a valid URL."
         ""                       || FormValidation.Kind.ERROR | "Required."
         null                     || FormValidation.Kind.ERROR | "Required."
+    }
+
+    @Unroll
+    def "validates plugin repository url"() {
+        expect:
+        with(InjectionConfig.get().doCheckGradlePluginRepositoryUrl(url)) {
+            kind == expectedKind
+            message == expectedMssage
+        }
+
+        where:
+        url                      || expectedKind              | expectedMssage
+        "http://gradle.com/test" || FormValidation.Kind.OK    | null
+        "http://localhost"       || FormValidation.Kind.OK    | null
+        "https://localhost"      || FormValidation.Kind.OK    | null
+        "  https://localhost"    || FormValidation.Kind.OK    | null
+        "https://localhost  "    || FormValidation.Kind.OK    | null
+        "ftp://localhost"        || FormValidation.Kind.ERROR | "Not a valid URL."
+        "localhost"              || FormValidation.Kind.ERROR | "Not a valid URL."
+        ""                       || FormValidation.Kind.OK    | null
+        null                     || FormValidation.Kind.OK    | null
+    }
+
+    @Unroll
+    def "validates gradle plugin and ccud plugin version"() {
+        expect:
+        with(InjectionConfig.get().doCheckGradlePluginVersion(version)) {
+            kind == expectedKind
+            message == expectedMssage
+        }
+        with(InjectionConfig.get().doCheckCcudPluginVersion(version)) {
+            kind == expectedKind
+            message == expectedMssage
+        }
+
+        where:
+        version                   || expectedKind              | expectedMssage
+        "1"                       || FormValidation.Kind.ERROR | "Not a valid version."
+        "1.0"                     || FormValidation.Kind.OK    | null
+        "1.1.1"                   || FormValidation.Kind.OK    | null
+        "   1.1.1"                || FormValidation.Kind.OK    | null
+        "1.0   "                  || FormValidation.Kind.OK    | null
+        "2.0.0-SNAPSHOT"          || FormValidation.Kind.OK    | null
+        "2.0.0-my-branch_42-test" || FormValidation.Kind.OK    | null
+        "first"                   || FormValidation.Kind.ERROR | "Not a valid version."
+    }
+
+    def "allows any value for maven and ccud extensions"() {
+        expect:
+        with(InjectionConfig.get().doCheckMavenExtensionVersion(version)) {
+            kind == FormValidation.Kind.OK
+            message == null
+        }
+        with(InjectionConfig.get().doCheckCcudExtensionVersion(version)) {
+            kind == FormValidation.Kind.OK
+            message == null
+        }
+
+        where:
+        version << [null, "", "1", "1.0", "1.1.1", "first"]
     }
 
     def "saves injection configuration"() {
