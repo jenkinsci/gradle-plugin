@@ -1,7 +1,7 @@
 package hudson.plugins.gradle;
 
 import com.google.common.base.Preconditions;
-import hudson.plugin.gradle.EnvironmentVariablesSettings;
+import hudson.plugin.gradle.BuildScansInjectionSettings;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.util.function.Consumer;
 
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
@@ -48,23 +49,26 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     }
 
     protected final void enableBuildScansForGradle(URI server, String agentVersion) {
-        EnvironmentVariablesSettings settings = new EnvironmentVariablesSettings(jenkins);
-        settings.configure();
-
-        settings.clickBuildScansInjection();
-        settings.setGradleEnterpriseServerUrl(server);
-        settings.setGradleEnterprisePluginVersion(agentVersion);
-
-        settings.save();
+        updateBuildScansInjectionSettings(settings -> {
+            settings.clickBuildScansInjection();
+            settings.setGradleEnterpriseServerUrl(server);
+            settings.setGradleEnterprisePluginVersion(agentVersion);
+        });
     }
 
     protected final void enableBuildScansForMaven(String agentVersion) {
-        EnvironmentVariablesSettings settings = new EnvironmentVariablesSettings(jenkins);
+        updateBuildScansInjectionSettings(settings -> {
+            settings.clickBuildScansInjection();
+            settings.setGradleEnterpriseServerUrl(PUBLIC_GE_SERVER);
+            settings.setGradleEnterpriseExtensionVersion(agentVersion);
+        });
+    }
+
+    private void updateBuildScansInjectionSettings(Consumer<BuildScansInjectionSettings> spec) {
+        BuildScansInjectionSettings settings = new BuildScansInjectionSettings(jenkins);
         settings.configure();
 
-        settings.clickBuildScansInjection();
-        settings.setGradleEnterpriseServerUrl(PUBLIC_GE_SERVER);
-        settings.setGradleEnterpriseExtensionVersion(agentVersion);
+        spec.accept(settings);
 
         settings.save();
     }

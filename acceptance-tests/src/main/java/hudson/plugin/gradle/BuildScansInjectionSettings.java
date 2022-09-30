@@ -6,7 +6,7 @@ import org.openqa.selenium.By;
 
 import java.net.URI;
 
-public class EnvironmentVariablesSettings extends JenkinsConfig {
+public class BuildScansInjectionSettings extends JenkinsConfig {
 
     private static final String XPATH = "//*[@path='%s']";
 
@@ -16,7 +16,7 @@ public class EnvironmentVariablesSettings extends JenkinsConfig {
     private static final String GE_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
     private static final String GE_MAVEN_EXTENSION_VERSION_FIELD = "mavenExtensionVersion";
 
-    public EnvironmentVariablesSettings(Jenkins jenkins) {
+    public BuildScansInjectionSettings(Jenkins jenkins) {
         super(jenkins);
     }
 
