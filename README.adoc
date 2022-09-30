@@ -217,7 +217,7 @@ Comma separated list of node labels where the Gradle Enterprise Maven extension 
 
 For the current release notes (`v1.34+`), please check the https://github.com/jenkinsci/gradle-plugin/releases[GitHub releases page].
 
-The older releases `< v1.34` see this list:
+For the older releases `< v1.34` see this list:
 
 === 1.33 (July 5th 2019)
 
