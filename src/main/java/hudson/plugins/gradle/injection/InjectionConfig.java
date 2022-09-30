@@ -244,16 +244,14 @@ public class InjectionConfig extends GlobalConfiguration {
     private static FormValidation checkUrl(String value, boolean required) {
         String url = Util.fixEmptyAndTrim(value);
         if (url == null) {
-            if (required) {
-                return FormValidation.error(Messages.InjectionConfig_Required());
-            }
-            return FormValidation.ok();
+            return required
+                ? FormValidation.error(Messages.InjectionConfig_Required())
+                : FormValidation.ok();
         }
 
-        if (!HttpUrlValidator.getInstance().isValid(url)) {
-            return FormValidation.error(Messages.InjectionConfig_InvalidUrl());
-        }
-        return FormValidation.ok();
+        return HttpUrlValidator.getInstance().isValid(url)
+            ? FormValidation.ok()
+            : FormValidation.error(Messages.InjectionConfig_InvalidUrl());
     }
 
     public static FormValidation checkRequiredVersion(String value) {
@@ -267,15 +265,13 @@ public class InjectionConfig extends GlobalConfiguration {
     private static FormValidation checkVersion(String value, boolean required) {
         String version = Util.fixEmptyAndTrim(value);
         if (version == null) {
-            if (required) {
-                return FormValidation.error(Messages.InjectionConfig_Required());
-            }
-            return FormValidation.ok();
+            return required
+                ? FormValidation.error(Messages.InjectionConfig_Required())
+                : FormValidation.ok();
         }
 
-        if (!GradleEnterpriseVersionValidator.getInstance().isValid(version)) {
-            return FormValidation.error(Messages.InjectionConfig_InvalidVersion());
-        }
-        return FormValidation.ok();
+        return GradleEnterpriseVersionValidator.getInstance().isValid(version)
+            ? FormValidation.ok()
+            : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
     }
 }
