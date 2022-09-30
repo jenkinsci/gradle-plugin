@@ -1,5 +1,7 @@
 package hudson.plugins.gradle.injection
 
+import com.gargoylesoftware.htmlunit.html.HtmlButton
+import com.gargoylesoftware.htmlunit.html.HtmlForm
 import hudson.util.FormValidation
 import hudson.util.XStream2
 import spock.lang.Shared
@@ -109,9 +111,19 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         form.getInputByName("_.ccudPluginVersion").setValueAttribute("1.8")
         form.getInputByName("_.gradlePluginRepositoryUrl").setValueAttribute("https://localhost/repostiry")
 
+        getAddButton(form, "Gradle Injection Enabled Nodes").click()
+        form.getInputsByName("_.label").last().setValueAttribute("gradle1")
+        getAddButton(form, "Gradle Injection Disabled Nodes").click()
+        form.getInputsByName("_.label").last().setValueAttribute("gradle2")
+
         // We don't validate the values at the moment as they are used only as a trigger
         form.getInputByName("_.mavenExtensionVersion").setValueAttribute("foo")
         form.getInputByName("_.ccudExtensionVersion").setValueAttribute("bar")
+
+        getAddButton(form, "Maven Injection Enabled Nodes").click()
+        form.getInputsByName("_.label").last().setValueAttribute("maven1")
+        getAddButton(form, "Maven Injection Disabled Nodes").click()
+        form.getInputsByName("_.label").last().setValueAttribute("maven2")
 
         j.submit(form)
 
@@ -127,17 +139,22 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
             gradlePluginVersion == "3.11.1"
             ccudPluginVersion == "1.8"
             gradlePluginRepositoryUrl == "https://localhost/repostiry"
-            gradleInjectionEnabledNodes == null
-            gradleInjectionDisabledNodes == null
+            gradleInjectionEnabledNodes*.label == ['gradle1']
+            gradleInjectionDisabledNodes*.label == ['gradle2']
 
             mavenExtensionVersion == "foo"
             ccudExtensionVersion == "bar"
-            mavenInjectionEnabledNodes == null
-            mavenInjectionDisabledNodes == null
+            mavenInjectionEnabledNodes*.label == ['maven1']
+            mavenInjectionDisabledNodes*.label == ['maven2']
         }
     }
 
     private static InjectionConfig fromXml(String xml) {
         return (InjectionConfig) new XStream2().fromXML(xml)
+    }
+
+    private static HtmlButton getAddButton(HtmlForm form, String label) {
+        def xpath = "//td[@class = 'setting-name' and text() = '$label']/following-sibling::td[@class = 'setting-main']//span[contains(@class, 'repeatable-add')]//button[text() = 'Add']"
+        return form.getFirstByXPath(xpath)
     }
 }
