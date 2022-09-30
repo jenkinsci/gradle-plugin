@@ -36,6 +36,8 @@ jenkinsPlugin {
   // Plugin ID, defaults to the project name without trailing '-plugin'
   shortName = 'gradle'
 
+  fileExtension = 'jpi'
+
   compatibleSinceVersion = '1.0'
 
   developers {
@@ -237,7 +239,4 @@ jar {
 
 artifacts {
     pluginsCollectionDist(jpi)
-    pluginsCollectionDist(copyTestPluginDependencies.outputDir) {
-        builtBy(copyTestPluginDependencies)
-    }
 }
