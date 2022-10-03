@@ -141,6 +141,13 @@ To disable the auto-injection for Gradle builds, remove the `JENKINSGRADLEPLUGIN
 
 To disable the auto-injection for Maven builds, remove the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable.
 
+=== Control auto-injection based on node labels
+
+Auto-injection can be enable or disabled based on specific node labels.
+To enable auto-injection only on specific nodes set the `JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES` for Gradle or `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES` for Maven to a comma separated list of target labels.
+To disable auto-injection on specific nodes set the `JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES` for Gradle or `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES` for Maven to a comma separated list of target labels.
+The disabled labels list will take precedence over the enabled labels list.
+
 === Configuration options
 
 The following sections list all available configuration options which can be set as environment variables.
