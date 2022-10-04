@@ -64,7 +64,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         String mavenExtensionVersion = config.getMavenExtensionVersion();
 
         return mavenExtensionVersion == null
-            || InjectionUtil.isNoOk(InjectionConfig.checkRequiredUrl(server));
+            || InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(server));
     }
 
     @Override

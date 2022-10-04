@@ -1,6 +1,5 @@
 package hudson.plugins.gradle.injection;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
@@ -8,6 +7,7 @@ import hudson.model.Descriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 
 public class NodeLabelItem extends AbstractDescribableImpl<NodeLabelItem> implements Serializable {
@@ -29,7 +29,7 @@ public class NodeLabelItem extends AbstractDescribableImpl<NodeLabelItem> implem
     @Extension
     public static class DescriptorImpl extends Descriptor<NodeLabelItem> {
 
-        @NonNull
+        @Nonnull
         @Override
         public String getDisplayName() {
             return "";

@@ -79,7 +79,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         String server = config.getServer();
         String gradlePluginVersion = config.getGradlePluginVersion();
 
-        return InjectionUtil.isAnyNotOk(
+        return InjectionUtil.isAnyInvalid(
             InjectionConfig.checkRequiredUrl(server),
             InjectionConfig.checkRequiredVersion(gradlePluginVersion)
         );
@@ -149,11 +149,11 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         }
 
         String pluginRepositoryUrl = config.getGradlePluginRepositoryUrl();
-        if (pluginRepositoryUrl != null && InjectionUtil.isOk(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
+        if (pluginRepositoryUrl != null && InjectionUtil.isValid(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
         }
         String ccudPluginVersion = config.getCcudPluginVersion();
-        if (ccudPluginVersion != null && InjectionUtil.isOk(InjectionConfig.checkVersion(ccudPluginVersion))) {
+        if (ccudPluginVersion != null && InjectionUtil.isValid(InjectionConfig.checkVersion(ccudPluginVersion))) {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION, ccudPluginVersion);
         }
     }

@@ -14,16 +14,16 @@ public final class InjectionUtil {
     private InjectionUtil() {
     }
 
-    public static boolean isNoOk(FormValidation validation) {
-        return !isOk(validation);
+    public static boolean isInvalid(FormValidation validation) {
+        return !isValid(validation);
     }
 
-    public static boolean isOk(FormValidation validation) {
+    public static boolean isValid(FormValidation validation) {
         return validation.kind == FormValidation.Kind.OK;
     }
 
-    public static boolean isAnyNotOk(FormValidation... validations) {
-        return Arrays.stream(validations).anyMatch(v -> v.kind != FormValidation.Kind.OK);
+    public static boolean isAnyInvalid(FormValidation... validations) {
+        return Arrays.stream(validations).anyMatch(InjectionUtil::isInvalid);
     }
 
     public static boolean isInjectionEnabledForNode(Supplier<Set<LabelAtom>> assignedLabels,
