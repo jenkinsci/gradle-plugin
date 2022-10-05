@@ -96,17 +96,17 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         form.getInputByName("_.ccudPluginVersion").setValueAttribute("1.8")
         form.getInputByName("_.gradlePluginRepositoryUrl").setValueAttribute("https://localhost/repostiry")
 
-        getAddButton(form, "Gradle Injection Enabled Nodes").click()
+        getAddButton(form, "Gradle auto-injection enabled nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("gradle1")
-        getAddButton(form, "Gradle Injection Disabled Nodes").click()
+        getAddButton(form, "Gradle auto-injection disabled nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("gradle2")
 
         form.getInputByName("_.injectMavenExtension").click()
         form.getInputByName("_.injectCcudExtension").click()
 
-        getAddButton(form, "Maven Injection Enabled Nodes").click()
+        getAddButton(form, "Maven auto-injection enabled nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("maven1")
-        getAddButton(form, "Maven Injection Disabled Nodes").click()
+        getAddButton(form, "Maven auto-injection disabled nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("maven2")
 
         j.submit(form)
