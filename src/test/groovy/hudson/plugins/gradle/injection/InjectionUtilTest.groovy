@@ -1,6 +1,5 @@
 package hudson.plugins.gradle.injection
 
-
 import hudson.model.labels.LabelAtom
 import spock.lang.Specification
 import spock.lang.Unroll

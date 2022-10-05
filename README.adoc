@@ -27,7 +27,7 @@ In the *Gradle* section provided by this plugin, several installations can be co
 
 image::gradle-tool-installation.png[Tool installations,{thumbnail}]
 
-The system provides both automatic installation, which can be performed by directly downloading a Gradle distribution from the http://www.gradle.org/[Gradle web site] or executing some shell commands to achieve the same.
+The system provides both automatic installation, which can be performed by directly downloading a Gradle distribution from the http://www.gradle.org/[Gradle website] or executing some shell commands to achieve the same.
 Besides, for nodes which already have Gradle installed, the tool can be manually configured, by unchecking the *Install automatically* checkbox and providing the base path (as a `GRADLE_HOME` environment variable) of the installation.
 
 == Usage
@@ -91,12 +91,12 @@ image::find-build-scans.png[Find build scans,{thumbnail}]
 == Gradle Enterprise integration
 
 The plugin can be configured to inject the https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] or the https://docs.gradle.com/enterprise/maven-extension/[Gradle Enterprise Maven extension] into any Gradle or Maven build that is executed on the Jenkins server or on any of its connected agents.
-To achieve this, the plugin installs various files on each agent depending on the configuration via the given environment variables.
+To achieve this, the plugin installs various files on each agent depending on the configuration via the global options in *Manage Jenkins*, *Configure System*.
 
 The same auto-injection behavior is available for the https://github.com/gradle/common-custom-user-data-gradle-plugin[Common Custom User Data Gradle plugin] and the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven extension].
 
 > **Note**
-> - The configuration is based on global environment variables and applies to all builds on all connected agents matching the specified label criteria, or all in case no label criteria are defined.
+> - The configuration applies to all builds on all connected agents matching the specified label criteria, or all in case no label criteria are defined.
 
 === Enable auto-injection
 
@@ -104,24 +104,28 @@ The auto-injection is split into three levels to have fine-grained control over 
 
 ==== Global
 
-To globally enable the auto-injection set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION` environment variable to `true`.
-Next set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL` environment variable to the URL of the Gradle Enterprise instance.
+To globally enable the auto-injection, click the `Enable auto-injection` checkbox in the `Gradle Enterprise integration` section of the global options in *Manage Jenkins*, *Configure System*.
+Next set the URL of the Gradle Enterprise instance.
+
+image::enable-auto-injection.png[Enable auto-injection,{thumbnail}]
 
 ==== Gradle
 
-To enable the auto-injection for Gradle builds, set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` environment variable to the desired https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] version to be used.
+To enable the auto-injection for Gradle builds, set the desired https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] version in the `Gradle settings` section of the configuration form.
 
-Optionally set the `JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION` environment variable to the desired version of the https://github.com/gradle/common-custom-user-data-gradle-plugin[Common Custom User Data Gradle plugin] to be used.
+image::gradle-settings.png[Gradle settings,{thumbnail}]
+
+Optionally set the desired version of the https://github.com/gradle/common-custom-user-data-gradle-plugin[Common Custom User Data Gradle plugin] to be used.
 
 ==== Maven
 
-To enable the auto-injection for Maven builds, set the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable to any value.
+To enable the auto-injection for Maven builds, click the `Enable Gradle Enterprise Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
 
-Optionally set the `JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION` to any value.
+image::maven-settings.png[Maven settings,{thumbnail}]
 
-Currently, the values of these environment variables are ignored and are just used as a trigger to enable the auto-injection.
-This may change in a future version of the plugin.
-To see which version is injected, see <<Compatibility>>.
+Optionally click the `Enable Common Custom User Data Maven extension auto-injection` checkbox to enable the auto-injection of the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension].
+
+To see which versions are injected, refer to <<Compatibility>>.
 
 > **Warning**
 > - Maven injection only works if `MAVEN_OPTS` is not configured as a global environment variable.
@@ -129,78 +133,85 @@ To see which version is injected, see <<Compatibility>>.
 === Disable auto-injection
 
 Disabling the auto-injection requires that all Gradle Enterprise resources are cleaned up from the agents.
-To achieve this, the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION` environment variable must be set to `true` and the Gradle or Maven injections must be disabled individually.
+To achieve this, the Gradle or Maven injections must be disabled individually (see the following sections).
 This triggers a cleanup of the resources.
-If the auto-injection should be disabled globally, then remove the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION` as well.
+If the auto-injection should be disabled globally, then unset the `Enable auto-injection` checkbox as well.
 
 ==== Gradle
 
-To disable the auto-injection for Gradle builds, remove the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` environment variable.
+To disable the auto-injection for Gradle builds, remove the `Gradle Enterprise Gradle plugin version` in the `Gradle settings` section of the configuration form.
 
 ==== Maven
 
-To disable the auto-injection for Maven builds, remove the `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` environment variable.
+To disable the auto-injection for Maven builds, unset the `Enable Gradle Enterprise Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
 
 === Control auto-injection based on node labels
 
-Auto-injection can be enable or disabled based on specific node labels.
-To enable auto-injection only on specific nodes set the `JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES` for Gradle or `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES` for Maven to a comma separated list of target labels.
-To disable auto-injection on specific nodes set the `JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES` for Gradle or `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES` for Maven to a comma separated list of target labels.
+Auto-injection can be enabled or disabled based on specific node labels.
+To enable auto-injection only on specific nodes add the desired labels to the `Gradle auto-injection enabled nodes` list for Gradle or `Maven auto-injection enabled nodes` for Maven.
+To disable auto-injection on specific nodes add the desired labels to the `Gradle auto-injection disabled nodes` list for gradle or `Maven auto-injection disabled nodes` for Maven.
+
 The disabled labels list will take precedence over the enabled labels list.
+
+=== Disabling/removing Gradle Jenkins plugin
+
+To ensure that all Gradle Enterprise resources are cleaned up from the agents, before disabling/removing the plugin the auto-injection has to be manually disabled. Please, refer to the <<Disable auto-injection>> section for details.
 
 === Configuration options
 
-The following sections list all available configuration options which can be set as environment variables.
+The following sections list all available configuration options which can be set via the configuration form.
 
-==== General environment variables
+==== Common configuration options
 
-`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION` +
+`Enable auto-injection` +
 Globally enable auto-injection.
 
-`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL` +
+`Gradle Enterprise server url` +
 The URL of the Gradle Enterprise instance.
 
-`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER` +
+`Allow untrusted server` +
 Whether to allow publishing to a server with a self-signed certificate.
-Defaults to `false`.
 
-`GRADLE_ENTERPRISE_ACCESS_KEY` +
-If your Gradle Enterprise server requires authentication for publishing build scans you might want to set the `GRADLE_ENTERPRISE_ACCESS_KEY` environment variable.
+`Gradle Enterprise access key` +
+The access key for authenticating with the Gradle Enterprise server.
+The access key is stored encrypted within the Jenkins instance. During the job execution, the access key is decrypted and set as `GRADLE_ENTERPRISE_ACCESS_KEY` environment variable.
 Refer to the https://docs.gradle.com/enterprise/gradle-plugin/#via_environment_variable[Gradle Enterprise Gradle plugin manual] and the https://docs.gradle.com/enterprise/maven-extension/#via_environment_variable[Gradle Enterprise Maven Extension manual] for more details about this configuration.
 
-==== Gradle environment variables
+==== Gradle specific configuration options
 
-`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION` +
+`Gradle Enterprise Gradle plugin version` +
 Enables auto-injection for Gradle builds and defines which version of the https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] to use.
 
-`JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION` +
+`Common Custom User Data Gradle plugin version` +
 Defines which version of the https://github.com/gradle/common-custom-user-data-gradle-plugin[Common Custom User Data Gradle plugin] to use.
 
-`JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL` +
+`Gradle plugin repository url` +
 The URL of the repository to use to resolve the Gradle Enterprise Gradle plugin and the Common Custom User Data Gradle plugin.
 This is required if the Jenkins agents are not able to access the https://plugins.gradle.org[Gradle Plugin Portal].
 
-`JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES` +
-Comma separated list of node labels on which the Gradle Enterprise Gradle plugin injection should be enabled.
+`Gradle auto-injection enabled nodes` +
+A list of node labels on which the Gradle Enterprise Gradle plugin injection should be enabled.
 By default, all nodes are enabled.
 
-`JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES` +
-Comma separated list of node labels on which the Gradle Enterprise Gradle plugin injection should be disabled.
+`Gradle auto-injection disabled nodes` +
+A list of node labels on which the Gradle Enterprise Gradle plugin injection should be disabled.
 By default, all nodes are enabled.
 
-==== Maven environment variables
+==== Maven specific configuration options
 
-`JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION` +
-Enables auto-injection for Maven builds and defines which version of the https://docs.gradle.com/enterprise/maven-extension[Gradle Enterprise Maven extension] to use. Currently, the value of these environment variable is ignored and is just used as a trigger to enable the auto-injection.
+`Enable Gradle Enterprise Maven extension auto-injection` +
+Enables auto-injection for Maven builds and injects https://docs.gradle.com/enterprise/maven-extension[Gradle Enterprise Maven extension].
 
-`JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION` +
-Defines which version of the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension] to use. Currently, the value of this environment variable is ignored and is just used as a trigger to enable the auto-injection.
+`Enable Common Custom User Data Maven extension auto-injection` +
+Enables auto-injection of https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension].
 
-`JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES` +
-Comma separated list of node labels where the Gradle Enterprise Maven extension injection should be enabled. By default, all nodes are enabled.
+`Maven auto-injection enabled nodes` +
+A list of node labels where the Gradle Enterprise Maven extension injection should be enabled.
+By default, all nodes are enabled.
 
-`JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES` +
-Comma separated list of node labels where the Gradle Enterprise Maven extension injection should be disabled. By default, all nodes are enabled.
+`Maven auto-injection disabled nodes` +
+A list of node labels where the Gradle Enterprise Maven extension injection should be disabled.
+By default, all nodes are enabled.
 
 === Compatibility
 
@@ -400,7 +411,7 @@ If you wish to have the workspace job as the GRADLE_USER_HOME, you will need to 
 
 === Release 1.1 (November 07, 2008)
 
-* Add the support of Gradle 0.5. Before the version 0.5, the gradle windows executable file was "gradle.exe" and you lost the ERRORLEVEL value.
+* Add the support of Gradle 0.5. Before the version 0.5, the gradle windows executable file was "gradle.exe", and you lost the ERRORLEVEL value.
 From Gradle 0.5, the window launcher is a .bat file that conserves the correct ERRORLEVEL value.
 
 === Release 1.0 (October 04, 2008)
