@@ -14,7 +14,6 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
 
     private static final String SERVER_FIELD = "server";
     private static final String GE_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
-    private static final String GE_MAVEN_EXTENSION_VERSION_FIELD = "mavenExtensionVersion";
 
     public BuildScansInjectionSettings(Jenkins jenkins) {
         super(jenkins);
@@ -23,7 +22,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     public void clickBuildScansInjection() {
         ensureConfigPage();
 
-        control(by.checkbox("Enable Build Scans injection")).click();
+        control(by.checkbox("Enable auto-injection")).click();
     }
 
     public void setGradleEnterpriseServerUrl(URI server) {
@@ -37,7 +36,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     public void clickInjectMavenExtension() {
         ensureConfigPage();
 
-        control(by.checkbox("Inject Gradle Enterprise Maven extension")).click();
+        control(by.checkbox("Enable Gradle Enterprise Maven extension auto-injection")).click();
     }
 
     private void setBuildScansInjectionFormValue(String field, String value) {
