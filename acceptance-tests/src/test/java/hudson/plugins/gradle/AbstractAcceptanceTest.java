@@ -56,11 +56,11 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         });
     }
 
-    protected final void enableBuildScansForMaven(String agentVersion) {
+    protected final void enableBuildScansForMaven() {
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansInjection();
             settings.setGradleEnterpriseServerUrl(PUBLIC_GE_SERVER);
-            settings.setGradleEnterpriseExtensionVersion(agentVersion);
+            settings.clickInjectMavenExtension();
         });
     }
 

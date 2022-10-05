@@ -219,6 +219,15 @@ task generateVersionFile() {
       .withPropertyName('versionsDir')
 }
 
+processResources {
+    filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectMavenExtension.html") {
+        expand([gradleEnterpriseMavenExtensionVersion: gradleEnterpriseMavenExtensionVersion])
+    }
+    filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectCcudExtension.html") {
+        expand([commonCustomUserDataMavenExtensionVersion: commonCustomUserDataMavenExtensionVersion])
+    }
+}
+
 processTestResources {
     from(configurations.includedLibs) {
         into("hudson/plugins/gradle/injection")

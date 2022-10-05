@@ -34,8 +34,8 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> gradleInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> gradleInjectionDisabledNodes;
 
-    private String mavenExtensionVersion;
-    private String ccudExtensionVersion;
+    private boolean injectMavenExtension;
+    private boolean injectCcudExtension;
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
@@ -137,24 +137,22 @@ public class InjectionConfig extends GlobalConfiguration {
             gradleInjectionDisabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionDisabledNodes);
     }
 
-    @CheckForNull
-    public String getMavenExtensionVersion() {
-        return mavenExtensionVersion;
+    public boolean isInjectMavenExtension() {
+        return injectMavenExtension;
     }
 
     @DataBoundSetter
-    public void setMavenExtensionVersion(String mavenExtensionVersion) {
-        this.mavenExtensionVersion = Util.fixEmptyAndTrim(mavenExtensionVersion);
+    public void setInjectMavenExtension(boolean injectMavenExtension) {
+        this.injectMavenExtension = injectMavenExtension;
     }
 
-    @CheckForNull
-    public String getCcudExtensionVersion() {
-        return ccudExtensionVersion;
+    public boolean isInjectCcudExtension() {
+        return injectCcudExtension;
     }
 
     @DataBoundSetter
-    public void setCcudExtensionVersion(String ccudExtensionVersion) {
-        this.ccudExtensionVersion = Util.fixEmptyAndTrim(ccudExtensionVersion);
+    public void setInjectCcudExtension(boolean injectCcudExtension) {
+        this.injectCcudExtension = injectCcudExtension;
     }
 
     @CheckForNull
@@ -217,20 +215,6 @@ public class InjectionConfig extends GlobalConfiguration {
     @POST
     public FormValidation doCheckGradlePluginRepositoryUrl(@QueryParameter String value) {
         return checkUrl(value);
-    }
-
-    @Restricted(NoExternalUse.class)
-    @POST
-    public FormValidation doCheckMavenExtensionVersion(@QueryParameter String value) {
-        // Noop validation because at the moment we only use this parameter as a trigger.
-        return FormValidation.ok();
-    }
-
-    @Restricted(NoExternalUse.class)
-    @POST
-    public FormValidation doCheckCcudExtensionVersion(@QueryParameter String value) {
-        // Noop validation because at the moment we only use this parameter as a trigger.
-        return FormValidation.ok();
     }
 
     public static FormValidation checkRequiredUrl(String value) {

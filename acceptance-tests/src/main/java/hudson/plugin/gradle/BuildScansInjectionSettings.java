@@ -34,8 +34,10 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         setBuildScansInjectionFormValue(GE_PLUGIN_VERSION_FIELD, version);
     }
 
-    public void setGradleEnterpriseExtensionVersion(String version) {
-        setBuildScansInjectionFormValue(GE_MAVEN_EXTENSION_VERSION_FIELD, version);
+    public void clickInjectMavenExtension() {
+        ensureConfigPage();
+
+        control(by.checkbox("Inject Gradle Enterprise Maven extension")).click();
     }
 
     private void setBuildScansInjectionFormValue(String field, String value) {

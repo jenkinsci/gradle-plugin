@@ -80,21 +80,6 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         "first"                   || FormValidation.Kind.ERROR | "Not a valid version."
     }
 
-    def "allows any value for maven and ccud extensions"() {
-        expect:
-        with(InjectionConfig.get().doCheckMavenExtensionVersion(version)) {
-            kind == FormValidation.Kind.OK
-            message == null
-        }
-        with(InjectionConfig.get().doCheckCcudExtensionVersion(version)) {
-            kind == FormValidation.Kind.OK
-            message == null
-        }
-
-        where:
-        version << [null, "", "1", "1.0", "1.1.1", "first"]
-    }
-
     def "saves injection configuration"() {
         given:
         def webClient = j.createWebClient()
@@ -116,9 +101,8 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         getAddButton(form, "Gradle Injection Disabled Nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("gradle2")
 
-        // We don't validate the values at the moment as they are used only as a trigger
-        form.getInputByName("_.mavenExtensionVersion").setValueAttribute("foo")
-        form.getInputByName("_.ccudExtensionVersion").setValueAttribute("bar")
+        form.getInputByName("_.injectMavenExtension").click()
+        form.getInputByName("_.injectCcudExtension").click()
 
         getAddButton(form, "Maven Injection Enabled Nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("maven1")
@@ -142,8 +126,8 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
             gradleInjectionEnabledNodes*.label == ['gradle1']
             gradleInjectionDisabledNodes*.label == ['gradle2']
 
-            mavenExtensionVersion == "foo"
-            ccudExtensionVersion == "bar"
+            injectMavenExtension
+            injectCcudExtension
             mavenInjectionEnabledNodes*.label == ['maven1']
             mavenInjectionDisabledNodes*.label == ['maven2']
         }

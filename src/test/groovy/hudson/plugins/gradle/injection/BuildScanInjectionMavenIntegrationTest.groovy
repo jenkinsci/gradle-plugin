@@ -318,8 +318,8 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            mavenExtensionVersion = '1.14.2'
-            ccudExtensionVersion = '1.10.1'
+            injectMavenExtension = true
+            injectCcudExtension = true
         }
 
         createSlave('foo')
@@ -390,7 +390,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = '1.14.2'
+            injectMavenExtension = true
         }
 
         createSlave('foo')
@@ -418,7 +418,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = null
+            injectMavenExtension = false
         }
 
         // sync changes
@@ -429,8 +429,8 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = '1.14.2'
-            ccudExtensionVersion = useCCUD ? '1.11.1' : null
+            injectMavenExtension = true
+            injectCcudExtension = useCCUD
         }
 
         // sync changes

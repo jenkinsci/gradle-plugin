@@ -40,7 +40,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     public boolean isEnabled(Node node) {
         InjectionConfig config = InjectionConfig.get();
 
-        if (!config.isEnabled() || isMissingRequiredParameters(config)) {
+        if (!config.isEnabled() || !config.isInjectMavenExtension() || isMissingRequiredParameters(config)) {
             return false;
         }
 
@@ -61,10 +61,8 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private static boolean isMissingRequiredParameters(InjectionConfig config) {
         String server = config.getServer();
-        String mavenExtensionVersion = config.getMavenExtensionVersion();
 
-        return mavenExtensionVersion == null
-            || InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(server));
+        return InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(server));
     }
 
     @Override
@@ -101,7 +99,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
             List<FilePath> libs = new LinkedList<>();
 
             libs.add(extensionsHandler.copyExtensionToAgent(MavenExtension.GRADLE_ENTERPRISE, nodeRootPath));
-            if (config.getCcudExtensionVersion() != null) { // not checking the version, just a presence
+            if (config.isInjectCcudExtension()) {
                 libs.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, nodeRootPath));
             } else {
                 extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);

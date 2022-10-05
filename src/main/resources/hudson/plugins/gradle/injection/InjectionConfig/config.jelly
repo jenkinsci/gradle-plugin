@@ -46,11 +46,11 @@
             </f:section>
 
             <f:section title="${%Maven Settings}">
-                <f:entry title="${%Gradle Enterprise Maven Extension Version}" field="mavenExtensionVersion">
-                    <f:textbox checkMethod="post"/>
+                <f:entry field="injectMavenExtension">
+                    <f:checkbox title="${%Inject Gradle Enterprise Maven extension}"/>
                 </f:entry>
-                <f:entry title="${%Common Custom User Data Maven Extension Version}" field="ccudExtensionVersion">
-                    <f:textbox checkMethod="post"/>
+                <f:entry field="injectCcudExtension">
+                    <f:checkbox title="${%Inject Common Custom User Data Maven extension}"/>
                 </f:entry>
                 <f:entry title="${%Maven Injection Enabled Nodes}" help="/plugin/gradle/help-mavenInjectionEnabledNodes.html">
                     <f:repeatableProperty field="mavenInjectionEnabledNodes">

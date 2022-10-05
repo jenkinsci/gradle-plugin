@@ -23,8 +23,8 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTe
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = '1.14.2'
-            ccudExtensionVersion = '1.10.1'
+            injectMavenExtension = true
+            injectCcudExtension = true
         }
 
         def p = j.createFreeStyleProject()
