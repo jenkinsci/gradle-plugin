@@ -6,6 +6,7 @@ import hudson.ExtensionList;
 import hudson.Util;
 import hudson.plugins.gradle.Messages;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.accmod.Restricted;
@@ -26,7 +27,7 @@ public class InjectionConfig extends GlobalConfiguration {
 
     private String server;
     private boolean allowUntrusted;
-    private String accessKey;
+    private Secret accessKey;
 
     private String gradlePluginVersion;
     private String ccudPluginVersion;
@@ -76,13 +77,17 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @CheckForNull
-    public String getAccessKey() {
+    public Secret getAccessKey() {
         return accessKey;
     }
 
     @DataBoundSetter
-    public void setAccessKey(String accessKey) {
-        this.accessKey = Util.fixEmptyAndTrim(accessKey);
+    public void setAccessKey(Secret accessKey) {
+        if (Util.fixEmptyAndTrim(accessKey.getPlainText()) == null) {
+            this.accessKey = null;
+        } else {
+            this.accessKey = accessKey;
+        }
     }
 
     @CheckForNull

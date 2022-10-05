@@ -1,9 +1,11 @@
 package hudson.plugins.gradle.injection
 
 import hudson.FilePath
+import hudson.model.Result
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven
+import hudson.util.Secret
 import jenkins.model.Jenkins
 import jenkins.mvn.DefaultGlobalSettingsProvider
 import jenkins.mvn.DefaultSettingsProvider
@@ -166,6 +168,23 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
         hasJarInMavenExt(log, GE_EXTENSION_JAR)
         !hasJarInMavenExt(log, CCUD_EXTENSION_JAR)
         hasBuildScanPublicationAttempt(log)
+    }
+
+    def 'access key is injected into the simple pipeline'() {
+        given:
+        createSlaveAndTurnOnInjection()
+        withInjectionConfig {
+            accessKey = Secret.fromString("invalid")
+        }
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(), false))
+
+        when:
+        def build = j.buildAndAssertStatus(Result.FAILURE, pipelineJob)
+
+        then:
+        j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=invalid", build)
+        j.assertLogContains("Failed to parse GRADLE_ENTERPRISE_ACCESS_KEY environment variable", build)
     }
 
     def 'extension jars are copied and removed properly and MAVEN_OPTS is set'() {

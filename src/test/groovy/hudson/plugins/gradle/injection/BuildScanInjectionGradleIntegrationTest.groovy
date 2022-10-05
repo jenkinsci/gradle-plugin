@@ -2,9 +2,11 @@ package hudson.plugins.gradle.injection
 
 import hudson.Util
 import hudson.model.FreeStyleProject
+import hudson.model.Result
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
+import hudson.util.Secret
 import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -457,6 +459,39 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
             }
         }
+    }
+
+    def "access key is injected into the build"() {
+        def gradleVersion = '7.5.1'
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+
+        FreeStyleProject project = j.createFreeStyleProject()
+        project.setAssignedNode(agent)
+
+        project.buildersList.add(buildScriptBuilder())
+        project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
+
+        when:
+        // first build to download Gradle
+        def firstRun = j.buildAndAssertSuccess(project)
+
+        then:
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
+
+        when:
+        enableBuildInjection(agent, gradleVersion)
+        withInjectionConfig {
+            accessKey = Secret.fromString("invalid")
+        }
+        def secondRun = j.buildAndAssertStatus(Result.FAILURE, project)
+
+        then:
+        j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
+        j.assertLogContains("Failed to parse GRADLE_ENTERPRISE_ACCESS_KEY environment variable", secondRun)
     }
 
     private static CreateFileBuilder buildScriptBuilder() {

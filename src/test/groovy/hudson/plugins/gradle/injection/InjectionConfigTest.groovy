@@ -118,7 +118,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
             enabled
             server == "https://localhost"
             allowUntrusted
-            accessKey == "ACCESS_KEY"
+            accessKey.plainText == "ACCESS_KEY"
 
             gradlePluginVersion == "3.11.1"
             ccudPluginVersion == "1.8"
@@ -131,6 +131,31 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
             mavenInjectionEnabledNodes*.label == ['maven1']
             mavenInjectionDisabledNodes*.label == ['maven2']
         }
+    }
+
+    @Unroll
+    def "ignores empty access key"() {
+        given:
+        def webClient = j.createWebClient()
+        def page = webClient.goTo("configure")
+        def form = page.getFormByName("config")
+
+        when:
+        form.getInputByName("_.enabled").click()
+        form.getInputByName("_.server").setValueAttribute("https://localhost")
+        form.getInputByName("_.allowUntrusted").click()
+        form.getInputByName("_.accessKey").setValueAttribute(accessKey)
+
+        j.submit(form)
+
+        then:
+        def config = InjectionConfig.get()
+        config.enabled
+        config.server == "https://localhost"
+        config.accessKey == null
+
+        where:
+        accessKey << ["", "   "]
     }
 
     private static InjectionConfig fromXml(String xml) {
