@@ -111,7 +111,7 @@ image::enable-auto-injection.png[Enable auto-injection,{thumbnail}]
 
 ==== Gradle
 
-To enable the auto-injection for Gradle builds, set the desired https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] version in the `Gradle settings` section of the configuration form.
+To enable the auto-injection for Gradle builds, set the desired https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] version in the `Gradle Enterprise Gradle plugin version` field in the `Gradle settings` section of the configuration form.
 
 image::gradle-settings.png[Gradle settings,{thumbnail}]
 
