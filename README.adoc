@@ -203,7 +203,7 @@ By default, all nodes are enabled.
 Enables auto-injection for Maven builds and injects https://docs.gradle.com/enterprise/maven-extension[Gradle Enterprise Maven extension].
 
 `Enable Common Custom User Data Maven extension auto-injection` +
-Enables auto-injection of https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension].
+Enables auto-injection of https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven extension].
 
 `Maven auto-injection enabled nodes` +
 A list of node labels where the Gradle Enterprise Maven extension injection should be enabled.
