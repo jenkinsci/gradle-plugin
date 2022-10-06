@@ -143,7 +143,7 @@ To disable the auto-injection for Gradle builds, remove the `Gradle Enterprise G
 
 ==== Maven
 
-To disable the auto-injection for Maven builds, unset the `Enable Gradle Enterprise Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
+To disable the auto-injection for Maven builds, uncheck the `Enable Gradle Enterprise Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
 
 === Control auto-injection based on node labels
 
