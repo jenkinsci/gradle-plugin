@@ -190,11 +190,11 @@ The URL of the repository to use to resolve the Gradle Enterprise Gradle plugin 
 This is required if the Jenkins agents are not able to access the https://plugins.gradle.org[Gradle Plugin Portal].
 
 `Gradle auto-injection enabled nodes` +
-A list of node labels on which the Gradle Enterprise Gradle plugin injection should be enabled.
+A list of node labels on which the Gradle Enterprise Gradle plugin or Common Custom User Data Gradle plugin injection should be enabled.
 By default, all nodes are enabled.
 
 `Gradle auto-injection disabled nodes` +
-A list of node labels on which the Gradle Enterprise Gradle plugin injection should be disabled.
+A list of node labels on which the Gradle Enterprise Gradle plugin or Common Custom User Data Gradle plugin injection should be disabled.
 By default, all nodes are enabled.
 
 ==== Maven specific configuration options
@@ -206,11 +206,11 @@ Enables auto-injection for Maven builds and injects https://docs.gradle.com/ente
 Enables auto-injection of https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven extension].
 
 `Maven auto-injection enabled nodes` +
-A list of node labels where the Gradle Enterprise Maven extension injection should be enabled.
+A list of node labels where the Gradle Enterprise Maven extension or Common Custom User Data Maven extension injection should be enabled.
 By default, all nodes are enabled.
 
 `Maven auto-injection disabled nodes` +
-A list of node labels where the Gradle Enterprise Maven extension injection should be disabled.
+A list of node labels where the Gradle Enterprise Maven extension or Common Custom User Data Maven extension injection should be disabled.
 By default, all nodes are enabled.
 
 === Compatibility
