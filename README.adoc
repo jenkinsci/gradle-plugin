@@ -91,7 +91,7 @@ image::find-build-scans.png[Find build scans,{thumbnail}]
 == Gradle Enterprise integration
 
 The plugin can be configured to inject the https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] or the https://docs.gradle.com/enterprise/maven-extension/[Gradle Enterprise Maven extension] into any Gradle or Maven build that is executed on the Jenkins server or on any of its connected agents.
-To achieve this, the plugin installs various files on each agent depending on the configuration via the global options in *Manage Jenkins*, *Configure System*.
+To achieve this, the plugin installs various files on each agent depending on the configuration via the global options in the `Manage Jenkins/Configure System` section.
 
 The same auto-injection behavior is available for the https://github.com/gradle/common-custom-user-data-gradle-plugin[Common Custom User Data Gradle plugin] and the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven extension].
 
