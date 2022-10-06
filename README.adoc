@@ -135,7 +135,7 @@ To see which versions are injected, refer to <<Compatibility>>.
 Disabling the auto-injection requires that all Gradle Enterprise resources are cleaned up from the agents.
 To achieve this, the Gradle or Maven injections must be disabled individually (see the following sections).
 This triggers a cleanup of the resources.
-If the auto-injection should be disabled globally, then unset the `Enable auto-injection` checkbox as well.
+If the auto-injection should be disabled globally, then uncheck the `Enable auto-injection` checkbox as well.
 
 ==== Gradle
 
