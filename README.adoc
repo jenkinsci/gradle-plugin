@@ -105,7 +105,7 @@ The auto-injection is split into three levels to have fine-grained control over 
 ==== Global
 
 To globally enable the auto-injection, click the `Enable auto-injection` checkbox in the `Gradle Enterprise integration` section of the global options in the `Manage Jenkins/Configure System` section.
-Next set the URL of the Gradle Enterprise instance.
+Next set the URL of the Gradle Enterprise instance to which the build scans should be published to.
 
 image::enable-auto-injection.png[Enable auto-injection,{thumbnail}]
 
