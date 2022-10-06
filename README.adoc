@@ -98,10 +98,6 @@ The same auto-injection behavior is available for the https://github.com/gradle/
 > **Note**
 > - The configuration applies to all builds on all connected agents matching the specified label criteria, or all in case no label criteria are defined.
 
-== Disabling/uninstalling Gradle Jenkins plugin
-
-To ensure that all Gradle Enterprise resources are cleaned up from the agents, before disabling/uninstalling the plugin the auto-injection has to be manually disabled. Please, refer to the <<Disable auto-injection>> section for details.
-
 === Enable auto-injection
 
 The auto-injection is split into three levels to have fine-grained control over the enablement of this feature.
@@ -152,8 +148,8 @@ To disable the auto-injection for Maven builds, uncheck the `Enable Gradle Enter
 === Control auto-injection based on node labels
 
 Auto-injection can be enabled or disabled based on specific node labels.
-To enable auto-injection only on specific nodes add the desired labels to the `Gradle auto-injection enabled nodes` list for Gradle or `Maven auto-injection enabled nodes` for Maven.
-To disable auto-injection on specific nodes add the desired labels to the `Gradle auto-injection disabled nodes` list for gradle or `Maven auto-injection disabled nodes` for Maven.
+To enable auto-injection only on specific nodes, add the desired labels to the `Gradle auto-injection enabled nodes` list for Gradle or `Maven auto-injection enabled nodes` for Maven.
+To disable auto-injection on specific nodes, add the desired labels to the `Gradle auto-injection disabled nodes` list for Gradle or `Maven auto-injection disabled nodes` for Maven.
 
 The disabled labels list will take precedence over the enabled labels list.
 
@@ -221,6 +217,10 @@ By default, all nodes are enabled.
 |< 1.40                         | *Not supported*                                   | *Not supported*                                   | *Not supported*
 
 |===
+
+== Disabling/uninstalling Gradle Jenkins plugin
+
+To ensure that all Gradle Enterprise resources are cleaned up from the agents, before disabling/uninstalling the plugin the auto-injection has to be manually disabled. Please, refer to the <<Disable auto-injection>> section for details.
 
 == Roadmap
 
