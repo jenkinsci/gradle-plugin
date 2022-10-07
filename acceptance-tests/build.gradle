@@ -6,7 +6,7 @@ plugins {
 }
 
 ext {
-    athVersion = '5412.vc75c82cc0c93'
+    athVersion = '5424.vb_4002460e8da'
 }
 
 java {
@@ -95,7 +95,7 @@ def allTestTasks =
 
                 environment([
                     JENKINS_WAR: jenkinsWarLocation,
-                    PLUGINS_DIR: testDependenciesDir,
+                    LOCAL_JARS : testDependenciesDir.get().file("gradle.jpi"),
                     BROWSER    : gradle.ciBuild ? 'firefox-container' : 'chrome'
                 ])
 

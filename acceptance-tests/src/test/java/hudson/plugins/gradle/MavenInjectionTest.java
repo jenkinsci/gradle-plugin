@@ -27,12 +27,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
     public void beforeEach() {
         MavenInstallation.installMaven(jenkins, MAVEN_VERSION, MAVEN_VERSION);
 
-        addGlobalEnvironmentVariables(
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION", "true",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION", "1.15.1"
-            // TODO: Uncomment after updating embedded maven extension version to 1.15.x
-            // , "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL", "https://scans.gradle.com"
-        );
+        enableBuildScansForMaven();
     }
 
     @Test

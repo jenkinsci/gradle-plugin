@@ -1,11 +1,9 @@
 package hudson.plugins.gradle;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
-import hudson.plugin.gradle.EnvironmentVariablesSettings;
+import hudson.plugin.gradle.BuildScansInjectionSettings;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.codehaus.plexus.util.Base64;
 import org.jenkinsci.test.acceptance.controller.JenkinsController;
@@ -21,11 +19,13 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
+
+    private static final URI PUBLIC_GE_SERVER = URI.create("https://scans.gradle.com");
 
     @Rule
     public MockGeServer mockGeServer = new MockGeServer();
@@ -48,18 +48,27 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         }
     }
 
-    protected final void addGlobalEnvironmentVariables(String... variables) {
-        Preconditions.checkArgument(
-            isEven(ArrayUtils.getLength(variables)),
-            "variables array must have an even length");
+    protected final void enableBuildScansForGradle(URI server, String agentVersion) {
+        updateBuildScansInjectionSettings(settings -> {
+            settings.clickBuildScansInjection();
+            settings.setGradleEnterpriseServerUrl(server);
+            settings.setGradleEnterprisePluginVersion(agentVersion);
+        });
+    }
 
-        EnvironmentVariablesSettings settings = new EnvironmentVariablesSettings(jenkins);
+    protected final void enableBuildScansForMaven() {
+        updateBuildScansInjectionSettings(settings -> {
+            settings.clickBuildScansInjection();
+            settings.setGradleEnterpriseServerUrl(PUBLIC_GE_SERVER);
+            settings.clickInjectMavenExtension();
+        });
+    }
+
+    private void updateBuildScansInjectionSettings(Consumer<BuildScansInjectionSettings> spec) {
+        BuildScansInjectionSettings settings = new BuildScansInjectionSettings(jenkins);
         settings.configure();
-        settings.clickEnvironmentVariables();
 
-        for (List<String> pair : Iterables.partition(Arrays.asList(variables), 2)) {
-            settings.addEnvironmentVariable(pair.get(0), pair.get(1));
-        }
+        spec.accept(settings);
 
         settings.save();
     }
@@ -88,9 +97,5 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
                 tmp.delete();
             }
         }
-    }
-
-    private static boolean isEven(int number) {
-        return (number & 1) == 0;
     }
 }

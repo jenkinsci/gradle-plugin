@@ -16,14 +16,19 @@ import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Specification
 
 class AbstractIntegrationTest extends Specification {
+
     public final JenkinsRule j = new JenkinsRule()
 
     public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
-    final MavenInstallationRule mavenInstallationRule = new MavenInstallationRule(j)
+    public final MavenInstallationRule mavenInstallationRule = new MavenInstallationRule(j)
     public final TestRule noSpaceInTmpDirs = FlagRule.systemProperty("jenkins.test.noSpaceInTmpDirs", "true")
 
     Map getDefaults() {
-        [gradleName: gradleInstallationRule.gradleVersion, useWorkspaceAsHome: true, switches: '--no-daemon']
+        [
+            gradleName        : gradleInstallationRule.gradleVersion,
+            useWorkspaceAsHome: true,
+            switches          : '--no-daemon'
+        ]
     }
 
     static QueueTaskFuture<FreeStyleBuild> triggerBuildWithParameter(FreeStyleProject p, String parameterName, String value) {

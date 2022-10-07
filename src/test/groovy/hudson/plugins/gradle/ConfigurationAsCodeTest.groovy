@@ -2,7 +2,7 @@ package hudson.plugins.gradle
 
 import hudson.tools.InstallSourceProperty
 import io.jenkins.plugins.casc.ConfigurationAsCode
-import io.jenkins.plugins.casc.snakeyaml.Yaml
+import org.yaml.snakeyaml.Yaml
 
 class ConfigurationAsCodeTest extends GradleAbstractIntegrationTest {
 

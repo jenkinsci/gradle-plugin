@@ -5,13 +5,14 @@ import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.plugins.gradle.injection.MavenExtensionsHandler.MavenExtension;
-import hudson.slaves.EnvironmentVariablesNodeProperty;
-import jenkins.model.Jenkins;
+import hudson.plugins.gradle.util.CollectionUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -23,30 +24,51 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     // Maven system properties passed on the CLI to a Maven build
     private static final String GRADLE_ENTERPRISE_URL_PROPERTY_KEY = "gradle.enterprise.url";
     private static final String GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = "gradle.enterprise.allowUntrustedServer";
-    // Environment variables set in Jenkins Global configuration
     private static final String GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY = "gradle.scan.uploadInBackground";
     private static final String MAVEN_EXT_CLASS_PATH_PROPERTY_KEY = "maven.ext.class.path";
+
     private static final MavenOptsSetter MAVEN_OPTS_SETTER = new MavenOptsSetter(
         MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
         GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
         GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
         GRADLE_ENTERPRISE_URL_PROPERTY_KEY
     );
-    private static final String GE_ALLOW_UNTRUSTED_VAR = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER";
-    private static final String GE_URL_VAR = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL";
-    private static final String GE_CCUD_VERSION_VAR = "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION";
-    static final String FEATURE_TOGGLE_DISABLED_NODES = "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES";
-    static final String FEATURE_TOGGLE_ENABLED_NODES = "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES";
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
 
     @Override
-    public String getActivationEnvironmentVariableName() {
-        return "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION";
+    public boolean isEnabled(Node node) {
+        InjectionConfig config = InjectionConfig.get();
+
+        if (!config.isEnabled() || !config.isInjectMavenExtension() || isMissingRequiredParameters(config)) {
+            return false;
+        }
+
+        Set<String> disabledNodes =
+            CollectionUtil.safeStream(config.getMavenInjectionDisabledNodes())
+                .map(NodeLabelItem::getLabel)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<String> enabledNodes =
+            CollectionUtil.safeStream(config.getMavenInjectionEnabledNodes())
+                .map(NodeLabelItem::getLabel)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        return InjectionUtil.isInjectionEnabledForNode(node::getAssignedLabels, disabledNodes, enabledNodes);
+    }
+
+    private static boolean isMissingRequiredParameters(InjectionConfig config) {
+        String server = config.getServer();
+
+        return InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(server));
     }
 
     @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
+        boolean enabled = isEnabled(node);
+
         try {
             if (node == null) {
                 return;
@@ -57,35 +79,27 @@ public class MavenBuildScanInjection implements BuildScanInjection {
                 return;
             }
 
-            if (injectionEnabledForNode(node, envGlobal)) {
-                injectMavenExtensions(node, nodeRootPath);
+            if (enabled) {
+                inject(node, nodeRootPath);
             } else {
-                removeMavenExtensions(node, nodeRootPath);
+                cleanup(node, nodeRootPath);
             }
         } catch (IllegalStateException e) {
-            if (injectionEnabledForNode(node, envGlobal)) {
+            if (enabled) {
                 LOGGER.log(Level.WARNING, "Unexpected exception while injecting build scans for Maven", e);
             }
         }
     }
 
-    @Override
-    public String getEnabledNodesEnvironmentVariableName() {
-        return FEATURE_TOGGLE_ENABLED_NODES;
-    }
-
-    @Override
-    public String getDisabledNodesEnvironmentVariableName() {
-        return FEATURE_TOGGLE_DISABLED_NODES;
-    }
-
-    private void injectMavenExtensions(Node node, FilePath nodeRootPath) {
+    private void inject(Node node, FilePath nodeRootPath) {
         try {
+            InjectionConfig config = InjectionConfig.get();
+
             LOGGER.info("Injecting Maven extensions " + nodeRootPath);
             List<FilePath> libs = new LinkedList<>();
 
             libs.add(extensionsHandler.copyExtensionToAgent(MavenExtension.GRADLE_ENTERPRISE, nodeRootPath));
-            if (getGlobalEnvVar(GE_CCUD_VERSION_VAR) != null) {
+            if (config.isInjectCcudExtension()) {
                 libs.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, nodeRootPath));
             } else {
                 extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);
@@ -96,11 +110,9 @@ public class MavenBuildScanInjection implements BuildScanInjection {
             mavenOptsKeyValuePairs.add(asSystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, cp));
             mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
 
-            if (getGlobalEnvVar(GE_ALLOW_UNTRUSTED_VAR) != null) {
-                mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, getGlobalEnvVar(GE_ALLOW_UNTRUSTED_VAR)));
-            }
-            if (getGlobalEnvVar(GE_URL_VAR) != null) {
-                mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, getGlobalEnvVar(GE_URL_VAR)));
+            mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, config.getServer()));
+            if (config.isAllowUntrusted()) {
+                mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
             }
 
             MAVEN_OPTS_SETTER.appendIfMissing(node, mavenOptsKeyValuePairs);
@@ -109,10 +121,10 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         }
     }
 
-    private void removeMavenExtensions(Node node, FilePath rootPath) {
+    private void cleanup(Node node, FilePath rootPath) {
         try {
-            MAVEN_OPTS_SETTER.remove(node);
             extensionsHandler.deleteAllExtensionsFromAgent(rootPath);
+            MAVEN_OPTS_SETTER.remove(node);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
@@ -129,12 +141,6 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     private static boolean isUnix(Node node) {
         Computer computer = node.toComputer();
         return computer == null || Boolean.TRUE.equals(computer.isUnix());
-    }
-
-    private static String getGlobalEnvVar(String varName) {
-        EnvironmentVariablesNodeProperty envProperty =
-            Jenkins.get().getGlobalNodeProperties().get(EnvironmentVariablesNodeProperty.class);
-        return envProperty.getEnvVars().get(varName);
     }
 
     private static String asSystemProperty(String sysProp, String value) {

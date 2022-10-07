@@ -36,6 +36,8 @@ jenkinsPlugin {
   // Plugin ID, defaults to the project name without trailing '-plugin'
   shortName = 'gradle'
 
+  fileExtension = 'jpi'
+
   compatibleSinceVersion = '1.0'
 
   developers {
@@ -80,6 +82,11 @@ dependencies {
   implementation 'org.jenkins-ci.plugins.workflow:workflow-basic-steps'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
+
+  implementation('commons-validator:commons-validator:1.7') {
+      exclude group: 'commons-beanutils', module: 'commons-beanutils'
+      exclude group: 'commons-logging', module: 'commons-logging'
+  }
 
   includedLibs "com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}"
   includedLibs "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}"
@@ -212,6 +219,15 @@ task generateVersionFile() {
       .withPropertyName('versionsDir')
 }
 
+processResources {
+    filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectMavenExtension.html") {
+        expand([gradleEnterpriseMavenExtensionVersion: gradleEnterpriseMavenExtensionVersion])
+    }
+    filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectCcudExtension.html") {
+        expand([commonCustomUserDataMavenExtensionVersion: commonCustomUserDataMavenExtensionVersion])
+    }
+}
+
 processTestResources {
     from(configurations.includedLibs) {
         into("hudson/plugins/gradle/injection")
@@ -232,7 +248,4 @@ jar {
 
 artifacts {
     pluginsCollectionDist(jpi)
-    pluginsCollectionDist(copyTestPluginDependencies.outputDir) {
-        builtBy(copyTestPluginDependencies)
-    }
 }

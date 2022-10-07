@@ -1,0 +1,81 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:section title="${%Gradle Enterprise integration}">
+        <f:optionalBlock field="enabled" title="${%Enable auto-injection}" inline="true">
+
+            <f:section title="${%Gradle Enterprise connection settings}">
+                <f:entry title="${%Gradle Enterprise server url}" field="server">
+                    <f:textbox checkMethod="post"/>
+                </f:entry>
+                <f:entry field="allowUntrusted">
+                    <f:checkbox title="${%Allow untrusted server}"/>
+                </f:entry>
+                <f:entry title="${%Gradle Enterprise access key}" field="accessKey">
+                    <f:password/>
+                </f:entry>
+            </f:section>
+
+            <f:section title="${%Gradle settings}">
+                <f:entry title="${%Gradle Enterprise Gradle plugin version}" field="gradlePluginVersion">
+                    <f:textbox checkMethod="post"/>
+                </f:entry>
+                <f:entry title="${%Common Custom User Data Gradle plugin version}" field="ccudPluginVersion">
+                    <f:textbox checkMethod="post"/>
+                </f:entry>
+                <f:entry title="${%Gradle plugin repository url}" field="gradlePluginRepositoryUrl">
+                    <f:textbox checkMethod="post"/>
+                </f:entry>
+                <f:entry title="${%Gradle auto-injection enabled nodes}"
+                         help="/plugin/gradle/help-gradleInjectionEnabledNodes.html">
+                    <f:repeatableProperty field="gradleInjectionEnabledNodes">
+                        <f:entry title="">
+                            <div align="right">
+                                <f:repeatableDeleteButton/>
+                            </div>
+                        </f:entry>
+                    </f:repeatableProperty>
+                </f:entry>
+                <f:entry title="${%Gradle auto-injection disabled nodes}"
+                         help="/plugin/gradle/help-gradleInjectionDisabledNodes.html">
+                    <f:repeatableProperty field="gradleInjectionDisabledNodes">
+                        <f:entry title="">
+                            <div align="right">
+                                <f:repeatableDeleteButton/>
+                            </div>
+                        </f:entry>
+                    </f:repeatableProperty>
+                </f:entry>
+            </f:section>
+
+            <f:section title="${%Maven settings}">
+                <f:entry field="injectMavenExtension">
+                    <f:checkbox title="${%Enable Gradle Enterprise Maven extension auto-injection}"/>
+                </f:entry>
+                <f:entry field="injectCcudExtension">
+                    <f:checkbox title="${%Enable Common Custom User Data Maven extension auto-injection}"/>
+                </f:entry>
+                <f:entry title="${%Maven auto-injection enabled nodes}"
+                         help="/plugin/gradle/help-mavenInjectionEnabledNodes.html">
+                    <f:repeatableProperty field="mavenInjectionEnabledNodes">
+                        <f:entry title="">
+                            <div align="right">
+                                <f:repeatableDeleteButton/>
+                            </div>
+                        </f:entry>
+                    </f:repeatableProperty>
+                </f:entry>
+                <f:entry title="${%Maven auto-injection disabled nodes}"
+                         help="/plugin/gradle/help-mavenInjectionDisabledNodes.html">
+                    <f:repeatableProperty field="mavenInjectionDisabledNodes">
+                        <f:entry title="">
+                            <div align="right">
+                                <f:repeatableDeleteButton/>
+                            </div>
+                        </f:entry>
+                    </f:repeatableProperty>
+                </f:entry>
+            </f:section>
+
+        </f:optionalBlock>
+    </f:section>
+</j:jelly>

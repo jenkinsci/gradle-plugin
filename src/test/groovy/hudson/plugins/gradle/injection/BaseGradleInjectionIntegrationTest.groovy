@@ -1,6 +1,5 @@
 package hudson.plugins.gradle.injection
 
-
 import org.junit.Rule
 import org.junit.rules.RuleChain
 

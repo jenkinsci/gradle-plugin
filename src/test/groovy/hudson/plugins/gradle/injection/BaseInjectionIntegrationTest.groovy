@@ -18,22 +18,6 @@ class BaseInjectionIntegrationTest extends AbstractIntegrationTest {
         return j.createOnlineSlave(Label.get(label))
     }
 
-    void configureEnvironmentVariables(DumbSlave slave, @DelegatesTo(EnvVars) Closure closure = {}) {
-        NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
-        EnvVars env = nodeProperty.getEnvVars()
-
-        env.put('JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION', 'true')
-
-        closure.setDelegate(env)
-        closure.run()
-
-        j.jenkins.globalNodeProperties.clear()
-        j.jenkins.globalNodeProperties.add(nodeProperty)
-
-        // sync changes
-        restartSlave(slave)
-    }
-
     EnvVars withGlobalEnvVars(@DelegatesTo(EnvVars) Closure closure) {
         NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
         EnvVars env = nodeProperty.getEnvVars()
@@ -46,14 +30,17 @@ class BaseInjectionIntegrationTest extends AbstractIntegrationTest {
         env
     }
 
-    EnvVars withAdditionalGlobalEnvVars(@DelegatesTo(EnvVars) Closure closure) {
-        NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
-        EnvVars env = nodeProperty.getEnvVars()
+    InjectionConfig withInjectionConfig(@DelegatesTo(InjectionConfig) Closure closure) {
+        def config = InjectionConfig.get()
 
-        closure.setDelegate(env)
+        closure.setDelegate(config)
         closure.run()
 
-        j.jenkins.globalNodeProperties.add(nodeProperty)
-        env
+        config.save()
+        config
+    }
+
+    static List<NodeLabelItem> labels(String... labels) {
+        return labels.collect { new NodeLabelItem(it) }
     }
 }
