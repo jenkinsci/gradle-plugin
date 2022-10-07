@@ -1,6 +1,16 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:l="/lib/layout">
     <f:section title="${%Gradle Enterprise integration}">
+
+        <j:if test="${instance.showLegacyConfigurationWarning}">
+            <f:entry>
+                <div class="alert alert-warning">
+                    <l:icon class="icon-warning icon-sm" alt="${%Test}" tooltip="${%Test}"/>
+                    Test Test Test
+                </div>
+            </f:entry>
+        </j:if>
+
         <f:optionalBlock field="enabled" title="${%Enable auto-injection}" inline="true">
 
             <f:section title="${%Gradle Enterprise connection settings}">
