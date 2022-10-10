@@ -6,7 +6,6 @@ import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerListener;
-import hudson.slaves.EnvironmentVariablesNodeProperty;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
@@ -26,9 +25,9 @@ public class BuildScanInjectionListener extends ComputerListener {
     @Override
     public void onOnline(Computer computer, TaskListener listener) {
         try {
-            EnvVars envGlobal = computer.buildEnvironment(listener);
-
             if (isFeatureEnabled()) {
+                EnvVars envGlobal = computer.buildEnvironment(listener);
+
                 inject(computer, envGlobal);
             }
         } catch (Throwable t) {
@@ -47,9 +46,9 @@ public class BuildScanInjectionListener extends ComputerListener {
 
     @Override
     public void onConfigurationChange() {
-        EnvVars envGlobal = getGlobalEnv();
-
         if (isFeatureEnabled()) {
+            EnvVars envGlobal = EnvUtil.globalEnvironment();
+
             for (Computer computer : Jenkins.get().getComputers()) {
                 inject(computer, envGlobal);
             }
@@ -65,13 +64,6 @@ public class BuildScanInjectionListener extends ComputerListener {
         } catch (IOException | InterruptedException e) {
             LOGGER.log(Level.WARNING, "Error while build scans injection on " + computer.getName(), e);
         }
-    }
-
-    private static EnvVars getGlobalEnv() {
-        EnvironmentVariablesNodeProperty envProperty =
-            Jenkins.get().getGlobalNodeProperties().get(EnvironmentVariablesNodeProperty.class);
-
-        return envProperty != null ? envProperty.getEnvVars() : null;
     }
 
     private static boolean isFeatureEnabled() {
