@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
-import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Unroll
 
 @Unroll
@@ -31,7 +30,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
     def 'skips injection if the agent is offline'() {
         given:
         def gradleVersion = '7.5.1'
-        def gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
 
         def agent = createSlave("test")
 
@@ -51,13 +49,13 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         form.getInputByName("_.enabled").click()
         form.getInputByName("_.server").setValueAttribute("https://localhost")
-        form.getInputByName("_.gradlePluginVersion").setValueAttribute(gradlePluginVersion)
+        form.getInputByName("_.gradlePluginVersion").setValueAttribute("3.11.1")
 
         j.submit(form)
 
         then:
         with(agentEnvVars(agent)) {
-            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == gradlePluginVersion
+            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == "3.11.1"
         }
 
         when:
@@ -79,7 +77,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         page = webClient.goTo("configure")
         form = page.getFormByName("config")
 
-        form.getInputByName("_.gradlePluginVersion").setValueAttribute(GRADLE_ENTERPRISE_PLUGIN_VERSION)
+        form.getInputByName("_.gradlePluginVersion").setValueAttribute("3.11.1")
 
         j.submit(form)
 
@@ -114,7 +112,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def firstRun = j.buildAndAssertSuccess(project)
 
         then:
-        println JenkinsRule.getLog(firstRun)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
 
         when:
@@ -122,7 +119,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def secondRun = j.buildAndAssertSuccess(project)
 
         then:
-        println JenkinsRule.getLog(secondRun)
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
         j.assertLogContains(
             "Gradle Enterprise plugins resolution: ${StringUtils.removeEnd(proxyAddress.toString(), "/")}", secondRun)
@@ -149,7 +145,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build = j.buildAndAssertSuccess(p)
 
         then:
-        println JenkinsRule.getLog(build)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
 
         when:
@@ -162,7 +157,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build2 = j.buildAndAssertSuccess(p)
 
         then:
-        println JenkinsRule.getLog(build2)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
         where:
@@ -187,7 +181,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build = j.buildAndAssertSuccess(p)
 
         then:
-        println JenkinsRule.getLog(build)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
 
         when:
@@ -195,7 +188,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build2 = j.buildAndAssertSuccess(p)
 
         then:
-        println JenkinsRule.getLog(build2)
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
         where:
@@ -233,7 +225,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        println JenkinsRule.getLog(build)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
 
         when:
@@ -241,7 +232,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build2 = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        println JenkinsRule.getLog(build2)
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
         where:
@@ -432,7 +422,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
-                get(BuildScanInjectionGradleIntegrationTest.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION) == '3.11.1'
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.11.1'
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
@@ -454,7 +444,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == null
-                get(BuildScanInjectionGradleIntegrationTest.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION) == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
@@ -493,7 +483,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
-                get(BuildScanInjectionGradleIntegrationTest.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION) == '3.11.1'
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.11.1'
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == "true"
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == "1.8.1"
@@ -518,7 +508,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == null
-                get(BuildScanInjectionGradleIntegrationTest.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION) == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
