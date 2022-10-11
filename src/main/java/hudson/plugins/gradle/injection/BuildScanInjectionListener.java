@@ -50,7 +50,9 @@ public class BuildScanInjectionListener extends ComputerListener {
             EnvVars envGlobal = EnvUtil.globalEnvironment();
 
             for (Computer computer : Jenkins.get().getComputers()) {
-                inject(computer, envGlobal);
+                if (computer.isOnline()) {
+                    inject(computer, envGlobal);
+                }
             }
         }
     }

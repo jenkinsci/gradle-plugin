@@ -1,8 +1,10 @@
 package hudson.plugins.gradle.injection
 
+import hudson.EnvVars
 import hudson.Util
 import hudson.model.FreeStyleProject
 import hudson.model.Result
+import hudson.model.Slave
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
@@ -23,6 +25,69 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 
     private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.2', '7.5.1']
+
+    private static final EnvVars EMPTY_ENV = new EnvVars()
+
+    def 'skips injection if the agent is offline'() {
+        given:
+        def gradleVersion = '7.5.1'
+        def gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
+
+        def agent = createSlave("test")
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        withGlobalEnvVars {
+            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(agent, gradleVersion))
+        }
+
+        restartSlave(agent)
+
+        when:
+        def webClient = j.createWebClient()
+        def page = webClient.goTo("configure")
+        def form = page.getFormByName("config")
+
+        form.getInputByName("_.enabled").click()
+        form.getInputByName("_.server").setValueAttribute("https://localhost")
+        form.getInputByName("_.gradlePluginVersion").setValueAttribute(gradlePluginVersion)
+
+        j.submit(form)
+
+        then:
+        with(agentEnvVars(agent)) {
+            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == gradlePluginVersion
+        }
+
+        when:
+        page = webClient.goTo("configure")
+        form = page.getFormByName("config")
+
+        form.getInputByName("_.gradlePluginVersion").setValueAttribute("")
+
+        j.submit(form)
+
+        then:
+        with(agentEnvVars(agent)) {
+            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+        }
+
+        when:
+        j.disconnectSlave(agent)
+
+        page = webClient.goTo("configure")
+        form = page.getFormByName("config")
+
+        form.getInputByName("_.gradlePluginVersion").setValueAttribute(GRADLE_ENTERPRISE_PLUGIN_VERSION)
+
+        j.submit(form)
+
+        then:
+        with(agentEnvVars(agent)) {
+            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+        }
+    }
 
     def 'uses custom plugin repository'() {
         given:
@@ -367,7 +432,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.11.1'
+                get(BuildScanInjectionGradleIntegrationTest.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION) == '3.11.1'
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
@@ -389,7 +454,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+                get(BuildScanInjectionGradleIntegrationTest.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION) == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
@@ -428,7 +493,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.11.1'
+                get(BuildScanInjectionGradleIntegrationTest.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION) == '3.11.1'
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == "true"
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == "1.8.1"
@@ -453,7 +518,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+                get(BuildScanInjectionGradleIntegrationTest.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION) == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
@@ -559,5 +624,10 @@ task hello {
         }
 
         restartSlave(slave)
+    }
+
+    private static EnvVars agentEnvVars(Slave agent) {
+        def nodeProperty = agent.getNodeProperties().get(EnvironmentVariablesNodeProperty.class)
+        return nodeProperty != null ? nodeProperty.getEnvVars() : EMPTY_ENV
     }
 }
