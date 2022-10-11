@@ -18,16 +18,20 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
     @Unroll
     def "sets showLegacyConfigurationWarning to true if any of legacy env variables is set"() {
         given:
+        def env = new EnvironmentVariablesNodeProperty()
+        env.getEnvVars().put("TEST", "true")
+
         if (name != null) {
-            j.jenkins.getGlobalNodeProperties()
-                .add(new EnvironmentVariablesNodeProperty(new EnvironmentVariablesNodeProperty.Entry(name, value)))
+            env.getEnvVars().put(name, value)
         }
 
+        j.jenkins.getGlobalNodeProperties().add(env)
+
         expect:
-        InjectionConfig.get().isShowLegacyConfigurationWarning() == expected
+        InjectionConfig.get().isShowLegacyConfigurationWarning() == showWarning
 
         where:
-        name                                                           | value               || expected
+        name                                                           | value               || showWarning
         null                                                           | null                || false
         "FOO"                                                          | "bar"               || false
         "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION"              | "true"              || true
