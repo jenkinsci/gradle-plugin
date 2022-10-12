@@ -4,9 +4,9 @@
 
         <j:if test="${instance.showLegacyConfigurationWarning}">
             <f:entry>
-                <div class="alert alert-warning">
-                    <l:icon class="icon-warning icon-sm" alt="${%Test}" tooltip="${%Test}"/>
-                    Test Test Test
+                <div class="alert alert-danger">
+                    <l:icon class="icon-error icon-sm" alt="${%Unsupported configuration detected}"/>
+                    An unsupported configuration has been detected. Please refer to the following <a href="https://localhost">migration guide</a> on how to upgrade it.
                 </div>
             </f:entry>
         </j:if>

@@ -213,6 +213,7 @@ By default, all nodes are enabled.
 
 |===
 |Jenkins Gradle Plugin version  | Injected Gradle Enterprise Maven extension version| Injected Common Custom User Data Maven extension  | Minimum supported Gradle Enterprise version
+|2.0                            | 1.15.4                                            | 1.11.1                                            | 2022.3
 |1.40                           | 1.15.3                                            | 1.11.1                                            | 2022.3
 |< 1.40                         | *Not supported*                                   | *Not supported*                                   | *Not supported*
 
@@ -221,6 +222,27 @@ By default, all nodes are enabled.
 == Disabling/uninstalling Gradle Jenkins plugin
 
 To ensure that all Gradle Enterprise resources are cleaned up from the agents, before disabling/uninstalling the plugin the auto-injection has to be manually disabled. Please, refer to the <<Disable auto-injection>> section for details.
+
+== Upgrade notes
+
+=== 2.0
+
+A new form based configuration was introduced to replace the configuration based on the environment variables.
+To ensure the correct functioning of the auto-injection functionality the following global environment variables must be removed:
+
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION`
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL`
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER`
+- `GRADLE_ENTERPRISE_ACCESS_KEY`
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION`
+- `JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION`
+- `JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL`
+- `JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES`
+- `JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES`
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION`
+- `JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION`
+- `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES`
+- `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES`
 
 == Roadmap
 
