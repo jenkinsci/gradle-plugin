@@ -6,7 +6,7 @@
             <f:entry>
                 <div class="alert alert-danger">
                     <l:icon class="icon-error icon-sm" alt="${%Unsupported configuration detected}"/>
-                    An unsupported configuration has been detected. Please refer to the following <a href="https://localhost">migration guide</a> on how to upgrade it.
+                    An unsupported configuration has been detected. Please refer to the following <a href="https://github.com/jenkinsci/gradle-plugin#20">migration guide</a> on how to upgrade it.
                 </div>
             </f:entry>
         </j:if>
