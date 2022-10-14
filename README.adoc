@@ -247,6 +247,7 @@ A new form based configuration was introduced in this version, which replaces th
 - `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES`
 - `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES`
 2. Copy the previously saved values and enter them in the new form based configuration to have the same configuration as before.
+
 == Roadmap
 
 * Using the Gradle API for accessing all the Gradle functionalities
