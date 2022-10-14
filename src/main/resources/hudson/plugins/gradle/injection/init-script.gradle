@@ -48,7 +48,8 @@ def BUILD_SCAN_PLUGIN_CLASS = 'com.gradle.scan.plugin.BuildScanPlugin'
 def GRADLE_ENTERPRISE_PLUGIN_ID = 'com.gradle.enterprise'
 def GRADLE_ENTERPRISE_PLUGIN_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin'
 def GRADLE_ENTERPRISE_EXTENSION_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterpriseExtension'
-
+def CI_AUTO_INJECTION = 'CI-auto-injection'
+def JENKINS = 'Jenkins'
 def CCUD_PLUGIN_ID = 'com.gradle.common-custom-user-data-gradle-plugin'
 def CCUD_PLUGIN_CLASS = 'com.gradle.CommonCustomUserDataGradlePlugin'
 
@@ -92,6 +93,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     buildScan.server = geUrl
                     buildScan.allowUntrustedServer = geAllowUntrustedServer
                     buildScan.publishAlways()
+                    buildScan.value CI_AUTO_INJECTION, JENKINS
                 }
             }
 
@@ -117,6 +119,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     ext.server = geUrl
                     ext.allowUntrustedServer = geAllowUntrustedServer
                     ext.buildScan.publishAlways()
+                    ext.buildScan.value CI_AUTO_INJECTION, JENKINS
                 }
             }
         }

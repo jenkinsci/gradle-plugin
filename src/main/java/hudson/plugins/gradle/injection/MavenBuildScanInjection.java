@@ -26,6 +26,8 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     private static final String GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = "gradle.enterprise.allowUntrustedServer";
     private static final String GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY = "gradle.scan.uploadInBackground";
     private static final String MAVEN_EXT_CLASS_PATH_PROPERTY_KEY = "maven.ext.class.path";
+    private static final String GRADLE_SCAN_CUSTOM_VALUE_CI_AUTO_INJECTION = "scan.value.CI-auto-injection";
+    public static final String JENKINS = "Jenkins";
 
     private static final MavenOptsSetter MAVEN_OPTS_SETTER = new MavenOptsSetter(
         MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
@@ -114,6 +116,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
             if (config.isAllowUntrusted()) {
                 mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
             }
+            mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_SCAN_CUSTOM_VALUE_CI_AUTO_INJECTION, JENKINS));
 
             MAVEN_OPTS_SETTER.appendIfMissing(node, mavenOptsKeyValuePairs);
         } catch (IOException | InterruptedException e) {
