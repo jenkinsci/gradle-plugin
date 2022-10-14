@@ -4,7 +4,9 @@ import com.google.common.collect.Iterables;
 import hudson.EnvVars;
 import hudson.model.Node;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
+import jenkins.model.Jenkins;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
@@ -14,6 +16,20 @@ public final class EnvUtil {
     private EnvUtil() {
     }
 
+    @CheckForNull
+    public static EnvVars globalEnvironment() {
+        Jenkins jenkins = Jenkins.getInstanceOrNull();
+        if (jenkins == null) {
+            return null;
+        }
+
+        EnvironmentVariablesNodeProperty nodeProperty =
+            jenkins.getGlobalNodeProperties().get(EnvironmentVariablesNodeProperty.class);
+
+        return nodeProperty != null ? nodeProperty.getEnvVars() : null;
+    }
+
+    @CheckForNull
     public static String getEnv(EnvVars env, String key) {
         return env != null ? env.get(key) : null;
     }

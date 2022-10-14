@@ -1,6 +1,16 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:l="/lib/layout">
     <f:section title="${%Gradle Enterprise integration}">
+
+        <j:if test="${instance.showLegacyConfigurationWarning}">
+            <f:entry>
+                <div class="alert alert-danger">
+                    <l:icon class="icon-error icon-sm" alt="${%Unsupported configuration detected}"/>
+                    An unsupported configuration has been detected. Please refer to the following <a href="https://github.com/jenkinsci/gradle-plugin#20">migration guide</a> on how to upgrade it.
+                </div>
+            </f:entry>
+        </j:if>
+
         <f:optionalBlock field="enabled" title="${%Enable auto-injection}" inline="true">
 
             <f:section title="${%Gradle Enterprise connection settings}">

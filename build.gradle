@@ -16,7 +16,7 @@ ext {
   coreBaseVersion = '2.138'
   corePatchVersion = '4'
   coreBomVersion = '3'
-  gradleEnterpriseMavenExtensionVersion = "1.15.3"
+  gradleEnterpriseMavenExtensionVersion = "1.15.4"
   commonCustomUserDataMavenExtensionVersion = "1.11.1"
 }
 

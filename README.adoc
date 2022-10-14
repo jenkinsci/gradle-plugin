@@ -213,6 +213,7 @@ By default, all nodes are enabled.
 
 |===
 |Jenkins Gradle Plugin version  | Injected Gradle Enterprise Maven extension version| Injected Common Custom User Data Maven extension  | Minimum supported Gradle Enterprise version
+|2.0                            | 1.15.4                                            | 1.11.1                                            | 2022.3
 |1.40                           | 1.15.3                                            | 1.11.1                                            | 2022.3
 |< 1.40                         | *Not supported*                                   | *Not supported*                                   | *Not supported*
 
@@ -222,6 +223,30 @@ By default, all nodes are enabled.
 
 To ensure that all Gradle Enterprise resources are cleaned up from the agents, before disabling/uninstalling the plugin the auto-injection has to be manually disabled. Please, refer to the <<Disable auto-injection>> section for details.
 
+== Upgrade notes
+
+=== 2.0
+
+> **Note**
+> - These upgrade notes only apply if you configured the Gradle Enterprise auto-injection feature.
+
+A new form based configuration was introduced in this version, which replaces the configuration via environment variables. There is no automatic migration, therefore you need to manually migrate the already configured auto-injection via environment variables you'd need to follow these steps:
+
+1. Copy the values of the following environment variables and then remove them in the global configuration following environment variables from the global configuration:
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION`
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL`
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER`
+- `GRADLE_ENTERPRISE_ACCESS_KEY`
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION`
+- `JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION`
+- `JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL`
+- `JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES`
+- `JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES`
+- `JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION`
+- `JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION`
+- `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES`
+- `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES`
+2. Copy the previously saved values and enter them in the new form based configuration to have the same configuration as before.
 == Roadmap
 
 * Using the Gradle API for accessing all the Gradle functionalities

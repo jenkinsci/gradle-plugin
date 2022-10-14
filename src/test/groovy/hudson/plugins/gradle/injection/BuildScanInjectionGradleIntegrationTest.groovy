@@ -1,8 +1,10 @@
 package hudson.plugins.gradle.injection
 
+import hudson.EnvVars
 import hudson.Util
 import hudson.model.FreeStyleProject
 import hudson.model.Result
+import hudson.model.Slave
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
@@ -11,7 +13,6 @@ import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
-import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Unroll
 
 @Unroll
@@ -23,6 +24,68 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 
     private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.2', '7.5.1']
+
+    private static final EnvVars EMPTY_ENV = new EnvVars()
+
+    def 'skips injection if the agent is offline'() {
+        given:
+        def gradleVersion = '7.5.1'
+
+        def agent = createSlave("test")
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        withGlobalEnvVars {
+            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(agent, gradleVersion))
+        }
+
+        restartSlave(agent)
+
+        when:
+        def webClient = j.createWebClient()
+        def page = webClient.goTo("configure")
+        def form = page.getFormByName("config")
+
+        form.getInputByName("_.enabled").click()
+        form.getInputByName("_.server").setValueAttribute("https://localhost")
+        form.getInputByName("_.gradlePluginVersion").setValueAttribute("3.11.1")
+
+        j.submit(form)
+
+        then:
+        with(agentEnvVars(agent)) {
+            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == "3.11.1"
+        }
+
+        when:
+        page = webClient.goTo("configure")
+        form = page.getFormByName("config")
+
+        form.getInputByName("_.gradlePluginVersion").setValueAttribute("")
+
+        j.submit(form)
+
+        then:
+        with(agentEnvVars(agent)) {
+            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+        }
+
+        when:
+        j.disconnectSlave(agent)
+
+        page = webClient.goTo("configure")
+        form = page.getFormByName("config")
+
+        form.getInputByName("_.gradlePluginVersion").setValueAttribute("3.11.1")
+
+        j.submit(form)
+
+        then:
+        with(agentEnvVars(agent)) {
+            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+        }
+    }
 
     def 'uses custom plugin repository'() {
         given:
@@ -49,7 +112,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def firstRun = j.buildAndAssertSuccess(project)
 
         then:
-        println JenkinsRule.getLog(firstRun)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
 
         when:
@@ -57,7 +119,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def secondRun = j.buildAndAssertSuccess(project)
 
         then:
-        println JenkinsRule.getLog(secondRun)
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
         j.assertLogContains(
             "Gradle Enterprise plugins resolution: ${StringUtils.removeEnd(proxyAddress.toString(), "/")}", secondRun)
@@ -84,7 +145,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build = j.buildAndAssertSuccess(p)
 
         then:
-        println JenkinsRule.getLog(build)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
 
         when:
@@ -97,7 +157,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build2 = j.buildAndAssertSuccess(p)
 
         then:
-        println JenkinsRule.getLog(build2)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
         where:
@@ -122,7 +181,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build = j.buildAndAssertSuccess(p)
 
         then:
-        println JenkinsRule.getLog(build)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
 
         when:
@@ -130,7 +188,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build2 = j.buildAndAssertSuccess(p)
 
         then:
-        println JenkinsRule.getLog(build2)
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
         where:
@@ -168,7 +225,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        println JenkinsRule.getLog(build)
         j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
 
         when:
@@ -176,7 +232,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def build2 = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        println JenkinsRule.getLog(build2)
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
 
         where:
@@ -559,5 +614,10 @@ task hello {
         }
 
         restartSlave(slave)
+    }
+
+    private static EnvVars agentEnvVars(Slave agent) {
+        def nodeProperty = agent.getNodeProperties().get(EnvironmentVariablesNodeProperty.class)
+        return nodeProperty != null ? nodeProperty.getEnvVars() : EMPTY_ENV
     }
 }

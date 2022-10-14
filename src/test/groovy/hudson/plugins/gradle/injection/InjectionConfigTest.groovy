@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection
 
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
+import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.util.FormValidation
 import hudson.util.XStream2
 import spock.lang.Shared
@@ -13,6 +14,40 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
 
     @Shared
     FilenameFilter injectionConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.injection.InjectionConfig.xml" }
+
+    @Unroll
+    def "sets showLegacyConfigurationWarning to true if any of legacy env variables is set"() {
+        given:
+        def env = new EnvironmentVariablesNodeProperty()
+        env.getEnvVars().put("TEST", "true")
+
+        if (name != null) {
+            env.getEnvVars().put(name, value)
+        }
+
+        j.jenkins.getGlobalNodeProperties().add(env)
+
+        expect:
+        InjectionConfig.get().isShowLegacyConfigurationWarning() == showWarning
+
+        where:
+        name                                                           | value               || showWarning
+        null                                                           | null                || false
+        "FOO"                                                          | "bar"               || false
+        "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION"              | "true"              || true
+        "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL"                    | "https://localhost" || true
+        "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER" | "true"              || true
+        "GRADLE_ENTERPRISE_ACCESS_KEY"                                 | "foo"               || true
+        "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION"         | "3.11.1"            || true
+        "JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION"                      | "1.8.1"             || true
+        "JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL"             | "https://localhost" || true
+        "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES"           | "foo,bar"           || true
+        "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES"          | "foo,bar"           || true
+        "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION"      | "1.15.4"            || true
+        "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION"                   | "1.11.1"            || true
+        "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES"            | "foo,bar"           || true
+        "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"           | "foo,bar"           || true
+    }
 
     @Unroll
     def "validates server url"() {

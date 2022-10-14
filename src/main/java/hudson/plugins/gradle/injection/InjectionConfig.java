@@ -1,6 +1,8 @@
 package hudson.plugins.gradle.injection;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
@@ -18,10 +20,28 @@ import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
 import java.util.List;
+import java.util.Set;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
 @Extension
 public class InjectionConfig extends GlobalConfiguration {
+
+    private static final Set<String> LEGACY_GLOBAL_ENVIRONMENT_VARIABLES =
+        ImmutableSet.of(
+            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION",
+            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL",
+            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER",
+            "GRADLE_ENTERPRISE_ACCESS_KEY",
+            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION",
+            "JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION",
+            "JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL",
+            "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES",
+            "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES",
+            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION",
+            "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION",
+            "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES",
+            "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"
+        );
 
     private boolean enabled;
 
@@ -46,6 +66,12 @@ public class InjectionConfig extends GlobalConfiguration {
 
     public static InjectionConfig get() {
         return ExtensionList.lookupSingleton(InjectionConfig.class);
+    }
+
+    @Restricted(NoExternalUse.class)
+    public boolean isShowLegacyConfigurationWarning() {
+        EnvVars envVars = EnvUtil.globalEnvironment();
+        return envVars != null && LEGACY_GLOBAL_ENVIRONMENT_VARIABLES.stream().anyMatch(envVars::containsKey);
     }
 
     public boolean isEnabled() {
