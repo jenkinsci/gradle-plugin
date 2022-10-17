@@ -24,14 +24,15 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     // Maven system properties passed on the CLI to a Maven build
     private static final String GRADLE_ENTERPRISE_URL_PROPERTY_KEY = "gradle.enterprise.url";
     private static final String GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = "gradle.enterprise.allowUntrustedServer";
-    private static final String GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY = "gradle.scan.uploadInBackground";
+    private static final String BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY = "gradle.scan.uploadInBackground";
     private static final String MAVEN_EXT_CLASS_PATH_PROPERTY_KEY = "maven.ext.class.path";
-    private static final String GRADLE_SCAN_CUSTOM_VALUE_CI_AUTO_INJECTION = "scan.value.CI-auto-injection";
-    public static final String JENKINS = "Jenkins";
+    private static final String BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_NAME = "scan.value.CI-auto-injection";
+    private static final String BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE = "Jenkins";
 
     private static final MavenOptsSetter MAVEN_OPTS_SETTER = new MavenOptsSetter(
         MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
-        GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
+        BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
+        BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_NAME,
         GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
         GRADLE_ENTERPRISE_URL_PROPERTY_KEY
     );
@@ -110,13 +111,13 @@ public class MavenBuildScanInjection implements BuildScanInjection {
             String cp = constructExtClasspath(libs, isUnix(node));
             List<String> mavenOptsKeyValuePairs = new ArrayList<>();
             mavenOptsKeyValuePairs.add(asSystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, cp));
-            mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
+            mavenOptsKeyValuePairs.add(asSystemProperty(BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
 
             mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, config.getServer()));
             if (config.isAllowUntrusted()) {
                 mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
             }
-            mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_SCAN_CUSTOM_VALUE_CI_AUTO_INJECTION, JENKINS));
+            mavenOptsKeyValuePairs.add(asSystemProperty(BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE));
 
             MAVEN_OPTS_SETTER.appendIfMissing(node, mavenOptsKeyValuePairs);
         } catch (IOException | InterruptedException e) {
