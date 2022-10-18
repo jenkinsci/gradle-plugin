@@ -104,7 +104,7 @@ dependencies {
   testImplementation('io.ratpack:ratpack-groovy-test:1.9.0') {
     exclude group: 'com.google.guava', module: 'guava'
   }
-  testImplementation('com.google.guava:guava:19.0') {
+  testImplementation('com.google.guava:guava:23.0') {
     because('Lowest possible version that works with Jenkins and Ratpack')
   }
 
