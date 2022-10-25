@@ -45,6 +45,7 @@ import spock.lang.Unroll
  */
 @Unroll
 class GradlePluginIntegrationTest extends GradleAbstractIntegrationTest {
+
     def 'run the default tasks'() {
         given:
         gradleInstallationRule.addInstallation()

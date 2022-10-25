@@ -62,6 +62,10 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
     }
+
+    registerFeature("optionalPlugin") {
+        usingSourceSet(sourceSets.main)
+    }
 }
 
 configurations {
@@ -83,6 +87,8 @@ dependencies {
   implementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
+  optionalPluginImplementation 'org.jenkins-ci.main:maven-plugin:3.20'
+
   implementation('commons-validator:commons-validator:1.7') {
       exclude group: 'commons-beanutils', module: 'commons-beanutils'
       exclude group: 'commons-logging', module: 'commons-logging'
@@ -90,6 +96,7 @@ dependencies {
 
   includedLibs "com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}"
   includedLibs "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}"
+  includedLibs project(path: ':configuration-maven-extension', configuration: 'mvnExtension')
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
 

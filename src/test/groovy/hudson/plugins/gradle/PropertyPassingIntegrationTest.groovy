@@ -9,6 +9,7 @@ import spock.lang.Unroll
 
 @Unroll
 class PropertyPassingIntegrationTest extends GradleAbstractIntegrationTest {
+
     def "pass '#escapedPropertyValue' via parameter in system properties"() {
         given:
         gradleInstallationRule.addInstallation()

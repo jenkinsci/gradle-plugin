@@ -16,6 +16,11 @@ import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
+import spock.lang.Unroll
+
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL
 
 class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTest {
 
@@ -24,31 +29,28 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
 
     private static final String GE_EXTENSION_JAR = "gradle-enterprise-maven-extension.jar"
     private static final String CCUD_EXTENSION_JAR = "common-custom-user-data-maven-extension.jar"
+    private static final String CONFIGURATION_EXTENSION_JAR = "configuration-maven-extension.jar"
+
+    private static final List<String> ALL_EXTENSIONS = [GE_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
 
     private static final String POM_XML = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
 
-    def "doesn't copy extensions if they were not changed"() {
+    @Unroll
+    def "doesn't copy extensions if it was not changed"() {
         when:
         def slave = createSlaveAndTurnOnInjection()
         turnOnBuildInjectionAndRestart(slave)
         def extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        extensionDirectory.list().size() == 2
+        extensionDirectory.list().size() == 3
 
-        def originalGeExtension = extensionDirectory.list().find { it.name == GE_EXTENSION_JAR }
-        originalGeExtension != null
-        def originalGeExtensionLastModified = originalGeExtension.lastModified()
-        originalGeExtensionLastModified > 0
-        def originalGeExtensionDigest = originalGeExtension.digest()
-        originalGeExtensionDigest != null
-
-        def originalCcudExtension = extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR }
-        originalCcudExtension != null
-        def originalCcudExtensionLastModified = originalCcudExtension.lastModified()
-        originalCcudExtensionLastModified > 0
-        def originalCcudExtensionDigest = originalCcudExtension?.digest()
-        originalCcudExtensionDigest != null
+        def originalExtension = extensionDirectory.list().find { it.name == extension }
+        originalExtension != null
+        def originalExtensionLastModified = originalExtension.lastModified()
+        originalExtensionLastModified > 0
+        def originalExtensionDigest = originalExtension.digest()
+        originalExtensionDigest != null
 
         when:
         restartSlave(slave)
@@ -56,17 +58,18 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        def updatedGeExtension = extensionDirectory.list().find { it.name == GE_EXTENSION_JAR }
-        updatedGeExtension != null
-        updatedGeExtension.lastModified() == originalGeExtensionLastModified
-        updatedGeExtension.digest() == originalGeExtensionDigest
+        extensionDirectory.list().size() == 3
 
-        def updatedCcudExtension = extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR }
-        updatedCcudExtension != null
-        updatedCcudExtension.lastModified() == originalCcudExtensionLastModified
-        updatedCcudExtension.digest() == originalCcudExtensionDigest
+        def updatedExtension = extensionDirectory.list().find { it.name == extension }
+        updatedExtension != null
+        updatedExtension.lastModified() == originalExtensionLastModified
+        updatedExtension.digest() == originalExtensionDigest
+
+        where:
+        extension << ALL_EXTENSIONS
     }
 
+    @Unroll
     def 'copies a new version of the same extension if it was changed'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
@@ -74,40 +77,26 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
         def extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        extensionDirectory.list().size() == 2
+        extensionDirectory.list().size() == 3
 
-        def originalGeExtension = extensionDirectory.list().find { it.name == GE_EXTENSION_JAR }
-        originalGeExtension != null
-        def originalGeExtensionLastModified = originalGeExtension.lastModified()
-        originalGeExtensionLastModified > 0
-        def originalGeExtensionDigest = originalGeExtension.digest()
-        originalGeExtensionDigest != null
-
-        def originalCcudExtension = extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR }
-        originalCcudExtension != null
-        def originalCcudExtensionLastModified = originalCcudExtension.lastModified()
-        originalCcudExtensionLastModified > 0
-        def originalCcudExtensionDigest = originalCcudExtension?.digest()
-        originalCcudExtensionDigest != null
+        def originalExtension = extensionDirectory.list().find { it.name == extension }
+        originalExtension != null
+        def originalExtensionLastModified = originalExtension.lastModified()
+        originalExtensionLastModified > 0
+        def originalExtensionDigest = originalExtension.digest()
+        originalExtensionDigest != null
 
         when:
         def random = new Random()
 
-        def geExtensionRandomBytes = new byte[10]
-        random.nextBytes(geExtensionRandomBytes)
-
-        originalGeExtension.copyFrom(new ByteArrayInputStream(geExtensionRandomBytes))
-
-        def ccudExtensionRandomBytes = new byte[10]
-        random.nextBytes(ccudExtensionRandomBytes)
-
-        originalCcudExtension.copyFrom(new ByteArrayInputStream(ccudExtensionRandomBytes))
+        def extensionRandomBytes = new byte[10]
+        random.nextBytes(extensionRandomBytes)
+        originalExtension.copyFrom(new ByteArrayInputStream(extensionRandomBytes))
 
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        extensionDirectory.list().find { it.name == GE_EXTENSION_JAR }?.lastModified() != originalGeExtensionLastModified
-        extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR }?.lastModified() != originalCcudExtensionLastModified
+        extensionDirectory.list().find { it.name == extension }?.lastModified() != originalExtensionLastModified
 
         when:
         restartSlave(slave)
@@ -115,15 +104,13 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        def updatedGeExtension = extensionDirectory.list().find { it.name == GE_EXTENSION_JAR }
+        def updatedGeExtension = extensionDirectory.list().find { it.name == extension }
         updatedGeExtension != null
-        updatedGeExtension.lastModified() != originalGeExtensionLastModified
-        updatedGeExtension.digest() == originalGeExtensionDigest
+        updatedGeExtension.lastModified() != originalExtensionLastModified
+        updatedGeExtension.digest() == originalExtensionDigest
 
-        def updatedCcudExtension = extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR }
-        updatedCcudExtension != null
-        updatedCcudExtension.lastModified() != originalCcudExtensionLastModified
-        updatedCcudExtension.digest() == originalCcudExtensionDigest
+        where:
+        extension << ALL_EXTENSIONS
     }
 
     def 'does not create new EnvironmentVariablesNodeProperty when MAVEN_OPTS changes'() {
@@ -194,11 +181,13 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
 
         then:
         extensionDirectory.exists()
-        extensionDirectory.list().size() == 1
+        extensionDirectory.list().size() == 2
         extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
+        extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
         hasJarInMavenExt(slave, GE_EXTENSION_JAR)
         !hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOffBuildInjectionAndRestart(slave)
@@ -214,35 +203,41 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        extensionDirectory.list().size() == 2
+        extensionDirectory.list().size() == 3
         extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR } != null
+        extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
         hasJarInMavenExt(slave, GE_EXTENSION_JAR)
         hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOnBuildInjectionAndRestart(slave, false)
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        extensionDirectory.list().size() == 1
+        extensionDirectory.list().size() == 2
         extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
+        extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
         hasJarInMavenExt(slave, GE_EXTENSION_JAR)
         !hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOnBuildInjectionAndRestart(slave)
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        extensionDirectory.list().size() == 2
+        extensionDirectory.list().size() == 3
         extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR } != null
+        extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
         hasJarInMavenExt(slave, GE_EXTENSION_JAR)
         hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOffBuildInjectionAndRestart(slave)
@@ -261,7 +256,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
 
         expect:
         extensionDirectory.exists()
-        extensionDirectory.list().size() == 1
+        extensionDirectory.list().size() == 2
 
         when:
         withInjectionConfig {
@@ -283,7 +278,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
 
         then:
         extensionDirectory.exists()
-        extensionDirectory.list().size() == 1
+        extensionDirectory.list().size() == 2
 
         when:
         withInjectionConfig {
@@ -375,6 +370,59 @@ node {
         !hasBuildScanPublicationAttempt(log)
     }
 
+    def 'set all environment variables for maven plugin integration'() {
+        when:
+        def slave = createSlaveAndTurnOnInjection()
+
+        then:
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
+        assertMavenConfigClasspathJars(slave, GE_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
+
+        when:
+        withInjectionConfig {
+            allowUntrusted = true
+        }
+        restartSlave(slave)
+
+        then:
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == "true"
+        assertMavenConfigClasspathJars(slave, GE_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
+
+        when:
+        withInjectionConfig {
+            allowUntrusted = false
+            injectCcudExtension = true
+        }
+        restartSlave(slave)
+
+        then:
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
+        assertMavenConfigClasspathJars(slave, GE_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
+
+        when:
+        turnOffBuildInjectionAndRestart(slave)
+
+        then:
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == null
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == null
+    }
+
+    private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {
+        def classpath = getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH)
+        assert classpath != null
+
+        def files = classpath.split(slave.toComputer().isUnix() ? ":" : ";")
+
+        assert files.length == jars.length
+        jars.each {
+            assert files.find { it.endsWith(it) } != null
+        }
+    }
+
     private static String simplePipeline() {
         """
 node {
@@ -425,8 +473,12 @@ node {
     }
 
     private static String getMavenOptsFromNodeProperties(DumbSlave slave) {
+        return getEnvVarFromNodeProperties(slave, "MAVEN_OPTS")
+    }
+
+    private static String getEnvVarFromNodeProperties(DumbSlave slave, String envVar) {
         def all = slave.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class)
-        return all?.last()?.getEnvVars()?.get("MAVEN_OPTS")
+        return all?.last()?.getEnvVars()?.get(envVar)
     }
 
     private static boolean hasBuildScanPublicationAttempt(String log) {
