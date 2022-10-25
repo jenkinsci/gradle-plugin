@@ -111,9 +111,10 @@ def testAllTask = tasks.register("testAll") {
     dependsOn allTestTasks
 }
 
-tasks.named("check").configure {
-    dependsOn testAllTask
-}
+// TODO: All versions take too long, run only default
+//tasks.named("check").configure {
+//    dependsOn testAllTask
+//}
 
 class JenkinsVersion {
 
