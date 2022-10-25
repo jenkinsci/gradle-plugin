@@ -22,8 +22,14 @@ class MavenOptsSetter {
         this.keys = ImmutableSet.copyOf(keys);
     }
 
-    void appendIfMissing(Node node, List<String> mavenOptsKeyValuePairs) throws IOException, InterruptedException {
-        String mavenOpts = removeSystemProperties(getMavenOpts(node)) + SPACE + String.join(SPACE, mavenOptsKeyValuePairs);
+    void appendIfMissing(Node node, List<SystemProperty> systemProperties) throws IOException, InterruptedException {
+        String geMavenOpts =
+            systemProperties
+                .stream()
+                .map(SystemProperty::asString)
+                .collect(Collectors.joining(SPACE));
+
+        String mavenOpts = removeSystemProperties(getMavenOpts(node)) + SPACE + geMavenOpts;
         EnvUtil.setEnvVar(node, MAVEN_OPTS_VAR, mavenOpts);
     }
 

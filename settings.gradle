@@ -3,6 +3,7 @@ plugins {
 }
 
 include ':acceptance-tests'
+include ':configuration-maven-extension'
 
 rootProject.name = 'gradle-plugin'
 

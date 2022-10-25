@@ -169,7 +169,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
     private void cleanup(Node node, String initScriptDirectory) {
         try {
             removeInitScript(node.getChannel(), initScriptDirectory);
-            removeEnvironmentVariables(node);
+            EnvUtil.removeEnvVars(node, ALL_INJECTED_ENVIRONMENT_VARIABLES);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
@@ -183,10 +183,6 @@ public class GradleBuildScanInjection implements BuildScanInjection {
             boolean deleted = gradleInitScriptFile.delete();
             Preconditions.checkState(deleted, "Error while deleting init script");
         }
-    }
-
-    private void removeEnvironmentVariables(Node node) {
-        ALL_INJECTED_ENVIRONMENT_VARIABLES.forEach(v -> EnvUtil.removeEnvVar(node, v));
     }
 
     private static FilePath getInitScriptFile(VirtualChannel channel, String initScriptDirectory) {

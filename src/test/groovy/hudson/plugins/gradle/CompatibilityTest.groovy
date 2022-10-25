@@ -7,6 +7,7 @@ import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.recipes.LocalData
 
 class CompatibilityTest {
+
     @Rule
     public final JenkinsRule j = new JenkinsRule()
 
@@ -31,7 +32,7 @@ class CompatibilityTest {
         assert gradle.projectProperties == reference.projectProperties
         assert gradle.wrapperLocation == reference.wrapperLocation
 
-        def installations = j.jenkins.getDescriptorByType(hudson.plugins.gradle.Gradle.DescriptorImpl).getInstallations()
+        def installations = j.jenkins.getDescriptorByType(Gradle.DescriptorImpl).getInstallations()
         assert installations.size() == 1
         assert installations[0].name == '2.14'
     }
@@ -59,7 +60,7 @@ class CompatibilityTest {
         assert gradle.projectProperties == reference.projectProperties
         assert gradle.wrapperLocation == reference.wrapperLocation
 
-        def installations = j.jenkins.getDescriptorByType(hudson.plugins.gradle.Gradle.DescriptorImpl).getInstallations()
+        def installations = j.jenkins.getDescriptorByType(Gradle.DescriptorImpl).getInstallations()
         assert installations.size() == 1
         assert installations[0].name == '2.14'
     }
@@ -76,9 +77,18 @@ class CompatibilityTest {
         assert buildScanActions[1].scanUrls == ['https://gradle.com/s/uaxunlpjhzoda']
     }
 
-    private Gradle configuredGradle() {
-        new Gradle(switches: 'switches', tasks: 'tasks', rootBuildScriptDir: 'rootBuildScript',
-                buildFile: 'buildFile.gradle', gradleName: '2.14', useWrapper: true, makeExecutable: true, wrapperLocation: 'rootBuildScript',
-                useWorkspaceAsHome: true, passAllAsProjectProperties: true)
+    private static Gradle configuredGradle() {
+        new Gradle(
+            switches: 'switches',
+            tasks: 'tasks',
+            rootBuildScriptDir: 'rootBuildScript',
+            buildFile: 'buildFile.gradle',
+            gradleName: '2.14',
+            useWrapper: true,
+            makeExecutable: true,
+            wrapperLocation: 'rootBuildScript',
+            useWorkspaceAsHome: true,
+            passAllAsProjectProperties: true
+        )
     }
 }
