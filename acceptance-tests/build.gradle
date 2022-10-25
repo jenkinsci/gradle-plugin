@@ -126,7 +126,7 @@ class JenkinsVersion {
 
     public static final JenkinsVersion LATEST = of(LATEST_VERSION, JAVA_11)
     public static final JenkinsVersion LATEST_LTS = of(LATEST_LTS_VERSION, JAVA_11)
-    public static final JenkinsVersion V2_356 = of(V2_356_VERSION)
+    public static final JenkinsVersion V2_356 = of(V2_356_VERSION, JAVA_11)
 
     private static final String MIRROR = 'https://get.jenkins.io'
 
