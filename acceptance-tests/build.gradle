@@ -21,7 +21,7 @@ description = 'Acceptance tests of Gradle plugin'
 repositories {
     mavenCentral()
     maven {
-        url 'https://repo.jenkins-ci.org/releases/'
+        url 'https://repo.jenkins-ci.org/public/'
     }
 }
 
