@@ -1,7 +1,7 @@
 package hudson.plugins.gradle;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.jenkinsci.test.acceptance.junit.WithOS;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.plugins.maven.MavenBuildStep;
@@ -82,7 +82,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
 
         String pipelineTemplate = resource("/simple_maven_project.groovy.template").asText();
         String pipeline =
-            new StrSubstitutor(
+            new StringSubstitutor(
                 ImmutableMap.of(
                     "copy_resource_step", copyResourceDirStep(resource("/simple_maven_project")),
                     "maven_version", MAVEN_VERSION,

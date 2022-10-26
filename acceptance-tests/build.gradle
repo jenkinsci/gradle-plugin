@@ -6,12 +6,12 @@ plugins {
 }
 
 ext {
-    athVersion = '5424.vb_4002460e8da'
+    athVersion = '5460.va_c8a_323c73b_a'
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
@@ -21,7 +21,7 @@ description = 'Acceptance tests of Gradle plugin'
 repositories {
     mavenCentral()
     maven {
-        url 'https://repo.jenkins-ci.org/releases/'
+        url 'https://repo.jenkins-ci.org/public/'
     }
 }
 
@@ -111,9 +111,10 @@ def testAllTask = tasks.register("testAll") {
     dependsOn allTestTasks
 }
 
-tasks.named("check").configure {
-    dependsOn testAllTask
-}
+// TODO: All versions take too long, run only default
+//tasks.named("check").configure {
+//    dependsOn testAllTask
+//}
 
 class JenkinsVersion {
 
@@ -126,7 +127,7 @@ class JenkinsVersion {
 
     public static final JenkinsVersion LATEST = of(LATEST_VERSION, JAVA_11)
     public static final JenkinsVersion LATEST_LTS = of(LATEST_LTS_VERSION, JAVA_11)
-    public static final JenkinsVersion V2_356 = of(V2_356_VERSION)
+    public static final JenkinsVersion V2_356 = of(V2_356_VERSION, JAVA_11)
 
     private static final String MIRROR = 'https://get.jenkins.io'
 
