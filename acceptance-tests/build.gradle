@@ -6,7 +6,7 @@ plugins {
 }
 
 ext {
-    athVersion = '5460.va_c8a_323c73b_a'
+    athVersion = '999999-SNAPSHOT'
 }
 
 java {
