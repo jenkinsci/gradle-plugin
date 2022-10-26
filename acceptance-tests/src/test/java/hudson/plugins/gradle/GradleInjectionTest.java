@@ -2,7 +2,7 @@ package hudson.plugins.gradle;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.hamcrest.Matcher;
 import org.jenkinsci.test.acceptance.junit.Resource;
 import org.jenkinsci.test.acceptance.junit.WithOS;
@@ -81,7 +81,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
 
         String pipelineTemplate = resource("/simple_gradle_project.groovy.template").asText();
         String pipeline =
-            new StrSubstitutor(
+            new StringSubstitutor(
                 ImmutableMap.of(
                     "copy_resource_step", copyResourceDirStep(resource("/simple_gradle_project")),
                     "gradle_version", GRADLE_VERSION,
@@ -176,7 +176,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     private Resource settingsWithGradleEnterprise(String gePluginVersion) {
         String settingsTemplate = resource("/settings_with_ge.gradle.template").asText();
         String settings =
-            new StrSubstitutor(
+            new StringSubstitutor(
                 ImmutableMap.of(
                     "ge_plugin_version", gePluginVersion,
                     "server", mockGeServer.getAddress()
