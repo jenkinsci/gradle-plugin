@@ -34,7 +34,7 @@ configurations {
 
 dependencies {
     // same version as used by ATH
-    annotationProcessor "org.jenkins-ci:annotation-indexer:1.12"
+    annotationProcessor "org.jenkins-ci:annotation-indexer:1.16"
 
     implementation "org.jenkins-ci:acceptance-test-harness:${athVersion}"
 
