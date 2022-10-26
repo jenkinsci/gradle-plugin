@@ -1,14 +1,23 @@
 package hudson.plugins.gradle
 
-import static org.jvnet.hudson.test.JenkinsRule.getLog
-
 import hudson.model.FreeStyleProject
 import hudson.remoting.Launcher
 import org.jvnet.hudson.test.CreateFileBuilder
 import spock.lang.Unroll
 
+import static org.jvnet.hudson.test.JenkinsRule.getLog
+
 @Unroll
 class PropertyPassingIntegrationTest extends GradleAbstractIntegrationTest {
+
+    private static final Map<String, String> CRITICAL_PROPERTIES = [
+        property1: 'a < b',
+        property2: '<foo> <bar/> </foo>',
+        property3: 'renaming XYZ >> \'xyz\'',
+        property4: 'renaming XYZ >>> \'xyz\'',
+        property5: 'renaming XYZ >> "xyz"',
+        property6: 'renaming \'XYZ >> \'x"y"z\'"'
+    ]
 
     def "pass '#escapedPropertyValue' via parameter in system properties"() {
         given:
@@ -65,18 +74,18 @@ class PropertyPassingIntegrationTest extends GradleAbstractIntegrationTest {
         createBuildScript(p, """
             task printParam {
                 doLast {
-                ${criticalProperties.collect { k, v ->
+                ${CRITICAL_PROPERTIES.collect { k, v ->
                     "println('${k}=' + ${k})"
                 }.join('\n')}
                 }
             }""".stripIndent())
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, projectProperties: map2PropertiesString(criticalProperties), *: defaults))
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, projectProperties: map2PropertiesString(CRITICAL_PROPERTIES), *: defaults))
 
         when:
         def build = j.buildAndAssertSuccess(p)
 
         then:
-        criticalProperties.each { key, value ->
+        CRITICAL_PROPERTIES.each { key, value ->
             assert getLog(build).contains("${key}=${value}")
         }
     }
@@ -88,34 +97,25 @@ class PropertyPassingIntegrationTest extends GradleAbstractIntegrationTest {
         createBuildScript(p, """
             task printParam {
                 doLast {
-                ${criticalProperties.collect { k, v ->
+                ${CRITICAL_PROPERTIES.collect { k, v ->
                     "println('${k}=' + System.getProperty('${k}'))"
                 }.join('\n')}
                 }
             }""".stripIndent())
-        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, systemProperties: map2PropertiesString(criticalProperties), *: defaults))
+        p.buildersList.add(new Gradle(tasks: 'printParam', useWorkspaceAsHome: true, systemProperties: map2PropertiesString(CRITICAL_PROPERTIES), *: defaults))
 
         when:
         def build = j.buildAndAssertSuccess(p)
 
         then:
-        criticalProperties.each { key, value ->
+        CRITICAL_PROPERTIES.each { key, value ->
             assert getLog(build).contains("${key}=${value}")
         }
     }
 
-    private static final Map<String, String> criticalProperties = [
-            property1: 'a < b',
-            property2: '<foo> <bar/> </foo>',
-            property3: 'renaming XYZ >> \'xyz\'',
-            property4: 'renaming XYZ >>> \'xyz\'',
-            property5: 'renaming XYZ >> "xyz"',
-            property6: 'renaming \'XYZ >> \'x"y"z\'"'
-    ]
-
     private static List<String> getCriticalStrings() {
-        return criticalProperties.values() + [
-                Launcher.isWindows() ? "Multiline does not work on windows \\r\\n" : """
+        return CRITICAL_PROPERTIES.values() + [
+            Launcher.isWindows() ? "Multiline does not work on windows \\r\\n" : """
                    Some
                    multiline
                    parameter""".stripIndent().replaceAll('\n', System.lineSeparator())
