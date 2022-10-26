@@ -427,9 +427,6 @@ public class Gradle extends Builder {
             super(clazz);
         }
 
-        /**
-         * Obtains the {@link GradleInstallation.DescriptorImpl} instance.
-         */
         public GradleInstallation.DescriptorImpl getToolDescriptor() {
             return ToolInstallation.all().get(GradleInstallation.DescriptorImpl.class);
         }
