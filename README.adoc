@@ -125,7 +125,7 @@ image::maven-settings.png[Maven settings,{thumbnail}]
 
 Optionally click the `Enable Common Custom User Data Maven extension auto-injection` checkbox to enable the auto-injection of the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension].
 
-To see which versions are injected, refer to <<Compatibility>>.
+To see which versions are injected, refer to <<Auto-injection compatibility>>.
 
 > **Warning**
 > - Maven injection only works if `MAVEN_OPTS` is not configured as a global environment variable.
