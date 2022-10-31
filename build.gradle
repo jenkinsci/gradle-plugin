@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 import com.github.spotbugs.snom.SpotBugsTask
 
 plugins {
-  id 'org.gradle.test-retry' version '1.4.0'
+  id 'org.gradle.test-retry' version '1.4.1'
   id 'org.jenkins-ci.jpi' version '0.43.0'
   id 'ru.vyarus.animalsniffer' version '1.6.0'
   id 'com.github.spotbugs' version '5.0.13'
