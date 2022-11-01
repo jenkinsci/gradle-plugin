@@ -93,6 +93,11 @@ def allTestTasks =
                     }
                 }
 
+                // If executed on TeamCity, we need to set the Chromedriver path
+                if (gradle.ciTeamCityBuild) {
+                    systemProperty 'webdriver.chrome.driver', System.getenv('HOME') + '/.gradle/webdriver/chromedriver/chromedriver'
+                }
+
                 environment([
                     JENKINS_WAR: jenkinsWarLocation,
                     LOCAL_JARS : testDependenciesDir.get().file("gradle.jpi"),
@@ -111,10 +116,9 @@ def testAllTask = tasks.register("testAll") {
     dependsOn allTestTasks
 }
 
-// TODO: All versions take too long, run only default
-//tasks.named("check").configure {
-//    dependsOn testAllTask
-//}
+tasks.named("check").configure {
+    dependsOn testAllTask
+}
 
 class JenkinsVersion {
 
