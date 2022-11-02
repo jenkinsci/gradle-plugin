@@ -12,13 +12,14 @@ if (!JavaVersion.current().java11) {
   throw new GradleException('Build requires Java 11')
 }
 
-gradle.ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
+gradle.ext.ciJenkinsBuild = System.getenv()['JENKINS_URL'] ? true : false
 gradle.ext.ciTeamCityBuild = System.getenv('TEAMCITY_VERSION') ? true : false
+gradle.ext.isCi = gradle.ciJenkinsBuild || gradle.ciTeamCityBuild
 
 gradleEnterprise {
   buildScan {
     capture { taskInputFiles = true }
-    uploadInBackground = !gradle.ciBuild
+    uploadInBackground = !gradle.isCi
     termsOfServiceUrl = 'https://gradle.com/terms-of-service'
     termsOfServiceAgree = 'yes'
     publishAlways()
