@@ -35,6 +35,7 @@ jenkinsPlugin {
 
   // Plugin ID, defaults to the project name without trailing '-plugin'
   shortName = 'gradle'
+
   fileExtension = 'hpi'
 
   compatibleSinceVersion = '1.0'
