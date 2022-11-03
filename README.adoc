@@ -6,7 +6,6 @@
 image:https://img.shields.io/jenkins/plugin/v/gradle.svg[Jenkins Plugin,link=https://plugins.jenkins.io/gradle]
 image:https://img.shields.io/github/release/jenkinsci/gradle-plugin.svg?label=changelog[link="https://github.com/jenkinsci/gradle-plugin/releases/latest"]
 image:https://img.shields.io/jenkins/plugin/i/gradle.svg?color=blue[Jenkins Plugin Installs,link=https://plugins.jenkins.io/gradle]
-image:https://ci.jenkins.io/buildStatus/icon?job=Plugins/gradle-plugin/master[Build Status,link=https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Fgradle-plugin/branches/]
 
 == Description
 
