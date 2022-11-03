@@ -158,7 +158,7 @@ test {
   systemProperties['hudson.model.DownloadService.noSignatureCheck'] = 'true'
   // override default timeout
   systemProperties['jenkins.test.timeout'] = 300
-  ignoreFailures = gradle.isCi
+  ignoreFailures = gradle.ciJenkinsBuild
   maxParallelForks = project.maxParallelForks
   retry {
     if (gradle.isCi) {
