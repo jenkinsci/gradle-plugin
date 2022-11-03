@@ -95,7 +95,7 @@ def allTestTasks =
 
                 environment([
                     JENKINS_WAR: jenkinsWarLocation,
-                    LOCAL_JARS : testDependenciesDir.get().file("gradle.jpi"),
+                    LOCAL_JARS : testDependenciesDir.get().file("gradle.hpi"),
                     BROWSER    : gradle.ciBuild ? 'firefox-container' : 'chrome'
                 ])
 
