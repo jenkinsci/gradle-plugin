@@ -16,8 +16,6 @@ ext {
   coreBaseVersion = '2.138'
   corePatchVersion = '4'
   coreBomVersion = '3'
-  gradleEnterpriseMavenExtensionVersion = "1.15.4"
-  commonCustomUserDataMavenExtensionVersion = "1.11.1"
 }
 
 jenkinsPlugin {
@@ -94,8 +92,8 @@ dependencies {
       exclude group: 'commons-logging', module: 'commons-logging'
   }
 
-  includedLibs "com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}"
-  includedLibs "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}"
+  includedLibs "com.gradle:gradle-enterprise-maven-extension:${gradle.gradleEnterpriseMavenExtensionVersion}"
+  includedLibs "com.gradle:common-custom-user-data-maven-extension:${gradle.commonCustomUserDataMavenExtensionVersion}"
   includedLibs project(path: ':configuration-maven-extension', configuration: 'mvnExtension')
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
@@ -215,12 +213,12 @@ task generateVersionFile() {
       def outputDir = versionsDir.get().asFile
       outputDir.mkdirs()
 
-      new File(outputDir, "gradle-enterprise-maven-extension-version.txt").text = "${gradleEnterpriseMavenExtensionVersion}"
-      new File(outputDir, "common-custom-user-data-maven-extension-version.txt").text = "${commonCustomUserDataMavenExtensionVersion}"
+      new File(outputDir, "gradle-enterprise-maven-extension-version.txt").text = "${gradle.gradleEnterpriseMavenExtensionVersion}"
+      new File(outputDir, "common-custom-user-data-maven-extension-version.txt").text = "${gradle.commonCustomUserDataMavenExtensionVersion}"
   }
 
-  inputs.property('gradleEnterpriseMavenExtensionVersion', gradleEnterpriseMavenExtensionVersion)
-  inputs.property('commonCustomUserDataMavenExtensionVersion', commonCustomUserDataMavenExtensionVersion)
+  inputs.property('gradleEnterpriseMavenExtensionVersion', gradle.gradleEnterpriseMavenExtensionVersion)
+  inputs.property('commonCustomUserDataMavenExtensionVersion', gradle.commonCustomUserDataMavenExtensionVersion)
 
   outputs.dir(versionsDir)
       .withPropertyName('versionsDir')
@@ -228,10 +226,10 @@ task generateVersionFile() {
 
 processResources {
     filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectMavenExtension.html") {
-        expand([gradleEnterpriseMavenExtensionVersion: gradleEnterpriseMavenExtensionVersion])
+        expand([gradleEnterpriseMavenExtensionVersion: gradle.gradleEnterpriseMavenExtensionVersion])
     }
     filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectCcudExtension.html") {
-        expand([commonCustomUserDataMavenExtensionVersion: commonCustomUserDataMavenExtensionVersion])
+        expand([commonCustomUserDataMavenExtensionVersion: gradle.commonCustomUserDataMavenExtensionVersion])
     }
 }
 

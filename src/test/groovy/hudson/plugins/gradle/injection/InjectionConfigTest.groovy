@@ -43,7 +43,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         "JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL"             | "https://localhost" || true
         "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES"           | "foo,bar"           || true
         "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES"          | "foo,bar"           || true
-        "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION"      | "1.15.4"            || true
+        "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION"      | "1.15.5"            || true
         "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION"                   | "1.11.1"            || true
         "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES"            | "foo,bar"           || true
         "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"           | "foo,bar"           || true
