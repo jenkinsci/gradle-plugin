@@ -144,8 +144,10 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
     def 'build scan is published without GE plugin with simple pipeline'() {
         given:
         createSlaveAndTurnOnInjection()
+        def mavenInstallationName = setupMavenInstallation()
+
         def pipelineJob = j.createProject(WorkflowJob)
-        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(), false))
+        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(mavenInstallationName), false))
 
         when:
         def build = j.buildAndAssertSuccess(pipelineJob)
@@ -160,11 +162,13 @@ class BuildScanInjectionMavenIntegrationTest extends BaseInjectionIntegrationTes
     def 'access key is injected into the simple pipeline'() {
         given:
         createSlaveAndTurnOnInjection()
+        def mavenInstallationName = setupMavenInstallation()
+
         withInjectionConfig {
             accessKey = Secret.fromString("invalid")
         }
         def pipelineJob = j.createProject(WorkflowJob)
-        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(), false))
+        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(mavenInstallationName), false))
 
         when:
         def build = j.buildAndAssertStatus(Result.FAILURE, pipelineJob)
@@ -337,8 +341,10 @@ node {
         }
 
         createSlave('foo')
+        def mavenInstallationName = setupMavenInstallation()
+
         def pipelineJob = j.createProject(WorkflowJob)
-        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(), false))
+        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(mavenInstallationName), false))
 
         when:
         def build = j.buildAndAssertSuccess(pipelineJob)
@@ -353,8 +359,10 @@ node {
     def 'build scan is not published when global MAVEN_OPTS is set'() {
         given:
         def slave = createSlaveAndTurnOnInjection()
+        def mavenInstallationName = setupMavenInstallation()
+
         def pipelineJob = j.createProject(WorkflowJob)
-        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(), false))
+        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(mavenInstallationName), false))
         withGlobalEnvVars {
             put('MAVEN_OPTS', '-Dfoo=bar')
         }
@@ -423,11 +431,12 @@ node {
         }
     }
 
-    private static String simplePipeline() {
+    private static String simplePipeline(String mavenInstallationName) {
         """
 node {
    stage('Build') {
         node('foo') {
+            withEnv(["PATH+MAVEN=\${tool '$mavenInstallationName'}/bin"]) {
                 writeFile file: 'pom.xml', text: '$POM_XML'
                 if (isUnix()) {
                     sh "env"
@@ -436,6 +445,7 @@ node {
                     bat "set"
                     bat "mvn package -B"
                 }
+            }
         }
    }
 }
