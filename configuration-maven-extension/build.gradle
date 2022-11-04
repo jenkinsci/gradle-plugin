@@ -25,7 +25,7 @@ configurations {
 
 dependencies {
     compileOnly 'org.apache.maven:maven-core:3.8.6'
-    compileOnly 'com.gradle:gradle-enterprise-maven-extension:1.15.4'
+    compileOnly "com.gradle:gradle-enterprise-maven-extension:${gradle.gradleEnterpriseMavenExtensionVersion}"
 }
 
 artifacts {

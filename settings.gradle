@@ -12,9 +12,13 @@ if (!JavaVersion.current().java11) {
   throw new GradleException('Build requires Java 11')
 }
 
-gradle.ext.ciJenkinsBuild = System.getenv('JENKINS_URL') ? true : false
-gradle.ext.ciTeamCityBuild = System.getenv('TEAMCITY_VERSION') ? true : false
-gradle.ext.isCi = gradle.ciJenkinsBuild || gradle.ciTeamCityBuild
+gradle.ext {
+    ciJenkinsBuild = System.getenv('JENKINS_URL') ? true : false
+    ciTeamCityBuild = System.getenv('TEAMCITY_VERSION') ? true : false
+    isCi = gradle.ciJenkinsBuild || gradle.ciTeamCityBuild
+    gradleEnterpriseMavenExtensionVersion = "1.15.5"
+    commonCustomUserDataMavenExtensionVersion = "1.11.1"
+}
 
 gradleEnterprise {
   buildScan {
