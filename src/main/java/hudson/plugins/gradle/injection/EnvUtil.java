@@ -8,6 +8,7 @@ import jenkins.model.Jenkins;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,6 +33,10 @@ public final class EnvUtil {
     @CheckForNull
     public static String getEnv(EnvVars env, String key) {
         return env != null ? env.get(key) : null;
+    }
+
+    public static void removeEnvVars(Node node, Collection<String> keys) {
+        keys.forEach(key -> removeEnvVar(node, key));
     }
 
     public static void removeEnvVar(Node node, String key) {

@@ -1,8 +1,10 @@
 plugins {
-  id 'com.gradle.enterprise' version '3.11.2'
+  id 'com.gradle.enterprise' version '3.11.3'
+  id 'com.gradle.common-custom-user-data-gradle-plugin' version '1.8.2'
 }
 
 include ':acceptance-tests'
+include ':configuration-maven-extension'
 
 rootProject.name = 'gradle-plugin'
 
@@ -10,27 +12,36 @@ if (!JavaVersion.current().java11) {
   throw new GradleException('Build requires Java 11')
 }
 
-gradle.ext.ciBuild = System.getenv()['JENKINS_URL'] ? true : false
+gradle.ext {
+    ciJenkinsBuild = System.getenv('JENKINS_URL') ? true : false
+    ciTeamCityBuild = System.getenv('TEAMCITY_VERSION') ? true : false
+    isCi = gradle.ciJenkinsBuild || gradle.ciTeamCityBuild
+    gradleEnterpriseMavenExtensionVersion = "1.15.5"
+    commonCustomUserDataMavenExtensionVersion = "1.11.1"
+}
 
 gradleEnterprise {
   buildScan {
-    if (gradle.ciBuild) {
-      tag('CI')
-      ifNonNull(System.getenv('GIT_BRANCH')) { tag(it) }
-      ifNonNull(System.getenv('GIT_COMMIT')) { value('git-commit-id', it) }
-      ifNonNull(System.getenv('BUILD_URL')) { link('Jenkins build', it) }
-
-      termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-      termsOfServiceAgree = 'yes'
-      publishAlways()
-    } else {
-      tag 'LOCAL'
+    capture { taskInputFiles = true }
+    uploadInBackground = !gradle.isCi
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
+    publishAlways()
+    obfuscation {
+      ipAddresses { addresses -> addresses.collect { address -> "0.0.0.0"} }
     }
   }
 }
 
-static void ifNonNull(value, Closure action) {
-  if (value) {
-    action.call(value)
-  }
+buildCache {
+    local {
+        enabled = true
+    }
+    if (gradle.ciTeamCityBuild) {
+        remote(gradleEnterprise.buildCache) {
+            enabled = true
+            push = true
+            server = System.getenv('GRADLE_CACHE_REMOTE_URL')
+        }
+    }
 }

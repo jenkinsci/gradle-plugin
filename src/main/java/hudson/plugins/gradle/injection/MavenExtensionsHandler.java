@@ -5,6 +5,7 @@ import com.google.common.base.Suppliers;
 import hudson.FilePath;
 import org.apache.commons.io.IOUtils;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -83,7 +84,8 @@ public class MavenExtensionsHandler {
 
     public enum MavenExtension {
         GRADLE_ENTERPRISE("gradle-enterprise-maven-extension"),
-        CCUD("common-custom-user-data-maven-extension");
+        CCUD("common-custom-user-data-maven-extension"),
+        CONFIGURATION("configuration-maven-extension", "1.0.0");
 
         private static final String JAR_EXTENSION = ".jar";
 
@@ -91,8 +93,15 @@ public class MavenExtensionsHandler {
         private final Supplier<String> version;
 
         MavenExtension(String name) {
+            this(name, null);
+        }
+
+        MavenExtension(String name, @Nullable String fixedVersion) {
             this.name = name;
-            this.version = Suppliers.memoize(this::getExtensionVersion);
+            this.version =
+                fixedVersion != null
+                    ? Suppliers.ofInstance(fixedVersion)
+                    : Suppliers.memoize(this::getExtensionVersion);
         }
 
         public String getTargetJarName() {

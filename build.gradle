@@ -2,10 +2,10 @@ import java.util.zip.ZipFile
 import com.github.spotbugs.snom.SpotBugsTask
 
 plugins {
-  id 'org.gradle.test-retry' version '1.4.0'
+  id 'org.gradle.test-retry' version '1.4.1'
   id 'org.jenkins-ci.jpi' version '0.43.0'
-  id 'ru.vyarus.animalsniffer' version '1.5.4'
-  id 'com.github.spotbugs' version '5.0.12'
+  id 'ru.vyarus.animalsniffer' version '1.6.0'
+  id 'com.github.spotbugs' version '5.0.13'
   id 'codenarc'
 }
 
@@ -16,8 +16,6 @@ ext {
   coreBaseVersion = '2.138'
   corePatchVersion = '4'
   coreBomVersion = '3'
-  gradleEnterpriseMavenExtensionVersion = "1.15.4"
-  commonCustomUserDataMavenExtensionVersion = "1.11.1"
 }
 
 jenkinsPlugin {
@@ -36,7 +34,7 @@ jenkinsPlugin {
   // Plugin ID, defaults to the project name without trailing '-plugin'
   shortName = 'gradle'
 
-  fileExtension = 'jpi'
+  fileExtension = 'hpi'
 
   compatibleSinceVersion = '1.0'
 
@@ -62,6 +60,10 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
     }
+
+    registerFeature("optionalPlugin") {
+        usingSourceSet(sourceSets.main)
+    }
 }
 
 configurations {
@@ -83,13 +85,16 @@ dependencies {
   implementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
+  optionalPluginImplementation 'org.jenkins-ci.main:maven-plugin:3.20'
+
   implementation('commons-validator:commons-validator:1.7') {
       exclude group: 'commons-beanutils', module: 'commons-beanutils'
       exclude group: 'commons-logging', module: 'commons-logging'
   }
 
-  includedLibs "com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}"
-  includedLibs "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}"
+  includedLibs "com.gradle:gradle-enterprise-maven-extension:${gradle.gradleEnterpriseMavenExtensionVersion}"
+  includedLibs "com.gradle:common-custom-user-data-maven-extension:${gradle.commonCustomUserDataMavenExtensionVersion}"
+  includedLibs project(path: ':configuration-maven-extension', configuration: 'mvnExtension')
 
   signature 'org.codehaus.mojo.signature:java18:1.0@signature'
 
@@ -151,10 +156,10 @@ test {
   systemProperties['hudson.model.DownloadService.noSignatureCheck'] = 'true'
   // override default timeout
   systemProperties['jenkins.test.timeout'] = 300
-  ignoreFailures = gradle.ciBuild
+  ignoreFailures = gradle.ciJenkinsBuild
   maxParallelForks = project.maxParallelForks
   retry {
-    if (gradle.ciBuild) {
+    if (gradle.isCi) {
       maxRetries = 1
       maxFailures = 10
     }
@@ -208,12 +213,12 @@ task generateVersionFile() {
       def outputDir = versionsDir.get().asFile
       outputDir.mkdirs()
 
-      new File(outputDir, "gradle-enterprise-maven-extension-version.txt").text = "${gradleEnterpriseMavenExtensionVersion}"
-      new File(outputDir, "common-custom-user-data-maven-extension-version.txt").text = "${commonCustomUserDataMavenExtensionVersion}"
+      new File(outputDir, "gradle-enterprise-maven-extension-version.txt").text = "${gradle.gradleEnterpriseMavenExtensionVersion}"
+      new File(outputDir, "common-custom-user-data-maven-extension-version.txt").text = "${gradle.commonCustomUserDataMavenExtensionVersion}"
   }
 
-  inputs.property('gradleEnterpriseMavenExtensionVersion', gradleEnterpriseMavenExtensionVersion)
-  inputs.property('commonCustomUserDataMavenExtensionVersion', commonCustomUserDataMavenExtensionVersion)
+  inputs.property('gradleEnterpriseMavenExtensionVersion', gradle.gradleEnterpriseMavenExtensionVersion)
+  inputs.property('commonCustomUserDataMavenExtensionVersion', gradle.commonCustomUserDataMavenExtensionVersion)
 
   outputs.dir(versionsDir)
       .withPropertyName('versionsDir')
@@ -221,10 +226,10 @@ task generateVersionFile() {
 
 processResources {
     filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectMavenExtension.html") {
-        expand([gradleEnterpriseMavenExtensionVersion: gradleEnterpriseMavenExtensionVersion])
+        expand([gradleEnterpriseMavenExtensionVersion: gradle.gradleEnterpriseMavenExtensionVersion])
     }
     filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectCcudExtension.html") {
-        expand([commonCustomUserDataMavenExtensionVersion: commonCustomUserDataMavenExtensionVersion])
+        expand([commonCustomUserDataMavenExtensionVersion: gradle.commonCustomUserDataMavenExtensionVersion])
     }
 }
 

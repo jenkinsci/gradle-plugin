@@ -9,6 +9,7 @@ import hudson.plugins.gradle.util.CollectionUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -21,21 +22,31 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private static final Logger LOGGER = Logger.getLogger(MavenBuildScanInjection.class.getName());
 
+    public static final String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH";
+    // Use different variables so Gradle and Maven injections can work independently on the same node
+    public static final String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL";
+    public static final String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER";
+
     // Maven system properties passed on the CLI to a Maven build
     private static final String GRADLE_ENTERPRISE_URL_PROPERTY_KEY = "gradle.enterprise.url";
     private static final String GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = "gradle.enterprise.allowUntrustedServer";
     private static final String BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY = "gradle.scan.uploadInBackground";
     private static final String MAVEN_EXT_CLASS_PATH_PROPERTY_KEY = "maven.ext.class.path";
-    private static final String BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_NAME = "scan.value.CI-auto-injection";
-    private static final String BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE = "Jenkins";
 
     private static final MavenOptsSetter MAVEN_OPTS_SETTER = new MavenOptsSetter(
         MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
         BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
-        BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_NAME,
         GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
         GRADLE_ENTERPRISE_URL_PROPERTY_KEY
     );
+
+    // MAVEN_OPTS is handled separately
+    private static final List<String> ALL_INJECTED_ENVIRONMENT_VARIABLES =
+        Arrays.asList(
+            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH,
+            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL,
+            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
+        );
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
 
@@ -97,29 +108,41 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     private void inject(Node node, FilePath nodeRootPath) {
         try {
             InjectionConfig config = InjectionConfig.get();
+            String server = config.getServer();
 
             LOGGER.info("Injecting Maven extensions " + nodeRootPath);
-            List<FilePath> libs = new LinkedList<>();
 
-            libs.add(extensionsHandler.copyExtensionToAgent(MavenExtension.GRADLE_ENTERPRISE, nodeRootPath));
+            List<FilePath> extensions = new LinkedList<>();
+            extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.GRADLE_ENTERPRISE, nodeRootPath));
             if (config.isInjectCcudExtension()) {
-                libs.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, nodeRootPath));
+                extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, nodeRootPath));
             } else {
                 extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);
             }
 
-            String cp = constructExtClasspath(libs, isUnix(node));
-            List<String> mavenOptsKeyValuePairs = new ArrayList<>();
-            mavenOptsKeyValuePairs.add(asSystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, cp));
-            mavenOptsKeyValuePairs.add(asSystemProperty(BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
+            boolean isUnix = isUnix(node);
 
-            mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, config.getServer()));
+            List<SystemProperty> systemProperties = new ArrayList<>();
+            systemProperties.add(new SystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, constructExtClasspath(extensions, isUnix)));
+            systemProperties.add(new SystemProperty(BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
+
+            systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, server));
             if (config.isAllowUntrusted()) {
-                mavenOptsKeyValuePairs.add(asSystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
+                systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
             }
-            mavenOptsKeyValuePairs.add(asSystemProperty(BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, BUILD_SCAN_CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE));
 
-            MAVEN_OPTS_SETTER.appendIfMissing(node, mavenOptsKeyValuePairs);
+            MAVEN_OPTS_SETTER.appendIfMissing(node, systemProperties);
+
+            // Configuration needed to support https://plugins.jenkins.io/maven-plugin/
+            extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CONFIGURATION, nodeRootPath));
+
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, constructExtClasspath(extensions, isUnix));
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL, server);
+            if (config.isAllowUntrusted()) {
+                EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER, "true");
+            } else {
+                EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER);
+            }
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
@@ -129,25 +152,26 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         try {
             extensionsHandler.deleteAllExtensionsFromAgent(rootPath);
             MAVEN_OPTS_SETTER.remove(node);
+            EnvUtil.removeEnvVars(node, ALL_INJECTED_ENVIRONMENT_VARIABLES);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private String constructExtClasspath(List<FilePath> libs, boolean isUnix) throws IOException, InterruptedException {
-        return libs.stream().map(FilePath::getRemote).collect(Collectors.joining(getDelimiter(isUnix)));
+    private static String constructExtClasspath(List<FilePath> extensions,
+                                                boolean isUnix) throws IOException, InterruptedException {
+        return extensions
+            .stream()
+            .map(FilePath::getRemote)
+            .collect(Collectors.joining(getDelimiter(isUnix)));
     }
 
-    private String getDelimiter(boolean isUnix) {
+    private static String getDelimiter(boolean isUnix) {
         return isUnix ? ":" : ";";
     }
 
     private static boolean isUnix(Node node) {
         Computer computer = node.toComputer();
         return computer == null || Boolean.TRUE.equals(computer.isUnix());
-    }
-
-    private static String asSystemProperty(String sysProp, String value) {
-        return "-D" + sysProp + "=" + value;
     }
 }

@@ -6,7 +6,6 @@
 image:https://img.shields.io/jenkins/plugin/v/gradle.svg[Jenkins Plugin,link=https://plugins.jenkins.io/gradle]
 image:https://img.shields.io/github/release/jenkinsci/gradle-plugin.svg?label=changelog[link="https://github.com/jenkinsci/gradle-plugin/releases/latest"]
 image:https://img.shields.io/jenkins/plugin/i/gradle.svg?color=blue[Jenkins Plugin Installs,link=https://plugins.jenkins.io/gradle]
-image:https://ci.jenkins.io/buildStatus/icon?job=Plugins/gradle-plugin/master[Build Status,link=https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Fgradle-plugin/branches/]
 
 == Description
 
@@ -125,7 +124,7 @@ image::maven-settings.png[Maven settings,{thumbnail}]
 
 Optionally click the `Enable Common Custom User Data Maven extension auto-injection` checkbox to enable the auto-injection of the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension].
 
-To see which versions are injected, refer to <<Compatibility>>.
+To see which versions are injected, refer to <<Auto-injection compatibility>>.
 
 > **Warning**
 > - Maven injection only works if `MAVEN_OPTS` is not configured as a global environment variable.
@@ -209,14 +208,28 @@ By default, all nodes are enabled.
 A list of node labels where the Gradle Enterprise Maven extension or Common Custom User Data Maven extension injection should be disabled.
 By default, all nodes are enabled.
 
-=== Compatibility
+=== Auto-injection compatibility
+The following sections list the compatibility of the plugin with the Gradle Enterprise version based on the given build tool in use.
+
+==== For Gradle builds
+For Gradle builds the version used for the Gradle Enterprise Gradle plugin is defined in the `Gradle Enterprise Gradle plugin version` field in the `Gradle settings` section of the configuration form.
+See <<Enable auto-injection>> for details.
+The compatibility of the specified version with Gradle Enterprise can be found https://docs.gradle.com/enterprise/compatibility/#gradle_enterprise_gradle_plugin[here].
+
+For the optional Common Custom User Data Gradle plugin which is defined the same form, you can see the compatibility of the specified version with the Gradle Enterprise Gradle plugin https://github.com/gradle/common-custom-user-data-gradle-plugin#version-compatibility[here].
+
+==== For Maven builds
+For Maven builds the version of the Gradle Enterprise Maven extension is bundled into the plugin, meaning that the user can’t change what version is injected into the Maven build.
+
+The following table shows the compatibility of the plugin version with Gradle Enterprise:
 
 |===
-|Jenkins Gradle Plugin version  | Injected Gradle Enterprise Maven extension version| Injected Common Custom User Data Maven extension  | Minimum supported Gradle Enterprise version
-|2.0                            | 1.15.4                                            | 1.11.1                                            | 2022.3
-|1.40                           | 1.15.3                                            | 1.11.1                                            | 2022.3
-|< 1.40                         | *Not supported*                                   | *Not supported*                                   | *Not supported*
-
+|Jenkins Gradle Plugin version  | Injected Gradle Enterprise Maven extension version | Injected Common Custom User Data Maven extension version  | Minimum supported Gradle Enterprise version
+|2.1.1                          | 1.15.5                                             | 1.11.1                                                    | 2022.3
+|2.1                            | 1.15.4                                             | 1.11.1                                                    | 2022.3
+|2.0                            | 1.15.4                                             | 1.11.1                                                    | 2022.3
+|1.40                           | 1.15.3                                             | 1.11.1                                                    | 2022.3
+|< 1.40                         | *Not supported*                                    | *Not supported*                                           | *Not supported*
 |===
 
 == Label a Build-Scan

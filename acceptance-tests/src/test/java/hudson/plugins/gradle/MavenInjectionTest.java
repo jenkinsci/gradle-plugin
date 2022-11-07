@@ -1,11 +1,12 @@
 package hudson.plugins.gradle;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.jenkinsci.test.acceptance.junit.WithOS;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.plugins.maven.MavenBuildStep;
 import org.jenkinsci.test.acceptance.plugins.maven.MavenInstallation;
+import org.jenkinsci.test.acceptance.plugins.maven.MavenModuleSet;
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 import org.jenkinsci.test.acceptance.po.Slave;
@@ -28,6 +29,26 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
         MavenInstallation.installMaven(jenkins, MAVEN_VERSION, MAVEN_VERSION);
 
         enableBuildScansForMaven();
+    }
+
+    @Test
+    @WithPlugins("maven-plugin")
+    public void mavenJobSendsBuildScan() {
+        // given
+        MavenModuleSet job = jenkins.jobs.create(MavenModuleSet.class);
+
+        job.configure();
+        job.copyDir(resource("/simple_maven_project"));
+        job.goals.set("clean compile");
+
+        job.save();
+
+        // when
+        Build build = job.startBuild();
+
+        // then
+        build.shouldSucceed();
+        assertBuildScanPublished(build);
     }
 
     @Test
@@ -61,7 +82,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
 
         String pipelineTemplate = resource("/simple_maven_project.groovy.template").asText();
         String pipeline =
-            new StrSubstitutor(
+            new StringSubstitutor(
                 ImmutableMap.of(
                     "copy_resource_step", copyResourceDirStep(resource("/simple_maven_project")),
                     "maven_version", MAVEN_VERSION,

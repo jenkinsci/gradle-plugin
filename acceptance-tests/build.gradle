@@ -6,12 +6,12 @@ plugins {
 }
 
 ext {
-    athVersion = '5424.vb_4002460e8da'
+    athVersion = '5460.va_c8a_323c73b_a'
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
@@ -21,7 +21,7 @@ description = 'Acceptance tests of Gradle plugin'
 repositories {
     mavenCentral()
     maven {
-        url 'https://repo.jenkins-ci.org/releases/'
+        url 'https://repo.jenkins-ci.org/public/'
     }
 }
 
@@ -38,7 +38,7 @@ dependencies {
 
     implementation "org.jenkins-ci:acceptance-test-harness:${athVersion}"
 
-    testImplementation platform("io.netty:netty-bom:4.1.80.Final")
+    testImplementation platform("io.netty:netty-bom:4.1.84.Final")
     testImplementation "io.ratpack:ratpack-test:1.9.0"
 
     pluginsCollection project(path: ':', configuration: 'pluginsCollectionDist')
@@ -93,10 +93,15 @@ def allTestTasks =
                     }
                 }
 
+                // If executed on TeamCity, we need to set the Chromedriver path
+                if (gradle.ciTeamCityBuild) {
+                    systemProperty 'webdriver.chrome.driver', System.getenv('HOME') + '/.gradle/webdriver/chromedriver/chromedriver'
+                }
+
                 environment([
                     JENKINS_WAR: jenkinsWarLocation,
-                    LOCAL_JARS : testDependenciesDir.get().file("gradle.jpi"),
-                    BROWSER    : gradle.ciBuild ? 'firefox-container' : 'chrome'
+                    LOCAL_JARS : testDependenciesDir.get().file("gradle.hpi"),
+                    BROWSER    : gradle.ciJenkinsBuild ? 'firefox-container' : 'chrome'
                 ])
 
                 javaLauncher = javaToolchains.launcherFor {
@@ -126,7 +131,7 @@ class JenkinsVersion {
 
     public static final JenkinsVersion LATEST = of(LATEST_VERSION, JAVA_11)
     public static final JenkinsVersion LATEST_LTS = of(LATEST_LTS_VERSION, JAVA_11)
-    public static final JenkinsVersion V2_356 = of(V2_356_VERSION)
+    public static final JenkinsVersion V2_356 = of(V2_356_VERSION, JAVA_11)
 
     private static final String MIRROR = 'https://get.jenkins.io'
 
