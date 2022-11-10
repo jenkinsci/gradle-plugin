@@ -1,24 +1,23 @@
 package hudson.plugin.gradle.ath.updatecenter;
 
-import com.cloudbees.sdk.extensibility.Extension;
 import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.test.acceptance.update_center.PluginMetadata;
 import org.jenkinsci.test.acceptance.update_center.UpdateCenterMetadata;
-import org.jenkinsci.test.acceptance.update_center.UpdateCenterMetadataDecorator;
 
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Extension
-public class PluginVersionOverrideUpdateCenterMetadataDecorator implements UpdateCenterMetadataDecorator {
+public final class VersionOverridesDecorator implements Consumer<UpdateCenterMetadata> {
 
-    private static final Logger LOGGER = Logger.getLogger(PluginVersionOverrideUpdateCenterMetadataDecorator.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(VersionOverridesDecorator.class.getName());
+
+    public static final String PLUGIN_VERSION_OVERRIDES = "hudson.plugin.gradle.pluginVersionOverrides";
 
     @Override
-    public void decorate(UpdateCenterMetadata ucm) {
-        LOGGER.log(Level.INFO, "Checking for plugin version overrides...");
-        String overrides = System.getProperty(WithVersionOverrides.PLUGIN_VERSION_OVERRIDES);
+    public void accept(UpdateCenterMetadata ucm) {
+        String overrides = System.getProperty(PLUGIN_VERSION_OVERRIDES);
         if (StringUtils.isBlank(overrides)) {
             return;
         }
@@ -26,8 +25,7 @@ public class PluginVersionOverrideUpdateCenterMetadataDecorator implements Updat
         for (String override : overrides.split(",")) {
             String[] chunks = override.split("=");
             if (chunks.length != 2) {
-                throw new IllegalStateException(
-                    "Unable to parse " + overrides + " as a " + WithVersionOverrides.PLUGIN_VERSION_OVERRIDES);
+                throw new IllegalStateException("Unable to parse " + overrides + " as a " + PLUGIN_VERSION_OVERRIDES);
             }
             override(ucm, chunks[0], chunks[1]);
         }

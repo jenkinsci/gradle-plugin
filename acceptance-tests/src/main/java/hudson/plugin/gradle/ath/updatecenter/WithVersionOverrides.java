@@ -22,8 +22,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @RuleAnnotation(value = WithVersionOverrides.RuleImpl.class, priority = -10)
 public @interface WithVersionOverrides {
 
-    String PLUGIN_VERSION_OVERRIDES = "hudson.plugin.gradle.pluginVersionOverrides";
-
     String value();
 
     class RuleImpl implements TestRule {
@@ -38,13 +36,13 @@ public @interface WithVersionOverrides {
                 public void evaluate() throws Throwable {
                     String overrides = description.getAnnotation(WithVersionOverrides.class).value();
 
-                    System.setProperty(PLUGIN_VERSION_OVERRIDES, overrides);
+                    System.setProperty(VersionOverridesDecorator.PLUGIN_VERSION_OVERRIDES, overrides);
                     LOGGER.log(Level.INFO, "Plugin version overrides: {0}", overrides);
 
                     try {
                         base.evaluate();
                     } finally {
-                        System.clearProperty(PLUGIN_VERSION_OVERRIDES);
+                        System.clearProperty(VersionOverridesDecorator.PLUGIN_VERSION_OVERRIDES);
                     }
                 }
             };
