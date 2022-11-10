@@ -85,7 +85,9 @@ dependencies {
   implementation 'org.jenkins-ci.plugins.workflow:workflow-durable-task-step'
   implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
-  optionalPluginImplementation 'org.jenkins-ci.main:maven-plugin:3.18'
+  optionalPluginImplementation('org.jenkins-ci.main:maven-plugin:3.3') {
+    because('Lowest version that supports Jenkins 2.x')
+  }
 
   implementation('commons-validator:commons-validator:1.7') {
       exclude group: 'commons-beanutils', module: 'commons-beanutils'
