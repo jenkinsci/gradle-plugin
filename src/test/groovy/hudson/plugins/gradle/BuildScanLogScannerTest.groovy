@@ -25,7 +25,7 @@ class BuildScanLogScannerTest extends Specification {
         logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"])                                             || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
         logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]) || ["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]
         logWithBuildScans(["https://scans.gradle.com/bzb4vn64kx3bc"])                                               || []
-        logWithBuildScans(["https://scans.gradle.com/bzb4vn64kx3bc"], 1010)                                         || []
+        logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 1010)                                       || []
     }
 
     static List<String> logWithBuildScans(List<String> scanLinks, linesBetween = 10) {
@@ -34,7 +34,7 @@ class BuildScanLogScannerTest extends Specification {
         scanLinks.forEach { url ->
             log.addAll(["Some log", "other log", "https://gradle.com/s/1234567890", "more log", "and more log"])
             log.add("Publishing build scan...")
-            1..linesBetween.each { log.add("Some in-between log") }
+            (1..linesBetween).each { log.add("Some in-between log") }
             log.add(url)
             log.addAll(["Some log", "other log"])
         }
