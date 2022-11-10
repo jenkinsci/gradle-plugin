@@ -29,7 +29,7 @@ class BuildScanLogScannerTest extends Specification {
     }
 
     static List<String> logWithBuildScans(List<String> scanLinks, linesBetween = 10) {
-        def log = new ArrayList<String>()
+        def log = []
 
         scanLinks.forEach { url ->
             log.addAll(["Some log", "other log", "https://gradle.com/s/1234567890", "more log", "and more log"])
