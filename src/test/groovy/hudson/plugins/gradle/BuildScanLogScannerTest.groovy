@@ -26,7 +26,7 @@ class BuildScanLogScannerTest extends Specification {
         logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]) || ["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]
         logWithBuildScans(["https://scans.gradle.com/bzb4vn64kx3bc"])                                               || []
         logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 1010)                                       || []
-        logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 900)                                             || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
+        logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 900)                                        || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
     }
 
     static List<String> logWithBuildScans(List<String> scanLinks, linesBetween = 10) {
