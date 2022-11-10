@@ -18,11 +18,10 @@ public class BuildScanLogScanner {
     void scanLine(String line) {
         if (linesSinceBuildScanPublishingMessage < LINES_TO_SCAN) {
             linesSinceBuildScanPublishingMessage++;
-            Optional<String> maybeBuildScanUrl = doGetBuildScanId(line);
-            if (maybeBuildScanUrl.isPresent()) {
+            tryFindBuildScanUrl(line).ifPresent(url -> {
                 linesSinceBuildScanPublishingMessage = Integer.MAX_VALUE;
-                listener.onBuildScanPublished(maybeBuildScanUrl.get());
-            }
+                listener.onBuildScanPublished(url);
+            });
         }
         if (BUILD_SCAN_PATTERN.matcher(line).find()) {
             linesSinceBuildScanPublishingMessage = 0;
@@ -30,7 +29,7 @@ public class BuildScanLogScanner {
 
     }
 
-    private static Optional<String> doGetBuildScanId(String text) {
+    private static Optional<String> tryFindBuildScanUrl(String text) {
         Matcher matcher = URL_PATTERN.matcher(text);
         return matcher.matches() ? Optional.of(matcher.group(1)) : Optional.empty();
     }

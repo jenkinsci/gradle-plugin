@@ -9,7 +9,7 @@ import spock.lang.Unroll
 @Subject(BuildScanLogScanner)
 class BuildScanLogScannerTest extends Specification {
 
-    def 'properly captures build scan ur given #log'(List<String> log, List<String> expectedUrls) {
+    def 'properly captures build scan url given #log'(List<String> log, List<String> expectedUrls) {
         given:
         def listener = new MockBuildScanPublishedListener();
         def scanner = new BuildScanLogScanner(listener)
@@ -43,7 +43,7 @@ class BuildScanLogScannerTest extends Specification {
         log
     }
 
-    class MockBuildScanPublishedListener implements BuildScanPublishedListener {
+    private static class MockBuildScanPublishedListener implements BuildScanPublishedListener {
         List<String> urls = []
 
         @Override
