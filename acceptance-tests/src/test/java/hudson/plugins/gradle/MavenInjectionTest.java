@@ -74,7 +74,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
         assertBuildScanNotPublished(build);
     }
 
-//    @Test
+    @Test
     public void freestyleJobSendsBuildScan() {
         // given
         FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
@@ -96,7 +96,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
         assertBuildScanPublished(build);
     }
 
-//    @Test
+    @Test
     @WithOS(os = {WithOS.OS.MAC, WithOS.OS.LINUX})
     @WithPlugins("pipeline-model-definition")
     public void pipelineJobPublishesBuildScan() {
@@ -125,7 +125,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
         assertBuildScanPublished(build);
     }
 
-//    @Test
+    @Test
     public void injectionWorksOnAgents() throws Exception {
         // given
         Slave agent = agentController.install(jenkins).get();

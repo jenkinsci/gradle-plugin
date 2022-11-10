@@ -86,7 +86,7 @@ dependencies {
   implementation 'org.jenkins-ci.plugins.workflow:workflow-step-api'
 
   optionalPluginImplementation('org.jenkins-ci.main:maven-plugin:3.14') {
-    because('Lowest version that works with our depencies')
+    because('Lowest version that works with our dependencies')
   }
 
   implementation('commons-validator:commons-validator:1.7') {
