@@ -54,7 +54,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
     }
 
     @Test
-    @WithVersionOverrides("maven-plugin=3.3")
+    @WithVersionOverrides("maven-plugin=3.14")
     @WithPlugins("maven-plugin")
     public void autoInjectionSkippedWhenOldMavenPlugin() {
         // given

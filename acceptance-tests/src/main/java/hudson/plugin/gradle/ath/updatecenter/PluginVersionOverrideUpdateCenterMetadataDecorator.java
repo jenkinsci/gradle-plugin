@@ -17,6 +17,7 @@ public class PluginVersionOverrideUpdateCenterMetadataDecorator implements Updat
 
     @Override
     public void decorate(UpdateCenterMetadata ucm) {
+        LOGGER.log(Level.INFO, "Checking for plugin version overrides...");
         String overrides = System.getProperty(WithVersionOverrides.PLUGIN_VERSION_OVERRIDES);
         if (StringUtils.isBlank(overrides)) {
             return;
