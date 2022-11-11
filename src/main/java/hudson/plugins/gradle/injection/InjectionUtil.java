@@ -1,17 +1,38 @@
 package hudson.plugins.gradle.injection;
 
+import hudson.PluginWrapper;
 import hudson.model.labels.LabelAtom;
 import hudson.plugins.gradle.util.CollectionUtil;
 import hudson.util.FormValidation;
+import hudson.util.VersionNumber;
+import jenkins.model.Jenkins;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public final class InjectionUtil {
 
+    private static final String MAVEN_PLUGIN_SHORT_NAME = "maven-plugin";
+
+    public static final VersionNumber MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION = new VersionNumber("3.20");
+
     private InjectionUtil() {
+    }
+
+    public static Optional<VersionNumber> mavenPluginVersionNumber() {
+        return Optional.ofNullable(Jenkins.getInstanceOrNull())
+            .map(Jenkins::getPluginManager)
+            .map(pm -> pm.getPlugin(MAVEN_PLUGIN_SHORT_NAME))
+            .map(PluginWrapper::getVersionNumber);
+    }
+
+    public static boolean isSupportedMavenPluginVersion(@Nullable VersionNumber mavenPluginVersion) {
+        return mavenPluginVersion != null
+            && !mavenPluginVersion.isOlderThan(MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION);
     }
 
     public static boolean isInvalid(FormValidation validation) {

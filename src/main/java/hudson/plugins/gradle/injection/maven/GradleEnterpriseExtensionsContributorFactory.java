@@ -4,16 +4,15 @@ import com.google.common.base.Splitter;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.PluginWrapper;
 import hudson.maven.PlexusModuleContributor;
 import hudson.maven.PlexusModuleContributorFactory;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.model.Node;
+import hudson.plugins.gradle.injection.InjectionUtil;
 import hudson.plugins.gradle.injection.MavenBuildScanInjection;
 import hudson.util.LogTaskListener;
 import hudson.util.VersionNumber;
-import jenkins.model.Jenkins;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -26,8 +25,6 @@ import java.util.stream.Collectors;
 public class GradleEnterpriseExtensionsContributorFactory extends PlexusModuleContributorFactory {
 
     private static final Logger LOGGER = Logger.getLogger(GradleEnterpriseExtensionsContributorFactory.class.getName());
-
-    private static final VersionNumber MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION = new VersionNumber("3.20");
 
     private static final PlexusModuleContributor EMPTY_CONTRIBUTOR = PlexusModuleContributor.of();
     private static final Splitter UNIX_CLASSPATH_SPLITTER = Splitter.on(':').omitEmptyStrings();
@@ -49,11 +46,17 @@ public class GradleEnterpriseExtensionsContributorFactory extends PlexusModuleCo
                 return EMPTY_CONTRIBUTOR;
             }
 
-            if (!isSupportedMavenPluginVersion()) {
+            VersionNumber mavenPluginVersion = InjectionUtil.mavenPluginVersionNumber().orElse(null);
+            if (mavenPluginVersion == null) {
+                LOGGER.log(Level.WARNING, "Unable to detect the version of the Maven Integration plugin");
+                return EMPTY_CONTRIBUTOR;
+            }
+
+            if (!InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion)) {
                 LOGGER.log(
                     Level.WARNING,
-                    "An older maven-plugin version is used. Please use at least the version {0} for auto-injection to work",
-                    MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION
+                    "Detected Maven Integration plugin version {0}. For auto-injection of the Gradle Enterprise Maven extensions, version {1} is required. Please upgrade the version of the Maven Integration plugin",
+                    new VersionNumber[]{mavenPluginVersion, InjectionUtil.MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION}
                 );
                 return EMPTY_CONTRIBUTOR;
             }
@@ -82,20 +85,6 @@ public class GradleEnterpriseExtensionsContributorFactory extends PlexusModuleCo
 
             return EMPTY_CONTRIBUTOR;
         }
-    }
-
-    private static boolean isSupportedMavenPluginVersion() {
-        Jenkins jenkins = Jenkins.getInstanceOrNull();
-        if (jenkins == null) {
-            return false;
-        }
-
-        PluginWrapper mavenPlugin = jenkins.getPluginManager().getPlugin("maven-plugin");
-        if (mavenPlugin == null) {
-            return false;
-        }
-
-        return !mavenPlugin.getVersionNumber().isOlderThan(MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION);
     }
 
     private static List<String> classpathFiles(Node node, String classpath) {
