@@ -9,8 +9,10 @@ import hudson.maven.PlexusModuleContributorFactory;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.model.Node;
+import hudson.plugins.gradle.injection.InjectionUtil;
 import hudson.plugins.gradle.injection.MavenBuildScanInjection;
 import hudson.util.LogTaskListener;
+import hudson.util.VersionNumber;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -41,6 +43,21 @@ public class GradleEnterpriseExtensionsContributorFactory extends PlexusModuleCo
             EnvVars environment = build.getEnvironment(new LogTaskListener(LOGGER, Level.INFO));
             String classpath = environment.get(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH);
             if (StringUtils.isBlank(classpath)) {
+                return EMPTY_CONTRIBUTOR;
+            }
+
+            VersionNumber mavenPluginVersion = InjectionUtil.mavenPluginVersionNumber().orElse(null);
+            if (mavenPluginVersion == null) {
+                LOGGER.log(Level.WARNING, "Unable to detect the version of the Maven Integration plugin");
+                return EMPTY_CONTRIBUTOR;
+            }
+
+            if (!InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion)) {
+                LOGGER.log(
+                    Level.WARNING,
+                    "Detected Maven Integration plugin version {0}. For auto-injection of the Gradle Enterprise Maven extensions, version {1} is required. Please upgrade the version of the Maven Integration plugin",
+                    new VersionNumber[]{mavenPluginVersion, InjectionUtil.MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION}
+                );
                 return EMPTY_CONTRIBUTOR;
             }
 
