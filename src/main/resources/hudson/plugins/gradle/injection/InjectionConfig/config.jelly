@@ -17,7 +17,7 @@
                     <div class="alert alert-danger">
                         <l:icon class="icon-error icon-sm" alt="${%Unsupported Maven Integration plugin version detected}"/>
                         Detected Maven Integration plugin version ${instance.unsupportedMavenPluginWarningDetails.mavenPluginVersion}.
-                        For auto-injection of the Gradle Enterprise Maven extension, version ${instance.unsupportedMavenPluginWarningDetails.minimumSupportedVersion} is required.
+                        For auto-injection of the Gradle Enterprise Maven extension, version ${instance.unsupportedMavenPluginWarningDetails.minimumSupportedVersion} or above is required.
                         Please upgrade the version of the Maven Integration plugin.
                     </div>
                 </f:entry>
