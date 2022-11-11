@@ -80,9 +80,9 @@ public class InjectionConfig extends GlobalConfiguration {
     public UnsupportedMavenPluginWarningDetails getUnsupportedMavenPluginWarningDetails() {
         VersionNumber mavenPluginVersion = InjectionUtil.mavenPluginVersionNumber().orElse(null);
 
-        return (mavenPluginVersion != null && !InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion))
-            ? new UnsupportedMavenPluginWarningDetails(mavenPluginVersion)
-            : null;
+        return mavenPluginVersion == null || InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion)
+            ? null
+            : new UnsupportedMavenPluginWarningDetails(mavenPluginVersion);
     }
 
     public boolean isEnabled() {

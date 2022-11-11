@@ -55,7 +55,7 @@ public class GradleEnterpriseExtensionsContributorFactory extends PlexusModuleCo
             if (!InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion)) {
                 LOGGER.log(
                     Level.WARNING,
-                    "Detected Maven Integration plugin version {0}. For auto-injection of the Gradle Enterprise Maven extensions, version {1} is required. Please upgrade the version of the Maven Integration plugin",
+                    "Detected Maven Integration plugin version {0}. For auto-injection of the Gradle Enterprise Maven extension, version {1} is required. Please upgrade the version of the Maven Integration plugin",
                     new VersionNumber[]{mavenPluginVersion, InjectionUtil.MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION}
                 );
                 return EMPTY_CONTRIBUTOR;
