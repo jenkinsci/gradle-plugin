@@ -9,6 +9,7 @@ import hudson.Util;
 import hudson.plugins.gradle.Messages;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
+import hudson.util.VersionNumber;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.accmod.Restricted;
@@ -72,6 +73,16 @@ public class InjectionConfig extends GlobalConfiguration {
     public boolean isShowLegacyConfigurationWarning() {
         EnvVars envVars = EnvUtil.globalEnvironment();
         return envVars != null && LEGACY_GLOBAL_ENVIRONMENT_VARIABLES.stream().anyMatch(envVars::containsKey);
+    }
+
+    @Restricted(NoExternalUse.class)
+    @CheckForNull
+    public UnsupportedMavenPluginWarningDetails getUnsupportedMavenPluginWarningDetails() {
+        VersionNumber mavenPluginVersion = InjectionUtil.mavenPluginVersionNumber().orElse(null);
+
+        return (mavenPluginVersion != null && !InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion))
+            ? new UnsupportedMavenPluginWarningDetails(mavenPluginVersion)
+            : null;
     }
 
     public boolean isEnabled() {

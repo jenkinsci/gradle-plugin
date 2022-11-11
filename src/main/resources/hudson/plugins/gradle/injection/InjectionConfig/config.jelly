@@ -11,6 +11,17 @@
             </f:entry>
         </j:if>
 
+        <j:if test="${instance.unsupportedMavenPluginWarningDetails != null}">
+            <f:entry>
+                <div class="alert alert-danger">
+                    <l:icon class="icon-error icon-sm" alt="${%Unsupported Maven Integration plugin version detected}"/>
+                    Detected Maven Integration plugin version ${instance.unsupportedMavenPluginWarningDetails.mavenPluginVersion}.
+                    For auto-injection of the Gradle Enterprise Maven extensions, version ${instance.unsupportedMavenPluginWarningDetails.minimumSupportedVersion} is required.
+                    Please upgrade the version of the Maven Integration plugin.
+                </div>
+            </f:entry>
+        </j:if>
+
         <f:optionalBlock field="enabled" title="${%Enable auto-injection}" inline="true">
 
             <f:section title="${%Gradle Enterprise connection settings}">
