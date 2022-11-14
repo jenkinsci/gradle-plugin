@@ -38,7 +38,7 @@ dependencies {
 
     implementation "org.jenkins-ci:acceptance-test-harness:${athVersion}"
 
-    testImplementation platform("io.netty:netty-bom:4.1.84.Final")
+    testImplementation platform("io.netty:netty-bom:4.1.85.Final")
     testImplementation "io.ratpack:ratpack-test:1.9.0"
 
     pluginsCollection project(path: ':', configuration: 'pluginsCollectionDist')
