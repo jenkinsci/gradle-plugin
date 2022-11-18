@@ -72,7 +72,7 @@ def allTestTasks =
                     : tasks.register("test_${jenkinsVersion.label}", Test)
 
             testTask.configure {
-                def jenkinsWar = downloadJenkinsTask.map { it.outputs.files.singleFile }
+                def jenkinsWar = downloadJenkinsTask
                 def gradlePlugin = configurations.gradlePlugin
 
                 inputs.files(jenkinsWar)
@@ -88,11 +88,13 @@ def allTestTasks =
                     systemProperty 'webdriver.chrome.driver', "${System.getenv('HOME')}/.gradle/webdriver/chromedriver/chromedriver"
                 }
 
-                environment([
-                    JENKINS_WAR: jenkinsWar.get(),
-                    LOCAL_JARS : gradlePlugin.singleFile,
-                    BROWSER    : gradle.ciJenkinsBuild ? 'firefox-container' : 'chrome'
-                ])
+                doFirst {
+                    environment([
+                        JENKINS_WAR: jenkinsWar.get().outputs.files.singleFile,
+                        LOCAL_JARS : gradlePlugin.singleFile,
+                        BROWSER    : gradle.ciJenkinsBuild ? 'firefox-container' : 'chrome'
+                    ])
+                }
 
                 javaLauncher = javaToolchains.launcherFor {
                     languageVersion = jenkinsVersion.javaVersion
