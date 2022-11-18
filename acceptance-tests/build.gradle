@@ -119,6 +119,7 @@ class JenkinsVersion {
     private static final String V2_356_VERSION = '2.356'
 
     private static final JavaLanguageVersion JAVA_11 = JavaLanguageVersion.of(11)
+    // TODO: Delete, since ATH doesn't support Java 8 anymore
     private static final JavaLanguageVersion JAVA_8 = JavaLanguageVersion.of(8)
 
     public static final JenkinsVersion LATEST = of(LATEST_VERSION, JAVA_11)
