@@ -1,4 +1,5 @@
 import com.github.spotbugs.snom.SpotBugsTask
+import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
 
 import java.util.zip.ZipFile
 
@@ -181,6 +182,11 @@ tasks.withType(AbstractArchiveTask) {
     inputs.property('pluginVersion') {
         project.version
     }
+}
+
+// See https://github.com/jenkinsci/gradle-jpi-plugin/blob/master/src/main/kotlin/org/jenkinsci/gradle/plugins/manifest/GenerateJenkinsManifestTask.kt#L69
+tasks.withType(GenerateJenkinsManifestTask).configureEach {
+    version = project.version.toString().replace("-SNAPSHOT", "-dev")
 }
 
 task checkArchiveManifests {
