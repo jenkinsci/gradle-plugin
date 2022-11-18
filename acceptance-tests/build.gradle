@@ -83,21 +83,21 @@ def allTestTasks =
                     !OperatingSystem.current().isWindows()
                 }
 
-                // If executed on TeamCity, we need to set the Chromedriver path
-                if (gradle.ciTeamCityBuild) {
-                    systemProperty 'webdriver.chrome.driver', "${System.getenv('HOME')}/.gradle/webdriver/chromedriver/chromedriver"
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = jenkinsVersion.javaVersion
                 }
 
                 doFirst {
+                    // If executed on TeamCity, we need to set the Chromedriver path
+                    if (gradle.ciTeamCityBuild) {
+                        systemProperty 'webdriver.chrome.driver', "${System.getenv('HOME')}/.gradle/webdriver/chromedriver/chromedriver"
+                    }
+
                     environment([
                         JENKINS_WAR: jenkinsWar.get().outputs.files.singleFile,
                         LOCAL_JARS : gradlePlugin.singleFile,
                         BROWSER    : gradle.ciJenkinsBuild ? 'firefox-container' : 'chrome'
                     ])
-                }
-
-                javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = jenkinsVersion.javaVersion
                 }
             }
 
