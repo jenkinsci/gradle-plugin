@@ -68,7 +68,7 @@ java {
 
 configurations {
     includedLibs
-    pluginsCollectionDist {
+    gradlePluginJpi {
         canBeConsumed = true
         canBeResolved = false
     }
@@ -254,5 +254,5 @@ jar {
 }
 
 artifacts {
-    pluginsCollectionDist(jpi)
+    gradlePluginJpi(jpi)
 }

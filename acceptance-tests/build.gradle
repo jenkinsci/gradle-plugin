@@ -26,7 +26,7 @@ repositories {
 }
 
 configurations {
-    pluginsCollection {
+    gradlePlugin {
         canBeConsumed = false
         canBeResolved = true
     }
@@ -41,17 +41,7 @@ dependencies {
     testImplementation platform("io.netty:netty-bom:4.1.85.Final")
     testImplementation "io.ratpack:ratpack-test:1.9.0"
 
-    pluginsCollection project(path: ':', configuration: 'pluginsCollectionDist')
-}
-
-def testDependenciesDir = layout.buildDirectory.dir('test-dependencies')
-
-def copyTestDependencies = tasks.create("copyTestDependencies", Copy) {
-    from configurations.pluginsCollection
-    into testDependenciesDir
-
-    include '*.hpi'
-    include '*.jpi'
+    gradlePlugin project(path: ':', configuration: 'gradlePluginJpi')
 }
 
 def currentJava = JavaVersion.current()
@@ -68,8 +58,13 @@ def allTestTasks =
             jenkinsVersion.default || currentJava.isCompatibleWith(jenkinsVersion.requiredJavaVersion)
         }
         .collect { jenkinsVersion ->
-            def jenkinsWarLocation =
-                new File("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war")
+            def downloadJenkinsTask =
+                tasks.register("download_jenkins_${jenkinsVersion.label}", Download) {
+                    src jenkinsVersion.downloadUrl
+                    dest file("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war")
+                    onlyIfModified true
+                    tempAndMove true
+                }
 
             def testTask =
                 jenkinsVersion.default
@@ -77,30 +72,25 @@ def allTestTasks =
                     : tasks.register("test_${jenkinsVersion.label}", Test)
 
             testTask.configure {
-                dependsOn copyTestDependencies
+                def jenkinsWar = downloadJenkinsTask.map { it.outputs.files.singleFile }
+                def gradlePlugin = configurations.gradlePlugin
+
+                inputs.files(jenkinsWar)
+                inputs.files(gradlePlugin)
 
                 onlyIf {
                     // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
                     !OperatingSystem.current().isWindows()
                 }
 
-                doFirst {
-                    download.run {
-                        src jenkinsVersion.downloadUrl
-                        dest jenkinsWarLocation
-                        onlyIfModified true
-                        tempAndMove true
-                    }
-                }
-
                 // If executed on TeamCity, we need to set the Chromedriver path
                 if (gradle.ciTeamCityBuild) {
-                    systemProperty 'webdriver.chrome.driver', System.getenv('HOME') + '/.gradle/webdriver/chromedriver/chromedriver'
+                    systemProperty 'webdriver.chrome.driver', "${System.getenv('HOME')}/.gradle/webdriver/chromedriver/chromedriver"
                 }
 
                 environment([
-                    JENKINS_WAR: jenkinsWarLocation,
-                    LOCAL_JARS : testDependenciesDir.get().file("gradle.hpi"),
+                    JENKINS_WAR: jenkinsWar.get(),
+                    LOCAL_JARS : gradlePlugin.singleFile,
                     BROWSER    : gradle.ciJenkinsBuild ? 'firefox-container' : 'chrome'
                 ])
 
