@@ -28,12 +28,6 @@ dependencies {
     compileOnly "com.gradle:gradle-enterprise-maven-extension:${gradle.gradleEnterpriseMavenExtensionVersion}"
 }
 
-// See https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives
-tasks.withType(AbstractArchiveTask).configureEach {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
-}
-
 artifacts {
     mvnExtension(jar)
 }
