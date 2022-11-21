@@ -45,11 +45,3 @@ buildCache {
         }
     }
 }
-
-gradle.afterProject { project ->
-    // See https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives
-    project.tasks.withType(AbstractArchiveTask).configureEach {
-        preserveFileTimestamps = false
-        reproducibleFileOrder = true
-    }
-}
