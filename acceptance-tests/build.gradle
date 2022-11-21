@@ -1,5 +1,7 @@
 import org.gradle.internal.os.OperatingSystem
 
+import java.util.regex.Pattern
+
 plugins {
     id 'java'
     id "de.undercouch.download" version "5.3.0"
@@ -59,7 +61,7 @@ def allTestTasks =
         }
         .collect { jenkinsVersion ->
             def downloadJenkinsTask =
-                tasks.register("download_jenkins_${jenkinsVersion.label}", Download) {
+                tasks.register("downloadJenkins${jenkinsVersion.label}", Download) {
                     src jenkinsVersion.downloadUrl
                     dest file("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war")
                     onlyIfModified true
@@ -69,14 +71,14 @@ def allTestTasks =
             def testTask =
                 jenkinsVersion.default
                     ? tasks.named("test")
-                    : tasks.register("test_${jenkinsVersion.label}", Test)
+                    : tasks.register("test${jenkinsVersion.label}", Test)
 
             testTask.configure {
                 def jenkinsWar = downloadJenkinsTask
                 def gradlePlugin = configurations.gradlePlugin
 
-                inputs.files(jenkinsWar)
-                inputs.files(gradlePlugin)
+                inputs.files(jenkinsWar).withPropertyName("jenkinsWar").withPathSensitivity(PathSensitivity.NAME_ONLY)
+                inputs.files(gradlePlugin).withPropertyName("gradlePlugin").withNormalizer(ClasspathNormalizer.class)
 
                 onlyIf {
                     // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
@@ -118,6 +120,8 @@ class JenkinsVersion {
     private static final String LATEST_LTS_VERSION = "latest-lts"
     private static final String V2_356_VERSION = '2.356'
 
+    private static final Pattern JENKINS_VERSION_PATTERN = ~"^\\d+([.]\\d+)*?\$"
+
     private static final JavaLanguageVersion JAVA_11 = JavaLanguageVersion.of(11)
 
     public static final JenkinsVersion LATEST = of(LATEST_VERSION)
@@ -141,7 +145,9 @@ class JenkinsVersion {
     }
 
     String getLabel() {
-        return version.replaceAll("[.-]", '_')
+        return isJenkinsVersion(version)
+            ? version.replaceAll('\\.', '_')
+            : version.split('-').collect { it.capitalize() }.join()
     }
 
     JavaVersion getRequiredJavaVersion() {
@@ -155,12 +161,16 @@ class JenkinsVersion {
         } else if (version == 'latest-lts') {
             downloadUrl = "${MIRROR}/war-stable/latest/jenkins.war"
         } else {
-            if (!(version ==~ /^\d+([.]\d+)*?$/)) {
+            if (!isJenkinsVersion(version)) {
                 throw new GradleException("Unsupported Jenkins version '${version}'")
             }
             downloadUrl = "https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${version}/jenkins-war-${version}.war"
         }
 
         return new JenkinsVersion(version, new URL(downloadUrl), javaVersion)
+    }
+
+    private static boolean isJenkinsVersion(String version) {
+        return version ==~ JENKINS_VERSION_PATTERN
     }
 }
