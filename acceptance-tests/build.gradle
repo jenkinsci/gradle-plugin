@@ -77,8 +77,8 @@ def allTestTasks =
                 def jenkinsWar = downloadJenkinsTask
                 def gradlePlugin = configurations.gradlePlugin
 
-                inputs.files(jenkinsWar).withPropertyName("jenkinsWar").withPathSensitivity(PathSensitivity.NAME_ONLY)
-                inputs.files(gradlePlugin).withPropertyName("gradlePlugin").withNormalizer(ClasspathNormalizer.class)
+                inputs.files(jenkinsWar).withPropertyName("jenkinsWar").withNormalizer(ClasspathNormalizer)
+                inputs.files(gradlePlugin).withPropertyName("gradlePlugin").withNormalizer(ClasspathNormalizer)
 
                 onlyIf {
                     // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
