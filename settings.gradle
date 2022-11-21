@@ -3,8 +3,10 @@ plugins {
     id 'com.gradle.common-custom-user-data-gradle-plugin' version '1.8.2'
 }
 
-include ':acceptance-tests'
-include ':configuration-maven-extension'
+includeBuild('build-logic')
+
+include 'acceptance-tests'
+include 'configuration-maven-extension'
 
 rootProject.name = 'gradle-plugin'
 
@@ -43,13 +45,5 @@ buildCache {
             push = true
             server = System.getenv('GRADLE_CACHE_REMOTE_URL')
         }
-    }
-}
-
-gradle.afterProject { project ->
-    // See https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives
-    project.tasks.withType(AbstractArchiveTask).configureEach {
-        preserveFileTimestamps = false
-        reproducibleFileOrder = true
     }
 }

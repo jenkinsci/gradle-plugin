@@ -9,6 +9,7 @@ plugins {
     id 'ru.vyarus.animalsniffer' version '1.6.0'
     id 'com.github.spotbugs' version '5.0.13'
     id 'codenarc'
+    id 'buildlogic.reproducible-archives'
 }
 
 group = 'org.jenkins-ci.plugins'
