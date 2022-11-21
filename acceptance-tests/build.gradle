@@ -77,7 +77,7 @@ def allTestTasks =
                 def jenkinsWar = downloadJenkinsTask
                 def gradlePlugin = configurations.gradlePlugin
 
-                inputs.files(jenkinsWar).withPropertyName("jenkinsWar").withNormalizer(ClasspathNormalizer)
+                inputs.files(jenkinsWar).withPropertyName("jenkinsWar")
                 inputs.files(gradlePlugin).withPropertyName("gradlePlugin").withNormalizer(ClasspathNormalizer)
 
                 onlyIf {
