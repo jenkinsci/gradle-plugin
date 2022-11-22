@@ -1,7 +1,6 @@
+import java.util.zip.ZipFile
 import com.github.spotbugs.snom.SpotBugsTask
 import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
-
-import java.util.zip.ZipFile
 
 plugins {
   id 'org.gradle.test-retry' version '1.4.1'
