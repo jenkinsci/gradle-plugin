@@ -94,10 +94,7 @@ def allTestTasks =
                     languageVersion = jenkinsVersion.javaVersion
                 }
 
-                // If executed on TeamCity, we need to set the Chromedriver path
-                if (gradle.ciTeamCityBuild) {
-                    systemProperty 'webdriver.chrome.driver', System.getenv('HOME') + '/.gradle/webdriver/chromedriver/chromedriver'
-                }
+                jvmArgumentProviders.add(new ChromeDriverProvider(gradle))
 
                 doFirst {
                     environment([
@@ -177,5 +174,22 @@ class JenkinsVersion {
 
     private static boolean isJenkinsVersion(String version) {
         return version ==~ JENKINS_VERSION_PATTERN
+    }
+}
+
+class ChromeDriverProvider implements CommandLineArgumentProvider {
+
+    private final Gradle gradle
+
+    ChromeDriverProvider(Gradle gradle) {
+        this.gradle = gradle
+    }
+
+    @Override
+    Iterable<String> asArguments() {
+        // If executed on TeamCity, we need to set the Chromedriver path
+        return gradle.ciTeamCityBuild
+            ? ["-Dwebdriver.chrome.driver=${System.getenv('HOME')}/.gradle/webdriver/chromedriver/chromedriver"]
+            : []
     }
 }
