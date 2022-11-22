@@ -79,10 +79,11 @@ def allTestTasks =
 
                 inputs.files(jenkinsWar)
                     .withPropertyName("jenkinsWar")
-                    .withPathSensitivity(PathSensitivity.NAME_ONLY)
+                    .withNormalizer(ClasspathNormalizer)
+                // Gradle doesn't support hpi extension, therefore reproducible-archives is required as well
                 inputs.files(gradlePlugin)
                     .withPropertyName("gradlePlugin")
-                    .withPathSensitivity(PathSensitivity.RELATIVE)
+                    .withNormalizer(ClasspathNormalizer)
 
                 onlyIf {
                     // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
