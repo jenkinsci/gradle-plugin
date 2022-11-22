@@ -1,5 +1,6 @@
 import java.util.zip.ZipFile
 import com.github.spotbugs.snom.SpotBugsTask
+import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
 
 plugins {
   id 'org.gradle.test-retry' version '1.4.1'
@@ -7,6 +8,7 @@ plugins {
   id 'ru.vyarus.animalsniffer' version '1.6.0'
   id 'com.github.spotbugs' version '5.0.13'
   id 'codenarc'
+  id 'buildlogic.reproducible-archives'
 }
 
 group = 'org.jenkins-ci.plugins'
@@ -68,7 +70,7 @@ java {
 
 configurations {
     includedLibs
-    pluginsCollectionDist {
+    gradlePluginJpi {
         canBeConsumed = true
         canBeResolved = false
     }
@@ -182,6 +184,11 @@ tasks.withType(AbstractArchiveTask) {
   }
 }
 
+// See https://github.com/jenkinsci/gradle-jpi-plugin/blob/master/src/main/kotlin/org/jenkinsci/gradle/plugins/manifest/GenerateJenkinsManifestTask.kt#L69
+tasks.withType(GenerateJenkinsManifestTask).configureEach {
+  version = project.version.toString().replace("-SNAPSHOT", "-dev")
+}
+
 task checkArchiveManifests {
   dependsOn jar, jpi
   doLast {
@@ -254,5 +261,5 @@ jar {
 }
 
 artifacts {
-    pluginsCollectionDist(jpi)
+    gradlePluginJpi(jpi)
 }

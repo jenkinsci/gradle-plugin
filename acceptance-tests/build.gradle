@@ -1,5 +1,7 @@
 import org.gradle.internal.os.OperatingSystem
 
+import java.util.regex.Pattern
+
 plugins {
     id 'java'
     id "de.undercouch.download" version "5.3.0"
@@ -26,7 +28,7 @@ repositories {
 }
 
 configurations {
-    pluginsCollection {
+    gradlePlugin {
         canBeConsumed = false
         canBeResolved = true
     }
@@ -41,17 +43,7 @@ dependencies {
     testImplementation platform("io.netty:netty-bom:4.1.85.Final")
     testImplementation "io.ratpack:ratpack-test:1.9.0"
 
-    pluginsCollection project(path: ':', configuration: 'pluginsCollectionDist')
-}
-
-def testDependenciesDir = layout.buildDirectory.dir('test-dependencies')
-
-def copyTestDependencies = tasks.create("copyTestDependencies", Copy) {
-    from configurations.pluginsCollection
-    into testDependenciesDir
-
-    include '*.hpi'
-    include '*.jpi'
+    gradlePlugin project(path: ':', configuration: 'gradlePluginJpi')
 }
 
 def currentJava = JavaVersion.current()
@@ -68,44 +60,48 @@ def allTestTasks =
             jenkinsVersion.default || currentJava.isCompatibleWith(jenkinsVersion.requiredJavaVersion)
         }
         .collect { jenkinsVersion ->
-            def jenkinsWarLocation =
-                new File("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war")
+            def downloadJenkinsTask =
+                tasks.register("downloadJenkins${jenkinsVersion.label}", Download) {
+                    src jenkinsVersion.downloadUrl
+                    dest file("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war")
+                    onlyIfModified true
+                    tempAndMove true
+                }
 
             def testTask =
                 jenkinsVersion.default
                     ? tasks.named("test")
-                    : tasks.register("test_${jenkinsVersion.label}", Test)
+                    : tasks.register("test${jenkinsVersion.label}", Test)
 
             testTask.configure {
-                dependsOn copyTestDependencies
+                def jenkinsWar = downloadJenkinsTask
+                def gradlePlugin = configurations.gradlePlugin
+
+                inputs.files(jenkinsWar)
+                    .withPropertyName("jenkinsWar")
+                    .withNormalizer(ClasspathNormalizer)
+                // Gradle doesn't support hpi extension, therefore reproducible-archives is required as well
+                inputs.files(gradlePlugin)
+                    .withPropertyName("gradlePlugin")
+                    .withNormalizer(ClasspathNormalizer)
 
                 onlyIf {
                     // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
                     !OperatingSystem.current().isWindows()
                 }
 
-                doFirst {
-                    download.run {
-                        src jenkinsVersion.downloadUrl
-                        dest jenkinsWarLocation
-                        onlyIfModified true
-                        tempAndMove true
-                    }
-                }
-
-                // If executed on TeamCity, we need to set the Chromedriver path
-                if (gradle.ciTeamCityBuild) {
-                    systemProperty 'webdriver.chrome.driver', System.getenv('HOME') + '/.gradle/webdriver/chromedriver/chromedriver'
-                }
-
-                environment([
-                    JENKINS_WAR: jenkinsWarLocation,
-                    LOCAL_JARS : testDependenciesDir.get().file("gradle.hpi"),
-                    BROWSER    : gradle.ciJenkinsBuild ? 'firefox-container' : 'chrome'
-                ])
-
                 javaLauncher = javaToolchains.launcherFor {
                     languageVersion = jenkinsVersion.javaVersion
+                }
+
+                jvmArgumentProviders.add(new ChromeDriverProvider(gradle.ciTeamCityBuild))
+
+                doFirst {
+                    environment([
+                        JENKINS_WAR: jenkinsWar.get().outputs.files.singleFile,
+                        LOCAL_JARS : gradlePlugin.singleFile,
+                        BROWSER    : gradle.ciJenkinsBuild ? 'firefox-container' : 'chrome'
+                    ])
                 }
             }
 
@@ -126,12 +122,13 @@ class JenkinsVersion {
     private static final String LATEST_LTS_VERSION = "latest-lts"
     private static final String V2_356_VERSION = '2.356'
 
-    private static final JavaLanguageVersion JAVA_11 = JavaLanguageVersion.of(11)
-    private static final JavaLanguageVersion JAVA_8 = JavaLanguageVersion.of(8)
+    private static final Pattern JENKINS_VERSION_PATTERN = ~"^\\d+([.]\\d+)*?\$"
 
-    public static final JenkinsVersion LATEST = of(LATEST_VERSION, JAVA_11)
-    public static final JenkinsVersion LATEST_LTS = of(LATEST_LTS_VERSION, JAVA_11)
-    public static final JenkinsVersion V2_356 = of(V2_356_VERSION, JAVA_11)
+    private static final JavaLanguageVersion JAVA_11 = JavaLanguageVersion.of(11)
+
+    public static final JenkinsVersion LATEST = of(LATEST_VERSION)
+    public static final JenkinsVersion LATEST_LTS = of(LATEST_LTS_VERSION)
+    public static final JenkinsVersion V2_356 = of(V2_356_VERSION)
 
     private static final String MIRROR = 'https://get.jenkins.io'
 
@@ -150,26 +147,49 @@ class JenkinsVersion {
     }
 
     String getLabel() {
-        return version.replaceAll("[\\.-]", '_')
+        return isJenkinsVersion(version)
+            ? version.replaceAll('\\.', '_')
+            : version.split('-').collect { it.capitalize() }.join()
     }
 
     JavaVersion getRequiredJavaVersion() {
         return JavaVersion.toVersion(javaVersion.toString())
     }
 
-    static JenkinsVersion of(String version, JavaLanguageVersion javaVersion = JAVA_8) {
+    static JenkinsVersion of(String version, JavaLanguageVersion javaVersion = JAVA_11) {
         String downloadUrl
         if (version == LATEST_VERSION) {
             downloadUrl = "${MIRROR}/war/latest/jenkins.war"
         } else if (version == 'latest-lts') {
             downloadUrl = "${MIRROR}/war-stable/latest/jenkins.war"
         } else {
-            if (!(version ==~ /^\d+([.]\d+)*?$/)) {
+            if (!isJenkinsVersion(version)) {
                 throw new GradleException("Unsupported Jenkins version '${version}'")
             }
             downloadUrl = "https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${version}/jenkins-war-${version}.war"
         }
 
         return new JenkinsVersion(version, new URL(downloadUrl), javaVersion)
+    }
+
+    private static boolean isJenkinsVersion(String version) {
+        return version ==~ JENKINS_VERSION_PATTERN
+    }
+}
+
+class ChromeDriverProvider implements CommandLineArgumentProvider {
+
+    private final boolean teamCityBuild
+
+    ChromeDriverProvider(boolean teamCityBuild) {
+        this.teamCityBuild = teamCityBuild
+    }
+
+    @Override
+    Iterable<String> asArguments() {
+        // If executed on TeamCity, we need to set the Chromedriver path
+        return teamCityBuild
+            ? ["-Dwebdriver.chrome.driver=${System.getenv('HOME')}/.gradle/webdriver/chromedriver/chromedriver"]
+            : []
     }
 }
