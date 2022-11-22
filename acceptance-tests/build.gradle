@@ -96,7 +96,7 @@ def allTestTasks =
 
                 // If executed on TeamCity, we need to set the Chromedriver path
                 if (gradle.ciTeamCityBuild) {
-                    systemProperty 'webdriver.chrome.driver', "${System.getenv('HOME')}/.gradle/webdriver/chromedriver/chromedriver"
+                    systemProperty 'webdriver.chrome.driver', System.getenv('HOME') + '/.gradle/webdriver/chromedriver/chromedriver'
                 }
 
                 doFirst {
