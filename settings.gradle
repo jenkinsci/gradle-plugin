@@ -1,6 +1,6 @@
 plugins {
-    id 'com.gradle.enterprise' version '3.11.4'
-    id 'com.gradle.common-custom-user-data-gradle-plugin' version '1.8.2'
+  id 'com.gradle.enterprise' version '3.11.4'
+  id 'com.gradle.common-custom-user-data-gradle-plugin' version '1.8.2'
 }
 
 includeBuild 'build-logic'
@@ -11,7 +11,7 @@ include 'configuration-maven-extension'
 rootProject.name = 'gradle-plugin'
 
 if (!JavaVersion.current().java11) {
-    throw new GradleException('Build requires Java 11')
+  throw new GradleException('Build requires Java 11')
 }
 
 gradle.ext {
@@ -23,16 +23,16 @@ gradle.ext {
 }
 
 gradleEnterprise {
-    buildScan {
-        capture { taskInputFiles = true }
-        uploadInBackground = !gradle.isCi
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-        publishAlways()
-        obfuscation {
-            ipAddresses { addresses -> addresses.collect { address -> "0.0.0.0" } }
-        }
+  buildScan {
+    capture { taskInputFiles = true }
+    uploadInBackground = !gradle.isCi
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
+    publishAlways()
+    obfuscation {
+      ipAddresses { addresses -> addresses.collect { address -> "0.0.0.0"} }
     }
+  }
 }
 
 buildCache {
