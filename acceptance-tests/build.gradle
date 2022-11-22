@@ -77,8 +77,12 @@ def allTestTasks =
                 def jenkinsWar = downloadJenkinsTask
                 def gradlePlugin = configurations.gradlePlugin
 
-                inputs.files(jenkinsWar).withPropertyName("jenkinsWar")
-                inputs.files(gradlePlugin).withPropertyName("gradlePlugin").withNormalizer(ClasspathNormalizer)
+                inputs.files(jenkinsWar)
+                    .withPropertyName("jenkinsWar")
+                    .withPathSensitivity(PathSensitivity.NAME_ONLY)
+                inputs.files(gradlePlugin)
+                    .withPropertyName("gradlePlugin")
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
 
                 onlyIf {
                     // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
@@ -89,12 +93,12 @@ def allTestTasks =
                     languageVersion = jenkinsVersion.javaVersion
                 }
 
-                doFirst {
-                    // If executed on TeamCity, we need to set the Chromedriver path
-                    if (gradle.ciTeamCityBuild) {
-                        systemProperty 'webdriver.chrome.driver', "${System.getenv('HOME')}/.gradle/webdriver/chromedriver/chromedriver"
-                    }
+                // If executed on TeamCity, we need to set the Chromedriver path
+                if (gradle.ciTeamCityBuild) {
+                    systemProperty 'webdriver.chrome.driver', "${System.getenv('HOME')}/.gradle/webdriver/chromedriver/chromedriver"
+                }
 
+                doFirst {
                     environment([
                         JENKINS_WAR: jenkinsWar.get().outputs.files.singleFile,
                         LOCAL_JARS : gradlePlugin.singleFile,
