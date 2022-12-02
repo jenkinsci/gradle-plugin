@@ -54,8 +54,6 @@ jenkinsPlugin {
       url = 'https://opensource.org/licenses/MIT'
     }
   }
-
-  generateTests = true
 }
 
 java {
