@@ -1,6 +1,7 @@
 import java.util.zip.ZipFile
 import com.github.spotbugs.snom.SpotBugsTask
 import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
+import org.jenkinsci.gradle.plugins.jpi.deployment.CreateVersionlessLookupTask
 
 plugins {
   id 'org.gradle.test-retry' version '1.4.1'
@@ -54,6 +55,8 @@ jenkinsPlugin {
       url = 'https://opensource.org/licenses/MIT'
     }
   }
+
+  generateTests = true
 }
 
 java {
@@ -105,9 +108,7 @@ dependencies {
   testImplementation 'io.jenkins:configuration-as-code:1.4'
   testImplementation 'org.jenkins-ci.plugins:timestamper:1.8.10'
   testImplementation 'org.jenkins-ci.plugins:pipeline-stage-step:2.3'
-  testImplementation('org.jenkins-ci.plugins:pipeline-maven:3.10.0') {
-    exclude group: 'org.jenkins-ci.plugins.workflow'
-  }
+  testImplementation('org.jenkins-ci.plugins:pipeline-maven:3.10.0')
   testImplementation 'org.spockframework:spock-core:1.3-groovy-2.4'
 
   testImplementation('io.ratpack:ratpack-groovy-test:1.9.0') {
@@ -182,6 +183,23 @@ tasks.withType(AbstractArchiveTask) {
   inputs.property('pluginVersion') {
     project.version
   }
+}
+
+// See the original configuration: https://github.com/jenkinsci/gradle-jpi-plugin/blob/v0.47.0/src/main/kotlin/org/jenkinsci/gradle/plugins/testing/JpiTestingPlugin.kt#L79
+tasks.named('createVersionlessLookup', CreateVersionlessLookupTask) {
+    def jpiAllPlugins = project.configurations.named("jpiAllPlugins")
+    def runtimeClasspathJenkins = project.configurations.named("runtimeClasspathJenkins")
+
+    allResolvedPlugins.from(jpiAllPlugins, runtimeClasspathJenkins)
+    moduleVersionToModule.set(project.provider {
+        def artifacts =
+            jpiAllPlugins.get().resolvedConfiguration.resolvedArtifacts +
+                runtimeClasspathJenkins.get().resolvedConfiguration.resolvedArtifacts
+
+        artifacts.collectEntries {
+            [(it.file.name): "${it.name}.jpi"]
+        }
+    })
 }
 
 // See https://github.com/jenkinsci/gradle-jpi-plugin/blob/master/src/main/kotlin/org/jenkinsci/gradle/plugins/manifest/GenerateJenkinsManifestTask.kt#L69
