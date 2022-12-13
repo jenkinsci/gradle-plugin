@@ -1,9 +1,10 @@
 import java.util.zip.ZipFile
 import com.github.spotbugs.snom.SpotBugsTask
 import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
+import org.jenkinsci.gradle.plugins.jpi.deployment.CreateVersionlessLookupTask
 
 plugins {
-  id 'org.jenkins-ci.jpi' version '0.43.0'
+  id 'org.jenkins-ci.jpi' version '0.47.0'
   id 'ru.vyarus.animalsniffer' version '1.6.0'
   id 'com.github.spotbugs' version '5.0.13'
   id 'codenarc'
@@ -181,6 +182,23 @@ tasks.withType(AbstractArchiveTask) {
   inputs.property('pluginVersion') {
     project.version
   }
+}
+
+// See the original configuration: https://github.com/jenkinsci/gradle-jpi-plugin/blob/v0.47.0/src/main/kotlin/org/jenkinsci/gradle/plugins/testing/JpiTestingPlugin.kt#L79
+tasks.named('createVersionlessLookup', CreateVersionlessLookupTask) {
+    def jpiAllPlugins = project.configurations.named("jpiAllPlugins")
+    def runtimeClasspathJenkins = project.configurations.named("runtimeClasspathJenkins")
+
+    allResolvedPlugins.from(jpiAllPlugins, runtimeClasspathJenkins)
+    moduleVersionToModule.set(project.provider {
+        def artifacts =
+            jpiAllPlugins.get().resolvedConfiguration.resolvedArtifacts +
+                runtimeClasspathJenkins.get().resolvedConfiguration.resolvedArtifacts
+
+        artifacts.collectEntries {
+            [(it.file.name): "${it.name}.jpi"]
+        }
+    })
 }
 
 // See https://github.com/jenkinsci/gradle-jpi-plugin/blob/master/src/main/kotlin/org/jenkinsci/gradle/plugins/manifest/GenerateJenkinsManifestTask.kt#L69
