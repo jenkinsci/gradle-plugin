@@ -13,6 +13,8 @@ group = "com.gradle"
 description = "Maven extension to configure injected Gradle Enterprise Maven extension"
 version = "1.0.0"
 
+val gradleEnterpriseMavenExtensionVersion: String by (gradle as ExtensionAware).extra
+
 repositories {
     mavenCentral()
 }
@@ -26,7 +28,7 @@ configurations {
 
 dependencies {
     compileOnly("org.apache.maven:maven-core:3.8.6")
-    compileOnly("com.gradle:gradle-enterprise-maven-extension:${gradle.gradleEnterpriseMavenExtensionVersion}")
+    compileOnly("com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}")
 }
 
 val jar by tasks.getting(Jar::class)
@@ -34,6 +36,3 @@ val jar by tasks.getting(Jar::class)
 artifacts {
     add("mvnExtension", jar)
 }
-
-val Gradle.gradleEnterpriseMavenExtensionVersion: String
-    get() = (gradle as ExtensionAware).extra["gradleEnterpriseMavenExtensionVersion"] as String
