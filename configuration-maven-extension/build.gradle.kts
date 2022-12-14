@@ -19,12 +19,7 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    create("mvnExtension") {
-        isCanBeConsumed = true
-        isCanBeResolved = false
-    }
-}
+val mvnExtension: Configuration by configurations.creating { isCanBeConsumed = true; isCanBeResolved = false }
 
 dependencies {
     compileOnly("org.apache.maven:maven-core:3.8.6")
@@ -34,5 +29,5 @@ dependencies {
 val jar by tasks.getting(Jar::class)
 
 artifacts {
-    add("mvnExtension", jar)
+    add(mvnExtension.name, jar)
 }
