@@ -12,12 +12,12 @@ import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Result;
+import hudson.plugins.gradle.config.GlobalConfig;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
-import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Gregory Boissinot
@@ -309,7 +310,7 @@ public class Gradle extends Builder {
         }
 
         try {
-            DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build);
+            DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, GlobalConfig.get().getBuildScanAccessKey());
             GradleConsoleAnnotator gca = new GradleConsoleAnnotator(listener.getLogger(), build.getCharset(), true, buildScanListener);
 
             int r;

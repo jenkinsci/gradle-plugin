@@ -7,7 +7,12 @@ import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
 import hudson.plugins.gradle.Messages;
-import hudson.plugins.gradle.injection.*;
+import hudson.plugins.gradle.injection.EnvUtil;
+import hudson.plugins.gradle.injection.GradleEnterpriseVersionValidator;
+import hudson.plugins.gradle.injection.HttpUrlValidator;
+import hudson.plugins.gradle.injection.InjectionUtil;
+import hudson.plugins.gradle.injection.NodeLabelItem;
+import hudson.plugins.gradle.injection.UnsupportedMavenPluginWarningDetails;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import hudson.util.VersionNumber;
@@ -64,6 +69,7 @@ public class GlobalConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
+    private Secret buildScanAccessKey;
     public GlobalConfig() {
         load();
     }
@@ -233,6 +239,19 @@ public class GlobalConfig extends GlobalConfiguration {
     public void setMavenInjectionDisabledNodes(List<NodeLabelItem> mavenInjectionDisabledNodes) {
         this.mavenInjectionDisabledNodes =
             mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
+    }
+
+    public Secret getBuildScanAccessKey() {
+        return buildScanAccessKey;
+    }
+
+    @DataBoundSetter
+    public void setBuildScanAccessKey(Secret buildScanAccessKey) {
+        if (Util.fixEmptyAndTrim(buildScanAccessKey.getPlainText()) == null) {
+            this.buildScanAccessKey = null;
+        } else {
+            this.buildScanAccessKey = buildScanAccessKey;
+        }
     }
 
     @Override

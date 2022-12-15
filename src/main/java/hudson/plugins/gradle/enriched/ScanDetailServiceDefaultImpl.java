@@ -2,6 +2,7 @@ package hudson.plugins.gradle.enriched;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -17,6 +18,11 @@ import java.util.Iterator;
 public class ScanDetailServiceDefaultImpl implements ScanDetailService {
 
   private final static ObjectMapper MAPPER = new ObjectMapper();
+  private final Secret buildScanAccessToken;
+
+  public ScanDetailServiceDefaultImpl(Secret buildScanAccessToken) {
+    this.buildScanAccessToken = buildScanAccessToken;
+  }
 
   @Override
   public ScanDetail getScanDetail(String buildScanUrl) {
@@ -51,6 +57,7 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
 
       try(CloseableHttpClient httpclient = HttpClients.createDefault()) {
         HttpGet httpGetApiBuilds = new HttpGet(baseApiUrl + "/api/builds/" + scanId);
+        addBearerAuth(httpGetApiBuilds);
 
         String buildToolType = null;
         String buildToolVersion = null;
@@ -70,6 +77,7 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
         ScanDetail scanDetail = null;
         if("gradle".equals(buildToolType)) {
           HttpGet httpGetGradleAttributes = new HttpGet(baseApiUrl + "/api/builds/" + scanId + "/gradle-attributes");
+          addBearerAuth(httpGetGradleAttributes);
           try(CloseableHttpResponse responseApiBuilds = httpclient.execute(httpGetGradleAttributes)) {
             if(responseApiBuilds.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
               HttpEntity httpEntity = responseApiBuilds.getEntity();
@@ -117,6 +125,12 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
     }
 
     return null;
+  }
+
+  private void addBearerAuth(HttpGet httpGetApiBuilds) {
+    if (buildScanAccessToken != null) {
+      httpGetApiBuilds.addHeader("Authorization", "Bearer " + buildScanAccessToken.getPlainText());
+    }
   }
 
   private String joinStringList(Iterator<JsonNode> requestedTasks) {

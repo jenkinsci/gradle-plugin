@@ -5,6 +5,7 @@ import hudson.plugins.gradle.config.GlobalConfig;
 import hudson.plugins.gradle.enriched.ScanDetail;
 import hudson.plugins.gradle.enriched.ScanDetailService;
 import hudson.plugins.gradle.enriched.ScanDetailServiceDefaultImpl;
+import hudson.util.Secret;
 
 public class DefaultBuildScanPublishedListener implements BuildScanPublishedListener {
 
@@ -12,9 +13,9 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
 
     private final ScanDetailService scanDetailService;
 
-    DefaultBuildScanPublishedListener(Actionable target) {
+    DefaultBuildScanPublishedListener(Actionable target, Secret buildScanAccessToken) {
         this.target = target;
-        this.scanDetailService = new ScanDetailServiceDefaultImpl();
+        this.scanDetailService = new ScanDetailServiceDefaultImpl(buildScanAccessToken);
     }
 
     @Override
