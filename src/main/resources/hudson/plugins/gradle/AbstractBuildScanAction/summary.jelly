@@ -2,10 +2,37 @@
 <j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson">
     <t:summary icon="/plugin/gradle/images/svgs/gradle-build-scan.svg">
         <h2>Build Scans</h2>
-        <ul>
-            <j:forEach items="${it.scanUrls}" var="scanUrl">
-                <li><a href="${scanUrl}">${scanUrl}</a></li>
-            </j:forEach>
-        </ul>
+        <j:if test="${it.scanDetails == null}">
+            <ul>
+                <j:forEach items="${it.scanUrls}" var="scanUrl">
+                    <li><a href="${scanUrl}">${scanUrl}</a></li>
+                </j:forEach>
+            </ul>
+        </j:if>
+        <j:if test="${it.scanDetails != null}">
+            <table class="jenkins-table jenkins-!-margin-bottom-0">
+                <tr>
+                    <th>Project</th>
+                    <th>Tasks</th>
+                    <th>Outcome</th>
+                    <th>Build Scan</th>
+                </tr>
+                <j:forEach items="${it.scanDetails}" var="scanDetail">
+                    <tr>
+                        <td>${scanDetail.projectName}</td>
+                        <td>${scanDetail.requestedTasks}</td>
+                        <j:choose>
+                            <j:when test="${scanDetail.hasFailed}">
+                                <td>&#10060;</td>
+                            </j:when>
+                            <j:otherwise>
+                                <td>&#9989;</td>
+                            </j:otherwise>
+                        </j:choose>
+                        <td><a href="${scanDetail.url}" class="jenkins-table__link">Link</a></td>
+                    </tr>
+                </j:forEach>
+            </table>
+        </j:if>
     </t:summary>
 </j:jelly>

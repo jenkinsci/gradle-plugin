@@ -19,6 +19,8 @@ public abstract class AbstractBuildScanAction implements Action {
 
     private List<String> scanUrls = new ArrayList<>();
 
+    private List<ScanDetail> scanDetails = new ArrayList<>();
+
     @Override
     public String getIconFileName() {
         return "/plugin/gradle/images/svgs/gradle-build-scan.svg";
@@ -40,9 +42,20 @@ public abstract class AbstractBuildScanAction implements Action {
         }
     }
 
+    public void addScanDetail(ScanDetail scanDetail) {
+        if (!scanDetails.contains(scanDetail)) {
+            scanDetails.add(scanDetail);
+        }
+    }
+
     @Exported
     public List<String> getScanUrls() {
         return Collections.unmodifiableList(scanUrls);
+    }
+
+    @Exported
+    public List<ScanDetail> getScanDetails() {
+        return Collections.unmodifiableList(scanDetails);
     }
 
     private Object readResolve() {
