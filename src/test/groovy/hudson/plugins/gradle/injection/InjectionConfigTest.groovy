@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection
 
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
+import hudson.plugins.gradle.config.GlobalConfig
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.util.FormValidation
 import hudson.util.XStream2
@@ -9,11 +10,11 @@ import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Unroll
 
-@Subject(InjectionConfig.class)
+@Subject(GlobalConfig.class)
 class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
 
     @Shared
-    FilenameFilter injectionConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.injection.InjectionConfig.xml" }
+    FilenameFilter injectionConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.config.InjectionConfig.xml" }
 
     @Unroll
     def "sets showLegacyConfigurationWarning to true if any of legacy env variables is set"() {
@@ -28,7 +29,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         j.jenkins.getGlobalNodeProperties().add(env)
 
         expect:
-        InjectionConfig.get().isShowLegacyConfigurationWarning() == showWarning
+        GlobalConfig.get().isShowLegacyConfigurationWarning() == showWarning
 
         where:
         name                                                           | value               || showWarning
@@ -52,7 +53,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
     @Unroll
     def "validates server url"() {
         expect:
-        with(InjectionConfig.get().doCheckServer(url)) {
+        with(GlobalConfig.get().doCheckServer(url)) {
             kind == expectedKind
             message == expectedMssage
         }
@@ -73,7 +74,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
     @Unroll
     def "validates plugin repository url"() {
         expect:
-        with(InjectionConfig.get().doCheckGradlePluginRepositoryUrl(url)) {
+        with(GlobalConfig.get().doCheckGradlePluginRepositoryUrl(url)) {
             kind == expectedKind
             message == expectedMssage
         }
@@ -94,11 +95,11 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
     @Unroll
     def "validates gradle plugin and ccud plugin version"() {
         expect:
-        with(InjectionConfig.get().doCheckGradlePluginVersion(version)) {
+        with(GlobalConfig.get().doCheckGradlePluginVersion(version)) {
             kind == expectedKind
             message == expectedMssage
         }
-        with(InjectionConfig.get().doCheckCcudPluginVersion(version)) {
+        with(GlobalConfig.get().doCheckCcudPluginVersion(version)) {
             kind == expectedKind
             message == expectedMssage
         }
@@ -150,7 +151,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         def files = j.jenkins.root.listFiles(injectionConfigXmlFilter)
         files.length == 1
         with(fromXml(files.first().text)) {
-            enabled
+            injectionEnabled
             server == "https://localhost"
             allowUntrusted
             accessKey.plainText == "ACCESS_KEY"
@@ -184,8 +185,8 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         j.submit(form)
 
         then:
-        def config = InjectionConfig.get()
-        config.enabled
+        def config = GlobalConfig.get()
+        config.injectionEnabled
         config.server == "https://localhost"
         config.accessKey == null
 
@@ -193,8 +194,8 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         accessKey << ["", "   "]
     }
 
-    private static InjectionConfig fromXml(String xml) {
-        return (InjectionConfig) new XStream2().fromXML(xml)
+    private static GlobalConfig fromXml(String xml) {
+        return (GlobalConfig) new XStream2().fromXML(xml)
     }
 
     private static HtmlButton getAddButton(HtmlForm form, String label) {

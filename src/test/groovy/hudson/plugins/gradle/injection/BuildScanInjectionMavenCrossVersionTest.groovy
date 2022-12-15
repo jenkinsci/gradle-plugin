@@ -21,7 +21,7 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTe
         mavenInstallationRule.addInstallation()
 
         withInjectionConfig {
-            enabled = true
+            injectionEnabled = true
             server = 'https://scans.gradle.com'
             injectMavenExtension = true
             injectCcudExtension = true

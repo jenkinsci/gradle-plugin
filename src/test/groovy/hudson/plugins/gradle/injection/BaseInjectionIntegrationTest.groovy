@@ -3,6 +3,7 @@ package hudson.plugins.gradle.injection
 import hudson.EnvVars
 import hudson.model.Label
 import hudson.plugins.gradle.AbstractIntegrationTest
+import hudson.plugins.gradle.config.GlobalConfig
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.slaves.NodeProperty
@@ -30,8 +31,8 @@ class BaseInjectionIntegrationTest extends AbstractIntegrationTest {
         env
     }
 
-    InjectionConfig withInjectionConfig(@DelegatesTo(InjectionConfig) Closure closure) {
-        def config = InjectionConfig.get()
+    GlobalConfig withInjectionConfig(@DelegatesTo(GlobalConfig) Closure closure) {
+        def config = GlobalConfig.get()
 
         closure.setDelegate(config)
         closure.run()

@@ -430,7 +430,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         when:
         withInjectionConfig {
-            enabled = true
+            injectionEnabled = true
             server = "http://localhost"
             gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
         }
@@ -452,7 +452,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         when:
         withInjectionConfig {
-            enabled = true
+            injectionEnabled = true
             server = null
             gradlePluginVersion = null
         }
@@ -488,7 +488,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         when:
         withInjectionConfig {
-            enabled = true
+            injectionEnabled = true
             server = 'http://localhost'
             allowUntrusted = true
             gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
@@ -513,7 +513,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         when:
         withInjectionConfig {
-            enabled = true
+            injectionEnabled = true
             server = null
             allowUntrusted = false
             gradlePluginVersion = null
@@ -610,7 +610,7 @@ task hello {
         }
 
         withInjectionConfig {
-            enabled = true
+            injectionEnabled = true
             gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
             gradlePluginRepositoryUrl = repositoryAddress?.toString()
         }
@@ -620,7 +620,7 @@ task hello {
 
     private void disableBuildInjection(DumbSlave slave) {
         withInjectionConfig {
-            enabled = false
+            injectionEnabled = false
         }
 
         restartSlave(slave)
@@ -628,7 +628,7 @@ task hello {
 
     private void turnOffBuildInjection(DumbSlave slave) {
         withInjectionConfig {
-            enabled = true
+            injectionEnabled = true
             gradlePluginVersion = null
         }
 

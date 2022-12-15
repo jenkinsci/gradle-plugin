@@ -1,7 +1,10 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:l="/lib/layout">
     <f:section title="${%Gradle Enterprise integration}">
-        <f:optionalBlock field="enabled" title="${%Enable auto-injection}" inline="true">
+        <f:optionalBlock field="enrichedSummaryEnabled" title="${%Enable enriched summary}" inline="true">
+        </f:optionalBlock>
+
+        <f:optionalBlock field="injectionEnabled" title="${%Enable auto-injection}" inline="true">
 
             <j:if test="${instance.showLegacyConfigurationWarning}">
                 <f:entry>

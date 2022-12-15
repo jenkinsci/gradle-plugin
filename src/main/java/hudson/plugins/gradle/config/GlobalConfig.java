@@ -1,4 +1,4 @@
-package hudson.plugins.gradle.injection;
+package hudson.plugins.gradle.config;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -7,6 +7,7 @@ import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
 import hudson.plugins.gradle.Messages;
+import hudson.plugins.gradle.injection.*;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import hudson.util.VersionNumber;
@@ -25,7 +26,7 @@ import java.util.Set;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
 @Extension
-public class InjectionConfig extends GlobalConfiguration {
+public class GlobalConfig extends GlobalConfiguration {
 
     private static final Set<String> LEGACY_GLOBAL_ENVIRONMENT_VARIABLES =
         ImmutableSet.of(
@@ -44,7 +45,9 @@ public class InjectionConfig extends GlobalConfiguration {
             "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"
         );
 
-    private boolean enabled;
+    private boolean enrichedSummaryEnabled;
+
+    private boolean injectionEnabled;
 
     private String server;
     private boolean allowUntrusted;
@@ -61,12 +64,12 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
-    public InjectionConfig() {
+    public GlobalConfig() {
         load();
     }
 
-    public static InjectionConfig get() {
-        return ExtensionList.lookupSingleton(InjectionConfig.class);
+    public static GlobalConfig get() {
+        return ExtensionList.lookupSingleton(GlobalConfig.class);
     }
 
     @Restricted(NoExternalUse.class)
@@ -85,8 +88,8 @@ public class InjectionConfig extends GlobalConfiguration {
             : new UnsupportedMavenPluginWarningDetails(mavenPluginVersion);
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public boolean isInjectionEnabled() {
+        return injectionEnabled;
     }
 
     public boolean isDisabled() {
@@ -94,8 +97,17 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @DataBoundSetter
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public void setInjectionEnabled(boolean injectionEnabled) {
+        this.injectionEnabled = injectionEnabled;
+    }
+
+    public boolean isEnrichedSummaryEnabled() {
+        return enrichedSummaryEnabled;
+    }
+
+    @DataBoundSetter
+    public void setEnrichedSummaryEnabled(boolean enrichedSummaryEnabled) {
+        this.enrichedSummaryEnabled = enrichedSummaryEnabled;
     }
 
     @CheckForNull
