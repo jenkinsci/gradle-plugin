@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core">
+    <style type="text/css">
+        .default-column {
+            text-align:center;
+        }
+        .large-column {
+            text-align:center;
+            width:300px;
+        }
+        .medium-column {
+            text-align:center;
+            width:150px;
+        }
+    </style>
+</j:jelly>

@@ -1,8 +1,8 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
     <l:layout title="Build Scans">
-
         <st:include page="sidepanel.jelly" it="${it.target}"/>
+        <st:include page="enriched-css.jelly" />
         <l:main-panel>
             <h1><img src="${resURL}/plugin/gradle/images/svgs/gradle-build-scan.svg" alt="Build Scan"
                      width="48" height="48"/> Build Scans</h1>
@@ -17,24 +17,26 @@
             <j:if test="${it.scanDetails != null}">
                 <table class="jenkins-table jenkins-!-margin-bottom-0">
                     <tr>
-                        <th>Project</th>
-                        <th>Tasks</th>
-                        <th>Outcome</th>
-                        <th>Build Scan</th>
+                        <th class="large-column">Project</th>
+                        <th class="large-column">Tasks</th>
+                        <th class="medium-column">Build Tool Version</th>
+                        <th class="default-column">Outcome</th>
+                        <th class="medium-column">Build Scan</th>
                     </tr>
                     <j:forEach items="${it.scanDetails}" var="scanDetail">
                         <tr>
-                            <td>${scanDetail.projectName}</td>
-                            <td>${scanDetail.requestedTasks}</td>
+                            <td class="large-column">${scanDetail.projectName}</td>
+                            <td class="large-column">${scanDetail.requestedTasks}</td>
+                            <td class="medium-column">${scanDetail.buildToolVersion}</td>
                             <j:choose>
                                 <j:when test="${scanDetail.hasFailed}">
-                                    <td>&#10060;</td>
+                                    <td class="default-column">&#10060;</td>
                                 </j:when>
                                 <j:otherwise>
-                                    <td>&#9989;</td>
+                                    <td class="default-column">&#9989;</td>
                                 </j:otherwise>
                             </j:choose>
-                            <td><a href="${scanDetail.url}" class="jenkins-table__link">Link</a></td>
+                            <td class="medium-column"><a href="${scanDetail.url}" class="jenkins-table__link">Link</a></td>
                         </tr>
                     </j:forEach>
                 </table>

@@ -37,15 +37,10 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
     // add HTTP delay to fetch data
 
     //FIXME configuration
-    // feature toggle in configuration
     // configure retry + delay + timeout
 
     //FIXME UI
-    // tab with padding
     // cut content and put in tooltip if too large
-
-    //TODO make sure summaries with legacy mode are still fine
-
 
     int scanPathIndex = buildScanUrl.lastIndexOf("/s/");
     if(scanPathIndex != -1){
