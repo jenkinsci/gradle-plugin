@@ -1,4 +1,4 @@
-package hudson.plugins.gradle;
+package hudson.plugins.gradle.enriched;
 
 import org.kohsuke.stapler.export.ExportedBean;
 

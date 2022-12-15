@@ -2,6 +2,7 @@ package hudson.plugins.gradle;
 
 import hudson.model.Action;
 import hudson.model.Actionable;
+import hudson.plugins.gradle.enriched.ScanDetail;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -55,7 +56,7 @@ public abstract class AbstractBuildScanAction implements Action {
 
     @Exported
     public List<ScanDetail> getScanDetails() {
-        return Collections.unmodifiableList(scanDetails);
+        return scanDetails.isEmpty() ? null : Collections.unmodifiableList(scanDetails);
     }
 
     private Object readResolve() {
