@@ -2,20 +2,26 @@ package hudson.plugins.gradle.enriched;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hudson.plugins.gradle.config.GlobalConfig;
 import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
 
 public class ScanDetailServiceDefaultImpl implements ScanDetailService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ScanDetailServiceDefaultImpl.class);
 
   private final static ObjectMapper MAPPER = new ObjectMapper();
   private final Secret buildScanAccessToken;
@@ -26,18 +32,17 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
 
   @Override
   public ScanDetail getScanDetail(String buildScanUrl) {
-    //FIXME
-    // dependency management (http + json)
+    //TODO
+    // plug on gradle OSS instance
+    // test pipeline
+    // test multiple gradle commands
+    // test maven build
 
     //FIXME HTTP
     // auth + dual auth plugin Vs job
-    // create HTTP client once per job
-    // set HTTP timeout
-    // retry HTTP query
-    // add HTTP delay to fetch data
 
     //FIXME configuration
-    // configure retry + delay + timeout
+    // check configuration values
 
     //FIXME UI
     // cut content and put in tooltip if too large
@@ -50,7 +55,7 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
       //FIXME remove me
       baseApiUrl = baseApiUrl.replaceAll("localhost", "host.docker.internal");
 
-      try(CloseableHttpClient httpclient = HttpClients.createDefault()) {
+      try(CloseableHttpClient httpclient = buildHttpClient()) {
         HttpGet httpGetApiBuilds = new HttpGet(baseApiUrl + "/api/builds/" + scanId);
         addBearerAuth(httpGetApiBuilds);
 
@@ -114,12 +119,36 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
         }
         return scanDetail;
       } catch (IOException e) {
-        //FIXME
-        e.printStackTrace();
+        LOGGER.error("Error fetching data", e);
       }
     }
 
     return null;
+  }
+
+  private CloseableHttpClient buildHttpClient() {
+    int httpClientTimeoutInSeconds = GlobalConfig.get().getHttpClientTimeoutInSeconds();
+    int httpClientMaxRetries = GlobalConfig.get().getHttpClientMaxRetries();
+    int httpClientDelayBetweenRetriesInSeconds = GlobalConfig.get().getHttpClientDelayBetweenRetriesInSeconds();
+
+    RequestConfig config = RequestConfig.custom()
+            .setConnectTimeout(httpClientTimeoutInSeconds * 1000)
+            .setConnectionRequestTimeout(httpClientTimeoutInSeconds * 1000)
+            .setSocketTimeout(httpClientTimeoutInSeconds * 1000).build();
+
+    return HttpClients.custom()
+            .setDefaultRequestConfig(config)
+            .setRetryHandler((exception, executionCount, context) -> {
+              if (executionCount > httpClientMaxRetries) {
+                return false;
+              } else {
+                try {
+                  // Sleep before retrying
+                  Thread.sleep(httpClientDelayBetweenRetriesInSeconds * 1000L);
+                } catch (InterruptedException ignore) {}
+                return true;
+              }
+            }).build();
   }
 
   private void addBearerAuth(HttpGet httpGetApiBuilds) {

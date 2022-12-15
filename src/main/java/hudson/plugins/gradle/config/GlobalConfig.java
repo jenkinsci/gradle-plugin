@@ -54,6 +54,10 @@ public class GlobalConfig extends GlobalConfiguration {
 
     private boolean injectionEnabled;
 
+    private int httpClientTimeoutInSeconds;
+    private int httpClientMaxRetries;
+    private int httpClientDelayBetweenRetriesInSeconds;
+
     private String server;
     private boolean allowUntrusted;
     private Secret accessKey;
@@ -114,6 +118,33 @@ public class GlobalConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setEnrichedSummaryEnabled(boolean enrichedSummaryEnabled) {
         this.enrichedSummaryEnabled = enrichedSummaryEnabled;
+    }
+
+    public int getHttpClientTimeoutInSeconds() {
+        return httpClientTimeoutInSeconds;
+    }
+
+    @DataBoundSetter
+    public void setHttpClientTimeoutInSeconds(int httpClientTimeoutInSeconds) {
+        this.httpClientTimeoutInSeconds = httpClientTimeoutInSeconds;
+    }
+
+    public int getHttpClientMaxRetries() {
+        return httpClientMaxRetries;
+    }
+
+    @DataBoundSetter
+    public void setHttpClientMaxRetries(int httpClientMaxRetries) {
+        this.httpClientMaxRetries = httpClientMaxRetries;
+    }
+
+    public int getHttpClientDelayBetweenRetriesInSeconds() {
+        return httpClientDelayBetweenRetriesInSeconds;
+    }
+
+    @DataBoundSetter
+    public void setHttpClientDelayBetweenRetriesInSeconds(int httpClientDelayBetweenRetriesInSeonds) {
+        this.httpClientDelayBetweenRetriesInSeconds = httpClientDelayBetweenRetriesInSeonds;
     }
 
     @CheckForNull
