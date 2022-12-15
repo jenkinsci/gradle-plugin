@@ -1,6 +1,9 @@
 package hudson.plugins.gradle;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.model.Actionable;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -8,12 +11,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 public class DefaultBuildScanPublishedListener implements BuildScanPublishedListener {
     private final Actionable target;
+
+    private final static ObjectMapper MAPPER = new ObjectMapper();
 
     DefaultBuildScanPublishedListener(Actionable target) {
         this.target = target;
@@ -74,9 +79,9 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
                         HttpEntity httpEntity = responseApiBuilds.getEntity();
                         if (httpEntity != null) {
                             String retSrc = EntityUtils.toString(httpEntity);
-                            JSONObject result = new JSONObject(retSrc);
-                            buildToolType = result.get("buildToolType").toString();
-                            buildToolVersion = result.get("buildToolVersion").toString();
+                            JsonNode result = MAPPER.readTree(retSrc);
+                            buildToolType = result.get("buildToolType").asText();
+                            buildToolVersion = result.get("buildToolVersion").asText();
                             EntityUtils.consume(httpEntity);
                         }
                     }
@@ -90,13 +95,13 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
                             HttpEntity httpEntity = responseApiBuilds.getEntity();
                             if (httpEntity != null) {
                                 String retSrc = EntityUtils.toString(httpEntity);
-                                JSONObject result = new JSONObject(retSrc);
+                                JsonNode result = MAPPER.readTree(retSrc);
                                 scanDetail = new ScanDetail.ScanDetailBuilder()
-                                        .withProjectName(result.get("rootProjectName").toString())
-                                        .withBuildToolVersion(buildToolType)
+                                        .withProjectName(result.get("rootProjectName").asText())
+                                        .withBuildToolType(buildToolType)
                                         .withBuildToolVersion(buildToolVersion)
-                                        .withRequestedTasks(result.get("requestedTasks").toString())
-                                        .withHasFailed(result.get("hasFailed").toString())
+                                        .withRequestedTasks(joinStringList(result.get("requestedTasks").elements()))
+                                        .withHasFailed(result.get("hasFailed").asText())
                                         .withUrl(scanUrl)
                                         .build();
                                 EntityUtils.consume(httpEntity);
@@ -110,13 +115,13 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
                             HttpEntity httpEntity = responseApiBuilds.getEntity();
                             if (httpEntity != null) {
                                 String retSrc = EntityUtils.toString(httpEntity);
-                                JSONObject result = new JSONObject(retSrc);
+                                JsonNode result = MAPPER.readTree(retSrc);
                                 scanDetail = new ScanDetail.ScanDetailBuilder()
-                                        .withProjectName(result.get("topLevelProjectName").toString())
-                                        .withBuildToolVersion(buildToolType)
+                                        .withProjectName(result.get("topLevelProjectName").asText())
+                                        .withBuildToolType(buildToolType)
                                         .withBuildToolVersion(buildToolVersion)
-                                        .withRequestedTasks(result.get("requestedGoals").toString())
-                                        .withHasFailed(result.get("hasFailed").toString())
+                                        .withRequestedTasks(joinStringList(result.get("requestedGoals").elements()))
+                                        .withHasFailed(result.get("hasFailed").asText())
                                         .withUrl(scanUrl)
                                         .build();
                                 EntityUtils.consume(httpEntity);
@@ -129,6 +134,16 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
                 e.printStackTrace();
             }
         }
+    }
+
+    private String joinStringList(Iterator<JsonNode> requestedTasks) {
+        StringBuilder sb = new StringBuilder();
+        while (requestedTasks.hasNext()) {
+            sb.append(StringUtils.remove(requestedTasks.next().asText(), "\""));
+            sb.append(", ");
+        }
+        String result = sb.toString();
+        return StringUtils.removeEnd(result, ", ");
     }
 
 }
