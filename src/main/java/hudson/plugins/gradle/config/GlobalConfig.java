@@ -7,12 +7,7 @@ import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
 import hudson.plugins.gradle.Messages;
-import hudson.plugins.gradle.injection.EnvUtil;
-import hudson.plugins.gradle.injection.GradleEnterpriseVersionValidator;
-import hudson.plugins.gradle.injection.HttpUrlValidator;
-import hudson.plugins.gradle.injection.InjectionUtil;
-import hudson.plugins.gradle.injection.NodeLabelItem;
-import hudson.plugins.gradle.injection.UnsupportedMavenPluginWarningDetails;
+import hudson.plugins.gradle.injection.*;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import hudson.util.VersionNumber;
@@ -26,6 +21,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
@@ -73,6 +69,7 @@ public class GlobalConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
+    private String buildScanServer;
     private Secret buildScanAccessKey;
     public GlobalConfig() {
         load();
@@ -270,6 +267,23 @@ public class GlobalConfig extends GlobalConfiguration {
     public void setMavenInjectionDisabledNodes(List<NodeLabelItem> mavenInjectionDisabledNodes) {
         this.mavenInjectionDisabledNodes =
             mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
+    }
+
+    public String getBuildScanServer() {
+        return buildScanServer;
+    }
+
+    public URI getBuildScanServerUri() {
+        return URI.create(buildScanServer);
+    }
+
+    @DataBoundSetter
+    public void setBuildScanServer(String buildScanServerUrl) {
+        if (Util.fixEmptyAndTrim(buildScanServerUrl) == null) {
+            this.buildScanServer = null;
+        } else {
+            this.buildScanServer = buildScanServerUrl;
+        }
     }
 
     public Secret getBuildScanAccessKey() {

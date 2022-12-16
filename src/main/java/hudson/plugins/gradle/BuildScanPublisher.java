@@ -13,6 +13,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +40,8 @@ public class BuildScanPublisher extends Step {
         protected List<String> run() throws Exception {
             Run run = getContext().get(Run.class);
             Secret buildScanAccessKey = GlobalConfig.get().getBuildScanAccessKey();
-            BuildScanLogScanner scanner = new BuildScanLogScanner(new DefaultBuildScanPublishedListener(run, buildScanAccessKey));
+            URI buildScanServer = GlobalConfig.get().getBuildScanServerUri();
+            BuildScanLogScanner scanner = new BuildScanLogScanner(new DefaultBuildScanPublishedListener(run, buildScanAccessKey, buildScanServer));
             try (
                     BufferedReader logReader = new BufferedReader(run.getLogReader());
                     Stream<String> lines = logReader.lines()

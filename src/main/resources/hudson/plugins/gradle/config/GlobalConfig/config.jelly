@@ -4,6 +4,10 @@
 
         <f:optionalBlock field="enrichedSummaryEnabled" title="${%Enable enriched summary}" inline="true">
 
+            <f:entry title="${%Gradle Enterprise server URL override}" field="buildScanServer">
+                <f:textbox />
+            </f:entry>
+
             <f:entry title="${%Gradle Enterprise access key for build scan values}" field="buildScanAccessKey">
                 <f:password/>
             </f:entry>

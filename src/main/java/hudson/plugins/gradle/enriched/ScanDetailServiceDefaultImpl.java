@@ -18,11 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Iterator;
 
 public class ScanDetailServiceDefaultImpl implements ScanDetailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScanDetailServiceDefaultImpl.class);
+    private final URI buildScanServer;
 
     private enum BuildToolType {
         maven, gradle
@@ -31,8 +33,9 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
     private final static ObjectMapper MAPPER = new ObjectMapper();
     private final Secret buildScanAccessToken;
 
-    public ScanDetailServiceDefaultImpl(Secret buildScanAccessToken) {
+    public ScanDetailServiceDefaultImpl(Secret buildScanAccessToken, URI buildScanServer) {
         this.buildScanAccessToken = buildScanAccessToken;
+        this.buildScanServer = buildScanServer;
     }
 
     @Override
@@ -47,14 +50,13 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
     private ScanDetail doGetScanDetail(String buildScanUrl) {
         int scanPathIndex = buildScanUrl.lastIndexOf("/s/");
         if (scanPathIndex != -1) {
-            String baseApiUrl = buildScanUrl.substring(0, scanPathIndex);
             String scanId = buildScanUrl.substring(scanPathIndex + 3);
 
-            //FIXME remove me
-            baseApiUrl = baseApiUrl.replaceAll("localhost", "host.docker.internal");
+            URI baseApiUrl = buildScanServer != null ? buildScanServer
+                    : URI.create(buildScanUrl).resolve("/");
 
             try (CloseableHttpClient httpclient = buildHttpClient()) {
-                HttpGet httpGetApiBuilds = buildGetRequest(baseApiUrl + "/api/builds/" + scanId);
+                HttpGet httpGetApiBuilds = buildGetRequest(baseApiUrl.resolve("/api/builds/").resolve(scanId).toASCIIString());
 
                 String buildToolType = "";
                 String buildToolVersion = null;

@@ -72,7 +72,7 @@ public class WithGradleExecution extends StepExecution {
                 BuildScanAction buildScanAction = existingAction == null
                         ? new BuildScanAction()
                         : existingAction;
-                ScanDetailServiceDefaultImpl scanDetailService = new ScanDetailServiceDefaultImpl(GlobalConfig.get().getBuildScanAccessKey());
+                ScanDetailServiceDefaultImpl scanDetailService = new ScanDetailServiceDefaultImpl(GlobalConfig.get().getBuildScanAccessKey(), GlobalConfig.get().getBuildScanServerUri());
                 buildScans.forEach(scanUrl -> {
                     buildScanAction.addScanUrl(scanUrl);
                     ScanDetail scanDetail = scanDetailService.getScanDetail(scanUrl);

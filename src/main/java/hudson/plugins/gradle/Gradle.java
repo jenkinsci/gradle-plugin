@@ -310,7 +310,7 @@ public class Gradle extends Builder {
         }
 
         try {
-            DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, GlobalConfig.get().getBuildScanAccessKey());
+            DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, GlobalConfig.get().getBuildScanAccessKey(), GlobalConfig.get().getBuildScanServerUri());
             GradleConsoleAnnotator gca = new GradleConsoleAnnotator(listener.getLogger(), build.getCharset(), true, buildScanListener);
 
             int r;

@@ -24,7 +24,7 @@ public class GradleConsoleLogFilter extends ConsoleLogFilter implements Serializ
             }
         }
 
-        DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, GlobalConfig.get().getBuildScanAccessKey());
+        DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, GlobalConfig.get().getBuildScanAccessKey(), GlobalConfig.get().getBuildScanServerUri());
         return new GradleConsoleAnnotator(logger, build.getCharset(), usesGradleBuilder, buildScanListener);
     }
 }
