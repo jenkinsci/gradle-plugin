@@ -163,12 +163,11 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
 
 class ChromeDriverProvider(private val teamCityBuild: Boolean) : CommandLineArgumentProvider {
 
-    override fun asArguments(): Iterable<String> {
+    override fun asArguments(): Iterable<String> =
         // If executed on TeamCity, we need to set the Chromedriver path
-        return if (teamCityBuild) {
+        if (teamCityBuild) {
             listOf("-Dwebdriver.chrome.driver=${System.getenv("HOME")}/.gradle/webdriver/chromedriver/chromedriver")
         } else {
             emptyList()
         }
-    }
 }
