@@ -1,7 +1,6 @@
 package hudson.plugins.gradle;
 
 import hudson.model.Actionable;
-import hudson.plugins.gradle.config.GlobalConfig;
 import hudson.plugins.gradle.enriched.ScanDetail;
 import hudson.plugins.gradle.enriched.ScanDetailService;
 import hudson.plugins.gradle.enriched.ScanDetailServiceDefaultImpl;
@@ -37,11 +36,9 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
     }
 
     void processScanDetail(BuildScanAction action, String scanUrl) {
-        if(GlobalConfig.get().isEnrichedSummaryEnabled()) {
-            ScanDetail scanDetail = scanDetailService.getScanDetail(scanUrl);
-            if(scanDetail != null) {
-                action.addScanDetail(scanDetail);
-            }
+        ScanDetail scanDetail = scanDetailService.getScanDetail(scanUrl);
+        if (scanDetail != null) {
+            action.addScanDetail(scanDetail);
         }
     }
 
