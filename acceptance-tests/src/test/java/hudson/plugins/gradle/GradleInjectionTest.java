@@ -73,6 +73,39 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     }
 
     @Test
+    public void logsErrorIfBuildScanUploadFailed() {
+        // given
+        mockGeServer.rejectRequests();
+        FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
+
+        job.copyDir(resource("/simple_gradle_project"));
+        GradleStep gradle = job.addBuildStep(GradleStep.class);
+        gradle.setVersion(GRADLE_VERSION);
+        gradle.setSwitches("--no-daemon");
+        gradle.setTasks("helloWorld");
+        job.save();
+
+        // when
+        Build build = job.startBuild();
+
+        // then
+        build.shouldSucceed();
+
+        // and
+        String output = build.getConsole();
+        assertThat(output, containsString("> Task :helloWorld"));
+        assertThat(output, containsString("Hello, World!"));
+
+        assertThat(output, containsString("Publishing build scan..."));
+        assertThat(output, not(containsString(mockGeServer.publicBuildScanId())));
+        assertThat(output, containsString("Publishing failed."));
+
+        assertThat(output, containsString("Plugin version: " + AGENT_VERSION));
+        assertThat(output, containsString("Request URL: " + mockGeServer.getAddress() + "scans/publish/gradle/" + AGENT_VERSION + "/token"));
+        assertThat(output, containsString("Response status code: 502"));
+    }
+
+    @Test
     @WithOS(os = {WithOS.OS.MAC, WithOS.OS.LINUX})
     @WithPlugins("pipeline-model-definition")
     public void pipelineJobPublishesBuildScan() {
