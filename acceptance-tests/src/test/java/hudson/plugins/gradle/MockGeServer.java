@@ -35,13 +35,12 @@ public final class MockGeServer extends ExternalResource {
 
     private final List<ScanTokenRequest> scanTokenRequests = Collections.synchronizedList(new LinkedList<>());
 
-    private boolean rejectRequests;
+    private boolean rejectUpload;
     private EmbeddedApp mockGeServer;
 
     @Override
     protected void before() {
         mockGeServer = EmbeddedApp.fromHandlers(c -> c
-            .all(this::maybeRejectRequestHandler)
             .prefix("scans/publish", c1 -> c1
                 .post("gradle/:pluginVersion/token", this::handleToken)
                 .post("gradle/:pluginVersion/upload", this::handleUpload)
@@ -79,20 +78,20 @@ public final class MockGeServer extends ExternalResource {
         });
     }
 
-    private void maybeRejectRequestHandler(Context ctx) {
-        if (rejectRequests) {
-            ctx.getResponse().status(Status.BAD_GATEWAY).send();
-        } else {
-            ctx.next();
-        }
-    }
-
     private void handleUpload(Context ctx) {
         ctx.getRequest().getBody(TEN_MEGABYTES_IN_BYTES)
-            .then(__ ->
-                ctx.getResponse()
-                    .contentType("application/vnd.gradle.scan-upload-ack+json")
-                    .send("{}"));
+            .then(__ -> {
+                var response = ctx.getResponse();
+                if (rejectUpload) {
+                    response
+                        .status(Status.BAD_GATEWAY)
+                        .send();
+                } else {
+                    response
+                        .contentType("application/vnd.gradle.scan-upload-ack+json")
+                        .send("{}");
+                }
+            });
     }
 
     private String scanUploadUrl(Context ctx) {
@@ -114,8 +113,8 @@ public final class MockGeServer extends ExternalResource {
         return Iterables.getLast(scanTokenRequests, null);
     }
 
-    public void rejectRequests() {
-        this.rejectRequests = true;
+    public void rejectUpload() {
+        this.rejectUpload = true;
     }
 
     public static final class ScanTokenRequest {

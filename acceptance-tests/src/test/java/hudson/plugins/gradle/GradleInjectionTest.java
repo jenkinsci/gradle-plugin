@@ -75,7 +75,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     @Test
     public void logsErrorIfBuildScanUploadFailed() {
         // given
-        mockGeServer.rejectRequests();
+        mockGeServer.rejectUpload();
         FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
 
         job.copyDir(resource("/simple_gradle_project"));
@@ -101,7 +101,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         assertThat(output, containsString("Publishing failed."));
 
         assertThat(output, containsString("Plugin version: " + AGENT_VERSION));
-        assertThat(output, containsString("Request URL: " + mockGeServer.getAddress() + "scans/publish/gradle/" + AGENT_VERSION + "/token"));
+        assertThat(output, containsString("Request URL: " + mockGeServer.getAddress() + "scans/publish/gradle/" + AGENT_VERSION + "/upload"));
         assertThat(output, containsString("Response status code: 502"));
     }
 
