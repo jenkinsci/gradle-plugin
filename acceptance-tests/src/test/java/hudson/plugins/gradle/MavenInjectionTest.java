@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
@@ -154,7 +155,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
 
     private void assertBuildScanPublished(Build build) {
         String output = build.getConsole();
-        assertThat(output, containsString("[INFO] 3 goals, 3 executed"));
+        assertThat(output, either(containsString("[INFO] 3 goals, 2 executed, 1 from cache")).or(containsString("[INFO] 3 goals, 3 executed")));
         assertThat(output, containsString("[INFO] Publishing build scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"));
     }
 
