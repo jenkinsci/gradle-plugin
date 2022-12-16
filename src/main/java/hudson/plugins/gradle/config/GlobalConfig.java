@@ -325,6 +325,36 @@ public class GlobalConfig extends GlobalConfiguration {
         return checkUrl(value);
     }
 
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckHttpClientTimeoutInSeconds(@QueryParameter int value) {
+        if(value >= 0 && value <= 300) {
+            return FormValidation.ok();
+        } else {
+            return FormValidation.error("timeout must be in [0,300]");
+        }
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckHttpClientMaxRetries(@QueryParameter int value) {
+        if(value >= 0 && value <= 20) {
+            return FormValidation.ok();
+        } else {
+            return FormValidation.error("max retries must be in [0,20]");
+        }
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckHttpClientDelayBetweenRetriesInSeconds(@QueryParameter int value) {
+        if(value >= 0 && value <= 20) {
+            return FormValidation.ok();
+        } else {
+            return FormValidation.error("Delay between retries must be in [0,20]");
+        }
+    }
+
     public static FormValidation checkRequiredUrl(String value) {
         return checkUrl(value, true);
     }
