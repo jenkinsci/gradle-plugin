@@ -6,12 +6,17 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
+import hudson.XmlFile;
+import hudson.init.InitMilestone;
+import hudson.init.Initializer;
+import hudson.model.Items;
 import hudson.plugins.gradle.Messages;
 import hudson.plugins.gradle.injection.*;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import hudson.util.VersionNumber;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -22,12 +27,17 @@ import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
 import java.net.URI;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
 @Extension
 public class GlobalConfig extends GlobalConfiguration {
+    private static final Logger LOGGER = Logger.getLogger(GlobalConfig.class.getName());
 
     private static final Set<String> LEGACY_GLOBAL_ENVIRONMENT_VARIABLES =
         ImmutableSet.of(
@@ -45,9 +55,11 @@ public class GlobalConfig extends GlobalConfiguration {
             "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES",
             "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"
         );
+    public static final String PREVIOUS_CLASS_NAME = "hudson.plugins.gradle.injection.InjectionConfig";
 
     private boolean enrichedSummaryEnabled;
 
+    private transient Boolean enabled; // renamed to injectionEnabled
     private boolean injectionEnabled;
 
     private int httpClientTimeoutInSeconds;
@@ -409,5 +421,38 @@ public class GlobalConfig extends GlobalConfiguration {
         return GradleEnterpriseVersionValidator.getInstance().isValid(version)
             ? FormValidation.ok()
             : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
+    }
+
+    @Override
+    public synchronized void load() {
+        XmlFile configFile = getConfigFile();
+        if (!configFile.exists()) {
+            configFile = getOldConfigFile();
+            if (!configFile.exists()) {
+                return;
+            }
+        }
+        try {
+            configFile.unmarshal(this);
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Failed to load " + configFile, e);
+        }
+        super.load();
+    }
+
+    private XmlFile getOldConfigFile() {
+        return new XmlFile(Items.XSTREAM2, new File(Jenkins.get().getRootDir(),PREVIOUS_CLASS_NAME + ".xml"));
+    }
+
+    @Initializer(before = InitMilestone.PLUGINS_STARTED)
+    public static void addAliases() {
+        Items.XSTREAM2.addCompatibilityAlias(PREVIOUS_CLASS_NAME, GlobalConfig.class);
+    }
+
+    private Object readResolve() {
+        if (enabled != null) {
+            injectionEnabled = enabled;
+        }
+        return this;
     }
 }
