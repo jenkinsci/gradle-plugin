@@ -93,12 +93,8 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     buildScan.server = geUrl
                     buildScan.allowUntrustedServer = geAllowUntrustedServer
                     buildScan.publishAlways()
+                    if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) buildScan.uploadInBackground = false  // uploadInBackground not available for build-scan-plugin 1.16
                     buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
-
-                    // uploadInBackground not available for build-scan-plugin 1.16
-                    if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) {
-                        buildScan.uploadInBackground = false
-                    }
                 }
             }
 
