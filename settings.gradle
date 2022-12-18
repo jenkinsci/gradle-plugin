@@ -18,7 +18,7 @@ gradle.ext {
     ciJenkinsBuild = System.getenv('JENKINS_URL') ? true : false
     ciTeamCityBuild = System.getenv('TEAMCITY_VERSION') ? true : false
     isCi = gradle.ciJenkinsBuild || gradle.ciTeamCityBuild
-    gradleEnterpriseMavenExtensionVersion = "1.15.5"
+    gradleEnterpriseMavenExtensionVersion = "1.16.1"
     commonCustomUserDataMavenExtensionVersion = "1.11.1"
 }
 
