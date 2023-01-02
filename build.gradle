@@ -1,10 +1,9 @@
 import java.util.zip.ZipFile
 import com.github.spotbugs.snom.SpotBugsTask
-import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
 import org.jenkinsci.gradle.plugins.jpi.deployment.CreateVersionlessLookupTask
 
 plugins {
-  id 'org.jenkins-ci.jpi' version '0.47.0'
+  id 'org.jenkins-ci.jpi' version '0.48.0-rc.1'
   id 'ru.vyarus.animalsniffer' version '1.6.0'
   id 'com.github.spotbugs' version '5.0.13'
   id 'codenarc'
@@ -201,9 +200,8 @@ tasks.named('createVersionlessLookup', CreateVersionlessLookupTask) {
     })
 }
 
-// See https://github.com/jenkinsci/gradle-jpi-plugin/blob/master/src/main/kotlin/org/jenkinsci/gradle/plugins/manifest/GenerateJenkinsManifestTask.kt#L69
-tasks.withType(GenerateJenkinsManifestTask).configureEach {
-  version = project.version.toString().replace("-SNAPSHOT", "-dev")
+tasks.named('generateJenkinsManifest').configure {
+  dynamicSnapshotVersion.set(false)
 }
 
 task checkArchiveManifests {
