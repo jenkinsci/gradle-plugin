@@ -2,17 +2,14 @@ package hudson.plugins.gradle.enriched;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hudson.plugins.gradle.config.GlobalConfig;
 import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,23 +21,33 @@ import java.util.Iterator;
 public class ScanDetailServiceDefaultImpl implements ScanDetailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScanDetailServiceDefaultImpl.class);
-    private final URI buildScanServer;
-
-    private enum BuildToolType {
-        maven, gradle
-    }
 
     private final static ObjectMapper MAPPER = new ObjectMapper();
+
     private final Secret buildScanAccessToken;
+    private final URI buildScanServer;
+
+    private HttpClientProvider httpClientProvider;
+    private EnrichedSummaryConfig enrichedSummaryConfig;
 
     public ScanDetailServiceDefaultImpl(Secret buildScanAccessToken, URI buildScanServer) {
         this.buildScanAccessToken = buildScanAccessToken;
         this.buildScanServer = buildScanServer;
+        this.httpClientProvider = new HttpClientProviderDefaultImpl();
+        this.enrichedSummaryConfig = new EnrichedSummaryConfigDefaultImpl();
+    }
+
+    public void setHttpClientProvider(HttpClientProvider httpClientProvider) {
+        this.httpClientProvider = httpClientProvider;
+    }
+
+    public void setEnrichedSummaryConfig(EnrichedSummaryConfig enrichedSummaryConfig) {
+        this.enrichedSummaryConfig = enrichedSummaryConfig;
     }
 
     @Override
     public ScanDetail getScanDetail(String buildScanUrl) {
-        if (GlobalConfig.get().isEnrichedSummaryEnabled()) {
+        if (enrichedSummaryConfig.isEnabled()) {
             return doGetScanDetail(buildScanUrl);
         }
 
@@ -55,7 +62,7 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
             URI baseApiUrl = buildScanServer != null ? buildScanServer
                     : URI.create(buildScanUrl).resolve("/");
 
-            try (CloseableHttpClient httpclient = buildHttpClient()) {
+            try (CloseableHttpClient httpclient = httpClientProvider.buildHttpClient()) {
                 HttpGet httpGetApiBuilds = buildGetRequest(baseApiUrl.resolve("/api/builds/").resolve(scanId).toASCIIString());
 
                 String buildToolType = "";
@@ -131,40 +138,12 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
                 } catch (IllegalArgumentException ignored) {
                 }
 
-
                 return scanDetail;
             } catch (IOException e) {
                 LOGGER.info(String.format("Error fetching data [%s]", e.getMessage()));
             }
         }
         return null;
-    }
-
-    private CloseableHttpClient buildHttpClient() {
-        int httpClientTimeoutInSeconds = GlobalConfig.get().getHttpClientTimeoutInSeconds();
-        int httpClientMaxRetries = GlobalConfig.get().getHttpClientMaxRetries();
-        int httpClientDelayBetweenRetriesInSeconds = GlobalConfig.get().getHttpClientDelayBetweenRetriesInSeconds();
-
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(httpClientTimeoutInSeconds * 1000)
-                .setConnectionRequestTimeout(httpClientTimeoutInSeconds * 1000)
-                .setSocketTimeout(httpClientTimeoutInSeconds * 1000).build();
-
-        return HttpClients.custom()
-                .setDefaultRequestConfig(config)
-                .setRetryHandler((exception, executionCount, context) -> {
-                    if (executionCount > httpClientMaxRetries) {
-                        return false;
-                    } else {
-                        try {
-                            // Sleep before retrying
-                            Thread.sleep(httpClientDelayBetweenRetriesInSeconds * 1000L);
-                        } catch (InterruptedException ignore) {
-                        }
-
-                        return true;
-                    }
-                }).build();
     }
 
     private HttpGet buildGetRequest(String url) {
@@ -188,5 +167,9 @@ public class ScanDetailServiceDefaultImpl implements ScanDetailService {
 
         String result = sb.toString();
         return StringUtils.removeEnd(result, ", ");
+    }
+
+    private enum BuildToolType {
+        maven, gradle
     }
 }

@@ -2,11 +2,7 @@ package hudson.plugins.gradle.config;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.ExtensionList;
-import hudson.Util;
-import hudson.XmlFile;
+import hudson.*;
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
 import hudson.model.Items;
@@ -26,9 +22,9 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
-import java.net.URI;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -37,26 +33,24 @@ import java.util.logging.Logger;
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
 @Extension
 public class GlobalConfig extends GlobalConfiguration {
-    private static final Logger LOGGER = Logger.getLogger(GlobalConfig.class.getName());
-
-    private static final Set<String> LEGACY_GLOBAL_ENVIRONMENT_VARIABLES =
-        ImmutableSet.of(
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER",
-            "GRADLE_ENTERPRISE_ACCESS_KEY",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION",
-            "JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION",
-            "JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL",
-            "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES",
-            "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION",
-            "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION",
-            "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES",
-            "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"
-        );
     public static final String PREVIOUS_CLASS_NAME = "hudson.plugins.gradle.injection.InjectionConfig";
-
+    private static final Logger LOGGER = Logger.getLogger(GlobalConfig.class.getName());
+    private static final Set<String> LEGACY_GLOBAL_ENVIRONMENT_VARIABLES =
+            ImmutableSet.of(
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION",
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL",
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER",
+                    "GRADLE_ENTERPRISE_ACCESS_KEY",
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION",
+                    "JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION",
+                    "JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL",
+                    "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES",
+                    "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES",
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION",
+                    "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION",
+                    "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES",
+                    "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"
+            );
     private boolean enrichedSummaryEnabled;
 
     private transient Boolean enabled; // renamed to injectionEnabled
@@ -83,12 +77,60 @@ public class GlobalConfig extends GlobalConfiguration {
 
     private String buildScanServer;
     private Secret buildScanAccessKey;
+
     public GlobalConfig() {
         load();
     }
 
     public static GlobalConfig get() {
         return ExtensionList.lookupSingleton(GlobalConfig.class);
+    }
+
+    public static FormValidation checkRequiredUrl(String value) {
+        return checkUrl(value, true);
+    }
+
+    public static FormValidation checkUrl(String value) {
+        return checkUrl(value, false);
+    }
+
+    private static FormValidation checkUrl(String value, boolean required) {
+        String url = Util.fixEmptyAndTrim(value);
+        if (url == null) {
+            return required
+                    ? FormValidation.error(Messages.InjectionConfig_Required())
+                    : FormValidation.ok();
+        }
+
+        return HttpUrlValidator.getInstance().isValid(url)
+                ? FormValidation.ok()
+                : FormValidation.error(Messages.InjectionConfig_InvalidUrl());
+    }
+
+    public static FormValidation checkRequiredVersion(String value) {
+        return checkVersion(value, true);
+    }
+
+    public static FormValidation checkVersion(String value) {
+        return checkVersion(value, false);
+    }
+
+    private static FormValidation checkVersion(String value, boolean required) {
+        String version = Util.fixEmptyAndTrim(value);
+        if (version == null) {
+            return required
+                    ? FormValidation.error(Messages.InjectionConfig_Required())
+                    : FormValidation.ok();
+        }
+
+        return GradleEnterpriseVersionValidator.getInstance().isValid(version)
+                ? FormValidation.ok()
+                : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
+    }
+
+    @Initializer(before = InitMilestone.PLUGINS_STARTED)
+    public static void addAliases() {
+        Items.XSTREAM2.addCompatibilityAlias(PREVIOUS_CLASS_NAME, GlobalConfig.class);
     }
 
     @Restricted(NoExternalUse.class)
@@ -103,8 +145,8 @@ public class GlobalConfig extends GlobalConfiguration {
         VersionNumber mavenPluginVersion = InjectionUtil.mavenPluginVersionNumber().orElse(null);
 
         return mavenPluginVersion == null || InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion)
-            ? null
-            : new UnsupportedMavenPluginWarningDetails(mavenPluginVersion);
+                ? null
+                : new UnsupportedMavenPluginWarningDetails(mavenPluginVersion);
     }
 
     public boolean isInjectionEnabled() {
@@ -227,7 +269,7 @@ public class GlobalConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setGradleInjectionEnabledNodes(List<NodeLabelItem> gradleInjectionEnabledNodes) {
         this.gradleInjectionEnabledNodes =
-            gradleInjectionEnabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionEnabledNodes);
+                gradleInjectionEnabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionEnabledNodes);
     }
 
     @CheckForNull
@@ -238,7 +280,7 @@ public class GlobalConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setGradleInjectionDisabledNodes(List<NodeLabelItem> gradleInjectionDisabledNodes) {
         this.gradleInjectionDisabledNodes =
-            gradleInjectionDisabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionDisabledNodes);
+                gradleInjectionDisabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionDisabledNodes);
     }
 
     public boolean isInjectMavenExtension() {
@@ -267,7 +309,7 @@ public class GlobalConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setMavenInjectionEnabledNodes(List<NodeLabelItem> mavenInjectionEnabledNodes) {
         this.mavenInjectionEnabledNodes =
-            mavenInjectionEnabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionEnabledNodes);
+                mavenInjectionEnabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionEnabledNodes);
     }
 
     @CheckForNull
@@ -278,15 +320,11 @@ public class GlobalConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setMavenInjectionDisabledNodes(List<NodeLabelItem> mavenInjectionDisabledNodes) {
         this.mavenInjectionDisabledNodes =
-            mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
+                mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
     }
 
     public String getBuildScanServer() {
         return buildScanServer;
-    }
-
-    public URI getBuildScanServerUri() {
-        return URI.create(buildScanServer);
     }
 
     @DataBoundSetter
@@ -296,6 +334,10 @@ public class GlobalConfig extends GlobalConfiguration {
         } else {
             this.buildScanServer = buildScanServerUrl;
         }
+    }
+
+    public URI getBuildScanServerUri() {
+        return URI.create(buildScanServer);
     }
 
     public Secret getBuildScanAccessKey() {
@@ -354,7 +396,7 @@ public class GlobalConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckHttpClientTimeoutInSeconds(@QueryParameter int value) {
-        if(value >= 0 && value <= 300) {
+        if (value >= 0 && value <= 300) {
             return FormValidation.ok();
         } else {
             return FormValidation.error("timeout must be in [0,300]");
@@ -364,7 +406,7 @@ public class GlobalConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckHttpClientMaxRetries(@QueryParameter int value) {
-        if(value >= 0 && value <= 20) {
+        if (value >= 0 && value <= 20) {
             return FormValidation.ok();
         } else {
             return FormValidation.error("max retries must be in [0,20]");
@@ -374,53 +416,11 @@ public class GlobalConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckHttpClientDelayBetweenRetriesInSeconds(@QueryParameter int value) {
-        if(value >= 0 && value <= 20) {
+        if (value >= 0 && value <= 20) {
             return FormValidation.ok();
         } else {
             return FormValidation.error("Delay between retries must be in [0,20]");
         }
-    }
-
-    public static FormValidation checkRequiredUrl(String value) {
-        return checkUrl(value, true);
-    }
-
-    public static FormValidation checkUrl(String value) {
-        return checkUrl(value, false);
-    }
-
-    private static FormValidation checkUrl(String value, boolean required) {
-        String url = Util.fixEmptyAndTrim(value);
-        if (url == null) {
-            return required
-                ? FormValidation.error(Messages.InjectionConfig_Required())
-                : FormValidation.ok();
-        }
-
-        return HttpUrlValidator.getInstance().isValid(url)
-            ? FormValidation.ok()
-            : FormValidation.error(Messages.InjectionConfig_InvalidUrl());
-    }
-
-    public static FormValidation checkRequiredVersion(String value) {
-        return checkVersion(value, true);
-    }
-
-    public static FormValidation checkVersion(String value) {
-        return checkVersion(value, false);
-    }
-
-    private static FormValidation checkVersion(String value, boolean required) {
-        String version = Util.fixEmptyAndTrim(value);
-        if (version == null) {
-            return required
-                ? FormValidation.error(Messages.InjectionConfig_Required())
-                : FormValidation.ok();
-        }
-
-        return GradleEnterpriseVersionValidator.getInstance().isValid(version)
-            ? FormValidation.ok()
-            : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
     }
 
     @Override
@@ -441,12 +441,7 @@ public class GlobalConfig extends GlobalConfiguration {
     }
 
     private XmlFile getOldConfigFile() {
-        return new XmlFile(Items.XSTREAM2, new File(Jenkins.get().getRootDir(),PREVIOUS_CLASS_NAME + ".xml"));
-    }
-
-    @Initializer(before = InitMilestone.PLUGINS_STARTED)
-    public static void addAliases() {
-        Items.XSTREAM2.addCompatibilityAlias(PREVIOUS_CLASS_NAME, GlobalConfig.class);
+        return new XmlFile(Items.XSTREAM2, new File(Jenkins.get().getRootDir(), PREVIOUS_CLASS_NAME + ".xml"));
     }
 
     private Object readResolve() {
