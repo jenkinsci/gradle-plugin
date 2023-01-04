@@ -13,14 +13,14 @@
             </f:entry>
 
             <f:section title="${%HTTP client settings}">
-                <f:entry title="${%Timeout in seconds}">
-                    <f:textbox field="httpClientTimeoutInSeconds" default="1"/>
+                <f:entry title="${%Timeout in seconds}" field="httpClientTimeoutInSeconds">
+                    <f:textbox default="1"/>
                 </f:entry>
-                <f:entry title="${%Maximum retries}">
-                    <f:textbox field="httpClientMaxRetries" default="3"/>
+                <f:entry title="${%Maximum retries}" field="httpClientMaxRetries">
+                    <f:textbox default="3"/>
                 </f:entry>
-                <f:entry title="${%Delay between retries in seconds}">
-                    <f:textbox field="httpClientDelayBetweenRetriesInSeconds" default="1"/>
+                <f:entry title="${%Delay between retries in seconds}" field="httpClientDelayBetweenRetriesInSeconds">
+                    <f:textbox default="1"/>
                 </f:entry>
             </f:section>
 
