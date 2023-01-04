@@ -8,10 +8,14 @@
         .large-column {
             text-align:center;
             width:300px;
+            max-width:300px;
+            overflow: scroll;
         }
         .medium-column {
             text-align:center;
             width:150px;
+            max-width:150px;
+            overflow: scroll;
         }
     </style>
 </j:jelly>
