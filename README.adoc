@@ -87,6 +87,29 @@ The `withGradle` wrapper should be used instead, since it also deals well with p
 
 image::find-build-scans.png[Find build scans,{thumbnail}]
 
+== Enriched build scans
+
+Build scans links on the Job summary page can be enriched with data fetched from the https://docs.gradle.com/enterprise/api-manual/[Gradle Enterprise server API].
+If enabled, the project name, requested tasks, build tool version, build outcome and build scan links will be provided.
+This feature is available for both Gradle and Maven builds.
+
+image::enriched-build-scans.png[Enriched build scans,{thumbnail}]
+
+> **Note**
+> - Enabling this feature will trigger 2 HTTP requests to the Gradle Enterprise server per build scan published.
+
+=== Enriched build scans configuration
+
+The configuration of the feature can be done in the Jenkins global system configuration.
+
+The feature can be enabled or disabled (default).
+
+If anonymous access to the API is not allowed, an access key has to be provided.
+
+HTTP client settings can also be customized.
+
+image::enriched-build-scans-configuration.png[Enriched build scans configuration,{thumbnail}]
+
 == Gradle Enterprise integration
 
 The plugin can be configured to inject the https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] or the https://docs.gradle.com/enterprise/maven-extension/[Gradle Enterprise Maven extension] into any Gradle or Maven build that is executed on the Jenkins server or on any of its connected agents.
