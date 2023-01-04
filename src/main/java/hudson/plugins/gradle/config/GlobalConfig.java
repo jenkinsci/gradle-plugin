@@ -337,7 +337,7 @@ public class GlobalConfig extends GlobalConfiguration {
     }
 
     public URI getBuildScanServerUri() {
-        return URI.create(buildScanServer);
+        return buildScanServer != null ? URI.create(buildScanServer) : null;
     }
 
     public Secret getBuildScanAccessKey() {
