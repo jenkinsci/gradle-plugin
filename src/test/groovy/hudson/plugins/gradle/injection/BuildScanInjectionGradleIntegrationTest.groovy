@@ -47,7 +47,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         def page = webClient.goTo("configure")
         def form = page.getFormByName("config")
 
-        form.getInputByName("_.enabled").click()
+        form.getInputByName("_.injectionEnabled").click()
         form.getInputByName("_.server").setValueAttribute("https://localhost")
         form.getInputByName("_.gradlePluginVersion").setValueAttribute("3.11.1")
 

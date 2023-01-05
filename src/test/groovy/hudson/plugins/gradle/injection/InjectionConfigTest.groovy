@@ -14,7 +14,7 @@ import spock.lang.Unroll
 class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
 
     @Shared
-    FilenameFilter injectionConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.config.InjectionConfig.xml" }
+    FilenameFilter injectionConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.config.GlobalConfig.xml" }
 
     @Unroll
     def "sets showLegacyConfigurationWarning to true if any of legacy env variables is set"() {
@@ -123,7 +123,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         def form = page.getFormByName("config")
 
         when:
-        form.getInputByName("_.enabled").click()
+        form.getInputByName("_.injectionEnabled").click()
         form.getInputByName("_.server").setValueAttribute("https://localhost")
         form.getInputByName("_.allowUntrusted").click()
         form.getInputByName("_.accessKey").setValueAttribute("ACCESS_KEY")
@@ -177,7 +177,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         def form = page.getFormByName("config")
 
         when:
-        form.getInputByName("_.enabled").click()
+        form.getInputByName("_.injectionEnabled").click()
         form.getInputByName("_.server").setValueAttribute("https://localhost")
         form.getInputByName("_.allowUntrusted").click()
         form.getInputByName("_.accessKey").setValueAttribute(accessKey)
