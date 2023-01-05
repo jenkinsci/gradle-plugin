@@ -399,7 +399,7 @@ public class GlobalConfig extends GlobalConfiguration {
         if (value >= 0 && value <= 300) {
             return FormValidation.ok();
         } else {
-            return FormValidation.error("timeout must be in [0,300]");
+            return FormValidation.error("Timeout must be in [0,300].");
         }
     }
 
@@ -409,7 +409,7 @@ public class GlobalConfig extends GlobalConfiguration {
         if (value >= 0 && value <= 20) {
             return FormValidation.ok();
         } else {
-            return FormValidation.error("max retries must be in [0,20]");
+            return FormValidation.error("Max retries must be in [0,20].");
         }
     }
 
@@ -419,7 +419,7 @@ public class GlobalConfig extends GlobalConfiguration {
         if (value >= 0 && value <= 20) {
             return FormValidation.ok();
         } else {
-            return FormValidation.error("Delay between retries must be in [0,20]");
+            return FormValidation.error("Delay between retries must be in [0,20].");
         }
     }
 
