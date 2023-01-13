@@ -10,7 +10,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
 
     private static final String XPATH = "//*[@path='%s']";
 
-    private static final String INJECTION_CONFIG_PATH = "/hudson-plugins-gradle-injection-InjectionConfig/";
+    private static final String INJECTION_CONFIG_PATH = "/hudson-plugins-gradle-config-GlobalConfig/";
 
     private static final String SERVER_FIELD = "server";
     private static final String GE_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
