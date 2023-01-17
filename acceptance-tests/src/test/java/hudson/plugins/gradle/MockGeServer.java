@@ -1,9 +1,11 @@
 package hudson.plugins.gradle;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -44,7 +46,14 @@ public final class MockGeServer extends ExternalResource {
             .prefix("scans/publish", c1 -> c1
                 .post("gradle/:pluginVersion/token", this::handleToken)
                 .post("gradle/:pluginVersion/upload", this::handleUpload)
-                .notFound()));
+            )
+            .prefix("api/builds", c2 -> c2
+                .get(":scanId", this::handleGetScanById)
+                .get(":scanId/gradle-attributes", this::handleGetScanGradleAttributesById)
+                .get(":scanId/maven-attributes", this::handleGetScanMavenAttributesById)
+            )
+            .notFound()
+        );
     }
 
     @Override
@@ -97,6 +106,46 @@ public final class MockGeServer extends ExternalResource {
     private String scanUploadUrl(Context ctx) {
         String pluginVersion = ctx.getPathTokens().get("pluginVersion");
         return String.format("%sscans/publish/gradle/%s/upload", getAddress(), pluginVersion);
+    }
+
+    private void handleGetScanById(Context ctx) throws JsonProcessingException {
+        boolean isGradle = false;
+        if(PUBLIC_BUILD_SCAN_ID.equals(ctx.getPathTokens().get("scanId"))) {
+            // Maven build scans are published to scans.gradle.com
+            isGradle = true;
+        }
+
+        Map<String, String> responseBody =
+                ImmutableMap.of(
+                        "buildToolType", isGradle ? "gradle" : "maven",
+                        "buildToolVersion", isGradle ? "7.0" : "3.8.6"
+                );
+
+        ctx.getResponse()
+                .contentType("application/json")
+                .send(JSON_WRITER.writeValueAsBytes(responseBody));
+    }
+
+    private void handleGetScanGradleAttributesById(Context ctx) throws JsonProcessingException {
+        ObjectNode gradleScanAttributes = JSON_OBJECT_MAPPER.createObjectNode();
+        gradleScanAttributes.put("rootProjectName", "foo");
+        gradleScanAttributes.put("hasFailed", "false");
+        gradleScanAttributes.set("requestedTasks", JSON_OBJECT_MAPPER.createArrayNode().add("clean").add("build"));
+
+        ctx.getResponse()
+                .contentType("application/json")
+                .send(JSON_OBJECT_MAPPER.writeValueAsBytes(gradleScanAttributes));
+    }
+
+    private void handleGetScanMavenAttributesById(Context ctx) throws JsonProcessingException {
+        ObjectNode gradleScanAttributes = JSON_OBJECT_MAPPER.createObjectNode();
+        gradleScanAttributes.put("topLevelProjectName", "bar");
+        gradleScanAttributes.put("hasFailed", "false");
+        gradleScanAttributes.set("requestedGoals", JSON_OBJECT_MAPPER.createArrayNode().add("clean").add("package"));
+
+        ctx.getResponse()
+                .contentType("application/json")
+                .send(JSON_OBJECT_MAPPER.writeValueAsBytes(gradleScanAttributes));
     }
 
     public String publicBuildScanId() {

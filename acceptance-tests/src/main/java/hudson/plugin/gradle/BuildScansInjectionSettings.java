@@ -13,10 +13,21 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     private static final String INJECTION_CONFIG_PATH = "/hudson-plugins-gradle-config-GlobalConfig/";
 
     private static final String SERVER_FIELD = "server";
+    private static final String BUILD_SCAN_SERVER_FIELD = "buildScanServer";
     private static final String GE_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
 
     public BuildScansInjectionSettings(Jenkins jenkins) {
         super(jenkins);
+    }
+
+    public void clickBuildScansEnriched() {
+        ensureConfigPage();
+
+        control(by.checkbox("Enable enriched summary")).click();
+    }
+
+    public void setGradleEnterpriseBuildScanServerUrl(URI server) {
+        setBuildScansInjectionFormValue(BUILD_SCAN_SERVER_FIELD, server.toString());
     }
 
     public void clickBuildScansInjection() {
@@ -45,4 +56,5 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         By xpath = By.xpath(String.format(XPATH, INJECTION_CONFIG_PATH + field));
         driver.findElement(xpath).sendKeys(value);
     }
+
 }

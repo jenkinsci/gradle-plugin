@@ -1,10 +1,12 @@
 package hudson.plugins.gradle;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import hudson.plugin.gradle.BuildScansInjectionSettings;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.codehaus.plexus.util.Base64;
 import org.jenkinsci.test.acceptance.controller.JenkinsController;
 import org.jenkinsci.test.acceptance.controller.LocalController;
@@ -13,6 +15,7 @@ import org.jenkinsci.test.acceptance.junit.Resource;
 import org.jenkinsci.test.acceptance.slave.SlaveController;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.zeroturnaround.zip.ZipUtil;
 
 import javax.inject.Inject;
@@ -20,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.function.Consumer;
 
@@ -46,6 +50,19 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
             FileUtils.copyFileToDirectory(
                 resource("/hudson.tasks.Maven.MavenInstaller").asFile(), updatesDirectory);
         }
+    }
+
+    protected final void enableEnrichedBuildScans() {
+        enableEnrichedBuildScansWithServerOrverride(null);
+    }
+
+    protected final void enableEnrichedBuildScansWithServerOrverride(URI server) {
+        updateBuildScansInjectionSettings(settings -> {
+            settings.clickBuildScansEnriched();
+            if(server != null) {
+                settings.setGradleEnterpriseBuildScanServerUrl(server);
+            }
+        });
     }
 
     protected final void enableBuildScansForGradle(URI server, String agentVersion) {
@@ -98,4 +115,20 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
             }
         }
     }
+
+    protected String resolveTemplate(String content, ImmutableMap<String, String> tokens) {
+        return new StringSubstitutor(tokens).replace(content);
+    }
+
+    protected Resource createTmpFile(TemporaryFolder tempFolder, String content) {
+        try {
+            File tmp = tempFolder.newFile();
+            FileUtils.writeStringToFile(tmp, content, StandardCharsets.UTF_8);
+
+            return new Resource(tmp.toURI().toURL());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
 }

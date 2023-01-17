@@ -11,7 +11,7 @@
             </ul>
         </j:if>
         <j:if test="${it.scanDetails != null}">
-            <table class="jenkins-table jenkins-!-margin-bottom-0">
+            <table id="scanDetails" class="jenkins-table jenkins-!-margin-bottom-0">
                 <tr>
                     <th class="large-column">Project</th>
                     <th class="large-column">Tasks</th>
@@ -21,9 +21,9 @@
                 </tr>
                 <j:forEach items="${it.scanDetails}" var="scanDetail">
                     <tr>
-                        <td class="large-column">${scanDetail.projectName}</td>
-                        <td class="large-column">${scanDetail.requestedTasks}</td>
-                        <td class="medium-column">${scanDetail.buildToolVersion}</td>
+                        <td class="large-column project-name">${scanDetail.projectName}</td>
+                        <td class="large-column requested-tasks">${scanDetail.requestedTasks}</td>
+                        <td class="medium-column build-tool-version">${scanDetail.buildToolVersion}</td>
                         <j:choose>
                             <j:when test="${scanDetail.hasFailed}">
                                 <td class="default-column">&#10060;</td>
@@ -32,7 +32,7 @@
                                 <td class="default-column">&#9989;</td>
                             </j:otherwise>
                         </j:choose>
-                        <td class="medium-column"><a href="${scanDetail.url}" class="jenkins-table__link">Link</a></td>
+                        <td class="medium-column"><a href="${scanDetail.url}" class="jenkins-table__link build-scan-link">Link</a></td>
                     </tr>
                 </j:forEach>
             </table>
