@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.junit.rules.ExternalResource;
 import ratpack.handling.Context;
+import ratpack.http.Status;
 import ratpack.test.embed.EmbeddedApp;
 
 import javax.annotation.Nullable;
@@ -26,7 +27,7 @@ public final class MockGeServer extends ExternalResource {
     private static final ObjectWriter JSON_WRITER = JSON_OBJECT_MAPPER.writer();
 
     private static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE =
-        new TypeReference<Map<String, Object>>() {
+        new TypeReference<>() {
         };
 
     public static final String PUBLIC_BUILD_SCAN_ID = "z7o6hj5ag6bpc";
@@ -34,6 +35,7 @@ public final class MockGeServer extends ExternalResource {
 
     private final List<ScanTokenRequest> scanTokenRequests = Collections.synchronizedList(new LinkedList<>());
 
+    private boolean rejectUpload;
     private EmbeddedApp mockGeServer;
 
     @Override
@@ -50,7 +52,7 @@ public final class MockGeServer extends ExternalResource {
         mockGeServer.close();
     }
 
-    private void handleToken(Context ctx) throws Exception {
+    private void handleToken(Context ctx) {
         ctx.getRequest().getBody(TEN_MEGABYTES_IN_BYTES).then(request -> {
             Map<String, Object> requestBody =
                 JSON_OBJECT_MAPPER.readValue(request.getText(), MAP_TYPE_REFERENCE);
@@ -78,10 +80,18 @@ public final class MockGeServer extends ExternalResource {
 
     private void handleUpload(Context ctx) {
         ctx.getRequest().getBody(TEN_MEGABYTES_IN_BYTES)
-            .then(__ ->
-                ctx.getResponse()
-                    .contentType("application/vnd.gradle.scan-upload-ack+json")
-                    .send());
+            .then(__ -> {
+                var response = ctx.getResponse();
+                if (rejectUpload) {
+                    response
+                        .status(Status.BAD_GATEWAY)
+                        .send();
+                } else {
+                    response
+                        .contentType("application/vnd.gradle.scan-upload-ack+json")
+                        .send("{}");
+                }
+            });
     }
 
     private String scanUploadUrl(Context ctx) {
@@ -101,6 +111,10 @@ public final class MockGeServer extends ExternalResource {
     @Nullable
     public ScanTokenRequest getLastScanTokenRequest() {
         return Iterables.getLast(scanTokenRequests, null);
+    }
+
+    public void rejectUpload() {
+        this.rejectUpload = true;
     }
 
     public static final class ScanTokenRequest {
