@@ -22,7 +22,7 @@ repositories {
 val mvnExtension: Configuration by configurations.creating { isCanBeConsumed = true; isCanBeResolved = false }
 
 dependencies {
-    compileOnly("org.apache.maven:maven-core:3.8.6")
+    compileOnly("org.apache.maven:maven-core:3.8.7")
     compileOnly("com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}")
 }
 

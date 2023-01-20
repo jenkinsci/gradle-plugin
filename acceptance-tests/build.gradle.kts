@@ -7,7 +7,7 @@ plugins {
     id("de.undercouch.download") version "5.3.0"
 }
 
-val athVersion = "5460.va_c8a_323c73b_a"
+val athVersion = "5478.vb_b_cd04943676"
 val ciTeamCityBuild: Boolean by (gradle as ExtensionAware).extra
 val ciJenkinsBuild: Boolean by (gradle as ExtensionAware).extra
 
@@ -35,7 +35,7 @@ dependencies {
 
     implementation("org.jenkins-ci:acceptance-test-harness:${athVersion}")
 
-    testImplementation(platform("io.netty:netty-bom:4.1.85.Final"))
+    testImplementation(platform("io.netty:netty-bom:4.1.87.Final"))
     testImplementation("io.ratpack:ratpack-test:1.9.0")
 
     add(gradlePlugin.name, project(path = ":", configuration = "gradlePluginJpi"))

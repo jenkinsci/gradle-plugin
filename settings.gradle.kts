@@ -1,5 +1,5 @@
 plugins {
-    id("com.gradle.enterprise") version "3.12"
+    id("com.gradle.enterprise") version "3.12.2"
     id("com.gradle.common-custom-user-data-gradle-plugin") version "1.8.2"
 }
 
@@ -19,7 +19,7 @@ val gradleExt = (gradle as ExtensionAware).extra
 val ciJenkinsBuild by gradleExt { System.getenv("JENKINS_URL") != null }
 val ciTeamCityBuild by gradleExt { System.getenv("TEAMCITY_VERSION") != null }
 val isCi by gradleExt { ciJenkinsBuild || ciTeamCityBuild }
-val gradleEnterpriseMavenExtensionVersion by gradleExt { "1.15.5" }
+val gradleEnterpriseMavenExtensionVersion by gradleExt { "1.16.2" }
 val commonCustomUserDataMavenExtensionVersion by gradleExt { "1.11.1" }
 
 gradleEnterprise {
