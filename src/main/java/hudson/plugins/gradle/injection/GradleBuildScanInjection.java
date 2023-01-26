@@ -28,6 +28,8 @@ public class GradleBuildScanInjection implements BuildScanInjection {
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME";
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
 
+    private static final String JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION = "JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION";
+
     private static final String JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL";
     private static final String JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER";
     private static final String JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL = "JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL";
@@ -40,7 +42,8 @@ public class GradleBuildScanInjection implements BuildScanInjection {
             JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER,
             JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL,
             JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION,
-            JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION
+            JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION,
+            JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION
         );
 
     private static final String HOME = "HOME";
@@ -56,7 +59,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
     public boolean isEnabled(Node node) {
         InjectionConfig config = InjectionConfig.get();
 
-        if (!config.isEnabled() || isMissingRequiredParameters(config)) {
+        if (config.isDisabled() || isMissingRequiredParameters(config)) {
             return false;
         }
 
@@ -122,6 +125,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
     private void inject(Node node, String initScriptDirectory) {
         try {
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION, "true");
             injectInitScript(node.getChannel(), initScriptDirectory);
             injectEnvironmentVariables(node);
         } catch (IOException | InterruptedException e) {

@@ -89,6 +89,10 @@ public class InjectionConfig extends GlobalConfiguration {
         return enabled;
     }
 
+    public boolean isDisabled() {
+        return !isEnabled();
+    }
+
     @DataBoundSetter
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;

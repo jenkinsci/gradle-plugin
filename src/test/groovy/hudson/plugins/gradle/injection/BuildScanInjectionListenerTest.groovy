@@ -18,13 +18,13 @@ class BuildScanInjectionListenerTest extends Specification {
         new BuildScanInjectionListener([injector], { globalEnvVars }, { [computer] }, { injectionConfig })
 
     @Unroll
-    def "performs injection when computer gets online"() {
+    def "performs injection when computer gets online (isGlobalAutoInjectionCheckEnabled=#isGlobalAutoInjectionCheckEnabled, isGlobalInjectionEnabled=#isGlobalInjectionEnabled)"() {
         given:
         if (isGlobalAutoInjectionCheckEnabled) {
             globalEnvVars.put(BuildScanInjectionListener.JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK, "true")
         }
         computer.buildEnvironment(_ as TaskListener) >> globalEnvVars
-        injectionConfig.enabled >> isGlobalInjectionEnabled
+        injectionConfig.disabled >> !isGlobalInjectionEnabled
 
         def node = Mock(Node)
         def computerEnvVars = new EnvVars([COMPUTER: "ture"])
@@ -55,7 +55,7 @@ class BuildScanInjectionListenerTest extends Specification {
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
 
-        injector.inject(node, globalEnvVars, computerEnvVars) >> { throw new RuntimeException("expected") }
+        injector.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
 
         when:
         buildScanInjectionListener.onOnline(computer, Mock(TaskListener))
@@ -65,12 +65,12 @@ class BuildScanInjectionListenerTest extends Specification {
     }
 
     @Unroll
-    def "performs injection when configuration changes"() {
+    def "performs injection when configuration changes (isGlobalAutoInjectionCheckEnabled=#isGlobalAutoInjectionCheckEnabled, isGlobalInjectionEnabled=#isGlobalInjectionEnabled, isComputerOffline=#isComputerOffline)"() {
         given:
         if (isGlobalAutoInjectionCheckEnabled) {
             globalEnvVars.put(BuildScanInjectionListener.JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK, "true")
         }
-        injectionConfig.enabled >> isGlobalInjectionEnabled
+        injectionConfig.disabled >> !isGlobalInjectionEnabled
         computer.offline >> isComputerOffline
 
         def node = Mock(Node)
@@ -106,12 +106,19 @@ class BuildScanInjectionListenerTest extends Specification {
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
 
-        injector.inject(node, globalEnvVars, computerEnvVars) >> { throw new RuntimeException("expected") }
+        injector.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
 
         when:
         buildScanInjectionListener.onConfigurationChange()
 
         then:
         noExceptionThrown()
+    }
+
+    private static class ExpectedException extends RuntimeException {
+
+        ExpectedException() {
+            super("expected")
+        }
     }
 }

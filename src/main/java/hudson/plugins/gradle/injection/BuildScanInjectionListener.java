@@ -99,7 +99,7 @@ public class BuildScanInjectionListener extends ComputerListener {
 
     private boolean isFeatureDisabled() {
         InjectionConfig injectionConfig = injectionConfigSupplier.get();
-        return !injectionConfig.isEnabled();
+        return injectionConfig.isDisabled();
     }
 
     private static boolean globalAutoInjectionCheckEnabled(EnvVars envVars) {

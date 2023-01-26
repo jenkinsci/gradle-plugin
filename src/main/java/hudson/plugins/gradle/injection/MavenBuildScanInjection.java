@@ -22,6 +22,8 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private static final Logger LOGGER = Logger.getLogger(MavenBuildScanInjection.class.getName());
 
+    private static final String JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION = "JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION";
+
     public static final String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH";
     // Use different variables so Gradle and Maven injections can work independently on the same node
     public static final String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL";
@@ -45,7 +47,8 @@ public class MavenBuildScanInjection implements BuildScanInjection {
         Arrays.asList(
             JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH,
             JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL,
-            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
+            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER,
+            JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION
         );
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
@@ -54,7 +57,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     public boolean isEnabled(Node node) {
         InjectionConfig config = InjectionConfig.get();
 
-        if (!config.isEnabled() || !config.isInjectMavenExtension() || isMissingRequiredParameters(config)) {
+        if (config.isDisabled() || !config.isInjectMavenExtension() || isMissingRequiredParameters(config)) {
             return false;
         }
 
@@ -107,6 +110,8 @@ public class MavenBuildScanInjection implements BuildScanInjection {
 
     private void inject(Node node, FilePath nodeRootPath) {
         try {
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION, "true");
+
             InjectionConfig config = InjectionConfig.get();
             String server = config.getServer();
 
