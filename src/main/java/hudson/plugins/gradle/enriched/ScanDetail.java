@@ -3,6 +3,7 @@ package hudson.plugins.gradle.enriched;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.List;
@@ -22,10 +23,13 @@ public class ScanDetail {
 
     @JsonAlias({"rootProjectName", "topLevelProjectName" })
     private String projectName;
+    @SuppressFBWarnings(value="UWF_UNWRITTEN_FIELD")
     private BuildToolType buildToolType;
+    @SuppressFBWarnings(value="UWF_UNWRITTEN_FIELD")
     private String buildToolVersion;
     @JsonAlias({"requestedTasks", "requestedGoals" })
     private List<String> tasks;
+    @SuppressFBWarnings(value="UWF_UNWRITTEN_FIELD")
     private String hasFailed;
 
     ScanDetail(String url) {
@@ -44,6 +48,7 @@ public class ScanDetail {
         return buildToolVersion;
     }
 
+    @SuppressFBWarnings(value="EI_EXPOSE_REP")
     public List<String> getTasks() {
         return tasks;
     }
