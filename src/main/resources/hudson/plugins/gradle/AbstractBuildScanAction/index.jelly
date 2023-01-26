@@ -26,7 +26,7 @@
                     <j:forEach items="${it.scanDetails}" var="scanDetail">
                         <tr>
                             <td class="large-column">${scanDetail.projectName}</td>
-                            <td class="large-column">${scanDetail.requestedTasks}</td>
+                            <td class="large-column">${scanDetail.tasks}</td>
                             <td class="medium-column">${scanDetail.buildToolVersion}</td>
                             <j:choose>
                                 <j:when test="${scanDetail.hasFailed}">

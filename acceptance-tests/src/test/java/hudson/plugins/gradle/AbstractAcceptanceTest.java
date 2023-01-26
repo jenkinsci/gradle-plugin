@@ -1,7 +1,6 @@
 package hudson.plugins.gradle;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import hudson.plugin.gradle.BuildScansInjectionSettings;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -25,6 +24,7 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
@@ -59,7 +59,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     protected final void enableEnrichedBuildScansWithServerOrverride(URI server) {
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansEnriched();
-            if(server != null) {
+            if (server != null) {
                 settings.setGradleEnterpriseBuildScanServerUrl(server);
             }
         });
@@ -116,7 +116,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         }
     }
 
-    protected String resolveTemplate(String content, ImmutableMap<String, String> tokens) {
+    protected String resolveTemplate(String content, Map<String, String> tokens) {
         return new StringSubstitutor(tokens).replace(content);
     }
 

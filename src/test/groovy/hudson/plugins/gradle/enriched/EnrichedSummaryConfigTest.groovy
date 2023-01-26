@@ -1,6 +1,5 @@
 package hudson.plugins.gradle.enriched
 
-import hudson.plugins.gradle.config.GlobalConfig
 import hudson.plugins.gradle.injection.BaseGradleInjectionIntegrationTest
 import hudson.util.FormValidation
 import hudson.util.XStream2
@@ -8,16 +7,16 @@ import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Unroll
 
-@Subject(GlobalConfig.class)
+@Subject(EnrichedSummaryConfig.class)
 class EnrichedSummaryConfigTest extends BaseGradleInjectionIntegrationTest {
 
     @Shared
-    FilenameFilter enrichedSummaryConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.config.GlobalConfig.xml" }
+    FilenameFilter enrichedSummaryConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.enriched.EnrichedSummaryConfig.xml" }
 
     @Unroll
     def "validates HTTP client max retries"() {
         expect:
-        with(GlobalConfig.get().doCheckHttpClientMaxRetries(httpClientMaxRetries)) {
+        with(EnrichedSummaryConfig.get().doCheckHttpClientMaxRetries(httpClientMaxRetries)) {
             kind == expectedKind
             message == expectedMessage
         }
@@ -32,7 +31,7 @@ class EnrichedSummaryConfigTest extends BaseGradleInjectionIntegrationTest {
     @Unroll
     def "validates HTTP client delay between retries"() {
         expect:
-        with(GlobalConfig.get().doCheckHttpClientDelayBetweenRetriesInSeconds(httpClientDelayBetweenRetriesInSeconds)) {
+        with(EnrichedSummaryConfig.get().doCheckHttpClientDelayBetweenRetriesInSeconds(httpClientDelayBetweenRetriesInSeconds)) {
             kind == expectedKind
             message == expectedMessage
         }
@@ -47,7 +46,7 @@ class EnrichedSummaryConfigTest extends BaseGradleInjectionIntegrationTest {
     @Unroll
     def "validates HTTP client timeout"() {
         expect:
-        with(GlobalConfig.get().doCheckHttpClientTimeoutInSeconds(httpClientTimeoutInSeconds)) {
+        with(EnrichedSummaryConfig.get().doCheckHttpClientTimeoutInSeconds(httpClientTimeoutInSeconds)) {
             kind == expectedKind
             message == expectedMessage
         }
@@ -88,7 +87,7 @@ class EnrichedSummaryConfigTest extends BaseGradleInjectionIntegrationTest {
         }
     }
 
-    private static GlobalConfig fromXml(String xml) {
-        return (GlobalConfig) new XStream2().fromXML(xml)
+    private static EnrichedSummaryConfig fromXml(String xml) {
+        return (EnrichedSummaryConfig) new XStream2().fromXML(xml)
     }
 }

@@ -109,11 +109,8 @@ public final class MockGeServer extends ExternalResource {
     }
 
     private void handleGetScanById(Context ctx) throws JsonProcessingException {
-        boolean isGradle = false;
-        if(PUBLIC_BUILD_SCAN_ID.equals(ctx.getPathTokens().get("scanId"))) {
-            // Maven build scans are published to scans.gradle.com
-            isGradle = true;
-        }
+        // Maven build scans are published to scans.gradle.com
+        boolean isGradle = PUBLIC_BUILD_SCAN_ID.equals(ctx.getPathTokens().get("scanId"));
 
         Map<String, String> responseBody =
                 ImmutableMap.of(

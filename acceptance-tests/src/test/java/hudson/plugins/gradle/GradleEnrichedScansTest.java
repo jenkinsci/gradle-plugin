@@ -60,7 +60,7 @@ public class GradleEnrichedScansTest extends AbstractAcceptanceTest {
         build.open();
         WebElement scanDetails = build.find(By.id("scanDetails"));
         assertThat(scanDetails.findElement(By.className("project-name")).getText(), equalTo("foo"));
-        assertThat(scanDetails.findElement(By.className("requested-tasks")).getText(), equalTo("clean, build"));
+        assertThat(scanDetails.findElement(By.className("requested-tasks")).getText(), equalTo("[clean, build]"));
         assertThat(scanDetails.findElement(By.className("build-tool-version")).getText(), equalTo("7.0"));
         assertThat(scanDetails.findElement(By.className("build-scan-link")).getAttribute("href"), equalTo(mockGeServer.publicBuildScanId()));
 

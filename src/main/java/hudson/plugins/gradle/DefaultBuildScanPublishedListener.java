@@ -3,10 +3,8 @@ package hudson.plugins.gradle;
 import hudson.model.Actionable;
 import hudson.plugins.gradle.enriched.ScanDetail;
 import hudson.plugins.gradle.enriched.ScanDetailService;
-import hudson.plugins.gradle.enriched.ScanDetailServiceDefaultImpl;
-import hudson.util.Secret;
 
-import java.net.URI;
+import java.util.Optional;
 
 public class DefaultBuildScanPublishedListener implements BuildScanPublishedListener {
 
@@ -14,9 +12,9 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
 
     private final ScanDetailService scanDetailService;
 
-    DefaultBuildScanPublishedListener(Actionable target, Secret buildScanAccessToken, URI buildScanServer) {
+    DefaultBuildScanPublishedListener(Actionable target, ScanDetailService scanDetailService) {
         this.target = target;
-        this.scanDetailService = new ScanDetailServiceDefaultImpl(buildScanAccessToken, buildScanServer);
+        this.scanDetailService = scanDetailService;
     }
 
     @Override
@@ -32,11 +30,9 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
         processScanDetail(action, scanUrl);
     }
 
-    void processScanDetail(BuildScanAction action, String scanUrl) {
-        ScanDetail scanDetail = scanDetailService.getScanDetail(scanUrl);
-        if (scanDetail != null) {
-            action.addScanDetail(scanDetail);
-        }
+    private void processScanDetail(BuildScanAction action, String scanUrl) {
+        Optional<ScanDetail> scanDetail = scanDetailService.getScanDetail(scanUrl);
+        scanDetail.ifPresent(action::addScanDetail);
     }
 
 }

@@ -17,6 +17,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.By;
 
+import java.util.Map;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -108,7 +110,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         WorkflowJob job = jenkins.jobs.create(WorkflowJob.class);
 
         String pipelineTemplate = resource("/simple_gradle_project.groovy.template").asText();
-        ImmutableMap<String, String> pipelineTokens =
+        Map<String, String> pipelineTokens =
                 ImmutableMap.of(
                     "copy_resource_step", copyResourceDirStep(resource("/simple_gradle_project")),
                     "gradle_version", GRADLE_VERSION,

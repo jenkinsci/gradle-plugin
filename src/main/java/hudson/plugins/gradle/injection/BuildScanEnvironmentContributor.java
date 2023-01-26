@@ -5,7 +5,6 @@ import hudson.Extension;
 import hudson.model.EnvironmentContributor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.plugins.gradle.config.GlobalConfig;
 import hudson.util.Secret;
 
 import javax.annotation.Nonnull;
@@ -17,7 +16,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
     @Override
     public void buildEnvironmentFor(@Nonnull Run run, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
-        Secret accessKey = GlobalConfig.get().getAccessKey();
+        Secret accessKey = InjectionConfig.get().getAccessKey();
         if (accessKey != null) {
             envs.put(GRADLE_ENTERPRISE_ACCESS_KEY, accessKey.getPlainText());
         }

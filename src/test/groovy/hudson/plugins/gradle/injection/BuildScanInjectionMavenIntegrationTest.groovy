@@ -334,7 +334,7 @@ node {
     def 'build scan is published with CCUD extension applied'() {
         given:
         withInjectionConfig {
-            injectionEnabled = true
+            enabled = true
             server = "https://scans.gradle.com"
             injectMavenExtension = true
             injectCcudExtension = true
@@ -465,7 +465,7 @@ node {
 
     private DumbSlave createSlaveAndTurnOnInjection() {
         withInjectionConfig {
-            injectionEnabled = true
+            enabled = true
             server = 'https://scans.gradle.com'
             injectMavenExtension = true
         }
@@ -497,7 +497,7 @@ node {
 
     void turnOffBuildInjectionAndRestart(DumbSlave slave) {
         withInjectionConfig {
-            injectionEnabled = true
+            enabled = true
             server = 'https://scans.gradle.com'
             injectMavenExtension = false
         }
@@ -508,7 +508,7 @@ node {
 
     void turnOnBuildInjectionAndRestart(DumbSlave slave, Boolean useCCUD = true) {
         withInjectionConfig {
-            injectionEnabled = true
+            enabled = true
             server = 'https://scans.gradle.com'
             injectMavenExtension = true
             injectCcudExtension = useCCUD

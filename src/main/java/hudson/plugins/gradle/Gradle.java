@@ -12,7 +12,8 @@ import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Result;
-import hudson.plugins.gradle.config.GlobalConfig;
+import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
+import hudson.plugins.gradle.enriched.ScanDetailService;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
@@ -310,7 +311,8 @@ public class Gradle extends Builder {
         }
 
         try {
-            DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, GlobalConfig.get().getBuildScanAccessKey(), GlobalConfig.get().getBuildScanServerUri());
+            ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
+            DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, scanDetailService);
             GradleConsoleAnnotator gca = new GradleConsoleAnnotator(listener.getLogger(), build.getCharset(), true, buildScanListener);
 
             int r;

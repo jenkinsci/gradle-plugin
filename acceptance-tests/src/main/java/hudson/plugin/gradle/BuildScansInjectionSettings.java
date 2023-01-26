@@ -10,7 +10,8 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
 
     private static final String XPATH = "//*[@path='%s']";
 
-    private static final String INJECTION_CONFIG_PATH = "/hudson-plugins-gradle-config-GlobalConfig/";
+    private static final String INJECTION_CONFIG_PATH = "/hudson-plugins-gradle-injection-InjectionConfig/";
+    private static final String ENRICHED_CONFIG_PATH = "/hudson-plugins-gradle-enriched-EnrichedSummaryConfig/";
 
     private static final String SERVER_FIELD = "server";
     private static final String BUILD_SCAN_SERVER_FIELD = "buildScanServer";
@@ -27,7 +28,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     }
 
     public void setGradleEnterpriseBuildScanServerUrl(URI server) {
-        setBuildScansInjectionFormValue(BUILD_SCAN_SERVER_FIELD, server.toString());
+        setBuildScansEnrichedFormValue(BUILD_SCAN_SERVER_FIELD, server.toString());
     }
 
     public void clickBuildScansInjection() {
@@ -57,4 +58,10 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         driver.findElement(xpath).sendKeys(value);
     }
 
+    private void setBuildScansEnrichedFormValue(String field, String value) {
+        ensureConfigPage();
+
+        By xpath = By.xpath(String.format(XPATH, ENRICHED_CONFIG_PATH + field));
+        driver.findElement(xpath).sendKeys(value);
+    }
 }
