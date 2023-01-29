@@ -279,7 +279,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         !initScript.exists()
 
         when:
-        enableBuildInjection(slave, gradleVersion, true)
+        enableBuildInjection(slave, gradleVersion, null, true)
 
         then:
         initScript.exists()
@@ -606,8 +606,8 @@ task hello {
 
     private void enableBuildInjection(DumbSlave slave,
                                       String gradleVersion,
-                                      Boolean globalAutoInjectionCheckEnabled = false,
-                                      URI repositoryAddress = null) {
+                                      URI repositoryAddress = null,
+                                      Boolean globalAutoInjectionCheckEnabled = false) {
         withGlobalEnvVars {
             put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
             put('GRADLE_OPTS', '-Dscan.uploadInBackground=false')
