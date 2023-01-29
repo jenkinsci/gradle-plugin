@@ -1,5 +1,6 @@
 package hudson.plugins.gradle.injection;
 
+import hudson.EnvVars;
 import hudson.PluginWrapper;
 import hudson.model.labels.LabelAtom;
 import hudson.plugins.gradle.util.CollectionUtil;
@@ -20,7 +21,13 @@ public final class InjectionUtil {
 
     public static final VersionNumber MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION = new VersionNumber("3.20");
 
+    public static final String JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK = "JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK";
+
     private InjectionUtil() {
+    }
+
+    public static boolean globalAutoInjectionCheckEnabled(EnvVars envVars) {
+        return EnvUtil.getEnv(envVars, JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK) != null;
     }
 
     public static Optional<VersionNumber> mavenPluginVersionNumber() {
