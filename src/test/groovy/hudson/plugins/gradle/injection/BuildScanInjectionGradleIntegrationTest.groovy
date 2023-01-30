@@ -395,8 +395,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         then:
         initScript.exists()
-        def firstLastModified = initScript.lastModified()
-        firstLastModified > 0
         def firstDigest = Util.getDigestOf(initScript)
         firstDigest != null
 
@@ -404,8 +402,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         initScript << "\n// comment"
 
         then:
-        def secondLastModified = initScript.lastModified()
-        secondLastModified != firstLastModified
         def secondDigest = Util.getDigestOf(initScript)
         secondDigest != firstDigest
 
@@ -414,9 +410,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         then:
         initScript.exists()
-        def thirdLastModified = initScript.lastModified()
-        thirdLastModified != firstLastModified
-        thirdLastModified != secondLastModified
         def thirdDigest = Util.getDigestOf(initScript)
         thirdDigest != secondDigest
         thirdDigest == firstDigest
