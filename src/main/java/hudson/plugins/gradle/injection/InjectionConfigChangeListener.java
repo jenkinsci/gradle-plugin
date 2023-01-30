@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Supplier;
 
+/**
+ * Performs build scans auto-injection/cleanup when the {@link InjectionConfig} changes.
+ */
 @Extension
 public class InjectionConfigChangeListener extends SaveableListener {
 

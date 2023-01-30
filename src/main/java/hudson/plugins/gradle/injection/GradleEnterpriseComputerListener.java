@@ -11,6 +11,11 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Performs build scans auto-injection/cleanup when a {@link Computer} comes online.
+ *
+ * @see InjectionConfig
+ */
 @Extension
 public class GradleEnterpriseComputerListener extends ComputerListener {
 
