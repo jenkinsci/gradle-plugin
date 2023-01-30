@@ -3,12 +3,8 @@ package hudson.plugins.gradle.injection;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import hudson.FilePath;
-import org.apache.commons.io.IOUtils;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -83,25 +79,18 @@ public class MavenExtensionsHandler {
     }
 
     public enum MavenExtension {
-        GRADLE_ENTERPRISE("gradle-enterprise-maven-extension"),
-        CCUD("common-custom-user-data-maven-extension"),
+        GRADLE_ENTERPRISE("gradle-enterprise-maven-extension", ExtensionsVersions.GE_EXTENSION_VERSION),
+        CCUD("common-custom-user-data-maven-extension", ExtensionsVersions.CCUD_EXTENSION_VERSION),
         CONFIGURATION("configuration-maven-extension", "1.0.0");
 
         private static final String JAR_EXTENSION = ".jar";
 
         private final String name;
-        private final Supplier<String> version;
+        private final String version;
 
-        MavenExtension(String name) {
-            this(name, null);
-        }
-
-        MavenExtension(String name, @Nullable String fixedVersion) {
+        MavenExtension(String name, String version) {
             this.name = name;
-            this.version =
-                fixedVersion != null
-                    ? Suppliers.ofInstance(fixedVersion)
-                    : Suppliers.memoize(this::getExtensionVersion);
+            this.version = version;
         }
 
         public String getTargetJarName() {
@@ -109,21 +98,7 @@ public class MavenExtensionsHandler {
         }
 
         public String getEmbeddedJarName() {
-            return name + "-" + version.get() + JAR_EXTENSION;
-        }
-
-        private String getExtensionVersion() {
-            try {
-                String resourceName = name + "-version.txt";
-                try (InputStream is = MavenBuildScanInjection.class.getResourceAsStream("/versions/" + resourceName)) {
-                    if (is == null) {
-                        throw new IllegalStateException("Could not find resource: " + resourceName);
-                    }
-                    return IOUtils.toString(is, StandardCharsets.UTF_8);
-                }
-            } catch (IOException e) {
-                throw new IllegalStateException(e);
-            }
+            return name + "-" + version + JAR_EXTENSION;
         }
     }
 }

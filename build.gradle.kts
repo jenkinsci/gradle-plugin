@@ -223,23 +223,41 @@ tasks.withType<AbstractPublishToMaven> {
 defaultTasks.add("test")
 defaultTasks.add("jpi")
 
-val generateVersionFile: Task by tasks.creating {
-    val versionsDir = layout.buildDirectory.dir("versions")
-    doLast {
-        val outputDir = versionsDir.get().asFile
-        outputDir.mkdirs()
-
-        File(outputDir, "gradle-enterprise-maven-extension-version.txt")
-            .writeText(gradleEnterpriseMavenExtensionVersion)
-        File(outputDir, "common-custom-user-data-maven-extension-version.txt")
-            .writeText(commonCustomUserDataMavenExtensionVersion)
-    }
-
+val generateExtensionsVersions: Task by tasks.creating {
     inputs.property("gradleEnterpriseMavenExtensionVersion", gradleEnterpriseMavenExtensionVersion)
     inputs.property("commonCustomUserDataMavenExtensionVersion", commonCustomUserDataMavenExtensionVersion)
 
-    outputs.dir(versionsDir)
-        .withPropertyName("versionsDir")
+    val srcDir = layout.buildDirectory.file("generated/sources/extensionsVersions/java/main")
+    outputs
+        .dir(srcDir)
+        .withPropertyName("extensionsVersions")
+
+    doLast {
+        val packages = File(srcDir.get().asFile, "hudson/plugins/gradle/injection")
+        if (!packages.exists()) {
+            packages.mkdirs()
+        }
+
+        val file = File(packages, "ExtensionsVersions.java")
+        file.writeText(
+            """
+            package hudson.plugins.gradle.injection;
+
+            public final class ExtensionsVersions {
+
+                public static final String GE_EXTENSION_VERSION = "$gradleEnterpriseMavenExtensionVersion";
+                public static final String CCUD_EXTENSION_VERSION = "$commonCustomUserDataMavenExtensionVersion";
+
+                private ExtensionsVersions() {
+                }
+            }
+        """.trimIndent()
+        )
+    }
+}
+
+sourceSets.main {
+    java.srcDir(generateExtensionsVersions)
 }
 
 val createWrapperZip by tasks.creating(Zip::class) {
@@ -258,9 +276,6 @@ tasks.processTestResources {
     from(includedLibs) {
         into("hudson/plugins/gradle/injection")
     }
-    from(generateVersionFile.outputs.files) {
-        into("versions")
-    }
 }
 
 tasks.processResources {
@@ -275,9 +290,6 @@ tasks.processResources {
 tasks.jar {
     from(includedLibs) {
         into("hudson/plugins/gradle/injection")
-    }
-    from(generateVersionFile.outputs.files) {
-        into("versions")
     }
 }
 
