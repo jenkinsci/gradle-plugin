@@ -7,14 +7,14 @@
             <h1><img src="${resURL}/plugin/gradle/images/svgs/gradle-build-scan.svg" alt="Build Scan"
                      width="48" height="48"/> Build Scans</h1>
 
-            <j:if test="${it.scanDetails == null}">
+            <j:if test="${empty(it.scanDetails)}">
                 <ul>
                     <j:forEach items="${it.scanUrls}" var="scanUrl">
                         <li><a href="${scanUrl}">${scanUrl}</a></li>
                     </j:forEach>
                 </ul>
             </j:if>
-            <j:if test="${it.scanDetails != null}">
+            <j:if test="${!empty(it.scanDetails)}">
                 <table class="jenkins-table jenkins-!-margin-bottom-0">
                     <tr>
                         <th class="large-column">Project</th>

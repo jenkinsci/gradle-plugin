@@ -1,0 +1,30 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:section title="${%Gradle Enterprise Build Scans}">
+
+        <f:optionalBlock field="enrichedSummaryEnabled" title="${%Enable enriched summary}" inline="true">
+
+            <f:entry title="${%Gradle Enterprise server URL override}" field="buildScanServer">
+                <f:textbox />
+            </f:entry>
+
+            <f:entry title="${%Gradle Enterprise access key for build scan values}" field="buildScanAccessKey">
+                <f:password/>
+            </f:entry>
+
+            <f:section title="${%HTTP client settings}">
+                <f:entry title="${%Timeout in seconds}" field="httpClientTimeoutInSeconds">
+                    <f:textbox />
+                </f:entry>
+                <f:entry title="${%Maximum retries}" field="httpClientMaxRetries">
+                    <f:textbox />
+                </f:entry>
+                <f:entry title="${%Delay between retries in seconds}" field="httpClientDelayBetweenRetriesInSeconds">
+                    <f:textbox />
+                </f:entry>
+            </f:section>
+
+        </f:optionalBlock>
+
+    </f:section>
+</j:jelly>

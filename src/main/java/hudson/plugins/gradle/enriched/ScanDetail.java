@@ -7,6 +7,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.List;
+import java.util.Locale;
 
 @ExportedBean
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -17,6 +18,10 @@ public class ScanDetail {
         GRADLE,
         @JsonProperty("maven")
         MAVEN;
+
+        String getAttributesUrlSuffix() {
+            return String.format("/%s-attributes", name().toLowerCase(Locale.ROOT));
+        }
     }
 
     private final String url;

@@ -165,8 +165,8 @@ class ScanDetailServiceDefaultImplTest extends Specification {
 
         where:
         buildToolType | httpResponseBody
-        "gradle"      | "{\"foo\":\"bar\",\"rootProjectName\":\"project\",\"requestedTasks\":[\"clean\",\"build\"],\"hasFailed\":false}"
-        "maven"       | "{\"foo\":\"bar\",\"topLevelProjectName\":\"project\",\"requestedGoals\":[\"clean\",\"build\"],\"hasFailed\":false}"
+        "gradle"      | '{"foo":"bar","rootProjectName":"project","requestedTasks":["clean","build"],"hasFailed":false}'
+        "maven"       | '{"foo":"bar","topLevelProjectName":"project","requestedGoals":["clean","build"],"hasFailed":false}'
     }
 
     @Unroll
@@ -205,8 +205,8 @@ class ScanDetailServiceDefaultImplTest extends Specification {
 
         where:
         buildToolType | httpResponseBody
-        "gradle"      | "{\"rootProjectName\":\"project\",\"requestedTasks\":[\"clean\",\"build\"],\"hasFailed\":false}"
-        "maven"       | "{\"topLevelProjectName\":\"project\",\"requestedGoals\":[\"clean\",\"build\"],\"hasFailed\":false}"
+        "gradle"      | '{"foo":"bar","rootProjectName":"project","requestedTasks":["clean","build"],"hasFailed":false}'
+        "maven"       | '{"topLevelProjectName":"project","requestedGoals":["clean","build"],"hasFailed":false}'
     }
 
 }

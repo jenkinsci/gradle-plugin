@@ -25,8 +25,6 @@ public class ScanDetailService {
     private static final String GRADLE_ENTERPRISE_PUBLIC_SERVER = "https://gradle.com";
     private static final String URL_CONTEXT_PATH_SCAN_ID = "/s/";
     private static final String URL_CONTEXT_PATH_API_BUILDS = "/api/builds/";
-    private static final String URL_CONTEXT_PATH_GRADLE_ATTRIBUTES = "/gradle-attributes";
-    private static final String URL_CONTEXT_PATH_MAVEN_ATTRIBUTES = "/maven-attributes";
 
     private HttpClientFactory httpClientFactory;
 
@@ -66,8 +64,8 @@ public class ScanDetailService {
         }
 
         String baseApiUri = getBaseApiUri(buildScanUrl);
-        if(null == baseApiUri || baseApiUri.isEmpty()) {
-            LOGGER.info("Gradle Enterprise API URL can't be resolved");
+        if (null == baseApiUri || baseApiUri.isEmpty()) {
+            LOGGER.error("Gradle Enterprise API URL can't be resolved");
             return null;
         }
 
@@ -77,7 +75,7 @@ public class ScanDetailService {
             ScanDetail scanDetail = new ScanDetail(buildScanUrl);
             try (CloseableHttpResponse responseApiBuilds = httpclient.execute(httpGetApiBuilds)) {
                 if (responseApiBuilds.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                    LOGGER.info("Unable to fetch build scan data [{}]", responseApiBuilds.getStatusLine().getStatusCode());
+                    LOGGER.warn("Unable to fetch build scan data [{}]", responseApiBuilds.getStatusLine().getStatusCode());
                     return null;
                 }
 
@@ -86,12 +84,12 @@ public class ScanDetailService {
                     String apiBuildsResponse = EntityUtils.toString(httpEntityApiBuilds);
                     ObjectReader objectReader = MAPPER.readerForUpdating(scanDetail);
                     scanDetail = objectReader.readValue(apiBuildsResponse);
-                    String suffix = getUrlSuffix(scanDetail.getBuildToolType());
+                    String suffix = null != scanDetail.getBuildToolType() ? scanDetail.getBuildToolType().getAttributesUrlSuffix() : "unsupported";
                     HttpGet httpGetBuildAttributes = buildGetRequest(baseApiUri + suffix);
 
                     try (CloseableHttpResponse responseApiBuildAttributes = httpclient.execute(httpGetBuildAttributes)) {
                         if (responseApiBuildAttributes.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                            LOGGER.info("Unable to fetch build scan data [{}]", responseApiBuildAttributes.getStatusLine().getStatusCode());
+                            LOGGER.warn("Unable to fetch build scan data [{}]", responseApiBuildAttributes.getStatusLine().getStatusCode());
                             return null;
                         }
 
@@ -125,34 +123,17 @@ public class ScanDetailService {
 
             return baseApiUri.resolve(URL_CONTEXT_PATH_API_BUILDS).resolve(scanId).toASCIIString();
         } catch(IllegalArgumentException e) {
-            LOGGER.info("URL can't be parsed [{}]", e.getMessage());
+            LOGGER.warn("URL {} can't be parsed", buildScanUrl, e);
             return null;
         }
     }
 
-    private static String getUrlSuffix(ScanDetail.BuildToolType buildToolType) {
-        String suffix = "";
-        switch (buildToolType) {
-            case GRADLE:
-                suffix = URL_CONTEXT_PATH_GRADLE_ATTRIBUTES;
-                break;
-            case MAVEN:
-                suffix = URL_CONTEXT_PATH_MAVEN_ATTRIBUTES;
-                break;
-        }
-        return suffix;
-    }
-
     private HttpGet buildGetRequest(String uri) {
         HttpGet httpGet = new HttpGet(uri);
-        addBearerAuth(httpGet);
-        return httpGet;
-    }
-
-    private void addBearerAuth(HttpGet httpGetApiBuilds) {
         if (buildScanAccessToken != null) {
-            httpGetApiBuilds.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + buildScanAccessToken.getPlainText());
+            httpGet.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + buildScanAccessToken.getPlainText());
         }
+        return httpGet;
     }
 
 }

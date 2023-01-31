@@ -5,8 +5,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.junit.rules.ExternalResource;
@@ -124,10 +124,12 @@ public final class MockGeServer extends ExternalResource {
     }
 
     private void handleGetScanGradleAttributesById(Context ctx) throws JsonProcessingException {
-        ObjectNode gradleScanAttributes = JSON_OBJECT_MAPPER.createObjectNode();
-        gradleScanAttributes.put("rootProjectName", "foo");
-        gradleScanAttributes.put("hasFailed", "false");
-        gradleScanAttributes.set("requestedTasks", JSON_OBJECT_MAPPER.createArrayNode().add("clean").add("build"));
+        Map<String, Object> gradleScanAttributes =
+                ImmutableMap.of(
+                        "rootProjectName", "foo",
+                        "hasFailed", "false",
+                        "requestedTasks", ImmutableList.of("clean", "build")
+                );
 
         ctx.getResponse()
                 .contentType("application/json")
@@ -135,10 +137,12 @@ public final class MockGeServer extends ExternalResource {
     }
 
     private void handleGetScanMavenAttributesById(Context ctx) throws JsonProcessingException {
-        ObjectNode gradleScanAttributes = JSON_OBJECT_MAPPER.createObjectNode();
-        gradleScanAttributes.put("topLevelProjectName", "bar");
-        gradleScanAttributes.put("hasFailed", "false");
-        gradleScanAttributes.set("requestedGoals", JSON_OBJECT_MAPPER.createArrayNode().add("clean").add("package"));
+        Map<String, Object> gradleScanAttributes =
+                ImmutableMap.of(
+                        "topLevelProjectName", "bar",
+                        "hasFailed", "false",
+                        "requestedGoals", ImmutableList.of("clean", "package")
+                );
 
         ctx.getResponse()
                 .contentType("application/json")

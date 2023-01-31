@@ -56,7 +56,7 @@ public abstract class AbstractBuildScanAction implements Action {
 
     @Exported
     public List<ScanDetail> getScanDetails() {
-        return scanDetails.isEmpty() ? null : Collections.unmodifiableList(scanDetails);
+        return Collections.unmodifiableList(scanDetails);
     }
 
     private Object readResolve() {

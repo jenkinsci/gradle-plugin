@@ -91,9 +91,12 @@ image::find-build-scans.png[Find build scans,{thumbnail}]
 
 Build scans links on the Job summary page can be enriched with data fetched from the https://docs.gradle.com/enterprise/api-manual/[Gradle Enterprise server API].
 If enabled, the project name, requested tasks, build tool version, build outcome and build scan links will be provided.
-This feature is available for both Gradle and Maven builds.
+This feature is available for both Gradle and Maven builds and compatible with auto-injection documented below.
 
 image::enriched-build-scans.png[Enriched build scans,{thumbnail}]
+
+> **Note**
+> - Build scans published on the public instance (https://gradle.com) are not eligible.
 
 > **Note**
 > - Enabling this feature will trigger 2 HTTP requests to the Gradle Enterprise server per build scan published.
