@@ -122,7 +122,7 @@ public class ScanDetailService {
                     : URI.create(buildScanUrl).resolve("/");
 
             return baseApiUri.resolve(URL_CONTEXT_PATH_API_BUILDS).resolve(scanId).toASCIIString();
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             LOGGER.warn("URL {} can't be parsed", buildScanUrl, e);
             return null;
         }
