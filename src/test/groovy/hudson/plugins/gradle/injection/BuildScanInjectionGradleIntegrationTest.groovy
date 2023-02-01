@@ -238,7 +238,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         gradleVersion << GRADLE_VERSIONS
     }
 
-    def 'init script is deleted without gradle plugin version set'(String gradleVersion) {
+    def 'Gradle #gradleVersion - init script is deleted when auto-injection is turned off'(String gradleVersion) {
         given:
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -257,13 +257,41 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         initScript.exists()
 
         when:
-        disableBuildInjection(slave, gradleVersion)
+        disableBuildInjection(slave)
+
+        then:
+        !initScript.exists()
+
+        where:
+        gradleVersion << GRADLE_VERSIONS
+    }
+
+    def 'Gradle #gradleVersion - init script is deleted without gradle plugin version set'(String gradleVersion) {
+        given:
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave slave = createSlave()
+
+        File initScript = initScriptFile(slave, gradleVersion)
+
+        expect:
+        !initScript.exists()
+
+        when:
+        enableBuildInjection(slave, gradleVersion, null, true)
 
         then:
         initScript.exists()
 
         when:
-        turnOffBuildInjection(slave, gradleVersion)
+        disableBuildInjection(slave)
+
+        then:
+        initScript.exists()
+
+        when:
+        turnOffBuildInjection(slave)
 
         then:
         !initScript.exists()
@@ -367,8 +395,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         then:
         initScript.exists()
-        def firstLastModified = initScript.lastModified()
-        firstLastModified > 0
         def firstDigest = Util.getDigestOf(initScript)
         firstDigest != null
 
@@ -376,8 +402,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         initScript << "\n// comment"
 
         then:
-        def secondLastModified = initScript.lastModified()
-        secondLastModified != firstLastModified
         def secondDigest = Util.getDigestOf(initScript)
         secondDigest != firstDigest
 
@@ -386,9 +410,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
 
         then:
         initScript.exists()
-        def thirdLastModified = initScript.lastModified()
-        thirdLastModified != firstLastModified
-        thirdLastModified != secondLastModified
         def thirdDigest = Util.getDigestOf(initScript)
         thirdDigest != secondDigest
         thirdDigest == firstDigest
@@ -576,10 +597,16 @@ task hello {
         return "${slave.getRemoteFS()}/tools/hudson.plugins.gradle.GradleInstallation/${gradleVersion}"
     }
 
-    private void enableBuildInjection(DumbSlave slave, String gradleVersion, URI repositoryAddress = null) {
+    private void enableBuildInjection(DumbSlave slave,
+                                      String gradleVersion,
+                                      URI repositoryAddress = null,
+                                      Boolean globalAutoInjectionCheckEnabled = false) {
         withGlobalEnvVars {
             put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
             put('GRADLE_OPTS', '-Dscan.uploadInBackground=false')
+            if (globalAutoInjectionCheckEnabled) {
+                put("JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK", "true")
+            }
         }
 
         withInjectionConfig {
@@ -591,11 +618,7 @@ task hello {
         restartSlave(slave)
     }
 
-    private void disableBuildInjection(DumbSlave slave, String gradleVersion) {
-        withGlobalEnvVars {
-            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
-        }
-
+    private void disableBuildInjection(DumbSlave slave) {
         withInjectionConfig {
             enabled = false
         }
@@ -603,11 +626,7 @@ task hello {
         restartSlave(slave)
     }
 
-    private void turnOffBuildInjection(DumbSlave slave, String gradleVersion) {
-        withGlobalEnvVars {
-            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
-        }
-
+    private void turnOffBuildInjection(DumbSlave slave) {
         withInjectionConfig {
             enabled = true
             gradlePluginVersion = null
