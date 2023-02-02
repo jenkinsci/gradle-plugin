@@ -225,7 +225,7 @@ The following table shows the compatibility of the plugin version with Gradle En
 
 |===
 |Jenkins Gradle Plugin version  | Injected Gradle Enterprise Maven extension version | Injected Common Custom User Data Maven extension version  | Minimum supported Gradle Enterprise version
-|Next version                   | 1.16.2                                             | 1.11.1                                                    | 2022.3
+|Next version                   | 1.16.3                                             | 1.11.1                                                    | 2022.3
 |2.2                            | 1.16.1                                             | 1.11.1                                                    | 2022.3
 |2.1.1                          | 1.15.5                                             | 1.11.1                                                    | 2022.3
 |2.1                            | 1.15.4                                             | 1.11.1                                                    | 2022.3
