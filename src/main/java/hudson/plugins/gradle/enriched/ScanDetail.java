@@ -8,6 +8,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @ExportedBean
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -66,5 +67,17 @@ public class ScanDetail {
         return url;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ScanDetail that = (ScanDetail) o;
+        return Objects.equals(url, that.url) && Objects.equals(projectName, that.projectName) && buildToolType == that.buildToolType && Objects.equals(buildToolVersion, that.buildToolVersion) && Objects.equals(tasks, that.tasks) && Objects.equals(hasFailed, that.hasFailed);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url, projectName, buildToolType, buildToolVersion, tasks, hasFailed);
+    }
 }
 

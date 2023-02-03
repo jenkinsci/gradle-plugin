@@ -65,7 +65,6 @@ public class ScanDetailService {
 
         String baseApiUri = getBaseApiUri(buildScanUrl);
         if (null == baseApiUri || baseApiUri.isEmpty()) {
-            LOGGER.error("Gradle Enterprise API URL can't be resolved");
             return null;
         }
 
@@ -103,7 +102,7 @@ public class ScanDetailService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.info("Error fetching data [{}]", e.getMessage());
+            LOGGER.warn("Error fetching build scan details", e);
         }
 
         return null;
@@ -112,6 +111,7 @@ public class ScanDetailService {
     private String getBaseApiUri(String buildScanUrl) {
         int scanIdStartIndex = buildScanUrl.lastIndexOf(URL_CONTEXT_PATH_SCAN_ID);
         if (scanIdStartIndex < 0) {
+            LOGGER.warn("Build scan ID can't be parsed in {}", buildScanUrl);
             return null;
         }
         String scanId = buildScanUrl.substring(scanIdStartIndex + URL_CONTEXT_PATH_SCAN_ID.length());
@@ -123,7 +123,7 @@ public class ScanDetailService {
 
             return baseApiUri.resolve(URL_CONTEXT_PATH_API_BUILDS).resolve(scanId).toASCIIString();
         } catch (IllegalArgumentException e) {
-            LOGGER.warn("URL {} can't be parsed", buildScanUrl, e);
+            LOGGER.warn("URL can't be parsed", e);
             return null;
         }
     }
