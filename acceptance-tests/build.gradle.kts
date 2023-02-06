@@ -4,7 +4,7 @@ import java.net.URL
 
 plugins {
     java
-    id("de.undercouch.download") version "5.3.0"
+    id("de.undercouch.download") version "5.3.1"
 }
 
 val athVersion = "5478.vb_b_cd04943676"
