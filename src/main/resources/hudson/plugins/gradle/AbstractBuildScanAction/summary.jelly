@@ -1,11 +1,41 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson">
+<j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson" xmlns:st="jelly:stapler">
+    <st:include page="enriched-css.jelly" />
     <t:summary icon="/plugin/gradle/images/svgs/gradle-build-scan.svg">
         <h2>Build Scans</h2>
-        <ul>
-            <j:forEach items="${it.scanUrls}" var="scanUrl">
-                <li><a href="${scanUrl}">${scanUrl}</a></li>
-            </j:forEach>
-        </ul>
+        <j:if test="${empty(it.scanDetails)}">
+            <ul>
+                <j:forEach items="${it.scanUrls}" var="scanUrl">
+                    <li><a href="${scanUrl}">${scanUrl}</a></li>
+                </j:forEach>
+            </ul>
+        </j:if>
+        <j:if test="${!empty(it.scanDetails)}">
+            <table id="scanDetails" class="jenkins-table jenkins-!-margin-bottom-0">
+                <tr>
+                    <th class="large-column">Project</th>
+                    <th class="large-column">Tasks</th>
+                    <th class="medium-column">Built Tool Version</th>
+                    <th class="default-column">Outcome</th>
+                    <th class="medium-column">Build Scan</th>
+                </tr>
+                <j:forEach items="${it.scanDetails}" var="scanDetail">
+                    <tr>
+                        <td class="large-column project-name">${scanDetail.projectName}</td>
+                        <td class="large-column requested-tasks">${scanDetail.tasks}</td>
+                        <td class="medium-column build-tool-version">${scanDetail.buildToolVersion}</td>
+                        <j:choose>
+                            <j:when test="${scanDetail.hasFailed}">
+                                <td class="default-column">&#10060;</td>
+                            </j:when>
+                            <j:otherwise>
+                                <td class="default-column">&#9989;</td>
+                            </j:otherwise>
+                        </j:choose>
+                        <td class="medium-column"><a href="${scanDetail.url}" class="jenkins-table__link build-scan-link">Link</a></td>
+                    </tr>
+                </j:forEach>
+            </table>
+        </j:if>
     </t:summary>
 </j:jelly>

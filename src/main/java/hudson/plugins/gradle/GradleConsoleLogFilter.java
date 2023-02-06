@@ -3,6 +3,8 @@ package hudson.plugins.gradle;
 import hudson.console.ConsoleLogFilter;
 import hudson.model.FreeStyleBuild;
 import hudson.model.Run;
+import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
+import hudson.plugins.gradle.enriched.ScanDetailService;
 import hudson.tasks.Builder;
 
 import java.io.IOException;
@@ -23,7 +25,9 @@ public class GradleConsoleLogFilter extends ConsoleLogFilter implements Serializ
             }
         }
 
-        DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build);
+        ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
+        DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, scanDetailService);
+
         return new GradleConsoleAnnotator(logger, build.getCharset(), usesGradleBuilder, buildScanListener);
     }
 }

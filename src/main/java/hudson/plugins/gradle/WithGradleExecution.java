@@ -2,6 +2,9 @@ package hudson.plugins.gradle;
 
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
+import hudson.plugins.gradle.enriched.ScanDetail;
+import hudson.plugins.gradle.enriched.ScanDetailService;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
 import org.jenkinsci.plugins.workflow.steps.BodyExecutionCallback;
@@ -13,6 +16,7 @@ import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class WithGradleExecution extends StepExecution {
 
@@ -69,7 +73,12 @@ public class WithGradleExecution extends StepExecution {
                 BuildScanAction buildScanAction = existingAction == null
                         ? new BuildScanAction()
                         : existingAction;
-                buildScans.forEach(buildScanAction::addScanUrl);
+                ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
+                buildScans.forEach(scanUrl -> {
+                    buildScanAction.addScanUrl(scanUrl);
+                    Optional<ScanDetail> scanDetail = scanDetailService.getScanDetail(scanUrl);
+                    scanDetail.ifPresent(buildScanAction::addScanDetail);
+                });
                 if (existingAction == null) {
                     run.addAction(buildScanAction);
                 }

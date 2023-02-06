@@ -2,6 +2,7 @@ package hudson.plugins.gradle;
 
 import hudson.model.Action;
 import hudson.model.Actionable;
+import hudson.plugins.gradle.enriched.ScanDetail;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -18,6 +19,8 @@ public abstract class AbstractBuildScanAction implements Action {
     protected transient Actionable target;
 
     private List<String> scanUrls = new ArrayList<>();
+
+    private List<ScanDetail> scanDetails = new ArrayList<>();
 
     @Override
     public String getIconFileName() {
@@ -40,9 +43,20 @@ public abstract class AbstractBuildScanAction implements Action {
         }
     }
 
+    public void addScanDetail(ScanDetail scanDetail) {
+        if (!scanDetails.contains(scanDetail)) {
+            scanDetails.add(scanDetail);
+        }
+    }
+
     @Exported
     public List<String> getScanUrls() {
         return Collections.unmodifiableList(scanUrls);
+    }
+
+    @Exported
+    public List<ScanDetail> getScanDetails() {
+        return Collections.unmodifiableList(scanDetails);
     }
 
     private Object readResolve() {

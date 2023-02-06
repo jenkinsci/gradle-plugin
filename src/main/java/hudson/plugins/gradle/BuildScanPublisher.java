@@ -2,6 +2,8 @@ package hudson.plugins.gradle;
 
 import hudson.Extension;
 import hudson.model.Run;
+import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
+import hudson.plugins.gradle.enriched.ScanDetailService;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
@@ -36,7 +38,9 @@ public class BuildScanPublisher extends Step {
         @Override
         protected List<String> run() throws Exception {
             Run run = getContext().get(Run.class);
-            BuildScanLogScanner scanner = new BuildScanLogScanner(new DefaultBuildScanPublishedListener(run));
+            ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
+
+            BuildScanLogScanner scanner = new BuildScanLogScanner(new DefaultBuildScanPublishedListener(run, scanDetailService));
             try (
                     BufferedReader logReader = new BufferedReader(run.getLogReader());
                     Stream<String> lines = logReader.lines()

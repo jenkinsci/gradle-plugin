@@ -1,8 +1,6 @@
 package hudson.plugins.gradle;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.text.StringSubstitutor;
 import org.hamcrest.Matcher;
 import org.jenkinsci.test.acceptance.junit.Resource;
 import org.jenkinsci.test.acceptance.junit.WithOS;
@@ -17,11 +15,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.openqa.selenium.By;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -65,11 +61,12 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         build.shouldSucceed();
         assertBuildScanPublished(build);
 
+        build.open();
+        build.check(build.find(By.linkText(mockGeServer.publicBuildScanId())));
+
         MockGeServer.ScanTokenRequest scanTokenRequest = mockGeServer.getLastScanTokenRequest();
         assertThat(scanTokenRequest, notNullValue());
         assertThat(scanTokenRequest.agentVersion, is(equalTo(AGENT_VERSION)));
-
-        // TODO: Check that build scan is visible on the page
     }
 
     @Test
@@ -113,14 +110,13 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         WorkflowJob job = jenkins.jobs.create(WorkflowJob.class);
 
         String pipelineTemplate = resource("/simple_gradle_project.groovy.template").asText();
-        String pipeline =
-            new StringSubstitutor(
+        Map<String, String> pipelineTokens =
                 ImmutableMap.of(
                     "copy_resource_step", copyResourceDirStep(resource("/simple_gradle_project")),
                     "gradle_version", GRADLE_VERSION,
                     "gradle_arguments", "--no-daemon helloWorld"
-                ))
-                .replace(pipelineTemplate);
+                );
+        String pipeline = resolveTemplate(pipelineTemplate, pipelineTokens);
 
         job.script.set(pipeline);
         job.sandbox.check();
@@ -207,22 +203,12 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     }
 
     private Resource settingsWithGradleEnterprise(String gePluginVersion) {
-        String settingsTemplate = resource("/settings_with_ge.gradle.template").asText();
-        String settings =
-            new StringSubstitutor(
-                ImmutableMap.of(
-                    "ge_plugin_version", gePluginVersion,
-                    "server", mockGeServer.getAddress()
-                ))
-                .replace(settingsTemplate);
+        String template = resource("/settings_with_ge.gradle.template").asText();
+        String resolvedTemplate = resolveTemplate(template, ImmutableMap.of(
+                "ge_plugin_version", gePluginVersion,
+                "server", mockGeServer.getAddress().toString()
+        ));
 
-        try {
-            File tmp = tempFolder.newFile();
-            FileUtils.writeStringToFile(tmp, settings, StandardCharsets.UTF_8);
-
-            return new Resource(tmp.toURI().toURL());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return createTmpFile(tempFolder, resolvedTemplate);
     }
 }
