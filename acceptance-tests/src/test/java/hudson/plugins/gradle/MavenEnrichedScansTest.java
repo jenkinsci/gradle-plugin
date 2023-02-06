@@ -10,10 +10,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
 @WithPlugins("gradle")
@@ -32,7 +30,7 @@ public class MavenEnrichedScansTest extends AbstractAcceptanceTest {
     }
 
     @Test
-    public void freestyleJobSendsBuildScan() {
+    public void freestyleJobSendsPublicBuildScanButDoNotEnrichIt() {
         // given
         FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
 
@@ -52,15 +50,9 @@ public class MavenEnrichedScansTest extends AbstractAcceptanceTest {
         // then
         build.shouldSucceed();
         String output = build.getConsole();
-        assertThat(output, containsString("[INFO] Publishing build scan..."));
-        // do not check build scan url as publishing to scans.gradle.com
+        assertThat(output, containsString("[INFO] Publishing build scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"));
 
-        build.open();
-        WebElement scanDetails = build.find(By.id("scanDetails"));
-        assertThat(scanDetails.findElement(By.className("project-name")).getText(), equalTo("bar"));
-        assertThat(scanDetails.findElement(By.className("requested-tasks")).getText(), equalTo("clean, package"));
-        assertThat(scanDetails.findElement(By.className("build-tool-version")).getText(), equalTo("3.8.6"));
-        // do not check build scan url as publishing to scans.gradle.com
+        // Build scans on public instance are not enriched
     }
 
 }
