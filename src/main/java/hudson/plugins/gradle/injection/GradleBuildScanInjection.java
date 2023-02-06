@@ -6,7 +6,6 @@ import com.google.common.base.Suppliers;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
-import hudson.plugins.gradle.config.GlobalConfig;
 import hudson.plugins.gradle.util.CollectionUtil;
 import hudson.remoting.VirtualChannel;
 
@@ -58,7 +57,7 @@ public class GradleBuildScanInjection implements BuildScanInjection {
 
     @Override
     public boolean isEnabled(Node node) {
-        GlobalConfig config = GlobalConfig.get();
+        InjectionConfig config = InjectionConfig.get();
 
         if (config.isDisabled() || isMissingRequiredParameters(config)) {
             return false;
