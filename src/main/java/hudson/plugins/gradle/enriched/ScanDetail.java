@@ -36,7 +36,7 @@ public class ScanDetail {
     @JsonAlias({"requestedTasks", "requestedGoals" })
     private List<String> tasks;
     @SuppressFBWarnings(value="UWF_UNWRITTEN_FIELD")
-    private String hasFailed;
+    private boolean hasFailed;
 
     ScanDetail(String url) {
         this.url = url;
@@ -60,7 +60,7 @@ public class ScanDetail {
     }
 
     public boolean getHasFailed() {
-        return "true".equals(hasFailed);
+        return hasFailed;
     }
 
     public String getUrl() {
@@ -72,7 +72,7 @@ public class ScanDetail {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ScanDetail that = (ScanDetail) o;
-        return Objects.equals(url, that.url) && Objects.equals(projectName, that.projectName) && buildToolType == that.buildToolType && Objects.equals(buildToolVersion, that.buildToolVersion) && Objects.equals(tasks, that.tasks) && Objects.equals(hasFailed, that.hasFailed);
+        return hasFailed == that.hasFailed && Objects.equals(url, that.url) && Objects.equals(projectName, that.projectName) && buildToolType == that.buildToolType && Objects.equals(buildToolVersion, that.buildToolVersion) && Objects.equals(tasks, that.tasks);
     }
 
     @Override

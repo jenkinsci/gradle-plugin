@@ -127,7 +127,7 @@ public final class MockGeServer extends ExternalResource {
         Map<String, Object> gradleScanAttributes =
                 ImmutableMap.of(
                         "rootProjectName", "foo",
-                        "hasFailed", "false",
+                        "hasFailed", false,
                         "requestedTasks", ImmutableList.of("clean", "build")
                 );
 
@@ -140,7 +140,7 @@ public final class MockGeServer extends ExternalResource {
         Map<String, Object> gradleScanAttributes =
                 ImmutableMap.of(
                         "topLevelProjectName", "bar",
-                        "hasFailed", "false",
+                        "hasFailed", false,
                         "requestedGoals", ImmutableList.of("clean", "package")
                 );
 

@@ -12,7 +12,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 @Subject(ScanDetailService.class)
-class ScanDetailServiceDefaultImplTest extends Specification {
+class ScanDetailServiceTest extends Specification {
 
     EnrichedSummaryConfig getTestConfig() {
         def config = Stub(EnrichedSummaryConfig.class)
