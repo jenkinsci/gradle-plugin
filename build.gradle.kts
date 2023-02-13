@@ -7,7 +7,7 @@ import java.util.zip.ZipFile
 
 plugins {
     id("org.jenkins-ci.jpi") version "0.48.0-rc.1"
-    id("ru.vyarus.animalsniffer") version "1.6.0"
+    id("ru.vyarus.animalsniffer") version "1.7.0"
     id("com.github.spotbugs") version "5.0.13"
     id("codenarc")
     id("buildlogic.reproducible-archives")
@@ -97,7 +97,7 @@ dependencies {
         exclude(group = "commons-logging", module = "commons-logging")
     }
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.12.4")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
 
     add(includedLibs.name, "com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}")
     add(includedLibs.name, "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}")
@@ -112,7 +112,7 @@ dependencies {
     testImplementation("org.jenkins-ci.plugins:pipeline-stage-step:2.3")
     testImplementation("org.jenkins-ci.plugins:pipeline-maven:3.10.0")
     testImplementation("org.spockframework:spock-core:1.3-groovy-2.4")
-    testImplementation("net.bytebuddy:byte-buddy:1.12.23")
+    testImplementation("net.bytebuddy:byte-buddy:1.13.0")
     testImplementation("org.objenesis:objenesis:3.3")
 
     testImplementation("io.ratpack:ratpack-groovy-test:1.9.0") {
