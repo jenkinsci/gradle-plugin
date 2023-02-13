@@ -7,7 +7,6 @@ plugins {
     id("de.undercouch.download") version "5.3.1"
 }
 
-val athVersion = "5478.vb_b_cd04943676"
 val ciTeamCityBuild: Boolean by (gradle as ExtensionAware).extra
 val ciJenkinsBuild: Boolean by (gradle as ExtensionAware).extra
 
@@ -33,10 +32,10 @@ dependencies {
     // same version as used by ATH
     annotationProcessor("org.jenkins-ci:annotation-indexer:1.12")
 
-    implementation("org.jenkins-ci:acceptance-test-harness:${athVersion}")
+    implementation("org.jenkins-ci:acceptance-test-harness:5497.vca_4a_876045ce")
 
     testImplementation(platform("io.netty:netty-bom:4.1.87.Final"))
-    testImplementation("io.ratpack:ratpack-test:1.9.0")
+    testImplementation("io.ratpack:ratpack-test:2.0.0-rc-1")
 
     add(gradlePlugin.name, project(path = ":", configuration = "gradlePluginJpi"))
 }
@@ -49,66 +48,57 @@ val jenkinsVersions = listOf(
     JenkinsVersion.V2_356
 )
 
-val allTestTasks =
-    jenkinsVersions
-        .filter { jenkinsVersion ->
-            jenkinsVersion.isDefault || currentJava.isCompatibleWith(jenkinsVersion.requiredJavaVersion)
-        }
-        .map { jenkinsVersion ->
-            val downloadJenkinsTask =
-                tasks.register<Download>("downloadJenkins${jenkinsVersion.label}") {
-                    src(jenkinsVersion.downloadUrl)
-                    dest(file("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war"))
-                    onlyIfModified(true)
-                    tempAndMove(true)
-                }
+jenkinsVersions
+    .filter { jenkinsVersion ->
+        jenkinsVersion.isDefault || currentJava.isCompatibleWith(jenkinsVersion.requiredJavaVersion)
+    }
+    .forEach { jenkinsVersion ->
+        val downloadJenkinsTask =
+            tasks.register<Download>("downloadJenkins${jenkinsVersion.label}") {
+                src(jenkinsVersion.downloadUrl)
+                dest(file("${project.gradle.gradleUserHomeDir}/jenkins-cache/${jenkinsVersion.version}/jenkins.war"))
+                onlyIfModified(true)
+                tempAndMove(true)
+            }
 
-            val testTask =
-                if (jenkinsVersion.isDefault) {
-                    tasks.named<Test>("test")
-                } else {
-                    tasks.register<Test>("test${jenkinsVersion.label}")
-                }
+        val testTask =
+            if (jenkinsVersion.isDefault) {
+                tasks.test
+            } else {
+                tasks.register<Test>("test${jenkinsVersion.label}")
+            }
 
-            testTask.configure {
-                inputs.files(downloadJenkinsTask)
-                    .withPropertyName("jenkinsWar")
-                    .withNormalizer(ClasspathNormalizer::class)
-                // Gradle doesn't support hpi extension, therefore reproducible-archives is required as well
-                inputs.files(gradlePlugin)
-                    .withPropertyName("gradlePlugin")
-                    .withNormalizer(ClasspathNormalizer::class)
+        testTask.configure {
+            inputs.files(downloadJenkinsTask)
+                .withPropertyName("jenkinsWar")
+                .withNormalizer(ClasspathNormalizer::class)
+            // Gradle doesn't support hpi extension, therefore reproducible-archives is required as well
+            inputs.files(gradlePlugin)
+                .withPropertyName("gradlePlugin")
+                .withNormalizer(ClasspathNormalizer::class)
 
-                onlyIf {
-                    // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
-                    !OperatingSystem.current().isWindows
-                }
+            onlyIf {
+                // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
+                !OperatingSystem.current().isWindows
+            }
 
-                javaLauncher.set(javaToolchains.launcherFor {
-                    languageVersion.set(jenkinsVersion.javaVersion)
-                })
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(jenkinsVersion.javaVersion)
+            })
 
-                jvmArgumentProviders.add(ChromeDriverProvider(ciTeamCityBuild))
+            jvmArgumentProviders.add(ChromeDriverProvider(ciTeamCityBuild))
 
-                doFirst {
-                    environment(mapOf(
+            doFirst {
+                environment(
+                    mapOf(
                         "JENKINS_WAR" to downloadJenkinsTask.get().outputs.files.singleFile,
                         "LOCAL_JARS" to gradlePlugin.singleFile,
                         "BROWSER" to if (ciJenkinsBuild) "firefox-container" else "chrome"
-                    ))
-                }
+                    )
+                )
             }
-
-            testTask
         }
-
-val testAllTask = tasks.register("testAll") {
-    dependsOn(allTestTasks)
-}
-
-tasks.named("check").configure {
-    dependsOn(testAllTask)
-}
+    }
 
 data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVersion: JavaLanguageVersion) {
 

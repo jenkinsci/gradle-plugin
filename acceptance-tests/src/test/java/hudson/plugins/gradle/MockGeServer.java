@@ -10,8 +10,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.junit.rules.ExternalResource;
-import ratpack.handling.Context;
-import ratpack.http.Status;
+import ratpack.core.handling.Context;
+import ratpack.core.http.Status;
 import ratpack.test.embed.EmbeddedApp;
 
 import javax.annotation.Nullable;
@@ -113,40 +113,40 @@ public final class MockGeServer extends ExternalResource {
         boolean isGradle = PUBLIC_BUILD_SCAN_ID.equals(ctx.getPathTokens().get("scanId"));
 
         Map<String, String> responseBody =
-                ImmutableMap.of(
-                        "buildToolType", isGradle ? "gradle" : "maven",
-                        "buildToolVersion", isGradle ? "7.0" : "3.8.6"
-                );
+            ImmutableMap.of(
+                "buildToolType", isGradle ? "gradle" : "maven",
+                "buildToolVersion", isGradle ? "7.0" : "3.8.6"
+            );
 
         ctx.getResponse()
-                .contentType("application/json")
-                .send(JSON_WRITER.writeValueAsBytes(responseBody));
+            .contentType("application/json")
+            .send(JSON_WRITER.writeValueAsBytes(responseBody));
     }
 
     private void handleGetScanGradleAttributesById(Context ctx) throws JsonProcessingException {
         Map<String, Object> gradleScanAttributes =
-                ImmutableMap.of(
-                        "rootProjectName", "foo",
-                        "hasFailed", false,
-                        "requestedTasks", ImmutableList.of("clean", "build")
-                );
+            ImmutableMap.of(
+                "rootProjectName", "foo",
+                "hasFailed", false,
+                "requestedTasks", ImmutableList.of("clean", "build")
+            );
 
         ctx.getResponse()
-                .contentType("application/json")
-                .send(JSON_OBJECT_MAPPER.writeValueAsBytes(gradleScanAttributes));
+            .contentType("application/json")
+            .send(JSON_OBJECT_MAPPER.writeValueAsBytes(gradleScanAttributes));
     }
 
     private void handleGetScanMavenAttributesById(Context ctx) throws JsonProcessingException {
         Map<String, Object> gradleScanAttributes =
-                ImmutableMap.of(
-                        "topLevelProjectName", "bar",
-                        "hasFailed", false,
-                        "requestedGoals", ImmutableList.of("clean", "package")
-                );
+            ImmutableMap.of(
+                "topLevelProjectName", "bar",
+                "hasFailed", false,
+                "requestedGoals", ImmutableList.of("clean", "package")
+            );
 
         ctx.getResponse()
-                .contentType("application/json")
-                .send(JSON_OBJECT_MAPPER.writeValueAsBytes(gradleScanAttributes));
+            .contentType("application/json")
+            .send(JSON_OBJECT_MAPPER.writeValueAsBytes(gradleScanAttributes));
     }
 
     public String publicBuildScanId() {
