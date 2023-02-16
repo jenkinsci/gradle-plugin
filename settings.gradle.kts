@@ -20,7 +20,7 @@ val gradleExt = (gradle as ExtensionAware).extra
 val ciJenkinsBuild by gradleExt { System.getenv("JENKINS_URL") != null }
 val ciTeamCityBuild by gradleExt { System.getenv("TEAMCITY_VERSION") != null }
 val isCi by gradleExt { ciJenkinsBuild || ciTeamCityBuild }
-val gradleEnterpriseMavenExtensionVersion by gradleExt { "1.16.3" }
+val gradleEnterpriseMavenExtensionVersion by gradleExt { "1.16.4" }
 val commonCustomUserDataMavenExtensionVersion by gradleExt { "1.11.1" }
 
 gradleEnterprise {
