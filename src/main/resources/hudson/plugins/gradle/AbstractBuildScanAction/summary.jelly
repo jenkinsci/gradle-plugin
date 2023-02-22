@@ -15,7 +15,7 @@
                 <tr>
                     <th class="large-column">Project</th>
                     <th class="large-column">Tasks</th>
-                    <th class="medium-column">Built Tool Version</th>
+                    <th class="medium-column">Build Tool Version</th>
                     <th class="default-column">Outcome</th>
                     <th class="medium-column">Build Scan</th>
                 </tr>
