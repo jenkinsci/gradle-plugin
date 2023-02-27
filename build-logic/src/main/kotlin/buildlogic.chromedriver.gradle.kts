@@ -47,17 +47,14 @@ dependencies {
     chromedriver("chromedriver:chromedriver:${chromeDriverVersion}:${driverOsFilenamePart}@zip")
 }
 
-val killRunningChromedriverInstances by tasks.registering(Exec::class) {
-    if (os.isWindows) {
-        didWork = false
-    } else {
+// We do not run acceptance-tests on Windows
+if (ciTeamCityBuild && !os.isWindows) {
+    val killRunningChromedriverInstances by tasks.registering(Exec::class) {
         val echoOption = if (os.isLinux) "e" else "l"
         commandLine("bash", "-c", "pkill -9 -${echoOption} chrome")
         isIgnoreExitValue = true
     }
-}
 
-if (ciTeamCityBuild) {
     tasks.withType(Test::class).configureEach {
         inputs.files(chromedriver)
         jvmArgumentProviders += ChromeDriverProvider(chromedriver)
