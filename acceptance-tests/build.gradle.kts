@@ -4,10 +4,10 @@ import java.net.URL
 
 plugins {
     java
+    id("buildlogic.chromedriver")
     id("de.undercouch.download") version "5.3.1"
 }
 
-val ciTeamCityBuild: Boolean by (gradle as ExtensionAware).extra
 val ciJenkinsBuild: Boolean by (gradle as ExtensionAware).extra
 
 java {
@@ -86,8 +86,6 @@ jenkinsVersions
                 languageVersion.set(jenkinsVersion.javaVersion)
             })
 
-            jvmArgumentProviders.add(ChromeDriverProvider(ciTeamCityBuild))
-
             doFirst {
                 environment(
                     mapOf(
@@ -149,15 +147,4 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
 
     val requiredJavaVersion: JavaVersion
         get() = JavaVersion.toVersion(javaVersion.toString())
-}
-
-class ChromeDriverProvider(private val teamCityBuild: Boolean) : CommandLineArgumentProvider {
-
-    override fun asArguments(): Iterable<String> =
-        // If executed on TeamCity, we need to set the Chromedriver path
-        if (teamCityBuild) {
-            listOf("-Dwebdriver.chrome.driver=${System.getenv("HOME")}/.gradle/webdriver/chromedriver/chromedriver")
-        } else {
-            emptyList()
-        }
 }
