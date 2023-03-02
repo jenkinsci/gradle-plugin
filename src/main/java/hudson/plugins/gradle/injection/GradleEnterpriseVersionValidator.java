@@ -11,12 +11,12 @@ public final class GradleEnterpriseVersionValidator implements Validator<String>
     private GradleEnterpriseVersionValidator() {
     }
 
+    public static GradleEnterpriseVersionValidator getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public boolean isValid(String value) {
         return VERSION_PATTERN.matcher(value).matches();
-    }
-
-    public static GradleEnterpriseVersionValidator getInstance() {
-        return INSTANCE;
     }
 }

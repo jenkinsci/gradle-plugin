@@ -9,6 +9,10 @@ public final class GradleEnterpriseAccessKeyValidator implements Validator<Strin
     private GradleEnterpriseAccessKeyValidator() {
     }
 
+    public static GradleEnterpriseAccessKeyValidator getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public boolean isValid(String value) {
         if (StringUtils.isBlank(value)) {
@@ -38,9 +42,5 @@ public final class GradleEnterpriseAccessKeyValidator implements Validator<Strin
         }
 
         return true;
-    }
-
-    public static GradleEnterpriseAccessKeyValidator getInstance() {
-        return INSTANCE;
     }
 }
