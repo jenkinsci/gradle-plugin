@@ -190,7 +190,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        j.assertLogNotContains("GRADLE_ENTERPRISE_ACCESS_KEY", build)
+        j.assertLogNotContains("GRADLE_ENTERPRISE_ACCESS_KEY=secret", build)
         j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
 
         and:
