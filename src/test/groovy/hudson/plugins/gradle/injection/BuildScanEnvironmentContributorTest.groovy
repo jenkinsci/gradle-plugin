@@ -4,19 +4,20 @@ import hudson.EnvVars
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.util.Secret
-import spock.lang.Specification
 import spock.lang.Subject
 
-class BuildScanEnvironmentContributorTest extends Specification {
+class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
 
     def envs = new EnvVars()
-    def injectionConfig = Mock(InjectionConfig)
+
     @Subject
-    def buildScanEnvironmentContributor = new BuildScanEnvironmentContributor({ injectionConfig })
+    def buildScanEnvironmentContributor = new BuildScanEnvironmentContributor()
 
     def 'does nothing if no access key'() {
         given:
-        injectionConfig.getAccessKey() >> null
+        def config = InjectionConfig.get()
+        config.setAccessKey(Secret.fromString(""))
+        config.save()
 
         when:
         buildScanEnvironmentContributor.buildEnvironmentFor(Mock(Run), envs, TaskListener.NULL)
@@ -27,7 +28,9 @@ class BuildScanEnvironmentContributorTest extends Specification {
 
     def 'does nothing if access key is invalid'() {
         given:
-        injectionConfig.getAccessKey() >> Secret.fromString('secret')
+        def config = InjectionConfig.get()
+        config.setAccessKey(Secret.fromString("secret"))
+        config.save()
 
         when:
         buildScanEnvironmentContributor.buildEnvironmentFor(Mock(Run), envs, TaskListener.NULL)
@@ -38,8 +41,10 @@ class BuildScanEnvironmentContributorTest extends Specification {
 
     def 'adds access key to the environment'() {
         given:
-        def accessKey = 'server=secret'
-        injectionConfig.getAccessKey() >> Secret.fromString(accessKey)
+        def accessKey = "server=secret"
+        def config = InjectionConfig.get()
+        config.setAccessKey(Secret.fromString(accessKey))
+        config.save()
 
         when:
         buildScanEnvironmentContributor.buildEnvironmentFor(Mock(Run), envs, TaskListener.NULL)

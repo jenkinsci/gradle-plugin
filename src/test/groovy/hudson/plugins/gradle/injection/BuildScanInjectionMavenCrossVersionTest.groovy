@@ -3,17 +3,12 @@ package hudson.plugins.gradle.injection
 import hudson.plugins.gradle.BuildScanAction
 import hudson.plugins.gradle.BuildScanBuildWrapper
 import hudson.tasks.Maven
-import org.junit.Rule
-import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Unroll
 
 @Unroll
-class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTest {
-
-    @Rule
-    public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(mavenInstallationRule)
+class BuildScanInjectionMavenCrossVersionTest extends BaseMavenIntegrationTest {
 
     def 'build scan is discovered from Maven build - #mavenVersion'(String mavenVersion) {
         given:

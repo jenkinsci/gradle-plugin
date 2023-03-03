@@ -25,7 +25,7 @@ public class GradleEnterpriseComputerListener extends ComputerListener {
     private final Supplier<InjectionConfig> injectionConfigSupplier;
 
     public GradleEnterpriseComputerListener() {
-        this(new GradleEnterpriseInjector(), InjectionConfig.SUPPLIER);
+        this(new GradleEnterpriseInjector(), new JenkinsInjectionConfig());
     }
 
     @VisibleForTesting
@@ -61,5 +61,16 @@ public class GradleEnterpriseComputerListener extends ComputerListener {
     private boolean isFeatureDisabled() {
         InjectionConfig injectionConfig = injectionConfigSupplier.get();
         return injectionConfig.isDisabled();
+    }
+
+    private static final class JenkinsInjectionConfig implements Supplier<InjectionConfig> {
+
+        private JenkinsInjectionConfig() {
+        }
+
+        @Override
+        public InjectionConfig get() {
+            return InjectionConfig.get();
+        }
     }
 }

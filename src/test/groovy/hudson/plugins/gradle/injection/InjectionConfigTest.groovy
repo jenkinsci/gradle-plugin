@@ -11,7 +11,7 @@ import spock.lang.Unroll
 
 @Unroll
 @Subject(InjectionConfig.class)
-class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
+class InjectionConfigTest extends BaseJenkinsIntegrationTest {
 
     @Shared
     FilenameFilter injectionConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.injection.InjectionConfig.xml" }

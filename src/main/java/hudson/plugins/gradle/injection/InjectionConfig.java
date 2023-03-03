@@ -22,7 +22,6 @@ import org.kohsuke.stapler.verb.POST;
 import javax.annotation.CheckForNull;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
 @Extension
@@ -44,8 +43,6 @@ public class InjectionConfig extends GlobalConfiguration {
             "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES",
             "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"
         );
-
-    public static final Supplier<InjectionConfig> SUPPLIER = InjectionConfig::get;
 
     private boolean enabled;
 
