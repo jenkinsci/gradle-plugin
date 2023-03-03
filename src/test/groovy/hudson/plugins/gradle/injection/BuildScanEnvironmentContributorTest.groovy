@@ -3,6 +3,7 @@ package hudson.plugins.gradle.injection
 import hudson.EnvVars
 import hudson.model.Run
 import hudson.model.TaskListener
+import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.util.Secret
 import spock.lang.Subject
 

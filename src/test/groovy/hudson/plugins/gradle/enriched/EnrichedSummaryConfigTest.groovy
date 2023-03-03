@@ -1,6 +1,6 @@
 package hudson.plugins.gradle.enriched
 
-import hudson.plugins.gradle.injection.BaseJenkinsIntegrationTest
+import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.util.FormValidation
 import hudson.util.XStream2
 import spock.lang.Shared

@@ -5,6 +5,7 @@ import hudson.Util
 import hudson.model.FreeStyleProject
 import hudson.model.Result
 import hudson.model.Slave
+import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
@@ -16,7 +17,7 @@ import org.jvnet.hudson.test.CreateFileBuilder
 import spock.lang.Unroll
 
 @Unroll
-class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegrationTest {
+class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest {
 
     private static final String GRADLE_ENTERPRISE_PLUGIN_VERSION = '3.11.1'
     private static final String CCUD_PLUGIN_VERSION = '1.8.1'

@@ -22,21 +22,13 @@ import org.jvnet.hudson.test.FlagRule
 import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Specification
 
+/**
+ * Base class for all integration tests.
+ */
 abstract class AbstractIntegrationTest extends Specification {
 
     public final JenkinsRule j = new JenkinsRule()
-
-    public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
-    public final MavenInstallationRule mavenInstallationRule = new MavenInstallationRule(j)
     public final TestRule noSpaceInTmpDirs = FlagRule.systemProperty("jenkins.test.noSpaceInTmpDirs", "true")
-
-    Map getDefaults() {
-        [
-            gradleName        : gradleInstallationRule.gradleVersion,
-            useWorkspaceAsHome: true,
-            switches          : '--no-daemon'
-        ]
-    }
 
     void restartSlave(DumbSlave slave) {
         j.disconnectSlave(slave)

@@ -1,6 +1,5 @@
 package hudson.plugins.gradle
 
-
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll

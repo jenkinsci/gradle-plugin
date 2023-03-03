@@ -1,6 +1,5 @@
-package hudson.plugins.gradle.injection
+package hudson.plugins.gradle
 
-import hudson.plugins.gradle.AbstractIntegrationTest
 import org.junit.Rule
 import org.junit.rules.RuleChain
 

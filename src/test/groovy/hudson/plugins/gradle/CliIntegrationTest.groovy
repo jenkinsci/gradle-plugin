@@ -5,7 +5,7 @@ import net.sf.json.JSON
 import net.sf.json.JSONArray
 import net.sf.json.JSONObject
 
-class CliIntegrationTest extends GradleAbstractIntegrationTest {
+class CliIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'list installations through CLI'() {
         when:

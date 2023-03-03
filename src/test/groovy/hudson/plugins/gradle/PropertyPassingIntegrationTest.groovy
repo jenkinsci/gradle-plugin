@@ -8,7 +8,7 @@ import spock.lang.Unroll
 import static org.jvnet.hudson.test.JenkinsRule.getLog
 
 @Unroll
-class PropertyPassingIntegrationTest extends GradleAbstractIntegrationTest {
+class PropertyPassingIntegrationTest extends BaseGradleIntegrationTest {
 
     private static final Map<String, String> CRITICAL_PROPERTIES = [
         property1: 'a < b',

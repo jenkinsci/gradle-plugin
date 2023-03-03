@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection
 
 import hudson.FilePath
 import hudson.model.Result
+import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven

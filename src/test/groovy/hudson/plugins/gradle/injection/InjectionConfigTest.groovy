@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection
 
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlForm
+import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.util.FormValidation
 import hudson.util.XStream2

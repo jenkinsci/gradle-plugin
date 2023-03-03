@@ -1,10 +1,11 @@
 package hudson.plugins.gradle
 
+
 import hudson.tools.InstallSourceProperty
 import io.jenkins.plugins.casc.ConfigurationAsCode
 import org.yaml.snakeyaml.Yaml
 
-class ConfigurationAsCodeTest extends GradleAbstractIntegrationTest {
+class ConfigurationAsCodeTest extends BaseGradleIntegrationTest {
 
     def 'import configuration'() {
         given:

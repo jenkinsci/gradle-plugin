@@ -17,7 +17,7 @@ import spock.lang.Unroll
 
 @Unroll
 @SuppressWarnings("GStringExpressionWithinString")
-class BuildScanIntegrationTest extends GradleAbstractIntegrationTest {
+class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'build scans for plugin version #buildScanVersion is discovered'() {
         given:
