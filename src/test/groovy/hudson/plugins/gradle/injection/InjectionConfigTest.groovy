@@ -9,13 +9,13 @@ import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Unroll
 
+@Unroll
 @Subject(InjectionConfig.class)
 class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
 
     @Shared
     FilenameFilter injectionConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.injection.InjectionConfig.xml" }
 
-    @Unroll
     def "sets showLegacyConfigurationWarning to true if any of legacy env variables is set"() {
         given:
         def env = new EnvironmentVariablesNodeProperty()
@@ -49,7 +49,6 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"           | "foo,bar"           || true
     }
 
-    @Unroll
     def "validates server url"() {
         expect:
         with(InjectionConfig.get().doCheckServer(url)) {
@@ -70,7 +69,21 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         null                     || FormValidation.Kind.ERROR | "Required."
     }
 
-    @Unroll
+    def "validates access key"() {
+        expect:
+        with(InjectionConfig.get().doCheckAccessKey(accessKey)) {
+            kind == expectedKind
+            message == expectedMssage
+        }
+
+        where:
+        accessKey       || expectedKind              | expectedMssage
+        null            || FormValidation.Kind.OK    | null
+        ""              || FormValidation.Kind.OK    | null
+        "secret"        || FormValidation.Kind.ERROR | "Not a valid access key."
+        "server=secret" || FormValidation.Kind.OK    | null
+    }
+
     def "validates plugin repository url"() {
         expect:
         with(InjectionConfig.get().doCheckGradlePluginRepositoryUrl(url)) {
@@ -91,7 +104,6 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         null                     || FormValidation.Kind.OK    | null
     }
 
-    @Unroll
     def "validates gradle plugin and ccud plugin version"() {
         expect:
         with(InjectionConfig.get().doCheckGradlePluginVersion(version)) {
@@ -125,7 +137,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         form.getInputByName("_.enabled").click()
         form.getInputByName("_.server").setValueAttribute("https://localhost")
         form.getInputByName("_.allowUntrusted").click()
-        form.getInputByName("_.accessKey").setValueAttribute("ACCESS_KEY")
+        form.getInputByName("_.accessKey").setValueAttribute("server=secret")
 
         form.getInputByName("_.gradlePluginVersion").setValueAttribute("3.11.1")
         form.getInputByName("_.ccudPluginVersion").setValueAttribute("1.8")
@@ -153,7 +165,7 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
             enabled
             server == "https://localhost"
             allowUntrusted
-            accessKey.plainText == "ACCESS_KEY"
+            accessKey.plainText == "server=secret"
 
             gradlePluginVersion == "3.11.1"
             ccudPluginVersion == "1.8"
@@ -168,7 +180,6 @@ class InjectionConfigTest extends BaseGradleInjectionIntegrationTest {
         }
     }
 
-    @Unroll
     def "ignores empty access key"() {
         given:
         def webClient = j.createWebClient()
