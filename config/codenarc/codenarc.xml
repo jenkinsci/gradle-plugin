@@ -7,6 +7,7 @@
     <ruleset-ref path='rulesets/concurrency.xml'/>
     <ruleset-ref path='rulesets/design.xml'>
         <exclude name='PublicInstanceField'/> <!-- JUnit rules -->
+        <exclude name='AbstractClassWithoutAbstractMethod'/>
     </ruleset-ref>
     <ruleset-ref path='rulesets/dry.xml'/>
     <ruleset-ref path='rulesets/exceptions.xml'/>

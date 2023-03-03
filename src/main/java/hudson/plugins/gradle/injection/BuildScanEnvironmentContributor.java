@@ -3,18 +3,15 @@ package hudson.plugins.gradle.injection;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.EnvironmentContributor;
+import hudson.model.InvisibleAction;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.Secret;
 
 import javax.annotation.Nonnull;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Extension
 public class BuildScanEnvironmentContributor extends EnvironmentContributor {
-
-    private static final Logger LOGGER = Logger.getLogger(BuildScanEnvironmentContributor.class.getName());
 
     public static final String GRADLE_ENTERPRISE_ACCESS_KEY = "GRADLE_ENTERPRISE_ACCESS_KEY";
 
@@ -27,10 +24,25 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
         String accessKey = secret.getPlainText();
         if (!GradleEnterpriseAccessKeyValidator.getInstance().isValid(accessKey)) {
-            LOGGER.log(Level.WARNING, "Gradle Enterprise access key format is not valid");
+            boolean shouldLog = run.getAction(InvalidGradleEnterpriseAccessKey.class) == null;
+            if (shouldLog) {
+                listener.error("Gradle Enterprise access key format is not valid");
+                run.addAction(InvalidGradleEnterpriseAccessKey.INSTANCE);
+            }
             return;
         }
 
         envs.put(GRADLE_ENTERPRISE_ACCESS_KEY, accessKey);
+    }
+
+    /**
+     * Marker action to ensure that we log error only once.
+     */
+    public static class InvalidGradleEnterpriseAccessKey extends InvisibleAction {
+
+        public static final InvalidGradleEnterpriseAccessKey INSTANCE = new InvalidGradleEnterpriseAccessKey();
+
+        private InvalidGradleEnterpriseAccessKey() {
+        }
     }
 }

@@ -1,7 +1,6 @@
 package hudson.plugins.gradle.injection
 
 import hudson.FilePath
-import hudson.model.Result
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
@@ -11,6 +10,7 @@ import jenkins.model.Jenkins
 import jenkins.mvn.DefaultGlobalSettingsProvider
 import jenkins.mvn.DefaultSettingsProvider
 import jenkins.mvn.GlobalMavenConfig
+import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.JenkinsRule
@@ -161,17 +161,40 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         def mavenInstallationName = setupMavenInstallation()
 
         withInjectionConfig {
-            accessKey = Secret.fromString("invalid")
+            accessKey = Secret.fromString("scans.gradle.com=secret")
         }
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(mavenInstallationName), false))
 
         when:
-        def build = j.buildAndAssertStatus(Result.FAILURE, pipelineJob)
+        def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=invalid", build)
-        j.assertLogContains("Failed to parse GRADLE_ENTERPRISE_ACCESS_KEY environment variable", build)
+        j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=scans.gradle.com=secret", build)
+        j.assertLogNotContains("ERROR: Gradle Enterprise access key format is not valid", build)
+        j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
+    }
+
+    def 'invalid access key is not injected into the simple pipeline'() {
+        given:
+        def slave = createSlaveAndTurnOnInjection()
+        def mavenInstallationName = setupMavenInstallation()
+
+        withInjectionConfig {
+            accessKey = Secret.fromString("secret")
+        }
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(mavenInstallationName), false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        j.assertLogNotContains("GRADLE_ENTERPRISE_ACCESS_KEY", build)
+        j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
+
+        and:
+        StringUtils.countMatches(JenkinsRule.getLog(build), "ERROR: Gradle Enterprise access key format is not valid") == 1
     }
 
     def 'extension jars are copied and removed properly and MAVEN_OPTS is set'() {
