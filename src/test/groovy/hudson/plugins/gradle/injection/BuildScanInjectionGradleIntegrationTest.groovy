@@ -539,6 +539,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         }
     }
 
+    @SuppressWarnings("GStringExpressionWithinString")
     def "access key is injected into the build"() {
         given:
         def gradleVersion = '8.0.1'
