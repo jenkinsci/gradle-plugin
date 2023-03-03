@@ -19,7 +19,6 @@ import spock.lang.Unroll
 @Unroll
 class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest {
 
-    private static final String GRADLE_VERSION = '8.0.1'
     private static final String GRADLE_ENTERPRISE_PLUGIN_VERSION = '3.11.1'
     private static final String CCUD_PLUGIN_VERSION = '1.8.1'
 
