@@ -25,10 +25,13 @@ import spock.lang.Specification
 /**
  * Base class for all integration tests.
  */
-abstract class AbstractIntegrationTest extends Specification {
+class AbstractIntegrationTest extends Specification {
 
     public final JenkinsRule j = new JenkinsRule()
     public final TestRule noSpaceInTmpDirs = FlagRule.systemProperty("jenkins.test.noSpaceInTmpDirs", "true")
+
+    protected AbstractIntegrationTest() {
+    }
 
     void restartSlave(DumbSlave slave) {
         j.disconnectSlave(slave)
