@@ -251,6 +251,7 @@ The following table shows the compatibility of the plugin version with Gradle En
 
 |===
 |Jenkins Gradle Plugin version  | Injected Gradle Enterprise Maven extension version | Injected Common Custom User Data Maven extension version  | Minimum supported Gradle Enterprise version
+|Next version                   | 1.16.5                                             | 1.11.1                                                    | 2022.3
 |2.3                            | 1.16.4                                             | 1.11.1                                                    | 2022.3
 |2.2                            | 1.16.1                                             | 1.11.1                                                    | 2022.3
 |2.1.1                          | 1.15.5                                             | 1.11.1                                                    | 2022.3
@@ -374,8 +375,7 @@ Thanks @darxriggs.
 
 === Release 1.23
 
-* Fix https://issues.jenkins-ci.org/browse/JENKINS-17386[issue #17386]
-* Gradle.properties ignored after 1.22 upgrade.
+* Fix https://issues.jenkins-ci.org/browse/JENKINS-17386[issue #17386] - Gradle.properties ignored after 1.22 upgrade.
 GRADLE_USER_HOME is now no longer set to the workspace of the job by default.
 If you wish to have the workspace job as the GRADLE_USER_HOME, you will need to change the config to reflect this.
 
@@ -397,7 +397,7 @@ If you wish to have the workspace job as the GRADLE_USER_HOME, you will need to 
 
 === Release 1.19
 
-* Fix broken file permission introduced by JENKINS-14780
+* Fix broken file permission introduced by JENKINS-14780
 
 === Release 1.18
 
