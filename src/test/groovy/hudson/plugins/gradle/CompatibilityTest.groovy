@@ -6,6 +6,7 @@ import org.junit.Test
 import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.recipes.LocalData
 
+// TODO: Rewrite to Spock
 class CompatibilityTest {
 
     @Rule

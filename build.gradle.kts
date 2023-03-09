@@ -2,6 +2,7 @@ import com.github.spotbugs.snom.SpotBugsTask
 import com.gradle.enterprise.gradleplugin.testretry.retry
 import org.jenkinsci.gradle.plugins.jpi.JpiLicense
 import org.jenkinsci.gradle.plugins.jpi.deployment.CreateVersionlessLookupTask
+import org.jenkinsci.gradle.plugins.jpi.localization.LocalizationTask
 import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
 import java.util.zip.ZipFile
 
@@ -227,6 +228,10 @@ tasks.withType<AbstractPublishToMaven> {
 defaultTasks.add("test")
 defaultTasks.add("jpi")
 
+val localizeMessages: Task by tasks.getting(LocalizationTask::class) {
+    outputDir.set(layout.buildDirectory.file("generated/sources/localizeMessages/java/main").map { it.asFile })
+}
+
 val generateExtensionsVersions: Task by tasks.creating {
     inputs.property("gradleEnterpriseMavenExtensionVersion", gradleEnterpriseMavenExtensionVersion)
     inputs.property("commonCustomUserDataMavenExtensionVersion", commonCustomUserDataMavenExtensionVersion)
@@ -261,7 +266,7 @@ val generateExtensionsVersions: Task by tasks.creating {
 }
 
 sourceSets.main {
-    java.srcDir(generateExtensionsVersions)
+    java.srcDirs(localizeMessages, generateExtensionsVersions)
 }
 
 val createWrapperZip by tasks.creating(Zip::class) {

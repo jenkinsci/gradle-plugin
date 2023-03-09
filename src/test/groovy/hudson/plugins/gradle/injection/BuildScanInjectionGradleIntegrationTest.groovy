@@ -3,8 +3,8 @@ package hudson.plugins.gradle.injection
 import hudson.EnvVars
 import hudson.Util
 import hudson.model.FreeStyleProject
-import hudson.model.Result
 import hudson.model.Slave
+import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
@@ -13,17 +13,18 @@ import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
+import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Unroll
 
 @Unroll
-class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegrationTest {
+class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest {
 
     private static final String GRADLE_ENTERPRISE_PLUGIN_VERSION = '3.11.1'
     private static final String CCUD_PLUGIN_VERSION = '1.8.1'
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 
-    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.2', '7.5.1']
+    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.4', '7.5.1', '8.0.1']
 
     private static final EnvVars EMPTY_ENV = new EnvVars()
 
@@ -104,7 +105,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         FreeStyleProject project = j.createFreeStyleProject()
         project.setAssignedNode(agent)
 
-        project.buildersList.add(buildScriptBuilder())
+        project.buildersList.add(helloTask())
         project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
         when:
@@ -137,7 +138,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         FreeStyleProject p = j.createFreeStyleProject()
         p.setAssignedNode(slave)
 
-        p.buildersList.add(buildScriptBuilder())
+        p.buildersList.add(helloTask())
         p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
         when:
@@ -173,7 +174,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         FreeStyleProject p = j.createFreeStyleProject()
         p.setAssignedNode(slave)
 
-        p.buildersList.add(buildScriptBuilder())
+        p.buildersList.add(helloTask())
         p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
         when:
@@ -537,8 +538,10 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         }
     }
 
+    @SuppressWarnings("GStringExpressionWithinString")
     def "access key is injected into the build"() {
-        def gradleVersion = '7.5.1'
+        given:
+        def gradleVersion = '8.0.1'
 
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -548,7 +551,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         FreeStyleProject project = j.createFreeStyleProject()
         project.setAssignedNode(agent)
 
-        project.buildersList.add(buildScriptBuilder())
+        project.buildersList.add(helloTask('println "accessKey=${System.getenv(\'GRADLE_ENTERPRISE_ACCESS_KEY\')}"'))
         project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
         when:
@@ -561,20 +564,60 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleInjectionIntegra
         when:
         enableBuildInjection(agent, gradleVersion)
         withInjectionConfig {
-            accessKey = Secret.fromString("invalid")
+            accessKey = Secret.fromString("foo.com=secret")
         }
-        def secondRun = j.buildAndAssertStatus(Result.FAILURE, project)
+        def secondRun = j.buildAndAssertSuccess(project)
 
         then:
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
-        j.assertLogContains("Failed to parse GRADLE_ENTERPRISE_ACCESS_KEY environment variable", secondRun)
+        j.assertLogContains("accessKey=foo.com=secret", secondRun)
+        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.11.1/token was not from Gradle Enterprise.", secondRun)
+        j.assertLogNotContains("ERROR: Gradle Enterprise access key format is not valid", secondRun)
+
     }
 
-    private static CreateFileBuilder buildScriptBuilder() {
+    def "invalid access key is not injected into the build"() {
+        given:
+        def gradleVersion = '8.0.1'
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+
+        FreeStyleProject project = j.createFreeStyleProject()
+        project.setAssignedNode(agent)
+
+        project.buildersList.add(helloTask())
+        project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
+
+        when:
+        // first build to download Gradle
+        def firstRun = j.buildAndAssertSuccess(project)
+
+        then:
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
+
+        when:
+        enableBuildInjection(agent, gradleVersion)
+        withInjectionConfig {
+            accessKey = Secret.fromString("secret")
+        }
+        def secondRun = j.buildAndAssertSuccess(project)
+
+        then:
+        j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
+        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.11.1/token was not from Gradle Enterprise.", secondRun)
+
+        and:
+        StringUtils.countMatches(JenkinsRule.getLog(secondRun), "ERROR: Gradle Enterprise access key format is not valid") == 1
+    }
+
+    private static CreateFileBuilder helloTask(String action = "println 'Hello!'") {
         return new CreateFileBuilder('build.gradle', """
 task hello {
   doLast {
-    println 'Hello!'
+    $action
   }
 }
 """)

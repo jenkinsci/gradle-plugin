@@ -44,7 +44,7 @@ import static org.jvnet.hudson.test.JenkinsRule.getLog
  * Tests for the Gradle build step.
  */
 @Unroll
-class GradlePluginIntegrationTest extends GradleAbstractIntegrationTest {
+class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'run the default tasks'() {
         given:

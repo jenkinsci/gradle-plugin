@@ -263,6 +263,19 @@ public class InjectionConfig extends GlobalConfiguration {
         return checkUrl(value);
     }
 
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckAccessKey(@QueryParameter String value) {
+        String accessKey = Util.fixEmptyAndTrim(value);
+        if (accessKey == null) {
+            return FormValidation.ok();
+        }
+
+        return GradleEnterpriseAccessKeyValidator.getInstance().isValid(accessKey)
+            ? FormValidation.ok()
+            : FormValidation.error(Messages.InjectionConfig_InvalidAccessKey());
+    }
+
     public static FormValidation checkRequiredUrl(String value) {
         return checkUrl(value, true);
     }

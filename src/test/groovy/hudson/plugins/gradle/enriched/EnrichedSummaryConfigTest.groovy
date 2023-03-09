@@ -1,6 +1,6 @@
 package hudson.plugins.gradle.enriched
 
-import hudson.plugins.gradle.injection.BaseGradleInjectionIntegrationTest
+import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.util.FormValidation
 import hudson.util.XStream2
 import spock.lang.Shared
@@ -8,7 +8,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 @Subject(EnrichedSummaryConfig.class)
-class EnrichedSummaryConfigTest extends BaseGradleInjectionIntegrationTest {
+class EnrichedSummaryConfigTest extends BaseJenkinsIntegrationTest {
 
     @Shared
     FilenameFilter enrichedSummaryConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.enriched.EnrichedSummaryConfig.xml" }

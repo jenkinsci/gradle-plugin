@@ -5,16 +5,16 @@
 
             <j:if test="${instance.showLegacyConfigurationWarning}">
                 <f:entry>
-                    <div class="alert alert-danger">
+                    <div class="alert alert-danger" role="alert">
                         <l:icon class="icon-error icon-sm" alt="${%Unsupported configuration detected}"/>
-                        An unsupported configuration has been detected. Please refer to the following <a href="https://github.com/jenkinsci/gradle-plugin#20">migration guide</a> on how to upgrade it.
+                        An unsupported configuration has been detected. Please refer to the following <a class="alert-link" href="https://github.com/jenkinsci/gradle-plugin#20">migration guide</a> on how to upgrade it.
                     </div>
                 </f:entry>
             </j:if>
 
             <j:if test="${instance.unsupportedMavenPluginWarningDetails != null}">
                 <f:entry>
-                    <div class="alert alert-danger">
+                    <div class="alert alert-danger" role="alert">
                         <l:icon class="icon-error icon-sm" alt="${%Unsupported Maven Integration plugin version detected}"/>
                         Detected Maven Integration plugin version ${instance.unsupportedMavenPluginWarningDetails.mavenPluginVersion}.
                         For auto-injection of the Gradle Enterprise Maven extension, version ${instance.unsupportedMavenPluginWarningDetails.minimumSupportedVersion} or above is required.
@@ -31,6 +31,11 @@
                     <f:checkbox title="${%Allow untrusted server}"/>
                 </f:entry>
                 <f:entry title="${%Gradle Enterprise access key}" field="accessKey">
+                    <div class="alert alert-info" role="alert">
+                        <l:icon class="icon-help icon-sm" alt="${%Access key format help}"/>
+                        The access key must be in the <b><span>&lt;</span>server host name<span>&gt;</span>=<span>&lt;</span>access key<span>&gt;</span></b> format.
+                        For more details please refer to the <a class="alert-link" href="https://docs.gradle.com/enterprise/gradle-plugin/#manual_access_key_configuration" target="_blank">documentation</a>.
+                    </div>
                     <f:password/>
                 </f:entry>
             </f:section>

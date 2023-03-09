@@ -1,19 +1,16 @@
 package hudson.plugins.gradle.injection
 
+import hudson.plugins.gradle.BaseMavenIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
 import hudson.plugins.gradle.BuildScanBuildWrapper
 import hudson.tasks.Maven
-import org.junit.Rule
-import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.CreateFileBuilder
-import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Unroll
 
 @Unroll
-class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTest {
+class BuildScanInjectionMavenCrossVersionTest extends BaseMavenIntegrationTest {
 
-    @Rule
-    public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(mavenInstallationRule)
+    private static final String MINIMUM_SUPPORTED_MAVEN_VERSION = '3.3.1'
 
     def 'build scan is discovered from Maven build - #mavenVersion'(String mavenVersion) {
         given:
@@ -40,8 +37,7 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTe
         def build = j.buildAndAssertSuccess(p)
 
         then:
-        println JenkinsRule.getLog(build)
-        if (mavenVersion >= '3.3.1') {
+        if (mavenVersion >= MINIMUM_SUPPORTED_MAVEN_VERSION) {
             def action = build.getAction(BuildScanAction)
             action.scanUrls.size() == 1
             new URL(action.scanUrls.get(0))
@@ -59,7 +55,8 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseInjectionIntegrationTe
             '3.2.5',
             '3.3.1',
             '3.5.4',
-            '3.8.6'
+            '3.8.7',
+            '3.9.0'
         ]
     }
 }
