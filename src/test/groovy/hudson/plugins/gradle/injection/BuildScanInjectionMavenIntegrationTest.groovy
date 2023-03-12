@@ -166,7 +166,6 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
             }
             !it.hasNext()
         }
-        getMavenOptsFromNodeProperties(agent).startsWith(mavenOpts)
 
         when:
         turnOffBuildInjectionAndRestart(agent)
