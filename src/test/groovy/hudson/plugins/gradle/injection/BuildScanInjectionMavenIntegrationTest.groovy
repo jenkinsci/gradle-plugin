@@ -116,7 +116,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         def agent = createSlave('test')
 
         then:
-        getMavenOptsFromNodeProperties(agent) == null
+        noMavenOpts(agent)
     }
 
     @Issue('https://issues.jenkins.io/browse/JENKINS-70692')
