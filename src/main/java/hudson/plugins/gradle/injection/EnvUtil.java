@@ -31,6 +31,19 @@ public final class EnvUtil {
     }
 
     @CheckForNull
+    public static String getEnv(Node node, String key) {
+        List<EnvironmentVariablesNodeProperty> all =
+            node.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class);
+
+        if (all.isEmpty()) {
+            return null;
+        }
+
+        EnvironmentVariablesNodeProperty last = Iterables.getLast(all);
+        return last.getEnvVars().get(key);
+    }
+
+    @CheckForNull
     public static String getEnv(EnvVars env, String key) {
         return env != null ? env.get(key) : null;
     }

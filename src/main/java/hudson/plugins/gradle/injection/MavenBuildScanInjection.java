@@ -30,10 +30,10 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     public static final String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER";
 
     // Maven system properties passed on the CLI to a Maven build
-    private static final String GRADLE_ENTERPRISE_URL_PROPERTY_KEY = "gradle.enterprise.url";
-    private static final String GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = "gradle.enterprise.allowUntrustedServer";
-    private static final String BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY = "gradle.scan.uploadInBackground";
-    private static final String MAVEN_EXT_CLASS_PATH_PROPERTY_KEY = "maven.ext.class.path";
+    private static final SystemProperty.Key GRADLE_ENTERPRISE_URL_PROPERTY_KEY = SystemProperty.Key.required("gradle.enterprise.url");
+    private static final SystemProperty.Key BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY = SystemProperty.Key.required("gradle.scan.uploadInBackground");
+    private static final SystemProperty.Key MAVEN_EXT_CLASS_PATH_PROPERTY_KEY = SystemProperty.Key.required("maven.ext.class.path");
+    private static final SystemProperty.Key GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = SystemProperty.Key.optional("gradle.enterprise.allowUntrustedServer");
 
     private static final MavenOptsSetter MAVEN_OPTS_SETTER = new MavenOptsSetter(
         MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
@@ -136,7 +136,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
                 systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
             }
 
-            MAVEN_OPTS_SETTER.appendIfMissing(node, systemProperties);
+            MAVEN_OPTS_SETTER.append(node, systemProperties);
 
             // Configuration needed to support https://plugins.jenkins.io/maven-plugin/
             extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CONFIGURATION, nodeRootPath));
@@ -156,7 +156,7 @@ public class MavenBuildScanInjection implements BuildScanInjection {
     private void cleanup(Node node, FilePath rootPath) {
         try {
             extensionsHandler.deleteAllExtensionsFromAgent(rootPath);
-            MAVEN_OPTS_SETTER.remove(node);
+            MAVEN_OPTS_SETTER.removeIfNeeded(node);
             EnvUtil.removeEnvVars(node, ALL_INJECTED_ENVIRONMENT_VARIABLES);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
