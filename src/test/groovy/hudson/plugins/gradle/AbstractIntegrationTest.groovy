@@ -5,6 +5,7 @@ import hudson.model.Cause
 import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
 import hudson.model.Label
+import hudson.model.Node
 import hudson.model.ParametersAction
 import hudson.model.ParametersDefinitionProperty
 import hudson.model.TextParameterDefinition
@@ -45,9 +46,21 @@ abstract class AbstractIntegrationTest extends Specification {
 
         closure.setDelegate(env)
         closure.run()
-
         j.jenkins.globalNodeProperties.clear()
         j.jenkins.globalNodeProperties.add(nodeProperty)
+
+        env
+    }
+
+    EnvVars withNodeEnvVars(Node node, @DelegatesTo(EnvVars) Closure closure) {
+        NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
+        EnvVars env = nodeProperty.getEnvVars()
+
+        closure.setDelegate(env)
+        closure.run()
+        node.nodeProperties.clear()
+        node.nodeProperties.add(nodeProperty)
+
         env
     }
 
@@ -56,8 +69,8 @@ abstract class AbstractIntegrationTest extends Specification {
 
         closure.setDelegate(config)
         closure.run()
-
         config.save()
+
         config
     }
 

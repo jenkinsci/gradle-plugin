@@ -15,6 +15,7 @@ import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
@@ -107,6 +108,32 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
 
         where:
         extension << ALL_EXTENSIONS
+    }
+
+    @Issue('https://issues.jenkins.io/browse/JENKINS-70663')
+    def 'does not add an empty MAVEN_OPTS if auto-injection is disabled'() {
+        when:
+        def agent = createSlave('test')
+
+        then:
+        getMavenOptsFromNodeProperties(agent) == null
+    }
+
+    @Issue('https://issues.jenkins.io/browse/JENKINS-70692')
+    def 'does not modify existing MAVEN_OPTS if auto-injection is disabled'() {
+        given:
+        def mavenOpts = 'foo=bar'
+        def agent = createSlave('test')
+
+        withNodeEnvVars(agent) {
+            put('MAVEN_OPTS', mavenOpts)
+        }
+
+        when:
+        restartSlave(agent)
+
+        then:
+        getMavenOptsFromNodeProperties(agent) == mavenOpts
     }
 
     def 'does not create new EnvironmentVariablesNodeProperty when MAVEN_OPTS changes'() {
