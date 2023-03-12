@@ -1,7 +1,6 @@
 package hudson.plugins.gradle.injection;
 
 import hudson.model.Node;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -51,7 +50,7 @@ class MavenOptsSetter {
 
     void removeIfNeeded(Node node) throws IOException, InterruptedException {
         String currentMavenOpts = getCurrentMavenOpts(node);
-        if (StringUtils.isBlank(currentMavenOpts)) {
+        if (currentMavenOpts == null || currentMavenOpts.isEmpty()) {
             return;
         }
 
