@@ -169,8 +169,8 @@ tasks.test {
     maxParallelForks = findProperty("maxParallelForks") as Int? ?: 3
     retry {
         if (isCi) {
-            maxRetries.set(1)
-            maxFailures.set(10)
+            maxRetries.set(2)
+            maxFailures.set(5)
         }
     }
 }

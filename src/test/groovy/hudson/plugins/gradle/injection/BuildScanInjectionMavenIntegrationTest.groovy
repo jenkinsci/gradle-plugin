@@ -1,5 +1,6 @@
 package hudson.plugins.gradle.injection
 
+import hudson.EnvVars
 import hudson.FilePath
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.slaves.DumbSlave
@@ -15,6 +16,7 @@ import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
@@ -32,7 +34,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
     private static final String POM_XML = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
 
     @Unroll
-    def "doesn't copy extensions if it was not changed"() {
+    def 'does not copy #extension if it was not changed'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
         turnOnBuildInjectionAndRestart(slave)
@@ -66,7 +68,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
     }
 
     @Unroll
-    def 'copies a new version of the same extension if it was changed'() {
+    def 'copies a new version of #extension if it was changed'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
         turnOnBuildInjectionAndRestart(slave)
@@ -109,6 +111,104 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         extension << ALL_EXTENSIONS
     }
 
+    @Issue('https://issues.jenkins.io/browse/JENKINS-70663')
+    def 'does not add an empty MAVEN_OPTS if auto-injection is disabled'() {
+        when:
+        def agent = createSlave('test')
+
+        then:
+        noMavenOpts(agent)
+    }
+
+    @Issue('https://issues.jenkins.io/browse/JENKINS-70692')
+    def 'does not modify existing MAVEN_OPTS if auto-injection is disabled'() {
+        given:
+        def mavenOpts = '-Dmaven.ext.class.path=/tmp/custom-extension.jar'
+        def agent = createSlave('test')
+
+        withNodeEnvVars(agent) {
+            put('MAVEN_OPTS', mavenOpts)
+        }
+
+        when:
+        restartSlave(agent)
+
+        then:
+        getMavenOptsFromNodeProperties(agent) == mavenOpts
+    }
+
+    def 'does not take into account MAVEN_OPTS set on the node level'() {
+        given:
+        def mavenOpts = '-Dfoo=bar'
+        def agent = createSlave('test', new EnvVars([MAVEN_OPTS: mavenOpts]))
+
+        when:
+        turnOnBuildInjectionAndRestart(agent)
+
+        then:
+        with(getMavenOptsFromNodeProperties(agent).split(" ").iterator()) {
+            with(it.next()) {
+                it.startsWith('-Dmaven.ext.class.path=')
+                it.contains('gradle-enterprise-maven-extension.jar')
+                it.contains('common-custom-user-data-maven-extension.jar')
+            }
+            with(it.next()) {
+                it == '-Dgradle.scan.uploadInBackground=false'
+            }
+            with(it.next()) {
+                it == '-Dgradle.enterprise.url=https://scans.gradle.com'
+            }
+            !it.hasNext()
+        }
+
+        when:
+        turnOffBuildInjectionAndRestart(agent)
+
+        then:
+        noMavenOpts(agent)
+
+        and:
+        EnvVars.getRemote(agent.getChannel())['MAVEN_OPTS'] == mavenOpts
+    }
+
+    def 'appends new properties to MAVEN_OPTS when auto-injection is enabled'() {
+        given:
+        def mavenOpts = '-Dfoo=bar'
+        def agent = createSlave('test')
+
+        withNodeEnvVars(agent) {
+            put('MAVEN_OPTS', mavenOpts)
+        }
+
+        when:
+        turnOnBuildInjectionAndRestart(agent)
+
+        then:
+        with(getMavenOptsFromNodeProperties(agent).split(" ").iterator()) {
+            with(it.next()) {
+                it == mavenOpts
+            }
+            with(it.next()) {
+                it.startsWith('-Dmaven.ext.class.path=')
+                it.contains('gradle-enterprise-maven-extension.jar')
+                it.contains('common-custom-user-data-maven-extension.jar')
+            }
+            with(it.next()) {
+                it == '-Dgradle.scan.uploadInBackground=false'
+            }
+            with(it.next()) {
+                it == '-Dgradle.enterprise.url=https://scans.gradle.com'
+            }
+            !it.hasNext()
+        }
+
+        when:
+        turnOffBuildInjectionAndRestart(agent)
+
+        then:
+        getMavenOptsFromNodeProperties(agent) == mavenOpts
+    }
+
     def 'does not create new EnvironmentVariablesNodeProperty when MAVEN_OPTS changes'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
@@ -134,7 +234,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         then:
         slave.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class).size() == 1
 
-        getMavenOptsFromNodeProperties(slave) == ""
+        noMavenOpts(slave)
     }
 
     def 'build scan is published without GE plugin with simple pipeline'() {
@@ -177,7 +277,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
 
     def 'invalid access key is not injected into the simple pipeline'() {
         given:
-        def slave = createSlaveAndTurnOnInjection()
+        createSlaveAndTurnOnInjection()
         def mavenInstallationName = setupMavenInstallation()
 
         withInjectionConfig {
@@ -219,7 +319,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         then:
         extensionDirectory.list().size() == 0
 
-        getMavenOptsFromNodeProperties(slave) == ""
+        noMavenOpts(slave)
 
         when:
         turnOnBuildInjectionAndRestart(slave)
@@ -269,7 +369,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         then:
         extensionDirectory.list().size() == 0
 
-        getMavenOptsFromNodeProperties(slave) == ""
+        noMavenOpts(slave)
     }
 
     def 'injection is enabled and disabled based on node labels'() {
@@ -501,13 +601,17 @@ node {
         return mavenOpts && mavenOpts ==~ /.*-Dmaven\.ext\.class\.path=.*${jar}.*/
     }
 
+    private static boolean noMavenOpts(DumbSlave slave) {
+        getMavenOptsFromNodeProperties(slave) == null
+    }
+
     private static String getMavenOptsFromNodeProperties(DumbSlave slave) {
         return getEnvVarFromNodeProperties(slave, "MAVEN_OPTS")
     }
 
     private static String getEnvVarFromNodeProperties(DumbSlave slave, String envVar) {
         def all = slave.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class)
-        return all?.last()?.getEnvVars()?.get(envVar)
+        return all.empty ? null : all.last().getEnvVars().get(envVar)
     }
 
     private static boolean hasBuildScanPublicationAttempt(String log) {

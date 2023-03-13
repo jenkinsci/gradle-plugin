@@ -1,11 +1,11 @@
 package hudson.plugins.gradle.injection;
 
-import com.google.common.collect.ImmutableSet;
-import hudson.EnvVars;
 import hudson.model.Node;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -17,54 +17,81 @@ class MavenOptsSetter {
     private static final String MAVEN_OPTS_VAR = "MAVEN_OPTS";
 
     private final Set<String> keys;
+    private final Set<String> requiredKeys;
 
-    public MavenOptsSetter(String... keys) {
-        this.keys = ImmutableSet.copyOf(keys);
+    public MavenOptsSetter(SystemProperty.Key... keys) {
+        this.keys =
+            Arrays.stream(keys)
+                .map(k -> k.name)
+                .collect(
+                    Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+        this.requiredKeys =
+            Arrays.stream(keys)
+                .filter(k -> k.required)
+                .map(k -> k.name)
+                .collect(
+                    Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
     }
 
-    void appendIfMissing(Node node, List<SystemProperty> systemProperties) throws IOException, InterruptedException {
-        String geMavenOpts =
+    void append(Node node, List<SystemProperty> systemProperties) throws IOException, InterruptedException {
+        String additionalProperties =
             systemProperties
                 .stream()
                 .map(SystemProperty::asString)
                 .collect(Collectors.joining(SPACE));
 
-        String mavenOpts = removeSystemProperties(getMavenOpts(node)) + SPACE + geMavenOpts;
+        String mavenOpts =
+            filtered(getCurrentMavenOpts(node))
+                .map(current -> String.join(SPACE, current, additionalProperties))
+                .orElse(additionalProperties);
+
         EnvUtil.setEnvVar(node, MAVEN_OPTS_VAR, mavenOpts);
     }
 
-    void remove(Node node) throws IOException, InterruptedException {
-        String mavenOpts = removeSystemProperties(getMavenOpts(node));
+    void removeIfNeeded(Node node) throws IOException, InterruptedException {
+        String currentMavenOpts = getCurrentMavenOpts(node);
+        if (currentMavenOpts == null || currentMavenOpts.isEmpty()) {
+            return;
+        }
+
+        boolean hasAllRequiredKeys = requiredKeys.stream().allMatch(currentMavenOpts::contains);
+        if (!hasAllRequiredKeys) {
+            return;
+        }
+
+        String mavenOpts = filtered(currentMavenOpts).orElse(null);
         EnvUtil.setEnvVar(node, MAVEN_OPTS_VAR, mavenOpts);
     }
 
-    private String getMavenOpts(Node node) throws IOException, InterruptedException {
-        EnvVars nodeEnvVars = EnvVars.getRemote(node.getChannel());
-        return nodeEnvVars.get(MAVEN_OPTS_VAR);
+    @Nullable
+    private static String getCurrentMavenOpts(Node node) {
+        return EnvUtil.getEnv(node, MAVEN_OPTS_VAR);
     }
 
-    private String removeSystemProperties(String mavenOpts) throws RuntimeException {
+    private Optional<String> filtered(@Nullable String mavenOpts) throws RuntimeException {
         return Optional.ofNullable(mavenOpts)
-            .map(this::filterMavenOpts)
-            .orElse("");
+            .map(this::filterMavenOpts);
     }
 
     /**
-     * Splits MAVEN_OPTS at each space and then removes all key value pairs that contain
-     * any of the keys we want to remove.
+     * Splits {@code MAVEN_OPTS} at each space and then removes all key value pairs containing any of the keys
+     * that were added by the auto-injection.
      */
+    @Nullable
     private String filterMavenOpts(String mavenOpts) {
-        return Arrays.stream(mavenOpts.split(SPACE))
-            .filter(this::shouldBeKept)
-            .collect(Collectors.joining(SPACE))
-            .trim();
+        String filtered =
+            Arrays.stream(mavenOpts.split(SPACE))
+                .filter(this::shouldBeKept)
+                .collect(Collectors.joining(SPACE));
+
+        if (filtered.isEmpty()) {
+            return null;
+        }
+
+        return filtered;
     }
 
-    /**
-     * Checks for a MAVEN_OPTS key value pair whether it contains none of the keys we're looking for.
-     * In other words if this segment none of the keys, this method returns true.
-     */
-    private boolean shouldBeKept(String seg) {
-        return keys.stream().noneMatch(seg::contains);
+    private boolean shouldBeKept(String systemProperty) {
+        return keys.stream().noneMatch(systemProperty::contains);
     }
 }
