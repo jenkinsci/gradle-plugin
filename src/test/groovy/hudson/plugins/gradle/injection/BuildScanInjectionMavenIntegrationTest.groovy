@@ -1,5 +1,6 @@
 package hudson.plugins.gradle.injection
 
+import hudson.EnvVars
 import hudson.FilePath
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.slaves.DumbSlave
@@ -134,6 +135,40 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
 
         then:
         getMavenOptsFromNodeProperties(agent) == mavenOpts
+    }
+
+    def 'does not take into account MAVEN_OPTS set on the node level'() {
+        given:
+        def mavenOpts = '-Dfoo=bar'
+        def agent = createSlave('test', new EnvVars([MAVEN_OPTS: mavenOpts]))
+
+        when:
+        turnOnBuildInjectionAndRestart(agent)
+
+        then:
+        with(getMavenOptsFromNodeProperties(agent).split(" ").iterator()) {
+            with(it.next()) {
+                it.startsWith('-Dmaven.ext.class.path=')
+                it.contains('gradle-enterprise-maven-extension.jar')
+                it.contains('common-custom-user-data-maven-extension.jar')
+            }
+            with(it.next()) {
+                it == '-Dgradle.scan.uploadInBackground=false'
+            }
+            with(it.next()) {
+                it == '-Dgradle.enterprise.url=https://scans.gradle.com'
+            }
+            !it.hasNext()
+        }
+
+        when:
+        turnOffBuildInjectionAndRestart(agent)
+
+        then:
+        noMavenOpts(agent)
+
+        and:
+        EnvVars.getRemote(agent.getChannel())['MAVEN_OPTS'] == mavenOpts
     }
 
     def 'appends new properties to MAVEN_OPTS when auto-injection is enabled'() {

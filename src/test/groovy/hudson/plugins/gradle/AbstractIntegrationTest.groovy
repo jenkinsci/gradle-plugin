@@ -36,8 +36,8 @@ abstract class AbstractIntegrationTest extends Specification {
         j.waitOnline(slave)
     }
 
-    DumbSlave createSlave(String label) {
-        return j.createOnlineSlave(Label.get(label))
+    DumbSlave createSlave(String label, EnvVars env = null) {
+        return j.createOnlineSlave(Label.get(label), env)
     }
 
     EnvVars withGlobalEnvVars(@DelegatesTo(EnvVars) Closure closure) {
