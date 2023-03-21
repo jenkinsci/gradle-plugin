@@ -5,6 +5,5 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-    - dependency-name: org.jenkins-ci.main:jenkins-core
-      versions:
-      - ">= 0"
+      - dependency-name: "org.jenkins-ci.main:jenkins-core"
+      - dependency-name: "org.apache.maven:maven-core"
