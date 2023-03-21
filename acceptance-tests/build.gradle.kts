@@ -5,7 +5,7 @@ import java.net.URL
 plugins {
     java
     id("buildlogic.chromedriver")
-    id("de.undercouch.download") version "5.3.1"
+    id("de.undercouch.download") version "5.4.0"
 }
 
 val ciJenkinsBuild: Boolean by (gradle as ExtensionAware).extra
