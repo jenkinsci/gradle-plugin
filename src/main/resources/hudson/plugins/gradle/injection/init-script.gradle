@@ -14,6 +14,11 @@ initscript {
         return System.getProperty(name) ?: System.getenv(envVarName)
     }
 
+    // finish early if injection is disabled
+    if (getInputParam("GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED") == null) {
+        return
+    }
+
     def pluginRepositoryUrl = getInputParam('jenkinsGradlePlugin.gradle.plugin-repository.url')
     def gePluginVersion = getInputParam('jenkinsGradlePlugin.gradle-enterprise.plugin.version')
     def ccudPluginVersion = getInputParam('jenkinsGradlePlugin.ccud.plugin.version')
@@ -61,6 +66,11 @@ if (!isTopLevelBuild) {
 def getInputParam = { String name ->
     def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
     return System.getProperty(name) ?: System.getenv(envVarName)
+}
+
+// finish early if injection is disabled
+if (getInputParam("GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED") == null) {
+    return
 }
 
 def geUrl = getInputParam('jenkinsGradlePlugin.gradle-enterprise.url')
