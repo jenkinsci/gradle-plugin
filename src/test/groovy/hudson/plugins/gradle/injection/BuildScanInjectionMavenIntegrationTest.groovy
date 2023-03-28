@@ -132,13 +132,16 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         getMavenOptsFromNodeProperties(agent) == mavenOpts
     }
 
-    def 'delete MAVEN_OPTS set by older versions if auto-injection is disabled'() {
+    def 'delete MAVEN_OPTS and maven-plugin variables set by older versions if auto-injection is disabled'() {
         given:
         def mavenOpts = '-Dmaven.ext.class.path=temp/jenkins-gradle-plugin/lib/gradle-enterprise-maven-extension.jar:temp/jenkins-gradle-plugin/lib/common-custom-user-data-maven-extension.jar -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com -Dgradle.enterprise.allowUntrustedServer=true'
         def agent = createSlave('foo')
 
         withNodeEnvVars(agent) {
-            put('MAVEN_OPTS', mavenOpts)
+            put(MavenOptsHandler.MAVEN_OPTS, mavenOpts)
+            put(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL, 'http://locahost')
+            put(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER, 'true')
+            put(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, '-Dmaven.ext.class.path=/tmp/custom-extension.jar')
         }
 
         withInjectionConfig {
@@ -152,6 +155,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
 
         then:
         getMavenOptsFromNodeProperties(agent) == mavenOpts
+        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'http://locahost'
+        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == 'true'
+        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == '-Dmaven.ext.class.path=/tmp/custom-extension.jar'
 
         when:
         withInjectionConfig {
@@ -164,6 +170,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
 
         then:
         getMavenOptsFromNodeProperties(agent) == null
+        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == null
+        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
+        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == null
     }
 
     def 'does not create new EnvironmentVariablesNodeProperty when MAVEN_OPTS changes'() {
