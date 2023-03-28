@@ -20,6 +20,13 @@ public interface MavenInjectionAware {
     SystemProperty.Key MAVEN_EXT_CLASS_PATH_PROPERTY_KEY = SystemProperty.Key.required("maven.ext.class.path");
     SystemProperty.Key GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = SystemProperty.Key.optional("gradle.enterprise.allowUntrustedServer");
 
+    MavenOptsHandler MAVEN_OPTS_HANDLER = new MavenOptsHandler(
+            MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
+            BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
+            GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
+            GRADLE_ENTERPRISE_URL_PROPERTY_KEY
+    );
+
     default boolean isInjectionEnabled(Node node) {
         InjectionConfig config = InjectionConfig.get();
 

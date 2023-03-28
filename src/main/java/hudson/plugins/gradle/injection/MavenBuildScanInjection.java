@@ -17,13 +17,6 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
 
     public static final String JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION = "JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION";
 
-    private static final MavenOptsHandler MAVEN_OPTS_HANDLER = new MavenOptsHandler(
-        MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
-        BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
-        GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
-        GRADLE_ENTERPRISE_URL_PROPERTY_KEY
-    );
-
     // MAVEN_OPTS is handled separately
     private static final List<String> ALL_INJECTED_ENVIRONMENT_VARIABLES =
         Arrays.asList(
@@ -86,8 +79,9 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
         try {
             extensionsHandler.deleteAllExtensionsFromAgent(rootPath);
 
-            // we still need to clean up MAVEN_OPTS and Maven plugin variables set in older
-            // versions even though we now set it in EnvironmentContributor
+            // We still need to clean up MAVEN_OPTS and Maven plugin variables set in older
+            // versions even though we now set it in EnvironmentContributor.
+            // This behavior is temporary and can be deleted at some point in the future
             MAVEN_OPTS_HANDLER.removeIfNeeded(node);
             EnvUtil.removeEnvVars(node, ALL_INJECTED_ENVIRONMENT_VARIABLES);
         } catch (IOException | InterruptedException e) {

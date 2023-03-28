@@ -31,7 +31,7 @@ class GradleInjectionEnvironmentContributorTest extends BaseJenkinsIntegrationTe
         gradleInjectionEnvironmentContributor.buildEnvironmentFor(Mock(Run), envs, TaskListener.NULL)
 
         then:
-        !envs.containsKey(GradleInjectionEnvironmentContributor.GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED)
+        !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED)
         !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL)
         !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION)
         !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER)
@@ -61,7 +61,7 @@ class GradleInjectionEnvironmentContributorTest extends BaseJenkinsIntegrationTe
         gradleInjectionEnvironmentContributor.buildEnvironmentFor(mockRun, envs, TaskListener.NULL)
 
         then:
-        envs.containsKey(GradleInjectionEnvironmentContributor.GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED)
+        envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED)
         envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL)
         envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION)
         envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER)

@@ -30,7 +30,7 @@ public class GradleInjectionEnvironmentContributor extends EnvironmentContributo
         }
 
         InjectionConfig config = InjectionConfig.get();
-        envs.put(GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED, "true");
+        envs.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED, "true");
 
         envs.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL, config.getServer());
         envs.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION, config.getGradlePluginVersion());

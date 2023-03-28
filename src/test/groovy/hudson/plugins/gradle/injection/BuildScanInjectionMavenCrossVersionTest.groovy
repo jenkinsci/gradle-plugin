@@ -48,15 +48,15 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseMavenIntegrationTest {
 
         where:
         mavenVersion << [
-            '3.0.4',
             '3.0.5',
             '3.1.1',
-            '3.2.1',
+            '3.2.3',
             '3.2.5',
-            '3.3.1',
+            '3.3.9',
             '3.5.4',
-            '3.8.7',
-            '3.9.0'
+            '3.6.3',
+            '3.8.8',
+            '3.9.1'
         ]
     }
 }

@@ -108,8 +108,9 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
         try {
             removeInitScript(node.getChannel(), initScriptDirectory);
 
-            // we still need to clean up all environment variables set in older
-            // versions even though we now set them in EnvironmentContributor
+            // We still need to clean up all environment variables set in older
+            // versions even though we now set them in EnvironmentContributor.
+            // This behavior is temporary and can be deleted at some point in the future
             EnvUtil.removeEnvVars(node, ALL_INJECTED_ENVIRONMENT_VARIABLES);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);

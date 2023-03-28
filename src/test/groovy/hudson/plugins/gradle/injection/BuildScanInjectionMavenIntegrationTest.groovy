@@ -132,6 +132,40 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         getMavenOptsFromNodeProperties(agent) == mavenOpts
     }
 
+    def 'delete MAVEN_OPTS set by older versions if auto-injection is disabled'() {
+        given:
+        def mavenOpts = '-Dmaven.ext.class.path=temp/jenkins-gradle-plugin/lib/gradle-enterprise-maven-extension.jar:temp/jenkins-gradle-plugin/lib/common-custom-user-data-maven-extension.jar -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com -Dgradle.enterprise.allowUntrustedServer=true'
+        def agent = createSlave('foo')
+
+        withNodeEnvVars(agent) {
+            put('MAVEN_OPTS', mavenOpts)
+        }
+
+        withInjectionConfig {
+            enabled = true
+            server = 'https://scans.gradle.com'
+            injectMavenExtension = true
+        }
+
+        when:
+        restartSlave(agent)
+
+        then:
+        getMavenOptsFromNodeProperties(agent) == mavenOpts
+
+        when:
+        withInjectionConfig {
+            enabled = false
+            server = null
+            injectMavenExtension = false
+        }
+
+        restartSlave(agent)
+
+        then:
+        getMavenOptsFromNodeProperties(agent) == null
+    }
+
     def 'does not create new EnvironmentVariablesNodeProperty when MAVEN_OPTS changes'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
@@ -174,7 +208,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
 
     def 'build scan is published without GE plugin with simple pipeline'() {
         given:
-        def slave= createSlaveAndTurnOnInjection()
+        def slave = createSlaveAndTurnOnInjection()
         def mavenInstallationName = setupMavenInstallation()
 
         def pipelineJob = j.createProject(WorkflowJob)

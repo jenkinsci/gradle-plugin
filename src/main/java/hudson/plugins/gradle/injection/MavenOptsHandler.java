@@ -35,7 +35,7 @@ final class MavenOptsHandler {
                     Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
     }
 
-    String create(EnvVars envVars, List<SystemProperty> systemProperties) {
+    String merge(EnvVars envVars, List<SystemProperty> systemProperties) {
         String additionalProperties =
             systemProperties
                 .stream()

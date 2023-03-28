@@ -12,7 +12,6 @@ import hudson.model.TaskListener;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,13 +19,6 @@ import static hudson.plugins.gradle.injection.MavenOptsHandler.MAVEN_OPTS;
 
 @Extension
 public class MavenInjectionEnvironmentContributor extends EnvironmentContributor implements MavenInjectionAware {
-
-    private static final MavenOptsHandler MAVEN_OPTS_HANDLER = new MavenOptsHandler(
-            MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
-            BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
-            GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
-            GRADLE_ENTERPRISE_URL_PROPERTY_KEY
-    );
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
 
@@ -42,19 +34,19 @@ public class MavenInjectionEnvironmentContributor extends EnvironmentContributor
             return;
         }
 
-        FilePath nodeRootPath = node.getRootPath();
-        if (nodeRootPath == null) {
+        if (!isInjectionEnabled(node)) {
             return;
         }
 
-        if (!isInjectionEnabled(node)) {
+        FilePath nodeRootPath = node.getRootPath();
+        if (nodeRootPath == null) {
             return;
         }
 
         InjectionConfig config = InjectionConfig.get();
         String server = config.getServer();
 
-        List<FilePath> extensions = new LinkedList<>();
+        List<FilePath> extensions = new ArrayList<>();
         extensions.add(extensionsHandler.getExtensionLocation(MavenExtensionsHandler.MavenExtension.GRADLE_ENTERPRISE, nodeRootPath));
         if (config.isInjectCcudExtension()) {
             extensions.add(extensionsHandler.getExtensionLocation(MavenExtensionsHandler.MavenExtension.CCUD, nodeRootPath));
@@ -71,7 +63,7 @@ public class MavenInjectionEnvironmentContributor extends EnvironmentContributor
             systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
         }
 
-        envs.put(MAVEN_OPTS, MAVEN_OPTS_HANDLER.create(envs, systemProperties));
+        envs.put(MAVEN_OPTS, MAVEN_OPTS_HANDLER.merge(envs, systemProperties));
 
         // Configuration needed to support https://plugins.jenkins.io/maven-plugin/
         extensions.add(extensionsHandler.getExtensionLocation(MavenExtensionsHandler.MavenExtension.CONFIGURATION, nodeRootPath));
@@ -80,8 +72,6 @@ public class MavenInjectionEnvironmentContributor extends EnvironmentContributor
         envs.put(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL, server);
         if (config.isAllowUntrusted()) {
             envs.put(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER, "true");
-        } else {
-            envs.remove(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER);
         }
     }
 
