@@ -72,7 +72,7 @@ public interface MavenInjectionAware {
             String preparedMavenOpts = environment.get(JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED);
             String preparedMavenPluginConfigExtClasspath = environment.get(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED);
             if (preparedMavenOpts != null && preparedMavenPluginConfigExtClasspath != null) {
-                run.addAction(new PreparedMavenProperties(preparedMavenOpts, preparedMavenPluginConfigExtClasspath));
+                run.addAction(new NodePreparedMavenEnvsAction(preparedMavenOpts, preparedMavenPluginConfigExtClasspath));
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -80,14 +80,14 @@ public interface MavenInjectionAware {
     }
 
     /**
-     * Action that holds Maven properties to be set in EnvironmentContributor
+     * Action that holds Maven environment variables to be set in EnvironmentContributor
      */
-    class PreparedMavenProperties extends InvisibleAction {
+    class NodePreparedMavenEnvsAction extends InvisibleAction {
 
         public final String preparedMavenOpts;
         public final String preparedMavenPluginConfigExtClasspath;
 
-        public PreparedMavenProperties(String preparedMavenOpts, String preparedMavenPluginConfigExtClasspath) {
+        public NodePreparedMavenEnvsAction(String preparedMavenOpts, String preparedMavenPluginConfigExtClasspath) {
             this.preparedMavenOpts = preparedMavenOpts;
             this.preparedMavenPluginConfigExtClasspath = preparedMavenPluginConfigExtClasspath;
         }

@@ -21,7 +21,7 @@ public class MavenInjectionEnvironmentContributor extends EnvironmentContributor
             return;
         }
 
-        PreparedMavenProperties preparedMavenProperties = run.getAction(PreparedMavenProperties.class);
+        NodePreparedMavenEnvsAction preparedMavenProperties = run.getAction(NodePreparedMavenEnvsAction.class);
         if (preparedMavenProperties == null) {
             return;
         }

@@ -64,10 +64,10 @@ class MavenInjectionEnvironmentContributorTest extends BaseJenkinsIntegrationTes
 
         def mavenOpts = "-Dmaven.ext.class.path=/var/jenkins-gradle-plugin/lib/gradle-enterprise-maven-extension.jar:/var/jenkins-gradle-plugin/lib/common-custom-user-data-maven-extension.jar -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com -Dgradle.enterprise.allowUntrustedServer=true"
         def mavenPluginConfigExtClasspath = "/var/jenkins-gradle-plugin/lib/gradle-enterprise-maven-extension.jar:/var/jenkins-gradle-plugin/lib/common-custom-user-data-maven-extension.jar:/var/jenkins-gradle-plugin/lib/configuration-maven-extension.jar"
-        def preparedMavenProperties = new MavenInjectionAware.PreparedMavenProperties(mavenOpts, mavenPluginConfigExtClasspath)
+        def preparedMavenProperties = new MavenInjectionAware.NodePreparedMavenEnvsAction(mavenOpts, mavenPluginConfigExtClasspath)
 
         def mockRun = Mock(Run)
-        mockRun.getAction(MavenInjectionAware.PreparedMavenProperties.class) >> preparedMavenProperties
+        mockRun.getAction(MavenInjectionAware.NodePreparedMavenEnvsAction.class) >> preparedMavenProperties
 
         when:
         mavenInjectionEnvironmentContributor.buildEnvironmentFor(mockRun, envs, TaskListener.NULL)
