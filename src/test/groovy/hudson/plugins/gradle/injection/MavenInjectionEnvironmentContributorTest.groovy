@@ -1,10 +1,6 @@
 package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
-import hudson.FilePath
-import hudson.model.Computer
-import hudson.model.Executor
-import hudson.model.Node
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
