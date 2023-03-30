@@ -1,6 +1,5 @@
 package hudson.plugins.gradle.injection;
 
-import hudson.EnvVars;
 import hudson.model.Node;
 
 import javax.annotation.Nullable;
@@ -35,14 +34,14 @@ final class MavenOptsHandler {
                     Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
     }
 
-    String merge(EnvVars envVars, List<SystemProperty> systemProperties) {
+    String merge(Node node, List<SystemProperty> systemProperties) {
         String additionalProperties =
             systemProperties
                 .stream()
                 .map(SystemProperty::asString)
                 .collect(Collectors.joining(SPACE));
 
-        return filtered(envVars.get(MAVEN_OPTS))
+        return filtered(getCurrentMavenOpts(node))
                 .map(current -> String.join(SPACE, current, additionalProperties))
                 .orElse(additionalProperties);
     }
@@ -67,6 +66,11 @@ final class MavenOptsHandler {
     private Optional<String> filtered(@Nullable String mavenOpts) throws RuntimeException {
         return Optional.ofNullable(mavenOpts)
             .map(this::filterMavenOpts);
+    }
+
+    @Nullable
+    private static String getCurrentMavenOpts(Node node) {
+        return EnvUtil.getEnv(node, MAVEN_OPTS);
     }
 
     /**

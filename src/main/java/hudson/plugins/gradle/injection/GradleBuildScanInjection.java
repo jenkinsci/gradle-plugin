@@ -45,7 +45,11 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
 
     @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
-        boolean enabled = isInjectionEnabled(node);
+        if (node == null) {
+            return;
+        }
+
+        boolean enabled = isInjectionEnabledForNode(node);
         try {
             String initScriptDirectory = getInitScriptDirectory(envGlobal, envComputer);
 

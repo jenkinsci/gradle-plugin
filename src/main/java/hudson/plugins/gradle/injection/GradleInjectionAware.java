@@ -20,15 +20,18 @@ public interface GradleInjectionAware {
     String JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION";
     String JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION = "JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION";
 
-    default boolean isInjectionEnabled(Node node) {
+    default boolean isInjectionDisabledGlobally(InjectionConfig config) {
+        return config.isDisabled() ||
+                InjectionUtil.isAnyInvalid(
+                        InjectionConfig.checkRequiredUrl(config.getServer()),
+                        InjectionConfig.checkRequiredVersion(config.getGradlePluginVersion())
+                );
+    }
+
+    default boolean isInjectionEnabledForNode(Node node) {
         InjectionConfig config = InjectionConfig.get();
 
-        boolean anyRequiredPropertyInvalid = InjectionUtil.isAnyInvalid(
-                InjectionConfig.checkRequiredUrl(config.getServer()),
-                InjectionConfig.checkRequiredVersion(config.getGradlePluginVersion())
-        );
-
-        if (config.isDisabled() || anyRequiredPropertyInvalid) {
+        if (isInjectionDisabledGlobally(config)) {
             return false;
         }
 

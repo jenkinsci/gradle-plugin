@@ -1,13 +1,21 @@
 package hudson.plugins.gradle.injection;
 
+import hudson.EnvVars;
+import hudson.model.InvisibleAction;
 import hudson.model.Node;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.plugins.gradle.util.CollectionUtil;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public interface MavenInjectionAware {
+
+    String JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED = "JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED";
+    String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED";
 
     String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH";
     // Use different variables so Gradle and Maven injections can work independently on the same node
@@ -27,10 +35,18 @@ public interface MavenInjectionAware {
             GRADLE_ENTERPRISE_URL_PROPERTY_KEY
     );
 
-    default boolean isInjectionEnabled(Node node) {
+    default boolean isInjectionDisabledGlobally(InjectionConfig config) {
+        if (config.isDisabled() || !config.isInjectMavenExtension()) {
+            return true;
+        }
+
+        return InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()));
+    }
+
+    default boolean isInjectionEnabledForNode(Node node) {
         InjectionConfig config = InjectionConfig.get();
 
-        if (config.isDisabled() || !config.isInjectMavenExtension() || isMissingRequiredParameters(config)) {
+        if (isInjectionDisabledGlobally(config)) {
             return false;
         }
 
@@ -49,9 +65,32 @@ public interface MavenInjectionAware {
         return InjectionUtil.isInjectionEnabledForNode(node::getAssignedLabels, disabledNodes, enabledNodes);
     }
 
-    default boolean isMissingRequiredParameters(InjectionConfig config) {
-        String server = config.getServer();
+    default void setPreparedMavenProperties(Run<?, ?> run, TaskListener listener) {
+        try {
+            EnvVars environment = run.getEnvironment(listener);
 
-        return InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(server));
+            String preparedMavenOpts = environment.get(JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED);
+            String preparedMavenPluginConfigExtClasspath = environment.get(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED);
+            if (preparedMavenOpts != null && preparedMavenPluginConfigExtClasspath != null) {
+                run.addAction(new PreparedMavenProperties(preparedMavenOpts, preparedMavenPluginConfigExtClasspath));
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    /**
+     * Action that holds Maven properties to be set in EnvironmentContributor
+     */
+    class PreparedMavenProperties extends InvisibleAction {
+
+        public final String preparedMavenOpts;
+        public final String preparedMavenPluginConfigExtClasspath;
+
+        public PreparedMavenProperties(String preparedMavenOpts, String preparedMavenPluginConfigExtClasspath) {
+            this.preparedMavenOpts = preparedMavenOpts;
+            this.preparedMavenPluginConfigExtClasspath = preparedMavenPluginConfigExtClasspath;
+        }
+    }
+
 }

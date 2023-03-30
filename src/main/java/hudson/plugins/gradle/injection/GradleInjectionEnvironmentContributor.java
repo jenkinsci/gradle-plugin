@@ -3,8 +3,6 @@ package hudson.plugins.gradle.injection;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.EnvironmentContributor;
-import hudson.model.Executor;
-import hudson.model.Node;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
@@ -15,21 +13,12 @@ public class GradleInjectionEnvironmentContributor extends EnvironmentContributo
 
     @Override
     public void buildEnvironmentFor(@Nonnull Run run, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
-        Executor executor = run.getExecutor();
-        if (executor == null) {
-            return;
-        }
-
-        Node node = executor.getOwner().getNode();
-        if (node == null) {
-            return;
-        }
-
-        if (!isInjectionEnabled(node)) {
-            return;
-        }
-
         InjectionConfig config = InjectionConfig.get();
+
+        if (isInjectionDisabledGlobally(config)) {
+            return;
+        }
+
         envs.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED, "true");
 
         envs.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL, config.getServer());
@@ -43,6 +32,7 @@ public class GradleInjectionEnvironmentContributor extends EnvironmentContributo
         if (pluginRepositoryUrl != null && InjectionUtil.isValid(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
             envs.put(JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
         }
+
         String ccudPluginVersion = config.getCcudPluginVersion();
         if (ccudPluginVersion != null && InjectionUtil.isValid(InjectionConfig.checkVersion(ccudPluginVersion))) {
             envs.put(JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION, ccudPluginVersion);

@@ -2,14 +2,17 @@ package hudson.plugins.gradle.injection;
 
 import hudson.EnvVars;
 import hudson.FilePath;
+import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.plugins.gradle.injection.MavenExtensionsHandler.MavenExtension;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class MavenBuildScanInjection implements BuildScanInjection, MavenInjectionAware {
 
@@ -23,7 +26,9 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH,
             JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL,
             JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER,
-            JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION
+            JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION,
+            JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED,
+            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED
         );
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
@@ -39,7 +44,7 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             return;
         }
 
-        boolean enabled = isInjectionEnabled(node);
+        boolean enabled = isInjectionEnabledForNode(node);
         try {
             if (enabled) {
                 inject(node, nodeRootPath);
@@ -58,18 +63,35 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION, "true");
 
             InjectionConfig config = InjectionConfig.get();
+            String server = config.getServer();
 
             LOGGER.info("Injecting Maven extensions " + nodeRootPath);
 
-            extensionsHandler.copyExtensionToAgent(MavenExtension.GRADLE_ENTERPRISE, nodeRootPath);
+            List<FilePath> extensions = new ArrayList<>();
+            extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.GRADLE_ENTERPRISE, nodeRootPath));
             if (config.isInjectCcudExtension()) {
-                extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, nodeRootPath);
+                extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, nodeRootPath));
             } else {
                 extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);
             }
 
+            boolean isUnix = isUnix(node);
+
+            List<SystemProperty> systemProperties = new ArrayList<>();
+            systemProperties.add(new SystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, constructExtClasspath(extensions, isUnix)));
+            systemProperties.add(new SystemProperty(BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
+
+            systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, server));
+            if (config.isAllowUntrusted()) {
+                systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
+            }
+
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED, MAVEN_OPTS_HANDLER.merge(node, systemProperties));
+
             // Configuration needed to support https://plugins.jenkins.io/maven-plugin/
-            extensionsHandler.copyExtensionToAgent(MavenExtension.CONFIGURATION, nodeRootPath);
+            extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CONFIGURATION, nodeRootPath));
+
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED, constructExtClasspath(extensions, isUnix));
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
@@ -87,6 +109,23 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private static String constructExtClasspath(List<FilePath> extensions, boolean isUnix) {
+        return extensions
+                .stream()
+                .map(FilePath::getRemote)
+                .collect(Collectors.joining(getDelimiter(isUnix)));
+    }
+
+    private static String getDelimiter(boolean isUnix) {
+        return isUnix ? ":" : ";";
+    }
+
+    private static boolean isUnix(Node node) {
+        Computer computer = node.toComputer();
+
+        return computer == null || Boolean.TRUE.equals(computer.isUnix());
     }
 
 }
