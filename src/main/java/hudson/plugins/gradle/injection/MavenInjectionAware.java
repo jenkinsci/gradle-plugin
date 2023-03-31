@@ -1,13 +1,8 @@
 package hudson.plugins.gradle.injection;
 
-import hudson.EnvVars;
-import hudson.model.InvisibleAction;
 import hudson.model.Node;
-import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.plugins.gradle.util.CollectionUtil;
 
-import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,34 +58,6 @@ public interface MavenInjectionAware {
                         .collect(Collectors.toSet());
 
         return InjectionUtil.isInjectionEnabledForNode(node::getAssignedLabels, disabledNodes, enabledNodes);
-    }
-
-    default void setPreparedMavenProperties(Run<?, ?> run, TaskListener listener) {
-        try {
-            EnvVars environment = run.getEnvironment(listener);
-
-            String preparedMavenOpts = environment.get(JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED);
-            String preparedMavenPluginConfigExtClasspath = environment.get(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED);
-            if (preparedMavenOpts != null && preparedMavenPluginConfigExtClasspath != null) {
-                run.addAction(new NodePreparedMavenEnvsAction(preparedMavenOpts, preparedMavenPluginConfigExtClasspath));
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Action that holds Maven environment variables to be set in EnvironmentContributor
-     */
-    class NodePreparedMavenEnvsAction extends InvisibleAction {
-
-        public final String preparedMavenOpts;
-        public final String preparedMavenPluginConfigExtClasspath;
-
-        public NodePreparedMavenEnvsAction(String preparedMavenOpts, String preparedMavenPluginConfigExtClasspath) {
-            this.preparedMavenOpts = preparedMavenOpts;
-            this.preparedMavenPluginConfigExtClasspath = preparedMavenPluginConfigExtClasspath;
-        }
     }
 
 }
