@@ -5,7 +5,7 @@ import hudson.Extension;
 import hudson.model.EnvironmentContributor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.plugins.gradle.injection.MavenInjectionEnvVarsRunListener.MavenInjectionEnvVarsAction;
+import hudson.plugins.gradle.injection.MavenInjectionRunListener.MavenInjectionEnvVarsAction;
 
 import javax.annotation.Nonnull;
 

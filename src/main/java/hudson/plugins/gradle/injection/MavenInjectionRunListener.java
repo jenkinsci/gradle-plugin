@@ -15,8 +15,12 @@ import java.io.IOException;
 import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED;
 import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED;
 
+/**
+ * Adds MavenInjectionEnvVarsAction to the Run execution to be used by {@link MavenInjectionEnvironmentContributor}
+ * for injecting Maven specific environment variables
+ */
 @Extension
-public class MavenInjectionEnvVarsRunListener extends RunListener<Run<?, ?>> {
+public class MavenInjectionRunListener extends RunListener<Run<?, ?>> {
 
     @Override
     public void onStarted(Run<?, ?> run, TaskListener listener) {
