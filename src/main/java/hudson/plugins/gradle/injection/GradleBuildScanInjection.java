@@ -6,45 +6,33 @@ import com.google.common.base.Suppliers;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
-import hudson.plugins.gradle.util.CollectionUtil;
 import hudson.remoting.VirtualChannel;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
 import static hudson.plugins.gradle.injection.CopyUtil.unsafeResourceDigest;
 
-public class GradleBuildScanInjection implements BuildScanInjection {
+public class GradleBuildScanInjection implements BuildScanInjection, GradleInjectionAware {
 
     private static final Logger LOGGER = Logger.getLogger(GradleBuildScanInjection.class.getName());
 
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME";
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
 
-    private static final String JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION = "JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION";
-
-    private static final String JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL";
-    private static final String JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER";
-    private static final String JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL = "JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL";
-    private static final String JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION = "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION";
-    private static final String JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION = "JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION";
-
-    private static final List<String> ALL_INJECTED_ENVIRONMENT_VARIABLES =
-        Arrays.asList(
+    private static final List<String> ALL_INJECTED_ENVIRONMENT_VARIABLES = Arrays.asList(
             JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL,
             JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER,
             JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL,
             JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION,
             JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION,
             JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION
-        );
+    );
 
     private static final String HOME = "HOME";
 
@@ -56,42 +44,12 @@ public class GradleBuildScanInjection implements BuildScanInjection {
     private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
 
     @Override
-    public boolean isEnabled(Node node) {
-        InjectionConfig config = InjectionConfig.get();
-
-        if (config.isDisabled() || isMissingRequiredParameters(config)) {
-            return false;
+    public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
+        if (node == null) {
+            return;
         }
 
-        Set<String> disabledNodes =
-            CollectionUtil.safeStream(config.getGradleInjectionDisabledNodes())
-                .map(NodeLabelItem::getLabel)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Set<String> enabledNodes =
-            CollectionUtil.safeStream(config.getGradleInjectionEnabledNodes())
-                .map(NodeLabelItem::getLabel)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        return InjectionUtil.isInjectionEnabledForNode(node::getAssignedLabels, disabledNodes, enabledNodes);
-    }
-
-    private static boolean isMissingRequiredParameters(InjectionConfig config) {
-        String server = config.getServer();
-        String gradlePluginVersion = config.getGradlePluginVersion();
-
-        return InjectionUtil.isAnyInvalid(
-            InjectionConfig.checkRequiredUrl(server),
-            InjectionConfig.checkRequiredVersion(gradlePluginVersion)
-        );
-    }
-
-    @Override
-    public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
-        boolean enabled = isEnabled(node);
-
+        boolean enabled = isInjectionEnabledForNode(node);
         try {
             String initScriptDirectory = getInitScriptDirectory(envGlobal, envComputer);
 
@@ -126,8 +84,8 @@ public class GradleBuildScanInjection implements BuildScanInjection {
     private void inject(Node node, String initScriptDirectory) {
         try {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION, "true");
+
             injectInitScript(node.getChannel(), initScriptDirectory);
-            injectEnvironmentVariables(node);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
@@ -142,26 +100,6 @@ public class GradleBuildScanInjection implements BuildScanInjection {
         }
     }
 
-    private void injectEnvironmentVariables(Node node) {
-        InjectionConfig config = InjectionConfig.get();
-
-        EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL, config.getServer());
-        EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION, config.getGradlePluginVersion());
-
-        if (config.isAllowUntrusted()) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER, "true");
-        }
-
-        String pluginRepositoryUrl = config.getGradlePluginRepositoryUrl();
-        if (pluginRepositoryUrl != null && InjectionUtil.isValid(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
-        }
-        String ccudPluginVersion = config.getCcudPluginVersion();
-        if (ccudPluginVersion != null && InjectionUtil.isValid(InjectionConfig.checkVersion(ccudPluginVersion))) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION, ccudPluginVersion);
-        }
-    }
-
     private boolean initScriptChanged(FilePath gradleInitScriptFile) throws IOException, InterruptedException {
         if (!gradleInitScriptFile.exists()) {
             return true;
@@ -173,6 +111,10 @@ public class GradleBuildScanInjection implements BuildScanInjection {
     private void cleanup(Node node, String initScriptDirectory) {
         try {
             removeInitScript(node.getChannel(), initScriptDirectory);
+
+            // We still need to clean up all environment variables set in older
+            // versions even though we now set them in EnvironmentContributor.
+            // This behavior is temporary and can be deleted at some point in the future
             EnvUtil.removeEnvVars(node, ALL_INJECTED_ENVIRONMENT_VARIABLES);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
@@ -198,4 +140,5 @@ public class GradleBuildScanInjection implements BuildScanInjection {
     private static String filePath(String... parts) {
         return String.join("/", parts);
     }
+
 }

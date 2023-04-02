@@ -10,7 +10,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.plugins.gradle.injection.InjectionUtil;
-import hudson.plugins.gradle.injection.MavenBuildScanInjection;
+import hudson.plugins.gradle.injection.MavenInjectionAware;
 import hudson.util.LogTaskListener;
 import hudson.util.VersionNumber;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +41,7 @@ public class GradleEnterpriseExtensionsContributorFactory extends PlexusModuleCo
             }
 
             EnvVars environment = build.getEnvironment(new LogTaskListener(LOGGER, Level.INFO));
-            String classpath = environment.get(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH);
+            String classpath = environment.get(MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH);
             if (StringUtils.isBlank(classpath)) {
                 return EMPTY_CONTRIBUTOR;
             }

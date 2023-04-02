@@ -11,15 +11,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-class MavenOptsSetter {
+final class MavenOptsHandler {
+
+    public static final String MAVEN_OPTS = "MAVEN_OPTS";
 
     private static final String SPACE = " ";
-    private static final String MAVEN_OPTS_VAR = "MAVEN_OPTS";
 
     private final Set<String> keys;
     private final Set<String> requiredKeys;
 
-    public MavenOptsSetter(SystemProperty.Key... keys) {
+    public MavenOptsHandler(SystemProperty.Key... keys) {
         this.keys =
             Arrays.stream(keys)
                 .map(k -> k.name)
@@ -33,23 +34,22 @@ class MavenOptsSetter {
                     Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
     }
 
-    void append(Node node, List<SystemProperty> systemProperties) throws IOException, InterruptedException {
+    String merge(Node node, List<SystemProperty> systemProperties) {
         String additionalProperties =
             systemProperties
                 .stream()
                 .map(SystemProperty::asString)
                 .collect(Collectors.joining(SPACE));
 
-        String mavenOpts =
-            filtered(getCurrentMavenOpts(node))
+        return filtered(getCurrentMavenOpts(node))
                 .map(current -> String.join(SPACE, current, additionalProperties))
                 .orElse(additionalProperties);
-
-        EnvUtil.setEnvVar(node, MAVEN_OPTS_VAR, mavenOpts);
     }
 
+    // Keep this method for cleaning MAVEN_OPTS set with previous versions of the plugin
+    // as we now set it in EnvironmentContributor
     void removeIfNeeded(Node node) throws IOException, InterruptedException {
-        String currentMavenOpts = getCurrentMavenOpts(node);
+        String currentMavenOpts = EnvUtil.getEnv(node, MAVEN_OPTS);
         if (currentMavenOpts == null || currentMavenOpts.isEmpty()) {
             return;
         }
@@ -60,17 +60,17 @@ class MavenOptsSetter {
         }
 
         String mavenOpts = filtered(currentMavenOpts).orElse(null);
-        EnvUtil.setEnvVar(node, MAVEN_OPTS_VAR, mavenOpts);
-    }
-
-    @Nullable
-    private static String getCurrentMavenOpts(Node node) {
-        return EnvUtil.getEnv(node, MAVEN_OPTS_VAR);
+        EnvUtil.setEnvVar(node, MAVEN_OPTS, mavenOpts);
     }
 
     private Optional<String> filtered(@Nullable String mavenOpts) throws RuntimeException {
         return Optional.ofNullable(mavenOpts)
             .map(this::filterMavenOpts);
+    }
+
+    @Nullable
+    private static String getCurrentMavenOpts(Node node) {
+        return EnvUtil.getEnv(node, MAVEN_OPTS);
     }
 
     /**

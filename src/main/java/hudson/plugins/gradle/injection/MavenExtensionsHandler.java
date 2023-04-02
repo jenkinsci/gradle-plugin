@@ -27,6 +27,10 @@ public class MavenExtensionsHandler {
         return fileHandlers.get(extension).copyExtensionToAgent(rootPath);
     }
 
+    public FilePath getExtensionLocation(MavenExtension extension, FilePath rootPath) {
+        return fileHandlers.get(extension).getExtensionLocation(rootPath);
+    }
+
     public void deleteExtensionFromAgent(MavenExtension extension, FilePath rootPath) throws IOException, InterruptedException {
         fileHandlers.get(extension).deleteExtensionFromAgent(rootPath);
     }
