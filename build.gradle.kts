@@ -93,6 +93,11 @@ dependencies {
         because("Lowest version that works with our dependencies")
     }
 
+    // Higher versions fail in our tests with ClassNotFoundException during SCM initialization unless Jenkins is updated
+    "optionalPluginImplementation"("org.jenkins-ci.plugins:git:4.9.4") {
+        because("VCS repositories filtering is supported for Gradle Enterprise auto-injection")
+    }
+
     implementation("commons-validator:commons-validator:1.7") {
         exclude(group = "commons-beanutils", module = "commons-beanutils")
         exclude(group = "commons-logging", module = "commons-logging")

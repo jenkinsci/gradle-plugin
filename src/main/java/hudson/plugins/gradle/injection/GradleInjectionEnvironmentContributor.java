@@ -19,6 +19,10 @@ public class GradleInjectionEnvironmentContributor extends EnvironmentContributo
             return;
         }
 
+        if (!InjectionUtil.isVcsRepositoryAllowed(run, config)) {
+            return;
+        }
+
         envs.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED, "true");
 
         envs.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL, config.getServer());

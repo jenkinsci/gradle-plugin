@@ -4,6 +4,7 @@ import hudson.EnvVars
 import hudson.Util
 import hudson.model.FreeStyleProject
 import hudson.model.Slave
+import hudson.plugins.git.GitSCM
 import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
@@ -441,6 +442,96 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         and:
         StringUtils.countMatches(JenkinsRule.getLog(secondRun), "ERROR: Gradle Enterprise access key format is not valid") == 1
+    }
+
+    def 'vcs repository pattern injection for freestyle remote project - #pattern'(String pattern) {
+        given:
+        def gradleVersion = '8.0.2'
+        gradleInstallationRule.gradleVersion = '8.0.2'
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave slave = createSlave()
+
+        FreeStyleProject p = j.createFreeStyleProject()
+        p.setScm(new GitSCM("https://github.com/c00ler/simple-gradle-project"))
+        p.setAssignedNode(slave)
+
+        p.buildersList.add(new Gradle(tasks: 'clean', gradleName: gradleVersion, switches: "--no-daemon"))
+
+        when:
+        // first build to download Gradle
+        def build = j.buildAndAssertSuccess(p)
+
+        then:
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
+
+        when:
+        withInjectionConfig {
+            injectionVcsRepositoryPatterns = pattern
+        }
+        enableBuildInjection(slave, gradleVersion)
+        def build2 = j.buildAndAssertSuccess(p)
+
+        then:
+        if (pattern == "simple-") {
+            j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
+        } else {
+            j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build2)
+        }
+
+        where:
+        pattern << ["simple-", "this-one-does-not-match"]
+    }
+
+    def 'vcs repository pattern injection for pipeline remote project - #pattern'(String pattern) {
+        given:
+        def gradleVersion = '8.0.2'
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave slave = createSlave()
+
+        def pipelineJob = j.createProject(WorkflowJob)
+
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+    stage('Build') {
+      node('foo') {
+        withGradle {
+          git branch: 'main', url: 'https://github.com/c00ler/simple-gradle-project'
+          def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+          if (isUnix()) {
+            sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain"
+          } else {
+            bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain/)
+          }
+        }
+      }
+    }
+""", false))
+
+        when:
+        // first build to download Gradle
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
+
+        when:
+        withInjectionConfig {
+            injectionVcsRepositoryPatterns = pattern
+        }
+        enableBuildInjection(slave, gradleVersion)
+        def build2 = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        if (pattern == "simple-") {
+            j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
+        } else {
+            j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build2)
+        }
+
+        where:
+        pattern << ["simple-", "this-one-does-not-match"]
     }
 
     private static CreateFileBuilder helloTask(String action = "println 'Hello!'") {

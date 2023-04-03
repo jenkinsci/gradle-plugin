@@ -22,6 +22,10 @@ public class MavenInjectionEnvironmentContributor extends EnvironmentContributor
             return;
         }
 
+        if (!InjectionUtil.isVcsRepositoryAllowed(run, config)) {
+            return;
+        }
+
         MavenInjectionEnvVarsAction mavenInjectionEnvVarsAction = run.getAction(MavenInjectionEnvVarsAction.class);
         if (mavenInjectionEnvVarsAction == null) {
             return;

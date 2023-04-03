@@ -1,7 +1,11 @@
 package hudson.plugins.gradle.injection
 
 import hudson.FilePath
+import hudson.plugins.git.BranchSpec
+import hudson.plugins.git.GitSCM
+import hudson.plugins.git.extensions.GitSCMExtension
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
+import hudson.plugins.gradle.BuildScanBuildWrapper
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven
@@ -501,6 +505,83 @@ node {
         getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == null
         getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
         getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == null
+    }
+
+    @Unroll
+    @SuppressWarnings("GStringExpressionWithinString")
+    def 'vcs repository pattern injection for pipeline remote project - #pattern #mavenSetup'(String pattern, String mavenSetup) {
+        given:
+        withInjectionConfig {
+            injectionVcsRepositoryPatterns = pattern
+        }
+        createSlaveAndTurnOnInjection()
+        def mavenInstallationName = setupMavenInstallation()
+        def replacedMavenSetup = mavenSetup.replaceAll("mavenInstallationName", mavenInstallationName)
+
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+   stage('Build') {
+        node('foo') {
+            $replacedMavenSetup
+                git branch: 'main', url: 'https://github.com/c00ler/simple-maven-project'
+                if (isUnix()) {
+                    sh "env"
+                    sh "mvn package -B"
+                } else {
+                    bat "set"
+                    bat "mvn package -B"
+                }
+            }
+        }
+   }
+""", false))
+
+        when:
+        // In this case, the job had to be executed twice for SCM to be populated (we do the same for Gradle, though
+        // for a different reason). Manual test didn't exhibit this problem, so most probably something caused by a test setup
+        j.buildAndAssertSuccess(pipelineJob)
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        if (pattern.contains("simple-")) {
+            j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
+        } else {
+            j.assertLogNotContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
+        }
+
+        where:
+        pattern                                     |  mavenSetup
+        "not-found-pattern, simple-"                | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"
+        "not-found-pattern, simple-"                | "withMaven(maven: 'mavenInstallationName') {"
+        "this-one-does-not-match, this-one-too"     | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"
+        "this-one-does-not-match, this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"
+    }
+
+    def 'vcs repository pattern injection for freestyle remote project - #pattern'(String pattern) {
+        given:
+        withInjectionConfig {
+            injectionVcsRepositoryPatterns = pattern
+        }
+        def slave = createSlaveAndTurnOnInjection()
+
+        def p = j.createFreeStyleProject()
+        p.buildWrappersList.add(new BuildScanBuildWrapper())
+        p.setScm(new GitSCM(GitSCM.createRepoList("https://github.com/c00ler/simple-maven-project", null), Collections.singletonList(new BranchSpec("main")), null, null, Collections.<GitSCMExtension>emptyList()))
+        p.buildersList.add(new Maven("package", "3.9.1"))
+        p.setAssignedNode(slave)
+
+        when:
+        def build = j.buildAndAssertSuccess(p)
+
+        then:
+        if (pattern == "simple-") {
+            j.assertLogContains("Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service", build)
+        } else {
+            j.assertLogNotContains("Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service", build)
+        }
+
+        where:
+        pattern << ["simple-", "this-one-does-not-match"]
     }
 
     private static String simplePipeline(String mavenInstallationName) {
