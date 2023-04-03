@@ -559,6 +559,7 @@ node {
 
     def 'vcs repository pattern injection for freestyle remote project - #pattern'(String pattern) {
         given:
+        def mavenInstallationName = setupMavenInstallation()
         withInjectionConfig {
             injectionVcsRepositoryPatterns = pattern
         }
@@ -567,7 +568,7 @@ node {
         def p = j.createFreeStyleProject()
         p.buildWrappersList.add(new BuildScanBuildWrapper())
         p.setScm(new GitSCM(GitSCM.createRepoList("https://github.com/c00ler/simple-maven-project", null), Collections.singletonList(new BranchSpec("main")), null, null, Collections.<GitSCMExtension>emptyList()))
-        p.buildersList.add(new Maven("package", "3.9.1"))
+        p.buildersList.add(new Maven("package", mavenInstallationName))
         p.setAssignedNode(slave)
 
         when:
