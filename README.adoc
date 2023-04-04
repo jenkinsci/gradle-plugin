@@ -134,6 +134,15 @@ Next set the URL of the Gradle Enterprise instance to which the build scans shou
 
 image::enable-auto-injection.png[Enable auto-injection,{thumbnail}]
 
+It is also possible to enable injection for specific repositories by specifying VCS repository patterns. These are comma-separated values, which will be used in a contains check against the repository URL.
+
+image::general-git-vcs-repository-filtering.png[Git VCS repository filtering, {thumbnail}]
+
+> **Note**
+> - This feature is currently in Beta and requires Git Plugin to be installed. If Git Plugin is not installed, the following warning message will be show instead.
+
+image::general-git-plugin-not-installed.png[Git Plugin is not installed, {thumbnail}]
+
 ==== Gradle
 
 To enable the auto-injection for Gradle builds, set the desired https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] version in the `Gradle Enterprise Gradle plugin version` field in the `Gradle settings` section of the configuration form.
