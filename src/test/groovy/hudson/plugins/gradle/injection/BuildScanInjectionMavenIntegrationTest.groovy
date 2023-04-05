@@ -19,7 +19,7 @@ import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static hudson.plugins.gradle.injection.MavenBuildScanInjection.*
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH
 
 class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest {
 
