@@ -557,6 +557,7 @@ node {
         "this-one-does-not-match, this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"
     }
 
+    @Unroll
     def 'vcs repository pattern injection for freestyle remote project - #pattern'(String pattern) {
         given:
         def mavenInstallationName = setupMavenInstallation()

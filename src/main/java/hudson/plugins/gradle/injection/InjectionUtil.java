@@ -88,48 +88,4 @@ public final class InjectionUtil {
         return enabledNodes.stream().anyMatch(labels::contains);
     }
 
-    public static boolean isVcsRepositoryAllowed(Run<?, ?> run, InjectionConfig config) {
-        if (config.getParsedInjectionVcsRepositoryPatterns() == null || config.getParsedInjectionVcsRepositoryPatterns().isEmpty()) {
-            return true;
-        }
-
-        if (run instanceof WorkflowRun) {
-            Collection<? extends SCM> scms = ((WorkflowRun) run).getParent().getSCMs();
-
-            for (SCM scm : scms) {
-                if (vcsRepositoryUrlMatches(config, scm)) {
-                    return true;
-                }
-            }
-        } else if (run instanceof AbstractBuild) {
-            AbstractProject<?, ?> project = ((AbstractBuild<?, ?>) run).getProject();
-            SCM scm = project.getScm();
-
-            if (scm == null) {
-                return true;
-            }
-
-            return vcsRepositoryUrlMatches(config, scm);
-        }
-
-        return false;
-    }
-
-    private static boolean vcsRepositoryUrlMatches(InjectionConfig config, SCM scm) {
-        if (scm instanceof GitSCM) {
-            List<UserRemoteConfig> userRemoteConfigs = ((GitSCM) scm).getUserRemoteConfigs();
-
-            for (UserRemoteConfig userRemoteConfig : userRemoteConfigs) {
-                for (String pattern : config.getParsedInjectionVcsRepositoryPatterns()) {
-                    String url = userRemoteConfig.getUrl();
-                    if (url != null && url.contains(pattern)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
 }

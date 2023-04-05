@@ -125,7 +125,7 @@ The same auto-injection behavior is available for the https://github.com/gradle/
 
 === Enable auto-injection
 
-The auto-injection is split into three levels to have fine-grained control over the enablement of this feature.
+The auto-injection is split into several levels to have fine-grained control over the enablement of this feature.
 
 ==== Global
 
@@ -134,7 +134,10 @@ Next set the URL of the Gradle Enterprise instance to which the build scans shou
 
 image::enable-auto-injection.png[Enable auto-injection,{thumbnail}]
 
+===== VCS repository filtering (Beta)
+
 It is also possible to enable injection for specific repositories by specifying VCS repository patterns. These are comma-separated values, which will be used in a contains check against the repository URL.
+For example, by specifying the filter value as `foo, bar, baz`, the injection will be performed for all Git VCS repositories which contain specified values in their VCS URL.
 
 image::general-git-vcs-repository-filtering.png[Git VCS repository filtering, {thumbnail}]
 
