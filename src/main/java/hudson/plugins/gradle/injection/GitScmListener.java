@@ -49,7 +49,6 @@ public class GitScmListener extends SCMListener {
             EnvVars envVars = computer.buildEnvironment(listener);
 
             if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(config.getGradlePluginVersion()))) {
-                listener.getLogger().println("Setting GradleInjectionDisabledAction to turn off injection");
                 build.addAction(GradleInjectionDisabledAction.INSTANCE);
             }
 
@@ -57,8 +56,6 @@ public class GitScmListener extends SCMListener {
                 String currentMavenOpts = envVars.get(JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED);
                 if (currentMavenOpts != null) {
                     String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts));
-
-                    listener.getLogger().println("Setting MavenInjectionDisabledMavenOptsAction to turn off injection:[" + mavenOpts + "]");
 
                     build.addAction(new MavenInjectionDisabledMavenOptsAction(mavenOpts));
                 }

@@ -537,9 +537,6 @@ node {
 """, false))
 
         when:
-        // In this case, the job had to be executed twice for SCM to be populated (we do the same for Gradle, though
-        // for a different reason). Manual test didn't exhibit this problem, so most probably something caused by a test setup
-        j.buildAndAssertSuccess(pipelineJob)
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
