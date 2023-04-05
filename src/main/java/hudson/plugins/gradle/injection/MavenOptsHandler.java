@@ -51,7 +51,9 @@ final class MavenOptsHandler {
     public void removeIfNeeded(Node node) throws IOException, InterruptedException {
         String mavenOpts = removeIfNeeded(EnvUtil.getEnv(node, MAVEN_OPTS));
 
-        EnvUtil.setEnvVar(node, MAVEN_OPTS, mavenOpts);
+        if (mavenOpts != null) {
+            EnvUtil.setEnvVar(node, MAVEN_OPTS, mavenOpts);
+        }
     }
 
     public String removeIfNeeded(String currentMavenOpts) {

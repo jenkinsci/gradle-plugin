@@ -136,6 +136,44 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         getMavenOptsFromNodeProperties(agent) == mavenOpts
     }
 
+    def 'appends new properties to MAVEN_OPTS when auto-injection is enabled and no jobs run'() {
+        given:
+        def mavenOpts = '-Dfoo=bar'
+        def agent = createSlave('test')
+
+        withNodeEnvVars(agent) {
+            put('MAVEN_OPTS', mavenOpts)
+        }
+
+        when:
+        turnOnBuildInjectionAndRestart(agent)
+
+        then:
+        with(getEnvVarFromNodeProperties(agent, MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED).split(" ").iterator()) {
+            with(it.next()) {
+                it == mavenOpts
+            }
+            with(it.next()) {
+                it.startsWith('-Dmaven.ext.class.path=')
+                it.contains('gradle-enterprise-maven-extension.jar')
+                it.contains('common-custom-user-data-maven-extension.jar')
+            }
+            with(it.next()) {
+                it == '-Dgradle.scan.uploadInBackground=false'
+            }
+            with(it.next()) {
+                it == '-Dgradle.enterprise.url=https://scans.gradle.com'
+            }
+            !it.hasNext()
+        }
+
+        when:
+        turnOffBuildInjectionAndRestart(agent)
+
+        then:
+        getMavenOptsFromNodeProperties(agent) == mavenOpts
+    }
+
     def 'delete MAVEN_OPTS and maven-plugin variables set by older versions if auto-injection is disabled'() {
         given:
         def mavenOpts = '-Dmaven.ext.class.path=temp/jenkins-gradle-plugin/lib/gradle-enterprise-maven-extension.jar:temp/jenkins-gradle-plugin/lib/common-custom-user-data-maven-extension.jar -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com -Dgradle.enterprise.allowUntrustedServer=true'
