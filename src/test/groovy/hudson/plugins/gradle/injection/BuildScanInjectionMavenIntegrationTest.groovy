@@ -2,10 +2,7 @@ package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
 import hudson.FilePath
-import hudson.plugins.git.BranchSpec
-import hudson.plugins.git.GitSCM
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
-import hudson.plugins.gradle.BuildScanBuildWrapper
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven
@@ -22,9 +19,7 @@ import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
-import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH
-import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.*
 
 class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest {
 
