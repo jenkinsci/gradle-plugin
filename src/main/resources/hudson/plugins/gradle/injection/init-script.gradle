@@ -15,7 +15,8 @@ initscript {
     }
 
     // finish early if injection is disabled
-    if (getInputParam("jenkinsGradlePlugin.gradle-enterprise.gradle-injection-enabled") == "false") {
+    def gradleInjectionEnabled = getInputParam("jenkinsGradlePlugin.gradle-enterprise.gradle-injection-enabled")
+    if (gradleInjectionEnabled == null || gradleInjectionEnabled.isEmpty() || gradleInjectionEnabled == "false") {
         return
     }
 
@@ -69,7 +70,8 @@ def getInputParam = { String name ->
 }
 
 // finish early if injection is disabled
-if (getInputParam("jenkinsGradlePlugin.gradle-enterprise.gradle-injection-enabled") == "false") {
+def gradleInjectionEnabled = getInputParam("jenkinsGradlePlugin.gradle-enterprise.gradle-injection-enabled")
+if (gradleInjectionEnabled == null || gradleInjectionEnabled.isEmpty() || gradleInjectionEnabled == "false") {
     return
 }
 

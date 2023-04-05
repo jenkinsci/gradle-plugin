@@ -52,7 +52,7 @@ class MavenInjectionEnvironmentContributorTest extends BaseJenkinsIntegrationTes
         envs.get(MavenOptsHandler.MAVEN_OPTS) == "-Dmaven.ext.class.path=/tmp/custom-extension.jar"
     }
 
-    def "maven opts and maven plugin environment variables are set if injection is enabled"() {
+    def "maven opts and maven plugin environment variables removed if injection is disabled due to vcs filtering"() {
         given:
         withInjectionConfig {
             enabled = true
@@ -61,43 +61,18 @@ class MavenInjectionEnvironmentContributorTest extends BaseJenkinsIntegrationTes
             injectCcudExtension = true
             allowUntrusted = true
         }
+        envs.put(MavenOptsHandler.MAVEN_OPTS, "-Dfoo=bar")
 
-        def mavenOpts = "-Dmaven.ext.class.path=/var/jenkins-gradle-plugin/lib/gradle-enterprise-maven-extension.jar:/var/jenkins-gradle-plugin/lib/common-custom-user-data-maven-extension.jar -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com -Dgradle.enterprise.allowUntrustedServer=true"
-        def mavenPluginConfigExtClasspath = "/var/jenkins-gradle-plugin/lib/gradle-enterprise-maven-extension.jar:/var/jenkins-gradle-plugin/lib/common-custom-user-data-maven-extension.jar:/var/jenkins-gradle-plugin/lib/configuration-maven-extension.jar"
-        def preparedMavenProperties = new MavenInjectionRunListener.MavenInjectionEnvVarsAction(mavenOpts, mavenPluginConfigExtClasspath) {}
+        def mavenInjectionDisabledMavenOptsAction = new GitScmListener.MavenInjectionDisabledMavenOptsAction("") {}
 
         def mockRun = Mock(Run)
-        mockRun.getAction(MavenInjectionRunListener.MavenInjectionEnvVarsAction.class) >> preparedMavenProperties
+        mockRun.getAction(GitScmListener.MavenInjectionDisabledMavenOptsAction.class) >> mavenInjectionDisabledMavenOptsAction
 
         when:
         mavenInjectionEnvironmentContributor.buildEnvironmentFor(mockRun, envs, TaskListener.NULL)
 
         then:
-        with(envs.get(MavenOptsHandler.MAVEN_OPTS).split(" ").iterator()) {
-            with(it.next()) {
-                it.startsWith('-Dmaven.ext.class.path=')
-                it.contains('gradle-enterprise-maven-extension.jar')
-                it.contains('common-custom-user-data-maven-extension.jar')
-            }
-            with(it.next()) {
-                it == '-Dgradle.scan.uploadInBackground=false'
-            }
-            with(it.next()) {
-                it == '-Dgradle.enterprise.url=https://scans.gradle.com'
-            }
-            with(it.next()) {
-                it == '-Dgradle.enterprise.allowUntrustedServer=true'
-            }
-            !it.hasNext()
-        }
-        with(envs.get(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH)) {
-            !it.startsWith('-Dmaven.ext.class.path=')
-            it.contains('gradle-enterprise-maven-extension.jar')
-            it.contains('common-custom-user-data-maven-extension.jar')
-            it.contains('configuration-maven-extension.jar')
-        }
-        envs.get(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
-        envs.get(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == 'true'
+        envs.get(MavenOptsHandler.MAVEN_OPTS) == ""
     }
 
 }

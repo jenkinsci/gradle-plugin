@@ -86,12 +86,18 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
                 systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
             }
 
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED, MAVEN_OPTS_HANDLER.merge(node, systemProperties));
+            EnvUtil.setEnvVar(node, MavenOptsHandler.MAVEN_OPTS, MAVEN_OPTS_HANDLER.merge(node, systemProperties));
 
             // Configuration needed to support https://plugins.jenkins.io/maven-plugin/
             extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CONFIGURATION, nodeRootPath));
 
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED, constructExtClasspath(extensions, isUnix));
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, constructExtClasspath(extensions, isUnix));
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL, config.getServer());
+            if (config.isAllowUntrusted()) {
+                EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER, "true");
+            } else {
+                EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER);
+            }
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }

@@ -46,14 +46,19 @@ final class MavenOptsHandler {
                 .orElse(additionalProperties);
     }
 
-    // Keep this method for cleaning MAVEN_OPTS set with previous versions of the plugin
-    // as we now set it in EnvironmentContributor
-    public void removeIfNeeded(Node node) throws IOException, InterruptedException {
-        String mavenOpts = removeIfNeeded(EnvUtil.getEnv(node, MAVEN_OPTS));
-
-        if (mavenOpts != null) {
-            EnvUtil.setEnvVar(node, MAVEN_OPTS, mavenOpts);
+    void removeIfNeeded(Node node) throws IOException, InterruptedException {
+        String currentMavenOpts = EnvUtil.getEnv(node, MAVEN_OPTS);
+        if (currentMavenOpts == null || currentMavenOpts.isEmpty()) {
+            return;
         }
+
+        boolean hasAllRequiredKeys = requiredKeys.stream().allMatch(currentMavenOpts::contains);
+        if (!hasAllRequiredKeys) {
+            return;
+        }
+
+        String mavenOpts = filtered(currentMavenOpts).orElse(null);
+        EnvUtil.setEnvVar(node, MAVEN_OPTS, mavenOpts);
     }
 
     public String removeIfNeeded(String currentMavenOpts) {

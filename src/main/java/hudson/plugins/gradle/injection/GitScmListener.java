@@ -53,7 +53,7 @@ public class GitScmListener extends SCMListener {
             }
 
             if (config.isInjectMavenExtension()) {
-                String currentMavenOpts = envVars.get(JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED);
+                String currentMavenOpts = envVars.get(MavenOptsHandler.MAVEN_OPTS);
                 if (currentMavenOpts != null) {
                     String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts));
 

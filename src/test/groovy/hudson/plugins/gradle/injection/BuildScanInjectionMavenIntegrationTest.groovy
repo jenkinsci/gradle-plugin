@@ -1,9 +1,9 @@
 package hudson.plugins.gradle.injection
 
+import hudson.EnvVars
 import hudson.FilePath
 import hudson.plugins.git.BranchSpec
 import hudson.plugins.git.GitSCM
-import hudson.plugins.git.extensions.GitSCMExtension
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.plugins.gradle.BuildScanBuildWrapper
 import hudson.slaves.DumbSlave
@@ -21,6 +21,10 @@ import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL
 
 class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest {
 
@@ -136,7 +140,41 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         getMavenOptsFromNodeProperties(agent) == mavenOpts
     }
 
-    def 'appends new properties to MAVEN_OPTS when auto-injection is enabled and no jobs run'() {
+    def 'does not take into account MAVEN_OPTS set on the node level'() {
+        given:
+        def mavenOpts = '-Dfoo=bar'
+        def agent = createSlave('test', new EnvVars([MAVEN_OPTS: mavenOpts]))
+
+        when:
+        turnOnBuildInjectionAndRestart(agent)
+
+        then:
+        with(getMavenOptsFromNodeProperties(agent).split(" ").iterator()) {
+            with(it.next()) {
+                it.startsWith('-Dmaven.ext.class.path=')
+                it.contains('gradle-enterprise-maven-extension.jar')
+                it.contains('common-custom-user-data-maven-extension.jar')
+            }
+            with(it.next()) {
+                it == '-Dgradle.scan.uploadInBackground=false'
+            }
+            with(it.next()) {
+                it == '-Dgradle.enterprise.url=https://scans.gradle.com'
+            }
+            !it.hasNext()
+        }
+
+        when:
+        turnOffBuildInjectionAndRestart(agent)
+
+        then:
+        noMavenOpts(agent)
+
+        and:
+        EnvVars.getRemote(agent.getChannel())['MAVEN_OPTS'] == mavenOpts
+    }
+
+    def 'appends new properties to MAVEN_OPTS when auto-injection is enabled'() {
         given:
         def mavenOpts = '-Dfoo=bar'
         def agent = createSlave('test')
@@ -149,7 +187,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         turnOnBuildInjectionAndRestart(agent)
 
         then:
-        with(getEnvVarFromNodeProperties(agent, MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED).split(" ").iterator()) {
+        with(getMavenOptsFromNodeProperties(agent).split(" ").iterator()) {
             with(it.next()) {
                 it == mavenOpts
             }
@@ -174,49 +212,6 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         getMavenOptsFromNodeProperties(agent) == mavenOpts
     }
 
-    def 'delete MAVEN_OPTS and maven-plugin variables set by older versions if auto-injection is disabled'() {
-        given:
-        def mavenOpts = '-Dmaven.ext.class.path=temp/jenkins-gradle-plugin/lib/gradle-enterprise-maven-extension.jar:temp/jenkins-gradle-plugin/lib/common-custom-user-data-maven-extension.jar -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com -Dgradle.enterprise.allowUntrustedServer=true'
-        def agent = createSlave('foo')
-
-        withNodeEnvVars(agent) {
-            put(MavenOptsHandler.MAVEN_OPTS, mavenOpts)
-            put(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL, 'http://locahost')
-            put(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER, 'true')
-            put(MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, '-Dmaven.ext.class.path=/tmp/custom-extension.jar')
-        }
-
-        withInjectionConfig {
-            enabled = true
-            server = 'https://scans.gradle.com'
-            injectMavenExtension = true
-        }
-
-        when:
-        restartSlave(agent)
-
-        then:
-        getMavenOptsFromNodeProperties(agent) == mavenOpts
-        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'http://locahost'
-        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == 'true'
-        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == '-Dmaven.ext.class.path=/tmp/custom-extension.jar'
-
-        when:
-        withInjectionConfig {
-            enabled = false
-            server = null
-            injectMavenExtension = false
-        }
-
-        restartSlave(agent)
-
-        then:
-        getMavenOptsFromNodeProperties(agent) == null
-        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == null
-        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
-        getEnvVarFromNodeProperties(agent, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == null
-    }
-
     def 'does not create new EnvironmentVariablesNodeProperty when MAVEN_OPTS changes'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
@@ -224,11 +219,8 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         then:
         slave.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class).size() == 1
 
-        FilePath extensionDirectoryRequired = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
-        extensionDirectoryRequired.list().size() == 2
-        extensionDirectoryRequired.list().find { it.name == GE_EXTENSION_JAR } != null
-        extensionDirectoryRequired.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
-        extensionDirectoryRequired.list().find { it.name == CCUD_EXTENSION_JAR } == null
+        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
 
         when:
         turnOnBuildInjectionAndRestart(slave)
@@ -236,11 +228,8 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         then:
         slave.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class).size() == 1
 
-        FilePath extensionDirectoryAll = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
-        extensionDirectoryAll.list().size() == 3
-        extensionDirectoryAll.list().find { it.name == GE_EXTENSION_JAR } != null
-        extensionDirectoryAll.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
-        extensionDirectoryAll.list().find { it.name == CCUD_EXTENSION_JAR } != null
+        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
 
         when:
         turnOffBuildInjectionAndRestart(slave)
@@ -248,18 +237,12 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         then:
         slave.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class).size() == 1
 
-        FilePath extensionDirectoryEmpty = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
-        extensionDirectoryEmpty.list().size() == 0
-        extensionDirectoryEmpty.list().find { it.name == GE_EXTENSION_JAR } == null
-        extensionDirectoryEmpty.list().find { it.name == CONFIGURATION_EXTENSION_JAR } == null
-        extensionDirectoryEmpty.list().find { it.name == CCUD_EXTENSION_JAR } == null
-
         noMavenOpts(slave)
     }
 
     def 'build scan is published without GE plugin with simple pipeline'() {
         given:
-        def slave = createSlaveAndTurnOnInjection()
+        createSlaveAndTurnOnInjection()
         def mavenInstallationName = setupMavenInstallation()
 
         def pipelineJob = j.createProject(WorkflowJob)
@@ -270,12 +253,8 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
 
         then:
         def log = JenkinsRule.getLog(build)
-        FilePath extensionDirectoryRequired = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
-        extensionDirectoryRequired.list().size() == 2
-        extensionDirectoryRequired.list().find { it.name == GE_EXTENSION_JAR } != null
-        extensionDirectoryRequired.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
-        extensionDirectoryRequired.list().find { it.name == CCUD_EXTENSION_JAR } == null
-
+        hasJarInMavenExt(log, GE_EXTENSION_JAR)
+        !hasJarInMavenExt(log, CCUD_EXTENSION_JAR)
         hasBuildScanPublicationAttempt(log)
     }
 
@@ -321,7 +300,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         StringUtils.countMatches(JenkinsRule.getLog(build), "ERROR: Gradle Enterprise access key format is not valid") == 1
     }
 
-    def 'extension jars are copied and removed properly'() {
+    def 'extension jars are copied and removed properly and MAVEN_OPTS is set'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
         def extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
@@ -330,10 +309,11 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         extensionDirectory.exists()
         extensionDirectory.list().size() == 2
         extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
-        extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR } == null
         extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
-        noMavenOpts(slave)
+        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOffBuildInjectionAndRestart(slave)
@@ -354,7 +334,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
-        noMavenOpts(slave)
+        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOnBuildInjectionAndRestart(slave, false)
@@ -363,10 +345,11 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         then:
         extensionDirectory.list().size() == 2
         extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
-        extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR } == null
         extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
-        noMavenOpts(slave)
+        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOnBuildInjectionAndRestart(slave)
@@ -378,7 +361,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
-        noMavenOpts(slave)
+        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
+        !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOffBuildInjectionAndRestart(slave)
@@ -515,34 +500,45 @@ node {
         !hasBuildScanPublicationAttempt(log)
     }
 
-    def 'none of the environment variables for maven plugin integration are set when no build runs'() {
+    def 'set all environment variables for maven plugin integration'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
 
         then:
-        getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == null
-        getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
-        getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == null
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
+        assertMavenConfigClasspathJars(slave, GE_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
 
         when:
         withInjectionConfig {
             allowUntrusted = true
+        }
+        restartSlave(slave)
+
+        then:
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == "true"
+        assertMavenConfigClasspathJars(slave, GE_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
+
+        when:
+        withInjectionConfig {
+            allowUntrusted = false
             injectCcudExtension = true
         }
         restartSlave(slave)
 
         then:
-        getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == null
-        getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
-        getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == null
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
+        assertMavenConfigClasspathJars(slave, GE_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOffBuildInjectionAndRestart(slave)
 
         then:
-        getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == null
-        getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
-        getEnvVarFromNodeProperties(slave, MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == null
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == null
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
+        getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == null
     }
 
     @Unroll
@@ -592,33 +588,16 @@ node {
         "this-one-does-not-match, this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"
     }
 
-    @Unroll
-    def 'vcs repository pattern injection for freestyle remote project - #pattern'(String pattern) {
-        given:
-        def mavenInstallationName = setupMavenInstallation()
-        withInjectionConfig {
-            injectionVcsRepositoryPatterns = pattern
+    private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {
+        def classpath = getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH)
+        assert classpath != null
+
+        def files = classpath.split(slave.toComputer().isUnix() ? ":" : ";")
+
+        assert files.length == jars.length
+        jars.each {
+            assert files.find { it.endsWith(it) } != null
         }
-        def slave = createSlaveAndTurnOnInjection()
-
-        def p = j.createFreeStyleProject()
-        p.buildWrappersList.add(new BuildScanBuildWrapper())
-        p.setScm(new GitSCM(GitSCM.createRepoList("https://github.com/c00ler/simple-maven-project", null), Collections.singletonList(new BranchSpec("main")), null, null, Collections.<GitSCMExtension>emptyList()))
-        p.buildersList.add(new Maven("package", mavenInstallationName))
-        p.setAssignedNode(slave)
-
-        when:
-        def build = j.buildAndAssertSuccess(p)
-
-        then:
-        if (pattern == "simple-") {
-            j.assertLogContains("Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service", build)
-        } else {
-            j.assertLogNotContains("Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service", build)
-        }
-
-        where:
-        pattern << ["simple-", "this-one-does-not-match"]
     }
 
     private static String simplePipeline(String mavenInstallationName) {
@@ -665,6 +644,11 @@ node {
 
     private static boolean hasJarInMavenExt(String log, String jar) {
         (log =~ /MAVEN_OPTS=.*-Dmaven\.ext\.class\.path=.*${jar}/).find()
+    }
+
+    private static boolean hasJarInMavenExt(DumbSlave slave, String jar) {
+        def mavenOpts = getMavenOptsFromNodeProperties(slave)
+        return mavenOpts && mavenOpts ==~ /.*-Dmaven\.ext\.class\.path=.*${jar}.*/
     }
 
     private static boolean noMavenOpts(DumbSlave slave) {
