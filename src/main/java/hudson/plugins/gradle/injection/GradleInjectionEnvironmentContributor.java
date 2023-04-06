@@ -5,11 +5,15 @@ import hudson.Extension;
 import hudson.model.EnvironmentContributor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
 @Extension
 public class GradleInjectionEnvironmentContributor extends EnvironmentContributor implements GradleInjectionAware {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GradleInjectionEnvironmentContributor.class);
 
     @Override
     public void buildEnvironmentFor(@Nonnull Run run, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
@@ -25,7 +29,7 @@ public class GradleInjectionEnvironmentContributor extends EnvironmentContributo
                 envs.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED, "false");
             }
         } catch (Exception e) {
-            listener.error("Error occurred when building environment for Gradle build");
+            LOGGER.error("Error occurred when building environment for Gradle build", e);
         }
     }
 
