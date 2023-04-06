@@ -28,7 +28,7 @@ public class MavenInjectionEnvironmentContributor extends EnvironmentContributor
                 envs.put(MAVEN_OPTS, mavenInjectionDisabledMavenOptsAction.mavenOpts);
 
                 // Configuration needed to support https://plugins.jenkins.io/maven-plugin/
-                envs.remove(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH);
+                envs.put(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, "");
             }
         } catch (Exception e) {
             listener.error("Error occurred when building environment for Maven build");
