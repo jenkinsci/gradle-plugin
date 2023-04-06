@@ -35,9 +35,7 @@ public interface MavenInjectionAware {
         return InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()));
     }
 
-    default boolean isInjectionEnabledForNode(Node node) {
-        InjectionConfig config = InjectionConfig.get();
-
+    default boolean isInjectionEnabledForNode(InjectionConfig config, Node node) {
         if (isInjectionDisabledGlobally(config)) {
             return false;
         }

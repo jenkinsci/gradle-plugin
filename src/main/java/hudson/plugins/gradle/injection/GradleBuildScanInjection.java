@@ -50,12 +50,13 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
             return;
         }
 
-        boolean enabled = isInjectionEnabledForNode(node);
+        InjectionConfig config = InjectionConfig.get();
+        boolean enabled = isInjectionEnabledForNode(config, node);
         try {
             String initScriptDirectory = getInitScriptDirectory(envGlobal, envComputer);
 
             if (enabled) {
-                inject(node, initScriptDirectory);
+                inject(config, node, initScriptDirectory);
             } else {
                 cleanup(node, initScriptDirectory);
             }
@@ -82,11 +83,11 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
         }
     }
 
-    private void inject(Node node, String initScriptDirectory) {
+    private void inject(InjectionConfig config, Node node, String initScriptDirectory) {
         try {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION, "true");
-
             injectInitScript(node.getChannel(), initScriptDirectory);
+            injectEnvironmentVariables(config, node);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
@@ -98,6 +99,24 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
             LOGGER.info("Injecting Gradle init script " + gradleInitScriptFile);
 
             copyResourceToNode(gradleInitScriptFile, RESOURCE_INIT_SCRIPT_GRADLE);
+        }
+    }
+
+    private void injectEnvironmentVariables(InjectionConfig config, Node node) {
+        EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL, config.getServer());
+        EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION, config.getGradlePluginVersion());
+
+        if (config.isAllowUntrusted()) {
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER, "true");
+        }
+
+        String pluginRepositoryUrl = config.getGradlePluginRepositoryUrl();
+        if (pluginRepositoryUrl != null && InjectionUtil.isValid(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
+        }
+        String ccudPluginVersion = config.getCcudPluginVersion();
+        if (ccudPluginVersion != null && InjectionUtil.isValid(InjectionConfig.checkVersion(ccudPluginVersion))) {
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION, ccudPluginVersion);
         }
     }
 
@@ -113,9 +132,6 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
         try {
             removeInitScript(node.getChannel(), initScriptDirectory);
 
-            // We still need to clean up all environment variables set in older
-            // versions even though we now set them in EnvironmentContributor.
-            // This behavior is temporary and can be deleted at some point in the future
             EnvUtil.removeEnvVars(node, ALL_INJECTED_ENVIRONMENT_VARIABLES);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
