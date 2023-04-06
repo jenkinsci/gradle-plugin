@@ -18,7 +18,6 @@ import javax.annotation.CheckForNull;
 import java.io.File;
 import java.util.List;
 
-import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED;
 import static hudson.plugins.gradle.injection.MavenInjectionAware.MAVEN_OPTS_HANDLER;
 
 @Extension
