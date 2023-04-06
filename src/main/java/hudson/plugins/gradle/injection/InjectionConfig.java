@@ -11,6 +11,7 @@ import hudson.util.FormValidation;
 import hudson.util.Secret;
 import hudson.util.VersionNumber;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -20,12 +21,17 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
 @Extension
 public class InjectionConfig extends GlobalConfiguration {
+
+    private static final String GIT_PLUGIN_SHORT_NAME = "git";
 
     private static final Set<String> LEGACY_GLOBAL_ENVIRONMENT_VARIABLES =
         ImmutableSet.of(
@@ -61,6 +67,9 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
+    private String injectionVcsRepositoryPatterns;
+    private ImmutableList<String> parsedInjectionVcsRepositoryPatterns;
+
     public InjectionConfig() {
         load();
     }
@@ -83,6 +92,14 @@ public class InjectionConfig extends GlobalConfiguration {
         return mavenPluginVersion == null || InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion)
             ? null
             : new UnsupportedMavenPluginWarningDetails(mavenPluginVersion);
+    }
+
+    @Restricted(NoExternalUse.class)
+    public boolean isGitPluginInstalled() {
+        return Optional.ofNullable(Jenkins.getInstanceOrNull())
+                .map(Jenkins::getPluginManager)
+                .map(pluginManager -> pluginManager.getPlugin(GIT_PLUGIN_SHORT_NAME))
+                .isPresent();
     }
 
     public boolean isEnabled() {
@@ -221,6 +238,24 @@ public class InjectionConfig extends GlobalConfiguration {
     public void setMavenInjectionDisabledNodes(List<NodeLabelItem> mavenInjectionDisabledNodes) {
         this.mavenInjectionDisabledNodes =
             mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
+    }
+
+    @DataBoundSetter
+    public void setInjectionVcsRepositoryPatterns(String injectionVcsRepositoryPatterns) {
+        this.injectionVcsRepositoryPatterns = Util.fixEmptyAndTrim(injectionVcsRepositoryPatterns);
+
+        this.parsedInjectionVcsRepositoryPatterns = this.injectionVcsRepositoryPatterns == null
+                ? ImmutableList.of()
+                : ImmutableList.copyOf(Arrays.stream(this.injectionVcsRepositoryPatterns.split(",")).map(String::trim).collect(Collectors.toList()));
+    }
+
+    @CheckForNull
+    public String getInjectionVcsRepositoryPatterns() {
+        return injectionVcsRepositoryPatterns;
+    }
+
+    public List<String> getParsedInjectionVcsRepositoryPatterns() {
+        return parsedInjectionVcsRepositoryPatterns;
     }
 
     @Override

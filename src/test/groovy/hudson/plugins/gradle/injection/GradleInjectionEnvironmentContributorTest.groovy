@@ -1,9 +1,6 @@
 package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
-import hudson.model.Computer
-import hudson.model.Executor
-import hudson.model.Node
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
@@ -32,14 +29,9 @@ class GradleInjectionEnvironmentContributorTest extends BaseJenkinsIntegrationTe
 
         then:
         !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED)
-        !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL)
-        !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION)
-        !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER)
-        !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION)
-        !envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL)
     }
 
-    def "set all necessary environment variables if injection is enabled"() {
+    def "disables injection if action is present"() {
         given:
         withInjectionConfig {
             enabled = true
@@ -52,21 +44,16 @@ class GradleInjectionEnvironmentContributorTest extends BaseJenkinsIntegrationTe
             injectCcudExtension = false
         }
 
-        def mockComputer = Mock(Computer)
+        def gradleInjectionDisabledAction = GitScmListener.GradleInjectionDisabledAction.INSTANCE;
+
         def mockRun = Mock(Run)
-        mockComputer.getNode() >> Mock(Node)
-        mockRun.getExecutor() >> new Executor(mockComputer, 0)
+        mockRun.getAction(GitScmListener.GradleInjectionDisabledAction.class) >> gradleInjectionDisabledAction
 
         when:
         gradleInjectionEnvironmentContributor.buildEnvironmentFor(mockRun, envs, TaskListener.NULL)
 
         then:
-        envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED)
-        envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL)
-        envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION)
-        envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER)
-        envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION)
-        envs.containsKey(GradleInjectionEnvironmentContributor.JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL)
+        envs.get(GradleInjectionAware.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED) == "false"
     }
 
 }

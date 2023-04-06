@@ -9,9 +9,6 @@ import java.util.stream.Collectors;
 
 public interface MavenInjectionAware {
 
-    String JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED = "JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED";
-    String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED";
-
     String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH";
     // Use different variables so Gradle and Maven injections can work independently on the same node
     String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL";
@@ -38,9 +35,7 @@ public interface MavenInjectionAware {
         return InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()));
     }
 
-    default boolean isInjectionEnabledForNode(Node node) {
-        InjectionConfig config = InjectionConfig.get();
-
+    default boolean isInjectionEnabledForNode(InjectionConfig config, Node node) {
         if (isInjectionDisabledGlobally(config)) {
             return false;
         }

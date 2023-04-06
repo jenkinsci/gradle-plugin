@@ -40,6 +40,22 @@
                 </f:entry>
             </f:section>
 
+            <f:section title="${%General settings}">
+                <j:if test="${instance.gitPluginInstalled}">
+                    <f:entry field="injectionVcsRepositoryPatterns" title="${%Auto-injection enabled Git VCS repository patterns [Beta]}" help="/plugin/gradle/help-injectionVcsRepositoryPatterns.html">
+                        <f:textarea/>
+                    </f:entry>
+                </j:if>
+                <j:if test="${!instance.gitPluginInstalled}">
+                    <f:entry>
+                        <div class="alert alert-danger" role="alert">
+                            <l:icon class="icon-error icon-sm" alt="${%Git Plugin not installed}"/>
+                            Git VCS repository filtering not supported, as <a class="alert-link" href="https://plugins.jenkins.io/git/">Git Plugin</a> is not installed
+                        </div>
+                    </f:entry>
+                </j:if>
+            </f:section>
+
             <f:section title="${%Gradle settings}">
                 <f:entry title="${%Gradle Enterprise Gradle plugin version}" field="gradlePluginVersion">
                     <f:textbox checkMethod="post"/>

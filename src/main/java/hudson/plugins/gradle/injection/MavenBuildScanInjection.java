@@ -26,9 +26,7 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH,
             JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL,
             JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER,
-            JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION,
-            JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED,
-            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED
+            JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION
         );
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
@@ -44,10 +42,11 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             return;
         }
 
-        boolean enabled = isInjectionEnabledForNode(node);
+        InjectionConfig config = InjectionConfig.get();
+        boolean enabled = isInjectionEnabledForNode(config, node);
         try {
             if (enabled) {
-                inject(node, nodeRootPath);
+                inject(config, node, nodeRootPath);
             } else {
                 cleanup(node, nodeRootPath);
             }
@@ -58,11 +57,10 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
         }
     }
 
-    private void inject(Node node, FilePath nodeRootPath) {
+    private void inject(InjectionConfig config, Node node, FilePath nodeRootPath) {
         try {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION, "true");
 
-            InjectionConfig config = InjectionConfig.get();
             String server = config.getServer();
 
             LOGGER.info("Injecting Maven extensions " + nodeRootPath);
@@ -86,12 +84,18 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
                 systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
             }
 
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_OPTS_PREPARED, MAVEN_OPTS_HANDLER.merge(node, systemProperties));
+            EnvUtil.setEnvVar(node, MavenOptsHandler.MAVEN_OPTS, MAVEN_OPTS_HANDLER.merge(node, systemProperties));
 
             // Configuration needed to support https://plugins.jenkins.io/maven-plugin/
             extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CONFIGURATION, nodeRootPath));
 
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH_PREPARED, constructExtClasspath(extensions, isUnix));
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, constructExtClasspath(extensions, isUnix));
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL, config.getServer());
+            if (config.isAllowUntrusted()) {
+                EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER, "true");
+            } else {
+                EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER);
+            }
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
@@ -101,9 +105,6 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
         try {
             extensionsHandler.deleteAllExtensionsFromAgent(rootPath);
 
-            // We still need to clean up MAVEN_OPTS and Maven plugin variables set in older
-            // versions even though we now set it in EnvironmentContributor.
-            // This behavior is temporary and can be deleted at some point in the future
             MAVEN_OPTS_HANDLER.removeIfNeeded(node);
             EnvUtil.removeEnvVars(node, ALL_INJECTED_ENVIRONMENT_VARIABLES);
         } catch (IOException | InterruptedException e) {
