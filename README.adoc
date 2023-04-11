@@ -96,7 +96,7 @@ This feature is available for both Gradle and Maven builds and compatible with a
 image::enriched-build-scans.png[Enriched build scans,{thumbnail}]
 
 > **Note**
-> - Build scans published on the public instance (https://gradle.com) are not eligible.
+> - Build scans published on the public instance (https://scans.gradle.com) are not eligible.
 
 > **Note**
 > - Enabling this feature will trigger 2 HTTP requests to the Gradle Enterprise server per build scan published.
