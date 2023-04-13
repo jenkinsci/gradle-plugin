@@ -1,4 +1,5 @@
 import de.undercouch.gradle.tasks.download.Download
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.internal.os.OperatingSystem
 import java.net.URL
 
@@ -142,7 +143,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
         get() = if (isJenkinsVersion(version)) {
             version.replace(".", "_")
         } else {
-            version.split("-").joinToString(separator = "") { it.capitalize() }
+            version.split("-").joinToString(separator = "") { it.capitalized() }
         }
 
     val requiredJavaVersion: JavaVersion
