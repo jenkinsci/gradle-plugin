@@ -64,8 +64,7 @@ public class GradleEnterpriseExtensionsContributorFactory extends PlexusModuleCo
             List<FilePath> jars =
                 classpathFiles(node, classpath)
                     .stream()
-                    .map(File::new)
-                    .map(FilePath::new)
+                    .map(node::createPath)
                     .filter(this::filePathExists)
                     .collect(Collectors.toList());
 
