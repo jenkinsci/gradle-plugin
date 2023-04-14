@@ -538,7 +538,7 @@ node {
     }
 
     @SuppressWarnings("GStringExpressionWithinString")
-    def 'vcs repository pattern injection for pipeline remote project - #filter #mavenSetup'(String filter, String mavenSetup) {
+    def 'vcs repository pattern injection for pipeline remote project - #filter #mavenSetup #shouldApplyAutoInjection'(String filter, String mavenSetup, boolean shouldApplyAutoInjection) {
         given:
         withInjectionConfig {
             vcsRepositoryFilter = filter
@@ -569,18 +569,18 @@ node {
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        if (filter.contains("simple-")) {
+        if (shouldApplyAutoInjection) {
             j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
         } else {
             j.assertLogNotContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
         }
 
         where:
-        filter                                          |  mavenSetup
-        "+:not-found-pattern\n+:simple-"                | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"
-        "+:not-found-pattern\n+:simple-"                | "withMaven(maven: 'mavenInstallationName') {"
-        "+:this-one-does-not-match\n+:this-one-too"     | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"
-        "+:this-one-does-not-match\n+:this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"
+        filter                                          |  mavenSetup                                                           | shouldApplyAutoInjection
+        "+:not-found-pattern\n+:simple-"                | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"    | true
+        "+:not-found-pattern\n+:simple-"                | "withMaven(maven: 'mavenInstallationName') {"                         | true
+        "+:this-one-does-not-match\n+:this-one-too"     | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"    | false
+        "+:this-one-does-not-match\n+:this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"                         | false
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {

@@ -67,7 +67,6 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
-    private String vcsRepositoryFilter;
     private VcsRepositoryFilter parsedVcsRepositoryFilter;
 
     public InjectionConfig() {
@@ -242,14 +241,7 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setVcsRepositoryFilter(String vcsRepositoryFilter) {
-        this.vcsRepositoryFilter = Util.fixEmptyAndTrim(vcsRepositoryFilter);
-
-        this.parsedVcsRepositoryFilter = VcsRepositoryFilter.of(this.vcsRepositoryFilter);
-    }
-
-    @CheckForNull
-    public String getVcsRepositoryFilter() {
-        return vcsRepositoryFilter;
+        this.parsedVcsRepositoryFilter = VcsRepositoryFilter.of(vcsRepositoryFilter);
     }
 
     public VcsRepositoryFilter getParsedVcsRepositoryFilter() {

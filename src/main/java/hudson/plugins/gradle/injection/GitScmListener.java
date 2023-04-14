@@ -39,7 +39,11 @@ public class GitScmListener extends SCMListener {
         try {
             InjectionConfig config = InjectionConfig.get();
 
-            if (isVCSInjectionFilteringNotApplied(scm, config)) {
+            if (isInjectionGloballyDisabled(config)) {
+                return;
+            }
+
+            if (vcsRepositoryUrlInjectionEnabled(config, scm)) {
                 return;
             }
 
@@ -65,15 +69,15 @@ public class GitScmListener extends SCMListener {
         }
     }
 
-    private static boolean isVCSInjectionFilteringNotApplied(SCM scm, InjectionConfig config) {
-        return config.isDisabled()
-                || InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()))
-                || config.getParsedVcsRepositoryFilter() == null
-                || config.getParsedVcsRepositoryFilter().isEmpty()
-                || vcsRepositoryUrlMatches(config, scm);
+    private static boolean isInjectionGloballyDisabled(InjectionConfig config) {
+        return config.isDisabled() || InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()));
     }
 
-    private static boolean vcsRepositoryUrlMatches(InjectionConfig config, SCM scm) {
+    private static boolean vcsRepositoryUrlInjectionEnabled(InjectionConfig config, SCM scm) {
+        if (config.getParsedVcsRepositoryFilter() == null || config.getParsedVcsRepositoryFilter().isEmpty()) {
+            return true;
+        }
+
         if (scm instanceof GitSCM) {
             List<UserRemoteConfig> userRemoteConfigs = ((GitSCM) scm).getUserRemoteConfigs();
 

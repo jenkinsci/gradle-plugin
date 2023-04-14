@@ -136,7 +136,7 @@ image::enable-auto-injection.png[Enable auto-injection,{thumbnail}]
 
 ===== VCS repository filtering (Beta)
 
-It is also possible to enable/disable injection for specific repositories by specifying VCS repository filters. These are newline-delimited set of rules in the form of `+|-:repository_matching_keyword`, which will be used in a contains check against the repository URL.
+It is also possible to enable/disable injection for specific repositories by specifying VCS repository filters. These are _Newline-delimited_ set of rules in the form of `+|-:repository_matching_keyword`, which will be used in a contains check against the repository URL.
 
 image::general-vcs-repository-filters.png[Git VCS repository filters, {thumbnail}]
 
