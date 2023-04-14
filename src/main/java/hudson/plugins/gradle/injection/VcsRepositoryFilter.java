@@ -6,12 +6,14 @@ import hudson.Util;
 
 import javax.annotation.CheckForNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public final class VcsRepositoryFilter {
 
-    private static final VcsRepositoryFilter EMPTY = new VcsRepositoryFilter(null, Collections.emptyList(), Collections.emptyList());
+    public static final VcsRepositoryFilter EMPTY = new VcsRepositoryFilter(null, Collections.emptyList(), Collections.emptyList());
 
     private static final String INCLUSION_QUALIFIER = "+:";
     private static final String EXCLUSION_QUALIFIER = "-:";
@@ -29,26 +31,36 @@ public final class VcsRepositoryFilter {
     }
 
     public static VcsRepositoryFilter of(String vcsRepositoryFilter) {
-        if (vcsRepositoryFilter == null || vcsRepositoryFilter.isEmpty()) {
+        String filter = Util.fixEmptyAndTrim(vcsRepositoryFilter);
+
+        if (filter == null) {
             return EMPTY;
         }
 
         List<String> inclusionFilters = new ArrayList<>();
         List<String> exclusionFilters = new ArrayList<>();
 
-        String[] parsedFilters = vcsRepositoryFilter.split(SEPARATOR);
-        for (String singleFilter : parsedFilters) {
-            if (singleFilter.startsWith(INCLUSION_QUALIFIER)) {
-                inclusionFilters.add(singleFilter.substring(INCLUSION_QUALIFIER.length()).trim());
-            } else if (singleFilter.startsWith(EXCLUSION_QUALIFIER)) {
-                exclusionFilters.add(singleFilter.substring(EXCLUSION_QUALIFIER.length()).trim());
-            }
-        }
+        Arrays.stream(filter.split(SEPARATOR))
+            .map(Util::fixEmptyAndTrim)
+            .filter(Objects::nonNull)
+            .forEach(pattern -> {
+                if (pattern.startsWith(INCLUSION_QUALIFIER)) {
+                    String candidate = Util.fixEmptyAndTrim(pattern.substring(INCLUSION_QUALIFIER.length()));
+                    if (candidate != null) {
+                        inclusionFilters.add(candidate);
+                    }
+                } else if (pattern.startsWith(EXCLUSION_QUALIFIER)) {
+                    String candidate = Util.fixEmptyAndTrim(pattern.substring(EXCLUSION_QUALIFIER.length()));
+                    if (candidate != null) {
+                        exclusionFilters.add(candidate);
+                    }
+                }
+            });
 
         return new VcsRepositoryFilter(
-                Util.fixEmptyAndTrim(vcsRepositoryFilter),
-                ImmutableList.copyOf(inclusionFilters),
-                ImmutableList.copyOf(exclusionFilters)
+            filter,
+            ImmutableList.copyOf(inclusionFilters),
+            ImmutableList.copyOf(exclusionFilters)
         );
     }
 
@@ -56,12 +68,12 @@ public final class VcsRepositoryFilter {
         return inclusion.isEmpty() && exclusion.isEmpty();
     }
 
-    @SuppressFBWarnings(value="EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
     public List<String> getInclusion() {
         return inclusion;
     }
 
-    @SuppressFBWarnings(value="EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
     public List<String> getExclusion() {
         return exclusion;
     }

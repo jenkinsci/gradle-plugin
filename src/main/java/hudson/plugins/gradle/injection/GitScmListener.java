@@ -29,12 +29,12 @@ public class GitScmListener extends SCMListener {
 
     @Override
     public void onCheckout(
-            Run<?, ?> build,
-            SCM scm,
-            FilePath workspace,
-            TaskListener listener,
-            @CheckForNull File changelogFile,
-            @CheckForNull SCMRevisionState pollingBaseline
+        Run<?, ?> build,
+        SCM scm,
+        FilePath workspace,
+        TaskListener listener,
+        @CheckForNull File changelogFile,
+        @CheckForNull SCMRevisionState pollingBaseline
     ) {
         try {
             InjectionConfig config = InjectionConfig.get();
@@ -43,7 +43,7 @@ public class GitScmListener extends SCMListener {
                 return;
             }
 
-            if (vcsRepositoryUrlInjectionEnabled(config, scm)) {
+            if (isInjectionEnabledForRepository(config, scm)) {
                 return;
             }
 
@@ -73,8 +73,8 @@ public class GitScmListener extends SCMListener {
         return config.isDisabled() || InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()));
     }
 
-    private static boolean vcsRepositoryUrlInjectionEnabled(InjectionConfig config, SCM scm) {
-        if (config.getParsedVcsRepositoryFilter() == null || config.getParsedVcsRepositoryFilter().isEmpty()) {
+    private static boolean isInjectionEnabledForRepository(InjectionConfig config, SCM scm) {
+        if (config.getParsedVcsRepositoryFilter().isEmpty()) {
             return true;
         }
 
@@ -115,7 +115,7 @@ public class GitScmListener extends SCMListener {
     /**
      * Action that holds Maven environment variables to be set in {@link MavenInjectionEnvironmentContributor}.
      */
-    public static class MavenInjectionDisabledMavenOptsAction extends InvisibleAction {
+    public static final class MavenInjectionDisabledMavenOptsAction extends InvisibleAction {
 
         public final String mavenOpts;
 
@@ -128,7 +128,7 @@ public class GitScmListener extends SCMListener {
     /**
      * Marker action to ensure we disable injection in {@link GradleInjectionEnvironmentContributor}.
      */
-    public static class GradleInjectionDisabledAction extends InvisibleAction {
+    public static final class GradleInjectionDisabledAction extends InvisibleAction {
 
         public static final GradleInjectionDisabledAction INSTANCE = new GradleInjectionDisabledAction();
 

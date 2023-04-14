@@ -21,11 +21,9 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
 @Extension
@@ -67,7 +65,7 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
-    private VcsRepositoryFilter parsedVcsRepositoryFilter;
+    private VcsRepositoryFilter parsedVcsRepositoryFilter = VcsRepositoryFilter.EMPTY;
 
     public InjectionConfig() {
         load();
@@ -96,9 +94,9 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     public boolean isGitPluginInstalled() {
         return Optional.ofNullable(Jenkins.getInstanceOrNull())
-                .map(Jenkins::getPluginManager)
-                .map(pluginManager -> pluginManager.getPlugin(GIT_PLUGIN_SHORT_NAME))
-                .isPresent();
+            .map(Jenkins::getPluginManager)
+            .map(pluginManager -> pluginManager.getPlugin(GIT_PLUGIN_SHORT_NAME))
+            .isPresent();
     }
 
     public boolean isEnabled() {
@@ -242,6 +240,12 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setVcsRepositoryFilter(String vcsRepositoryFilter) {
         this.parsedVcsRepositoryFilter = VcsRepositoryFilter.of(vcsRepositoryFilter);
+    }
+
+    @Restricted(NoExternalUse.class)
+    @CheckForNull
+    public String getVcsRepositoryFilter() {
+        return parsedVcsRepositoryFilter.getVcsRepositoryFilter();
     }
 
     public VcsRepositoryFilter getParsedVcsRepositoryFilter() {
