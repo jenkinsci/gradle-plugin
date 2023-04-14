@@ -23,6 +23,7 @@ import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRA
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
 
+@Unroll
 class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest {
 
     private static final String GE_EXTENSION_JAR = "gradle-enterprise-maven-extension.jar"
@@ -33,7 +34,6 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
 
     private static final String POM_XML = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
 
-    @Unroll
     def 'does not copy #extension if it was not changed'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
@@ -67,7 +67,6 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         extension << ALL_EXTENSIONS
     }
 
-    @Unroll
     def 'copies a new version of #extension if it was changed'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
@@ -538,12 +537,11 @@ node {
         getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH) == null
     }
 
-    @Unroll
     @SuppressWarnings("GStringExpressionWithinString")
-    def 'vcs repository pattern injection for pipeline remote project - #pattern #mavenSetup'(String pattern, String mavenSetup) {
+    def 'vcs repository pattern injection for pipeline remote project - #filter #mavenSetup'(String filter, String mavenSetup) {
         given:
         withInjectionConfig {
-            injectionVcsRepositoryPatterns = pattern
+            vcsRepositoryFilter = filter
         }
         createSlaveAndTurnOnInjection()
         def mavenInstallationName = setupMavenInstallation()
@@ -571,18 +569,18 @@ node {
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        if (pattern.contains("simple-")) {
+        if (filter.contains("simple-")) {
             j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
         } else {
             j.assertLogNotContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
         }
 
         where:
-        pattern                                     |  mavenSetup
-        "not-found-pattern, simple-"                | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"
-        "not-found-pattern, simple-"                | "withMaven(maven: 'mavenInstallationName') {"
-        "this-one-does-not-match, this-one-too"     | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"
-        "this-one-does-not-match, this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"
+        filter                                          |  mavenSetup
+        "+:not-found-pattern\n+:simple-"                | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"
+        "+:not-found-pattern\n+:simple-"                | "withMaven(maven: 'mavenInstallationName') {"
+        "+:this-one-does-not-match\n+:this-one-too"     | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"
+        "+:this-one-does-not-match\n+:this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {

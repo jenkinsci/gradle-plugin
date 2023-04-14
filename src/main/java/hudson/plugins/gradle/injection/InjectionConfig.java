@@ -67,8 +67,8 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
-    private String injectionVcsRepositoryPatterns;
-    private ImmutableList<String> parsedInjectionVcsRepositoryPatterns;
+    private String vcsRepositoryFilter;
+    private VcsRepositoryFilter parsedVcsRepositoryFilter;
 
     public InjectionConfig() {
         load();
@@ -241,21 +241,19 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @DataBoundSetter
-    public void setInjectionVcsRepositoryPatterns(String injectionVcsRepositoryPatterns) {
-        this.injectionVcsRepositoryPatterns = Util.fixEmptyAndTrim(injectionVcsRepositoryPatterns);
+    public void setVcsRepositoryFilter(String vcsRepositoryFilter) {
+        this.vcsRepositoryFilter = Util.fixEmptyAndTrim(vcsRepositoryFilter);
 
-        this.parsedInjectionVcsRepositoryPatterns = this.injectionVcsRepositoryPatterns == null
-                ? ImmutableList.of()
-                : ImmutableList.copyOf(Arrays.stream(this.injectionVcsRepositoryPatterns.split(",")).map(String::trim).collect(Collectors.toList()));
+        this.parsedVcsRepositoryFilter = VcsRepositoryFilter.of(this.vcsRepositoryFilter);
     }
 
     @CheckForNull
-    public String getInjectionVcsRepositoryPatterns() {
-        return injectionVcsRepositoryPatterns;
+    public String getVcsRepositoryFilter() {
+        return vcsRepositoryFilter;
     }
 
-    public List<String> getParsedInjectionVcsRepositoryPatterns() {
-        return parsedInjectionVcsRepositoryPatterns;
+    public VcsRepositoryFilter getParsedVcsRepositoryFilter() {
+        return parsedVcsRepositoryFilter;
     }
 
     @Override

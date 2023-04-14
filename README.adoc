@@ -136,10 +136,30 @@ image::enable-auto-injection.png[Enable auto-injection,{thumbnail}]
 
 ===== VCS repository filtering (Beta)
 
-It is also possible to enable injection for specific repositories by specifying VCS repository patterns. These are comma-separated values, which will be used in a contains check against the repository URL.
-For example, by specifying the filter value as `foo, bar, baz`, the injection will be performed for all Git VCS repositories which contain at least one of specified values in their VCS URL.
+It is also possible to enable/disable injection for specific repositories by specifying VCS repository filters. These are newline-delimited set of rules in the form of `+|-:repository_matching_keyword`, which will be used in a contains check against the repository URL.
 
-image::general-git-vcs-repository-filtering.png[Git VCS repository filtering, {thumbnail}]
+image::general-vcs-repository-filters.png[Git VCS repository filters, {thumbnail}]
+
+Consider the following examples:
+[source]
+
+----
++:foo
+----
+The injection will only be performed for Git repository URLs which contain `foo`.
+[source]
+
+----
+-:foo
+----
+The injection will not be performed for Git repository URLs which contain `foo`, but will be for all others.
+[source]
+
+----
++:foo
+-:foobar
+----
+The injection will be performed for Git repository URLs which contain `foo`, but not the ones containing `foobar`
 
 > **Note**
 > - This feature is currently in Beta and requires Git Plugin to be installed. If Git Plugin is not installed, the following warning message will be show instead. The feature supports Gradle Pipeline/FreeStyle and Maven Pipeline job configurations (Maven FreeStyle job configurations are not supported)

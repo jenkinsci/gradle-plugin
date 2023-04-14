@@ -42,7 +42,7 @@
 
             <f:section title="${%General settings}">
                 <j:if test="${instance.gitPluginInstalled}">
-                    <f:entry field="injectionVcsRepositoryPatterns" title="${%Auto-injection enabled Git VCS repository patterns [Beta]}" help="/plugin/gradle/help-injectionVcsRepositoryPatterns.html">
+                    <f:entry field="vcsRepositoryFilter" title="${%Auto-injection Git VCS repository filters [Beta]}" help="/plugin/gradle/help-injectionVcsRepositoryPatterns.html">
                         <f:textarea/>
                     </f:entry>
                 </j:if>

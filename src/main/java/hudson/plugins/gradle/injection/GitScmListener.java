@@ -68,8 +68,8 @@ public class GitScmListener extends SCMListener {
     private static boolean isVCSInjectionFilteringNotApplied(SCM scm, InjectionConfig config) {
         return config.isDisabled()
                 || InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()))
-                || config.getParsedInjectionVcsRepositoryPatterns() == null
-                || config.getParsedInjectionVcsRepositoryPatterns().isEmpty()
+                || config.getParsedVcsRepositoryFilter() == null
+                || config.getParsedVcsRepositoryFilter().isEmpty()
                 || vcsRepositoryUrlMatches(config, scm);
     }
 
@@ -78,9 +78,19 @@ public class GitScmListener extends SCMListener {
             List<UserRemoteConfig> userRemoteConfigs = ((GitSCM) scm).getUserRemoteConfigs();
 
             for (UserRemoteConfig userRemoteConfig : userRemoteConfigs) {
-                for (String pattern : config.getParsedInjectionVcsRepositoryPatterns()) {
-                    String url = userRemoteConfig.getUrl();
-                    if (url != null && url.contains(pattern)) {
+                String url = userRemoteConfig.getUrl();
+                if (url == null) {
+                    return true;
+                }
+
+                for (String exclusionFilter : config.getParsedVcsRepositoryFilter().getExclusion()) {
+                    if (url.contains(exclusionFilter)) {
+                        return false;
+                    }
+                }
+
+                for (String inclusionFilter : config.getParsedVcsRepositoryFilter().getInclusion()) {
+                    if (url.contains(inclusionFilter)) {
                         return true;
                     }
                 }
