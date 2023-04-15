@@ -11,7 +11,6 @@ import hudson.util.FormValidation;
 import hudson.util.Secret;
 import hudson.util.VersionNumber;
 import jenkins.model.GlobalConfiguration;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -24,7 +23,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
@@ -95,10 +93,7 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @Restricted(NoExternalUse.class)
     public boolean isGitPluginInstalled() {
-        return Optional.ofNullable(Jenkins.getInstanceOrNull())
-            .map(Jenkins::getPluginManager)
-            .map(pluginManager -> pluginManager.getPlugin(GIT_PLUGIN_SHORT_NAME))
-            .isPresent();
+        return InjectionUtil.maybeGetPlugin(GIT_PLUGIN_SHORT_NAME).isPresent();
     }
 
     public boolean isEnabled() {

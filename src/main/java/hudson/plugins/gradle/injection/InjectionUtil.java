@@ -2,23 +2,14 @@ package hudson.plugins.gradle.injection;
 
 import hudson.EnvVars;
 import hudson.PluginWrapper;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Run;
 import hudson.model.labels.LabelAtom;
-import hudson.plugins.git.GitSCM;
-import hudson.plugins.git.UserRemoteConfig;
 import hudson.plugins.gradle.util.CollectionUtil;
-import hudson.scm.SCM;
 import hudson.util.FormValidation;
 import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -40,10 +31,13 @@ public final class InjectionUtil {
     }
 
     public static Optional<VersionNumber> mavenPluginVersionNumber() {
+        return maybeGetPlugin(MAVEN_PLUGIN_SHORT_NAME).map(PluginWrapper::getVersionNumber);
+    }
+
+    public static Optional<PluginWrapper> maybeGetPlugin(String pluginShortName) {
         return Optional.ofNullable(Jenkins.getInstanceOrNull())
             .map(Jenkins::getPluginManager)
-            .map(pm -> pm.getPlugin(MAVEN_PLUGIN_SHORT_NAME))
-            .map(PluginWrapper::getVersionNumber);
+            .map(pm -> pm.getPlugin(pluginShortName));
     }
 
     public static boolean isSupportedMavenPluginVersion(@Nullable VersionNumber mavenPluginVersion) {
