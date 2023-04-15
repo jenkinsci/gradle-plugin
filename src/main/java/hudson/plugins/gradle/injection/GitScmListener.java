@@ -48,16 +48,16 @@ public class GitScmListener extends SCMListener {
                 return;
             }
 
-            disabledAutoInjection(build, workspace, config, listener);
+            disableAutoInjection(build, workspace, config, listener);
         } catch (Exception e) {
             LOGGER.error("Error occurred when processing onCheckout notification", e);
         }
     }
 
-    private static void disabledAutoInjection(Run<?, ?> build,
-                                              FilePath workspace,
-                                              InjectionConfig config,
-                                              TaskListener listener
+    private static void disableAutoInjection(Run<?, ?> build,
+                                             FilePath workspace,
+                                             InjectionConfig config,
+                                             TaskListener listener
     ) throws Exception {
         Computer computer = workspace.toComputer();
         if (computer == null) {
