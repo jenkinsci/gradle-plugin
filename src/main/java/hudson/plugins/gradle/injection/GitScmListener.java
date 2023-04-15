@@ -43,29 +43,40 @@ public class GitScmListener extends SCMListener {
                 return;
             }
 
+            // By default, auto-injection is enabled. If repository matches the VCS filter we don't need to disable it
             if (isInjectionEnabledForRepository(config, scm)) {
                 return;
             }
 
-            Computer computer = workspace.toComputer();
-            if (computer != null) {
-                EnvVars envVars = computer.buildEnvironment(listener);
-
-                if (shouldDisableGradleInjection(config)) {
-                    build.addAction(GradleInjectionDisabledAction.INSTANCE);
-                }
-
-                if (shouldDisableMavenInjection(config)) {
-                    String currentMavenOpts = envVars.get(MavenOptsHandler.MAVEN_OPTS);
-                    if (currentMavenOpts != null) {
-                        String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts));
-
-                        build.addAction(new MavenInjectionDisabledMavenOptsAction(mavenOpts));
-                    }
-                }
-            }
+            disabledAutoInjection(build, workspace, config, listener);
         } catch (Exception e) {
             LOGGER.error("Error occurred when processing onCheckout notification", e);
+        }
+    }
+
+    private static void disabledAutoInjection(Run<?, ?> build,
+                                              FilePath workspace,
+                                              InjectionConfig config,
+                                              TaskListener listener
+    ) throws Exception {
+        Computer computer = workspace.toComputer();
+        if (computer == null) {
+            return;
+        }
+
+        EnvVars envVars = computer.buildEnvironment(listener);
+
+        if (shouldDisableGradleInjection(config)) {
+            build.addAction(GradleInjectionDisabledAction.INSTANCE);
+        }
+
+        if (shouldDisableMavenInjection(config)) {
+            String currentMavenOpts = envVars.get(MavenOptsHandler.MAVEN_OPTS);
+            if (currentMavenOpts != null) {
+                String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts));
+
+                build.addAction(new MavenInjectionDisabledMavenOptsAction(mavenOpts));
+            }
         }
     }
 
