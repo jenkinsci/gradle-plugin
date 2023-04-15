@@ -4,23 +4,23 @@ import hudson.Util
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@Unroll
 class VcsRepositoryFilterTest extends Specification {
 
+    @Unroll
     def 'should parse vcs filter #filter into inclusion #inclusion and exclusion #exclusion'(
         String filter,
-        List<String> inclusion,
-        List<String> exclusion
+        List<String> expectedInclusion,
+        List<String> expectedExclusion
     ) {
         expect:
         with(VcsRepositoryFilter.of(filter)) {
             vcsRepositoryFilter == Util.fixEmptyAndTrim(filter)
-            inclusion == inclusion
-            exclusion == exclusion
+            inclusion == expectedInclusion
+            exclusion == expectedExclusion
         }
 
         where:
-        filter                                                                     | inclusion                             | exclusion
+        filter                                                                     | expectedInclusion                     | expectedExclusion
         null                                                                       | []                                    | []
         ""                                                                         | []                                    | []
         "test"                                                                     | []                                    | []
