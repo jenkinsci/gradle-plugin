@@ -5,13 +5,15 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Util;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public final class VcsRepositoryFilter {
+@SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
+final class VcsRepositoryFilter {
 
     public static final VcsRepositoryFilter EMPTY = new VcsRepositoryFilter(null, Collections.emptyList(), Collections.emptyList());
 
@@ -20,17 +22,18 @@ public final class VcsRepositoryFilter {
 
     private static final String SEPARATOR = "\n";
 
+    @Nullable
     private final String vcsRepositoryFilter;
     private final List<String> inclusion;
     private final List<String> exclusion;
 
-    private VcsRepositoryFilter(String vcsRepositoryFilter, List<String> inclusion, List<String> exclusion) {
+    private VcsRepositoryFilter(@Nullable String vcsRepositoryFilter, List<String> inclusion, List<String> exclusion) {
         this.vcsRepositoryFilter = vcsRepositoryFilter;
         this.inclusion = inclusion;
         this.exclusion = exclusion;
     }
 
-    public static VcsRepositoryFilter of(String vcsRepositoryFilter) {
+    static VcsRepositoryFilter of(String vcsRepositoryFilter) {
         String filter = Util.fixEmptyAndTrim(vcsRepositoryFilter);
 
         if (filter == null) {
@@ -64,23 +67,20 @@ public final class VcsRepositoryFilter {
         );
     }
 
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return inclusion.isEmpty() && exclusion.isEmpty();
     }
 
-    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
-    public List<String> getInclusion() {
+    List<String> getInclusion() {
         return inclusion;
     }
 
-    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
-    public List<String> getExclusion() {
+    List<String> getExclusion() {
         return exclusion;
     }
 
     @CheckForNull
-    public String getVcsRepositoryFilter() {
+    String getVcsRepositoryFilter() {
         return vcsRepositoryFilter;
     }
-
 }

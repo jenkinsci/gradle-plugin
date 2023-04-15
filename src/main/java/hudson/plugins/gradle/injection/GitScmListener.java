@@ -74,7 +74,7 @@ public class GitScmListener extends SCMListener {
     }
 
     private static boolean isInjectionEnabledForRepository(InjectionConfig config, SCM scm) {
-        if (config.getParsedVcsRepositoryFilter().isEmpty()) {
+        if (!config.hasRepositoryFilter()) {
             return true;
         }
 
@@ -87,16 +87,12 @@ public class GitScmListener extends SCMListener {
                     return true;
                 }
 
-                for (String exclusionFilter : config.getParsedVcsRepositoryFilter().getExclusion()) {
-                    if (url.contains(exclusionFilter)) {
-                        return false;
-                    }
+                if (config.isRepositoryExcluded(url)) {
+                    return false;
                 }
 
-                for (String inclusionFilter : config.getParsedVcsRepositoryFilter().getInclusion()) {
-                    if (url.contains(inclusionFilter)) {
-                        return true;
-                    }
+                if (config.isRepositoryIncluded(url)) {
+                    return true;
                 }
             }
         }

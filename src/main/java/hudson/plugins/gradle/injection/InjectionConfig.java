@@ -21,6 +21,8 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -242,14 +244,25 @@ public class InjectionConfig extends GlobalConfiguration {
         this.parsedVcsRepositoryFilter = VcsRepositoryFilter.of(vcsRepositoryFilter);
     }
 
+    /**
+     * Required to display filter in the UI.
+     */
     @Restricted(NoExternalUse.class)
     @CheckForNull
     public String getVcsRepositoryFilter() {
         return parsedVcsRepositoryFilter.getVcsRepositoryFilter();
     }
 
-    public VcsRepositoryFilter getParsedVcsRepositoryFilter() {
-        return parsedVcsRepositoryFilter;
+    public boolean hasRepositoryFilter() {
+        return !parsedVcsRepositoryFilter.isEmpty();
+    }
+
+    public boolean isRepositoryExcluded(@Nullable String repositoryUrl) {
+        return matchesRepositoryFilter(repositoryUrl, parsedVcsRepositoryFilter.getExclusion());
+    }
+
+    public boolean isRepositoryIncluded(@Nullable String repositoryUrl) {
+        return matchesRepositoryFilter(repositoryUrl, parsedVcsRepositoryFilter.getInclusion());
     }
 
     @Override
@@ -345,5 +358,17 @@ public class InjectionConfig extends GlobalConfiguration {
         return GradleEnterpriseVersionValidator.getInstance().isValid(version)
             ? FormValidation.ok()
             : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
+    }
+
+    private static boolean matchesRepositoryFilter(String repositoryUrl, Collection<String> patterns) {
+        if (Util.fixEmptyAndTrim(repositoryUrl) == null) {
+            return false;
+        }
+        for (String pattern : patterns) {
+            if (repositoryUrl.contains(pattern)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
