@@ -5,6 +5,7 @@ import org.hamcrest.Matcher;
 import org.jenkinsci.test.acceptance.junit.Resource;
 import org.jenkinsci.test.acceptance.junit.WithOS;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
+import org.jenkinsci.test.acceptance.plugins.git.GitScm;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleInstallation;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleStep;
 import org.jenkinsci.test.acceptance.po.Build;
@@ -24,6 +25,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
 @WithPlugins("gradle")
@@ -40,6 +42,61 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         GradleInstallation.installGradle(jenkins, GRADLE_VERSION, GRADLE_VERSION);
 
         enableBuildScansForGradle(mockGeServer.getAddress(), AGENT_VERSION);
+    }
+
+    @Test
+    @WithPlugins("git")
+    public void appliesAutoInjectionIfRepositoryShouldBeIncluded() {
+        // given
+        setGitRepositoryFilters("+:gradle\n-:maven");
+
+        FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
+        job.useScm(GitScm.class)
+            .url("https://github.com/c00ler/simple-gradle-project.git")
+            .branch("main");
+        GradleStep gradle = job.addBuildStep(GradleStep.class);
+        gradle.setVersion(GRADLE_VERSION);
+        gradle.setSwitches("--no-daemon");
+        gradle.setTasks("help");
+        job.save();
+
+        // when
+        Build build = job.startBuild();
+
+        // then
+        build.shouldSucceed();
+        assertBuildScanPublished(build, "> Task :help", "To see a list of available tasks, run gradle tasks");
+
+        MockGeServer.ScanTokenRequest scanTokenRequest = mockGeServer.getLastScanTokenRequest();
+        assertThat(scanTokenRequest, notNullValue());
+        assertThat(scanTokenRequest.agentVersion, is(equalTo(AGENT_VERSION)));
+    }
+
+    @Test
+    @WithPlugins("git")
+    public void skipsAutoInjectionIfRepositoryShouldBeExcluded() {
+        // given
+        setGitRepositoryFilters("+:gradle\n-:simple-gradle");
+
+        FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
+        job.useScm(GitScm.class)
+            .url("https://github.com/c00ler/simple-gradle-project.git")
+            .branch("main");
+        GradleStep gradle = job.addBuildStep(GradleStep.class);
+        gradle.setVersion(GRADLE_VERSION);
+        gradle.setSwitches("--no-daemon");
+        gradle.setTasks("help");
+        job.save();
+
+        // when
+        Build build = job.startBuild();
+
+        // then
+        build.shouldSucceed();
+        assertBuildScanNotPublished(build, "> Task :help", "To see a list of available tasks, run gradle tasks");
+
+        MockGeServer.ScanTokenRequest scanTokenRequest = mockGeServer.getLastScanTokenRequest();
+        assertThat(scanTokenRequest, is(nullValue()));
     }
 
     @Test
@@ -111,11 +168,11 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
 
         String pipelineTemplate = resource("/simple_gradle_project.groovy.template").asText();
         Map<String, String> pipelineTokens =
-                ImmutableMap.of(
-                    "copy_resource_step", copyResourceDirStep(resource("/simple_gradle_project")),
-                    "gradle_version", GRADLE_VERSION,
-                    "gradle_arguments", "--no-daemon helloWorld"
-                );
+            ImmutableMap.of(
+                "copy_resource_step", copyResourceDirStep(resource("/simple_gradle_project")),
+                "gradle_version", GRADLE_VERSION,
+                "gradle_arguments", "--no-daemon helloWorld"
+            );
         String pipeline = resolveTemplate(pipelineTemplate, pipelineTokens);
 
         job.script.set(pipeline);
@@ -186,27 +243,47 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         assertBuildScanPublished(build);
     }
 
+    private void assertBuildScanNotPublished(Build build, String... requiredLogsLines) {
+        String output = build.getConsole();
+
+        assertThat(output, not(containsString("Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin via init script")));
+        assertRequiredLogLines(output, requiredLogsLines);
+        assertThat(output, not(containsString("Publishing build scan...")));
+    }
+
     private void assertBuildScanPublished(Build build) {
         assertBuildScanPublished(build, true);
     }
 
     private void assertBuildScanPublished(Build build, boolean requireAppliedViaInitScript) {
+        assertBuildScanPublished(build, requireAppliedViaInitScript, "> Task :helloWorld", "Hello, World!");
+    }
+
+    private void assertBuildScanPublished(Build build, String... requiredLogsLines) {
+        assertBuildScanPublished(build, true, requiredLogsLines);
+    }
+
+    private void assertBuildScanPublished(Build build, boolean requireAppliedViaInitScript, String... requiredLogsLines) {
         String output = build.getConsole();
 
         Matcher<String> appliedViaInitScriptMatcher =
             containsString("Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin via init script");
         assertThat(output, requireAppliedViaInitScript ? appliedViaInitScriptMatcher : not(appliedViaInitScriptMatcher));
-
-        assertThat(output, containsString("> Task :helloWorld"));
-        assertThat(output, containsString("Hello, World!"));
+        assertRequiredLogLines(output, requiredLogsLines);
         assertThat(output, containsString("Publishing build scan..." + System.lineSeparator() + mockGeServer.publicBuildScanId()));
+    }
+
+    private void assertRequiredLogLines(String output, String... requiredLogsLines) {
+        for (String line : requiredLogsLines) {
+            assertThat(output, containsString(line));
+        }
     }
 
     private Resource settingsWithGradleEnterprise(String gePluginVersion) {
         String template = resource("/settings_with_ge.gradle.template").asText();
         String resolvedTemplate = resolveTemplate(template, ImmutableMap.of(
-                "ge_plugin_version", gePluginVersion,
-                "server", mockGeServer.getAddress().toString()
+            "ge_plugin_version", gePluginVersion,
+            "server", mockGeServer.getAddress().toString()
         ));
 
         return createTmpFile(tempFolder, resolvedTemplate);

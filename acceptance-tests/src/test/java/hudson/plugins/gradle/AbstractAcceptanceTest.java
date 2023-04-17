@@ -53,10 +53,10 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     }
 
     protected final void enableEnrichedBuildScans() {
-        enableEnrichedBuildScansWithServerOrverride(null);
+        enableEnrichedBuildScansWithServerOverride(null);
     }
 
-    protected final void enableEnrichedBuildScansWithServerOrverride(URI server) {
+    protected final void enableEnrichedBuildScansWithServerOverride(URI server) {
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansEnriched();
             if (server != null) {
@@ -71,6 +71,19 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
             settings.setGradleEnterpriseServerUrl(server);
             settings.setGradleEnterprisePluginVersion(agentVersion);
         });
+    }
+
+    protected final void setGitRepositoryFilters(String filters) {
+        updateBuildScansInjectionSettings(settings ->
+            settings.setGitRepositoryFilters(filters)
+        );
+    }
+
+    protected final String getGitRepositoryFilters() {
+        BuildScansInjectionSettings settings = new BuildScansInjectionSettings(jenkins);
+        settings.configure();
+
+        return settings.getGitRepositoryFilters();
     }
 
     protected final void enableBuildScansForMaven() {

@@ -26,7 +26,7 @@ public class MavenEnrichedScansTest extends AbstractAcceptanceTest {
     public void beforeEach() {
         MavenInstallation.installMaven(jenkins, MAVEN_VERSION, MAVEN_VERSION);
 
-        enableEnrichedBuildScansWithServerOrverride(mockGeServer.getAddress());
+        enableEnrichedBuildScansWithServerOverride(mockGeServer.getAddress());
     }
 
     @Test
