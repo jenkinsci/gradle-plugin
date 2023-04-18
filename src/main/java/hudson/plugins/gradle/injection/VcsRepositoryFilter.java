@@ -4,30 +4,29 @@ import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Util;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
 final class VcsRepositoryFilter {
 
-    public static final VcsRepositoryFilter EMPTY = new VcsRepositoryFilter(null, Collections.emptyList(), Collections.emptyList());
+    public static final VcsRepositoryFilter EMPTY = new VcsRepositoryFilter("", Collections.emptyList(), Collections.emptyList());
 
     private static final String INCLUSION_QUALIFIER = "+:";
     private static final String EXCLUSION_QUALIFIER = "-:";
 
     private static final String SEPARATOR = "\n";
 
-    @Nullable
     private final String vcsRepositoryFilter;
     private final List<String> inclusion;
     private final List<String> exclusion;
 
-    private VcsRepositoryFilter(@Nullable String vcsRepositoryFilter, List<String> inclusion, List<String> exclusion) {
+    private VcsRepositoryFilter(String vcsRepositoryFilter, List<String> inclusion, List<String> exclusion) {
         this.vcsRepositoryFilter = vcsRepositoryFilter;
         this.inclusion = inclusion;
         this.exclusion = exclusion;
@@ -71,15 +70,28 @@ final class VcsRepositoryFilter {
         return inclusion.isEmpty() && exclusion.isEmpty();
     }
 
-    List<String> getInclusion() {
-        return inclusion;
+    public Optional<Boolean> isIncluded(String url) {
+        if (matchesRepositoryFilter(url, exclusion)) {
+            return Optional.of(false);
+        }
+        if (matchesRepositoryFilter(url, inclusion)) {
+            return Optional.of(true);
+        }
+        return Optional.empty();
     }
 
-    List<String> getExclusion() {
-        return exclusion;
+    private boolean matchesRepositoryFilter(String repositoryUrl, Collection<String> patterns) {
+        if (Util.fixEmptyAndTrim(repositoryUrl) == null) {
+            return false;
+        }
+        for (String pattern : patterns) {
+            if (repositoryUrl.contains(pattern)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    @CheckForNull
     String getVcsRepositoryFilter() {
         return vcsRepositoryFilter;
     }

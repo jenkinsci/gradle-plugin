@@ -20,9 +20,8 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
@@ -252,12 +251,8 @@ public class InjectionConfig extends GlobalConfiguration {
         return !parsedVcsRepositoryFilter.isEmpty();
     }
 
-    public boolean isRepositoryExcluded(@Nullable String repositoryUrl) {
-        return matchesRepositoryFilter(repositoryUrl, parsedVcsRepositoryFilter.getExclusion());
-    }
-
-    public boolean isRepositoryIncluded(@Nullable String repositoryUrl) {
-        return matchesRepositoryFilter(repositoryUrl, parsedVcsRepositoryFilter.getInclusion());
+    public Optional<Boolean> isIncluded(String repositoryUrl) {
+        return parsedVcsRepositoryFilter.isIncluded(repositoryUrl);
     }
 
     @Override
@@ -355,15 +350,4 @@ public class InjectionConfig extends GlobalConfiguration {
             : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
     }
 
-    private static boolean matchesRepositoryFilter(String repositoryUrl, Collection<String> patterns) {
-        if (Util.fixEmptyAndTrim(repositoryUrl) == null) {
-            return false;
-        }
-        for (String pattern : patterns) {
-            if (repositoryUrl.contains(pattern)) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

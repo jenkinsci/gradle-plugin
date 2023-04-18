@@ -1,38 +1,36 @@
 package hudson.plugins.gradle.injection
 
-import hudson.Util
+
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class VcsRepositoryFilterTest extends Specification {
 
     @Unroll
-    def 'should parse vcs filter #filter into inclusion #inclusion and exclusion #exclusion'(
+    def 'repo #url is included by applying #filter'(
         String filter,
-        List<String> expectedInclusion,
-        List<String> expectedExclusion
+        String url,
+        Optional<Boolean> result
     ) {
         expect:
-        with(VcsRepositoryFilter.of(filter)) {
-            vcsRepositoryFilter == Util.fixEmptyAndTrim(filter)
-            inclusion == expectedInclusion
-            exclusion == expectedExclusion
-        }
+        VcsRepositoryFilter.of(filter).isIncluded(url) == result
 
         where:
-        filter                                                                     | expectedInclusion                     | expectedExclusion
-        null                                                                       | []                                    | []
-        ""                                                                         | []                                    | []
-        "test"                                                                     | []                                    | []
-        "\n \n+: foo\n-:bar"                                                       | ["foo"]                               | ["bar"]
-        "+:\n+: \n-:\n-: "                                                         | []                                    | []
-        "+:foo \n-:bar "                                                           | ["foo"]                               | ["bar"]
-        "+:one-inclusion"                                                          | ["one-inclusion"]                     | []
-        "+:one-inclusion\n+:second-inclusion"                                      | ["one-inclusion", "second-inclusion"] | []
-        "-:one-exclusion"                                                          | []                                    | ["one-exclusion"]
-        "-:one-exclusion\n-:second-exclusion"                                      | []                                    | ["one-exclusion", "second-exclusion"]
-        "+:one-inclusion\n-:one-exclusion"                                         | ["one-inclusion"]                     | ["one-exclusion"]
-        "+:one-inclusion\n+:second-inclusion\n-:one-exclusion\n-:second-exclusion" | ["one-inclusion", "second-inclusion"] | ["one-exclusion", "second-exclusion"]
+        filter                                                                     | url                                     | result
+        "test"                                                                     | null                                    | Optional.empty()
+        null                                                                       | 'http://foo'                            | Optional.empty()
+        ""                                                                         | 'http://foo'                            | Optional.empty()
+        "test"                                                                     | 'http://test'                           | Optional.empty()
+        "\n \n+: foo\n-:bar"                                                       | 'http://foo'                            | Optional.of(true)
+        "+:\n+: \n-:\n-: "                                                         | 'http://foo'                            | Optional.empty()
+        "+:foo \n-:bar "                                                           | 'http://bar'                            | Optional.of(false)
+        "+:one-inclusion"                                                          | 'http://one-inclusion/foo'              | Optional.of(true)
+        "+:one-inclusion\n+:second-inclusion"                                      | 'http://second-inclusion/foo'           | Optional.of(true)
+        "-:one-exclusion"                                                          | 'http://one-exclusion/foo'              | Optional.of(false)
+        "-:one-exclusion\n-:second-exclusion"                                      | 'http://second-exclusion/foo'           | Optional.of(false)
+        "+:one-inclusion\n-:one-exclusion"                                         | 'http://one-inclusion/one-exclusion'    | Optional.of(false)
+        "+:one-inclusion\n+:second-inclusion\n-:one-exclusion\n-:second-exclusion" | 'http://one-inclusion/second-exclusion' | Optional.of(false)
+        "+:one-inclusion\n-:one-exclusion\n+:second-inclusion\n-:second-exclusion" | 'http://one-inclusion/second-exclusion' | Optional.of(false)
     }
 
 }
