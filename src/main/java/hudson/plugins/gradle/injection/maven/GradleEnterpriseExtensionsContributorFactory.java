@@ -15,7 +15,6 @@ import hudson.util.LogTaskListener;
 import hudson.util.VersionNumber;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
