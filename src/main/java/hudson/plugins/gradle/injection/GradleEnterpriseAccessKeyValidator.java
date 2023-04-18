@@ -1,6 +1,6 @@
 package hudson.plugins.gradle.injection;
 
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.base.Strings;
 
 public final class GradleEnterpriseAccessKeyValidator implements Validator<String> {
 
@@ -15,7 +15,7 @@ public final class GradleEnterpriseAccessKeyValidator implements Validator<Strin
 
     @Override
     public boolean isValid(String value) {
-        if (StringUtils.isBlank(value)) {
+        if (Strings.isNullOrEmpty(value)) {
             return false;
         }
 
@@ -30,12 +30,12 @@ public final class GradleEnterpriseAccessKeyValidator implements Validator<Strin
             String servers = parts[0];
             String accessKey = parts[1];
 
-            if (StringUtils.isBlank(servers) || StringUtils.isBlank(accessKey)) {
+            if (Strings.isNullOrEmpty(servers) || Strings.isNullOrEmpty(accessKey)) {
                 return false;
             }
 
             for (String server : servers.split(",")) {
-                if (StringUtils.isBlank(server)) {
+                if (Strings.isNullOrEmpty(server)) {
                     return false;
                 }
             }

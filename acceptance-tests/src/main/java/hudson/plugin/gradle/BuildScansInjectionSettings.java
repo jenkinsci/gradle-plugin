@@ -16,6 +16,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     private static final String SERVER_FIELD = "server";
     private static final String BUILD_SCAN_SERVER_FIELD = "buildScanServer";
     private static final String GE_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
+    private static final String GE_ACCESS_KEY_FIELD = "accessKey";
 
     public BuildScansInjectionSettings(Jenkins jenkins) {
         super(jenkins);
@@ -39,6 +40,10 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
 
     public void setGradleEnterpriseServerUrl(URI server) {
         setBuildScansInjectionFormValue(SERVER_FIELD, server.toString());
+    }
+
+    public void setGradleEnterpriseAccessKey(String accessKey) {
+        setBuildScansInjectionFormValue(GE_ACCESS_KEY_FIELD, accessKey);
     }
 
     public void setGradleEnterprisePluginVersion(String version) {
