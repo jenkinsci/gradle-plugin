@@ -20,8 +20,11 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
 @Extension
@@ -63,6 +66,8 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
+    // Legacy property that is not used anymore
+    private transient String injectionVcsRepositoryPatterns;
     private VcsRepositoryFilter parsedVcsRepositoryFilter = VcsRepositoryFilter.EMPTY;
 
     public InjectionConfig() {
@@ -349,4 +354,23 @@ public class InjectionConfig extends GlobalConfiguration {
             : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
     }
 
+    /**
+     * Invoked by XStream when this object is read into memory.
+     */
+    @SuppressWarnings("unused")
+    protected Object readResolve() {
+        if (injectionVcsRepositoryPatterns != null) {
+            String filters = migrateLegacyRepositoryFilters(injectionVcsRepositoryPatterns);
+            parsedVcsRepositoryFilter = VcsRepositoryFilter.of(filters);
+        }
+        return this;
+    }
+
+    private static String migrateLegacyRepositoryFilters(String injectionVcsRepositoryPatterns) {
+        return Arrays.stream(injectionVcsRepositoryPatterns.split(","))
+            .map(Util::fixEmptyAndTrim)
+            .filter(Objects::nonNull)
+            .map(p -> VcsRepositoryFilter.INCLUSION_QUALIFIER + p)
+            .collect(Collectors.joining(VcsRepositoryFilter.SEPARATOR));
+    }
 }

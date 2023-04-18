@@ -304,25 +304,6 @@ To ensure that all Gradle Enterprise resources are cleaned up from the agents, b
 
 == Upgrade notes
 
-=== Next version
-
-> **Note**
-> - These upgrade notes only apply if you are upgrading from the version `2.4` and were using the VCS repository filtering beta feature.
-
-The VCS repository filtering was updated to support not only repository patterns that require the auto-injection functionality but also the ones that do not require the auto-injection.
-Therefore, a new configuration format needs to be used.
-In the new format repository patterns that require the auto-injection have to have the `+:` prefix.
-The delimiter has to be changed from `,` to a `new line`.
-For example, the existing configuration `foo, bar, baz` has to be written as follows:
-```
-+:foo
-+:bar
-+:baz
-```
-
-> **Warning**
-> - The existing configuration will not be changed to the new format automatically. Please back up the existing configuration and change the format manually. After the plugin update, the old configuration will be lost.
-
 === 2.0
 
 > **Note**

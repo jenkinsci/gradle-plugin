@@ -16,10 +16,10 @@ final class VcsRepositoryFilter {
 
     public static final VcsRepositoryFilter EMPTY = new VcsRepositoryFilter("", Collections.emptyList(), Collections.emptyList());
 
-    private static final String INCLUSION_QUALIFIER = "+:";
-    private static final String EXCLUSION_QUALIFIER = "-:";
+    public static final String INCLUSION_QUALIFIER = "+:";
+    public static final String EXCLUSION_QUALIFIER = "-:";
 
-    private static final String SEPARATOR = "\n";
+    public static final String SEPARATOR = "\n";
 
     private final String vcsRepositoryFilter;
     private final List<String> inclusion;
