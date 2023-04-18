@@ -8,7 +8,6 @@ import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
-@WithPlugins("gradle")
 public class InjectionConfigTest extends AbstractAcceptanceTest {
 
     @Test

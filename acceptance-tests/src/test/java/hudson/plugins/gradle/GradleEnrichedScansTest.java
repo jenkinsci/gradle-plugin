@@ -2,7 +2,6 @@ package hudson.plugins.gradle;
 
 import com.google.common.collect.ImmutableMap;
 import org.jenkinsci.test.acceptance.junit.Resource;
-import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleInstallation;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleStep;
 import org.jenkinsci.test.acceptance.po.Build;
@@ -15,10 +14,11 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
-@WithPlugins("gradle")
 public class GradleEnrichedScansTest extends AbstractAcceptanceTest {
 
     private static final String AGENT_VERSION = "3.11.1";
@@ -72,8 +72,8 @@ public class GradleEnrichedScansTest extends AbstractAcceptanceTest {
     private Resource settingsWithGradleEnterprise() {
         String template = resource("/settings_with_ge.gradle.template").asText();
         String resolvedTemplate = resolveTemplate(template, ImmutableMap.of(
-                "ge_plugin_version", AGENT_VERSION,
-                "server", mockGeServer.getAddress().toString()
+            "ge_plugin_version", AGENT_VERSION,
+            "server", mockGeServer.getAddress().toString()
         ));
 
         return createTmpFile(tempFolder, resolvedTemplate);

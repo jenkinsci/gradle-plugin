@@ -11,6 +11,7 @@ import org.jenkinsci.test.acceptance.controller.JenkinsController;
 import org.jenkinsci.test.acceptance.controller.LocalController;
 import org.jenkinsci.test.acceptance.junit.AbstractJUnitTest;
 import org.jenkinsci.test.acceptance.junit.Resource;
+import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.slave.SlaveController;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,6 +33,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@WithPlugins("gradle")
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
     private static final URI PUBLIC_GE_SERVER = URI.create("https://scans.gradle.com");

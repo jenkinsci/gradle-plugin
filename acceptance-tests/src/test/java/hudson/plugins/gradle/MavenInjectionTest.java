@@ -22,7 +22,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
-@WithPlugins("gradle")
 public class MavenInjectionTest extends AbstractAcceptanceTest {
 
     private static final String MAVEN_VERSION = "3.8.6";

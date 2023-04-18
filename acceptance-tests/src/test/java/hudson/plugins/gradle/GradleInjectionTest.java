@@ -28,7 +28,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
-@WithPlugins("gradle")
 public class GradleInjectionTest extends AbstractAcceptanceTest {
 
     private static final String AGENT_VERSION = "3.11.1";
