@@ -48,7 +48,12 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     @WithPlugins("git")
     public void appliesAutoInjectionIfRepositoryShouldBeIncluded() {
         // given
-        setGitRepositoryFilters("+:gradle\n-:maven");
+        setGitRepositoryFilters(
+            filter()
+                .include("gradle")
+                .exclude("maven")
+                .build()
+        );
 
         FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
         job.useScm(GitScm.class)
@@ -76,7 +81,12 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     @WithPlugins("git")
     public void skipsAutoInjectionIfRepositoryShouldBeExcluded() {
         // given
-        setGitRepositoryFilters("+:gradle\n-:simple-gradle");
+        setGitRepositoryFilters(
+            filter()
+                .include("gradle")
+                .exclude("simple-gradle")
+                .build()
+        );
 
         FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
         job.useScm(GitScm.class)

@@ -109,8 +109,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
             new StringSubstitutor(
                 ImmutableMap.of(
                     "copy_resource_step", copyResourceDirStep(resource("/simple_maven_project")),
-                    "maven_version", MAVEN_VERSION,
-                    "maven_arguments", "clean compile"
+                    "maven_version", MAVEN_VERSION
                 ))
                 .replace(pipelineTemplate);
 
@@ -124,6 +123,35 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
         // then
         build.shouldSucceed();
         assertBuildScanPublished(build);
+    }
+
+    @Test
+    @WithOS(os = {WithOS.OS.MAC, WithOS.OS.LINUX})
+    @WithPlugins({"pipeline-model-definition", "git"})
+    public void skipsAutoInjectionIfRepositoryShouldBeExcluded() {
+        // given
+        setGitRepositoryFilters(
+            filter()
+                .include("maven")
+                .exclude("simple-maven")
+                .build()
+        );
+
+        WorkflowJob job = jenkins.jobs.create(WorkflowJob.class);
+        String pipelineTemplate = resource("/simple_git_maven_project.groovy.template").asText();
+        String pipeline =
+            new StringSubstitutor(ImmutableMap.of("maven_version", MAVEN_VERSION)).replace(pipelineTemplate);
+
+        job.script.set(pipeline);
+        job.sandbox.check();
+        job.save();
+
+        // when
+        Build build = job.startBuild();
+
+        // then
+        build.shouldSucceed();
+        assertBuildScanNotPublished(build);
     }
 
     @Test

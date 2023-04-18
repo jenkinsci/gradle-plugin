@@ -1,9 +1,7 @@
 node {
-    stage('prepare_build') {
-        ${copy_resource_step}
-    }
     stage('build_project') {
         withEnv(["PATH+MAVEN=$${tool '${maven_version}'}/bin"]) {
+            git branch: 'accept-ge-tos', url: 'https://github.com/c00ler/simple-maven-project.git'
             withGradle {
                 sh 'mvn clean compile'
             }

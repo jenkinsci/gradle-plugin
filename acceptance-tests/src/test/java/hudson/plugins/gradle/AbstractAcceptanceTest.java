@@ -24,8 +24,13 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
@@ -144,4 +149,33 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         }
     }
 
+    static VcsFilterBuilder filter() {
+        return new VcsFilterBuilder();
+    }
+
+    public static class VcsFilterBuilder {
+
+        private final List<String> included = new ArrayList<>();
+        private final List<String> excluded = new ArrayList<>();
+
+        private VcsFilterBuilder() {
+        }
+
+        public VcsFilterBuilder include(String... filters) {
+            included.addAll(Arrays.asList(filters));
+            return this;
+        }
+
+        public VcsFilterBuilder exclude(String... filters) {
+            excluded.addAll(Arrays.asList(filters));
+            return this;
+        }
+
+        public String build() {
+            return Stream.concat(
+                    included.stream().map(f -> String.format("+:%s", f)),
+                    excluded.stream().map(f -> String.format("-:%s", f)))
+                .collect(Collectors.joining("\n"));
+        }
+    }
 }
