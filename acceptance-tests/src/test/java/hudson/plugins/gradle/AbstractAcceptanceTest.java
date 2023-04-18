@@ -70,6 +70,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
             settings.clickBuildScansInjection();
             settings.setGradleEnterpriseServerUrl(server);
             settings.setGradleEnterprisePluginVersion(agentVersion);
+            settings.setGradleEnterpriseAccessKey(String.format("%s=secret", server.getHost()));
         });
     }
 
