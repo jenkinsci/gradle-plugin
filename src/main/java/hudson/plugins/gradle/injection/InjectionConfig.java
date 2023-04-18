@@ -21,7 +21,6 @@ import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
@@ -251,8 +250,8 @@ public class InjectionConfig extends GlobalConfiguration {
         return !parsedVcsRepositoryFilter.isEmpty();
     }
 
-    public Optional<Boolean> isIncluded(String repositoryUrl) {
-        return parsedVcsRepositoryFilter.isIncluded(repositoryUrl);
+    public VcsRepositoryFilter.Result matchesRepositoryFilter(String repositoryUrl) {
+        return parsedVcsRepositoryFilter.matches(repositoryUrl);
     }
 
     @Override

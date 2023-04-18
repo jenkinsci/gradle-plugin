@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
 final class VcsRepositoryFilter {
@@ -70,14 +69,18 @@ final class VcsRepositoryFilter {
         return inclusion.isEmpty() && exclusion.isEmpty();
     }
 
-    public Optional<Boolean> isIncluded(String url) {
+    enum Result {
+        INCLUDED, EXCLUDED, NOT_MATCHED
+    }
+
+    public Result matches(String url) {
         if (matchesRepositoryFilter(url, exclusion)) {
-            return Optional.of(false);
+            return Result.EXCLUDED;
         }
         if (matchesRepositoryFilter(url, inclusion)) {
-            return Optional.of(true);
+            return Result.INCLUDED;
         }
-        return Optional.empty();
+        return Result.NOT_MATCHED;
     }
 
     private boolean matchesRepositoryFilter(String repositoryUrl, Collection<String> patterns) {

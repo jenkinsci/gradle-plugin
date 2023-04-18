@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckForNull;
 import java.io.File;
 import java.util.List;
-import java.util.Optional;
 
 import static hudson.plugins.gradle.injection.MavenInjectionAware.MAVEN_OPTS_HANDLER;
 
@@ -98,9 +97,9 @@ public class GitScmListener extends SCMListener {
                 if (url == null) {
                     return true;
                 }
-                Optional<Boolean> isIncluded = config.isIncluded(url);
-                if (isIncluded.isPresent()) {
-                    return isIncluded.get();
+                switch (config.matchesRepositoryFilter(url)) {
+                    case EXCLUDED: return false;
+                    case INCLUDED: return true;
                 }
             }
         }
