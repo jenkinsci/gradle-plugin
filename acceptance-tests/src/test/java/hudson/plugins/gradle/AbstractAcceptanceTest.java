@@ -11,6 +11,7 @@ import org.jenkinsci.test.acceptance.controller.JenkinsController;
 import org.jenkinsci.test.acceptance.controller.LocalController;
 import org.jenkinsci.test.acceptance.junit.AbstractJUnitTest;
 import org.jenkinsci.test.acceptance.junit.Resource;
+import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.slave.SlaveController;
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,9 +25,15 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+@WithPlugins("gradle")
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
     private static final URI PUBLIC_GE_SERVER = URI.create("https://scans.gradle.com");
@@ -53,10 +60,10 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     }
 
     protected final void enableEnrichedBuildScans() {
-        enableEnrichedBuildScansWithServerOrverride(null);
+        enableEnrichedBuildScansWithServerOverride(null);
     }
 
-    protected final void enableEnrichedBuildScansWithServerOrverride(URI server) {
+    protected final void enableEnrichedBuildScansWithServerOverride(URI server) {
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansEnriched();
             if (server != null) {
@@ -72,6 +79,19 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
             settings.setGradleEnterprisePluginVersion(agentVersion);
             settings.setGradleEnterpriseAccessKey(String.format("%s=secret", server.getHost()));
         });
+    }
+
+    protected final void setGitRepositoryFilters(String filters) {
+        updateBuildScansInjectionSettings(settings ->
+            settings.setGitRepositoryFilters(filters)
+        );
+    }
+
+    protected final String getGitRepositoryFilters() {
+        BuildScansInjectionSettings settings = new BuildScansInjectionSettings(jenkins);
+        settings.configure();
+
+        return settings.getGitRepositoryFilters();
     }
 
     protected final void enableBuildScansForMaven() {
@@ -132,4 +152,33 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         }
     }
 
+    static VcsFilterBuilder filter() {
+        return new VcsFilterBuilder();
+    }
+
+    public static class VcsFilterBuilder {
+
+        private final List<String> included = new ArrayList<>();
+        private final List<String> excluded = new ArrayList<>();
+
+        private VcsFilterBuilder() {
+        }
+
+        public VcsFilterBuilder include(String... filters) {
+            included.addAll(Arrays.asList(filters));
+            return this;
+        }
+
+        public VcsFilterBuilder exclude(String... filters) {
+            excluded.addAll(Arrays.asList(filters));
+            return this;
+        }
+
+        public String build() {
+            return Stream.concat(
+                    included.stream().map(f -> String.format("+:%s", f)),
+                    excluded.stream().map(f -> String.format("-:%s", f)))
+                .collect(Collectors.joining("\n"));
+        }
+    }
 }

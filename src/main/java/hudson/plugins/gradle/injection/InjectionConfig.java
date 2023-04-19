@@ -11,7 +11,6 @@ import hudson.util.FormValidation;
 import hudson.util.Secret;
 import hudson.util.VersionNumber;
 import jenkins.model.GlobalConfiguration;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -23,7 +22,7 @@ import org.kohsuke.stapler.verb.POST;
 import javax.annotation.CheckForNull;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -67,8 +66,9 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
-    private String injectionVcsRepositoryPatterns;
-    private ImmutableList<String> parsedInjectionVcsRepositoryPatterns;
+    // Legacy property that is not used anymore
+    private transient String injectionVcsRepositoryPatterns;
+    private VcsRepositoryFilter parsedVcsRepositoryFilter = VcsRepositoryFilter.EMPTY;
 
     public InjectionConfig() {
         load();
@@ -96,10 +96,7 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @Restricted(NoExternalUse.class)
     public boolean isGitPluginInstalled() {
-        return Optional.ofNullable(Jenkins.getInstanceOrNull())
-                .map(Jenkins::getPluginManager)
-                .map(pluginManager -> pluginManager.getPlugin(GIT_PLUGIN_SHORT_NAME))
-                .isPresent();
+        return InjectionUtil.maybeGetPlugin(GIT_PLUGIN_SHORT_NAME).isPresent();
     }
 
     public boolean isEnabled() {
@@ -241,21 +238,25 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @DataBoundSetter
-    public void setInjectionVcsRepositoryPatterns(String injectionVcsRepositoryPatterns) {
-        this.injectionVcsRepositoryPatterns = Util.fixEmptyAndTrim(injectionVcsRepositoryPatterns);
-
-        this.parsedInjectionVcsRepositoryPatterns = this.injectionVcsRepositoryPatterns == null
-                ? ImmutableList.of()
-                : ImmutableList.copyOf(Arrays.stream(this.injectionVcsRepositoryPatterns.split(",")).map(String::trim).collect(Collectors.toList()));
+    public void setVcsRepositoryFilter(String vcsRepositoryFilter) {
+        this.parsedVcsRepositoryFilter = VcsRepositoryFilter.of(vcsRepositoryFilter);
     }
 
+    /**
+     * Required to display filter in the UI.
+     */
+    @Restricted(NoExternalUse.class)
     @CheckForNull
-    public String getInjectionVcsRepositoryPatterns() {
-        return injectionVcsRepositoryPatterns;
+    public String getVcsRepositoryFilter() {
+        return parsedVcsRepositoryFilter.getVcsRepositoryFilter();
     }
 
-    public List<String> getParsedInjectionVcsRepositoryPatterns() {
-        return parsedInjectionVcsRepositoryPatterns;
+    public boolean hasRepositoryFilter() {
+        return !parsedVcsRepositoryFilter.isEmpty();
+    }
+
+    public VcsRepositoryFilter.Result matchesRepositoryFilter(String repositoryUrl) {
+        return parsedVcsRepositoryFilter.matches(repositoryUrl);
     }
 
     @Override
@@ -351,5 +352,25 @@ public class InjectionConfig extends GlobalConfiguration {
         return GradleEnterpriseVersionValidator.getInstance().isValid(version)
             ? FormValidation.ok()
             : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
+    }
+
+    /**
+     * Invoked by XStream when this object is read into memory.
+     */
+    @SuppressWarnings("unused")
+    protected Object readResolve() {
+        if (injectionVcsRepositoryPatterns != null) {
+            String filters = migrateLegacyRepositoryFilters(injectionVcsRepositoryPatterns);
+            parsedVcsRepositoryFilter = VcsRepositoryFilter.of(filters);
+        }
+        return this;
+    }
+
+    private static String migrateLegacyRepositoryFilters(String injectionVcsRepositoryPatterns) {
+        return Arrays.stream(injectionVcsRepositoryPatterns.split(","))
+            .map(Util::fixEmptyAndTrim)
+            .filter(Objects::nonNull)
+            .map(p -> VcsRepositoryFilter.INCLUSION_QUALIFIER + p)
+            .collect(Collectors.joining(VcsRepositoryFilter.SEPARATOR));
     }
 }

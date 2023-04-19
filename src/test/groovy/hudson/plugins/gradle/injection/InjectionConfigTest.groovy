@@ -10,6 +10,8 @@ import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.nio.charset.StandardCharsets
+
 @Unroll
 @Subject(InjectionConfig.class)
 class InjectionConfigTest extends BaseJenkinsIntegrationTest {
@@ -205,8 +207,105 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
         accessKey << ["", "   "]
     }
 
+    def "migrates legacy VCS filter during loading of the config"() {
+        given:
+        def xml = """<?xml version="1.1" encoding="UTF-8"?>
+<hudson.plugins.gradle.injection.InjectionConfig>
+  <enabled>true</enabled>
+  <server>https://localhost</server>
+  <allowUntrusted>true</allowUntrusted>
+  <gradlePluginVersion>3.11.1</gradlePluginVersion>
+  <ccudPluginVersion>1.8</ccudPluginVersion>
+  <gradlePluginRepositoryUrl>https://localhost/repostiry</gradlePluginRepositoryUrl>
+  <gradleInjectionEnabledNodes>
+    <hudson.plugins.gradle.injection.NodeLabelItem>
+      <label>gradle1</label>
+    </hudson.plugins.gradle.injection.NodeLabelItem>
+  </gradleInjectionEnabledNodes>
+  <gradleInjectionDisabledNodes>
+    <hudson.plugins.gradle.injection.NodeLabelItem>
+      <label>gradle2</label>
+    </hudson.plugins.gradle.injection.NodeLabelItem>
+  </gradleInjectionDisabledNodes>
+  <injectMavenExtension>true</injectMavenExtension>
+  <injectCcudExtension>true</injectCcudExtension>
+  <mavenInjectionEnabledNodes>
+    <hudson.plugins.gradle.injection.NodeLabelItem>
+      <label>maven1</label>
+    </hudson.plugins.gradle.injection.NodeLabelItem>
+  </mavenInjectionEnabledNodes>
+  <mavenInjectionDisabledNodes>
+    <hudson.plugins.gradle.injection.NodeLabelItem>
+      <label>maven2</label>
+    </hudson.plugins.gradle.injection.NodeLabelItem>
+  </mavenInjectionDisabledNodes>
+  <injectionVcsRepositoryPatterns>foo, , bar, baz</injectionVcsRepositoryPatterns>
+</hudson.plugins.gradle.injection.InjectionConfig>"""
+
+        when:
+        def config = fromXml(xml)
+
+        then:
+        with(config) {
+            hasRepositoryFilter()
+            vcsRepositoryFilter == "+:foo\n+:bar\n+:baz"
+        }
+
+        when:
+        config.setVcsRepositoryFilter("+:foo\n-:bar")
+
+        then:
+        toXml(config) == """<?xml version="1.1" encoding="UTF-8"?>
+<hudson.plugins.gradle.injection.InjectionConfig>
+  <enabled>true</enabled>
+  <server>https://localhost</server>
+  <allowUntrusted>true</allowUntrusted>
+  <gradlePluginVersion>3.11.1</gradlePluginVersion>
+  <ccudPluginVersion>1.8</ccudPluginVersion>
+  <gradlePluginRepositoryUrl>https://localhost/repostiry</gradlePluginRepositoryUrl>
+  <gradleInjectionEnabledNodes>
+    <hudson.plugins.gradle.injection.NodeLabelItem>
+      <label>gradle1</label>
+    </hudson.plugins.gradle.injection.NodeLabelItem>
+  </gradleInjectionEnabledNodes>
+  <gradleInjectionDisabledNodes>
+    <hudson.plugins.gradle.injection.NodeLabelItem>
+      <label>gradle2</label>
+    </hudson.plugins.gradle.injection.NodeLabelItem>
+  </gradleInjectionDisabledNodes>
+  <injectMavenExtension>true</injectMavenExtension>
+  <injectCcudExtension>true</injectCcudExtension>
+  <mavenInjectionEnabledNodes>
+    <hudson.plugins.gradle.injection.NodeLabelItem>
+      <label>maven1</label>
+    </hudson.plugins.gradle.injection.NodeLabelItem>
+  </mavenInjectionEnabledNodes>
+  <mavenInjectionDisabledNodes>
+    <hudson.plugins.gradle.injection.NodeLabelItem>
+      <label>maven2</label>
+    </hudson.plugins.gradle.injection.NodeLabelItem>
+  </mavenInjectionDisabledNodes>
+  <parsedVcsRepositoryFilter>
+    <vcsRepositoryFilter>+:foo
+-:bar</vcsRepositoryFilter>
+    <inclusion class="com.google.common.collect.ImmutableList">
+      <string>foo</string>
+    </inclusion>
+    <exclusion class="com.google.common.collect.ImmutableList">
+      <string>bar</string>
+    </exclusion>
+  </parsedVcsRepositoryFilter>
+</hudson.plugins.gradle.injection.InjectionConfig>"""
+    }
+
     private static InjectionConfig fromXml(String xml) {
         return (InjectionConfig) new XStream2().fromXML(xml)
+    }
+
+    private static String toXml(InjectionConfig config) {
+        def out = new ByteArrayOutputStream()
+        new XStream2().toXMLUTF8(config, out)
+        return new String(out.toByteArray(), StandardCharsets.UTF_8)
     }
 
     private static HtmlButton getAddButton(HtmlForm form, String label) {

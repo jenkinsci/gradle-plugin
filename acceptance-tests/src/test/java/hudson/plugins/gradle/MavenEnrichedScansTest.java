@@ -1,6 +1,5 @@
 package hudson.plugins.gradle;
 
-import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.plugins.maven.MavenBuildStep;
 import org.jenkinsci.test.acceptance.plugins.maven.MavenInstallation;
 import org.jenkinsci.test.acceptance.po.Build;
@@ -14,7 +13,6 @@ import org.openqa.selenium.By;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
-@WithPlugins("gradle")
 public class MavenEnrichedScansTest extends AbstractAcceptanceTest {
 
     private static final String MAVEN_VERSION = "3.8.6";
@@ -26,7 +24,7 @@ public class MavenEnrichedScansTest extends AbstractAcceptanceTest {
     public void beforeEach() {
         MavenInstallation.installMaven(jenkins, MAVEN_VERSION, MAVEN_VERSION);
 
-        enableEnrichedBuildScansWithServerOrverride(mockGeServer.getAddress());
+        enableEnrichedBuildScansWithServerOverride(mockGeServer.getAddress());
     }
 
     @Test

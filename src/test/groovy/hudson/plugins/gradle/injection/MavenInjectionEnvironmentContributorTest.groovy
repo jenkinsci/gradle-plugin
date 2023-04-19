@@ -63,7 +63,7 @@ class MavenInjectionEnvironmentContributorTest extends BaseJenkinsIntegrationTes
         }
         envs.put(MavenOptsHandler.MAVEN_OPTS, "-Dfoo=bar")
 
-        def mavenInjectionDisabledMavenOptsAction = new GitScmListener.MavenInjectionDisabledMavenOptsAction("") {}
+        def mavenInjectionDisabledMavenOptsAction = new GitScmListener.MavenInjectionDisabledMavenOptsAction("")
 
         def mockRun = Mock(Run)
         mockRun.getAction(GitScmListener.MavenInjectionDisabledMavenOptsAction.class) >> mavenInjectionDisabledMavenOptsAction

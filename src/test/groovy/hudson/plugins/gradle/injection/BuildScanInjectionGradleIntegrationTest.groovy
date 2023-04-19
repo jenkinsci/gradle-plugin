@@ -629,7 +629,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         }
     }
 
-    def 'vcs repository pattern injection for freestyle remote project - #pattern'(String pattern) {
+    def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
         given:
         def gradleVersion = '8.0.2'
         gradleInstallationRule.gradleVersion = '8.0.2'
@@ -652,23 +652,25 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         when:
         withInjectionConfig {
-            injectionVcsRepositoryPatterns = pattern
+            vcsRepositoryFilter = filter
         }
         enableBuildInjection(slave, gradleVersion)
         def build2 = j.buildAndAssertSuccess(p)
 
         then:
-        if (pattern == "simple-") {
+        if (shouldApplyAutoInjection) {
             j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
         } else {
             j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build2)
         }
 
         where:
-        pattern << ["simple-", "this-one-does-not-match"]
+        filter                      | shouldApplyAutoInjection
+        "+:simple-"                 | true
+        "+:this-one-does-not-match" | false
     }
 
-    def 'vcs repository pattern injection for pipeline remote project - #pattern'(String pattern) {
+    def 'vcs repository pattern injection for pipeline remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
         given:
         def gradleVersion = '8.0.2'
         gradleInstallationRule.gradleVersion = gradleVersion
@@ -703,20 +705,22 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         when:
         withInjectionConfig {
-            injectionVcsRepositoryPatterns = pattern
+            vcsRepositoryFilter = filter
         }
         enableBuildInjection(slave, gradleVersion)
         def build2 = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        if (pattern == "simple-") {
+        if (shouldApplyAutoInjection) {
             j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, build2)
         } else {
             j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build2)
         }
 
         where:
-        pattern << ["simple-", "this-one-does-not-match"]
+        filter                      | shouldApplyAutoInjection
+        "+:simple-"                 | true
+        "+:this-one-does-not-match" | false
     }
 
     private static CreateFileBuilder helloTask(String action = "println 'Hello!'") {

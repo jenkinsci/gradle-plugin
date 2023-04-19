@@ -29,60 +29,77 @@ public class GitScmListener extends SCMListener {
 
     @Override
     public void onCheckout(
-            Run<?, ?> build,
-            SCM scm,
-            FilePath workspace,
-            TaskListener listener,
-            @CheckForNull File changelogFile,
-            @CheckForNull SCMRevisionState pollingBaseline
+        Run<?, ?> build,
+        SCM scm,
+        FilePath workspace,
+        TaskListener listener,
+        @CheckForNull File changelogFile,
+        @CheckForNull SCMRevisionState pollingBaseline
     ) {
         try {
             InjectionConfig config = InjectionConfig.get();
 
-            if (isVCSInjectionFilteringNotApplied(scm, config)) {
+            if (isInjectionGloballyDisabled(config)) {
                 return;
             }
 
-            Computer computer = workspace.toComputer();
-            if (computer != null) {
-                EnvVars envVars = computer.buildEnvironment(listener);
-
-                if (shouldDisableGradleInjection(config)) {
-                    build.addAction(GradleInjectionDisabledAction.INSTANCE);
-                }
-
-                if (shouldDisableMavenInjection(config)) {
-                    String currentMavenOpts = envVars.get(MavenOptsHandler.MAVEN_OPTS);
-                    if (currentMavenOpts != null) {
-                        String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts));
-
-                        build.addAction(new MavenInjectionDisabledMavenOptsAction(mavenOpts));
-                    }
-                }
+            // By default, auto-injection is enabled. If repository matches the VCS filter we don't need to disable it
+            if (isInjectionEnabledForRepository(config, scm)) {
+                return;
             }
+
+            disableAutoInjection(build, workspace, config, listener);
         } catch (Exception e) {
             LOGGER.error("Error occurred when processing onCheckout notification", e);
         }
     }
 
-    private static boolean isVCSInjectionFilteringNotApplied(SCM scm, InjectionConfig config) {
-        return config.isDisabled()
-                || InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()))
-                || config.getParsedInjectionVcsRepositoryPatterns() == null
-                || config.getParsedInjectionVcsRepositoryPatterns().isEmpty()
-                || vcsRepositoryUrlMatches(config, scm);
+    private static void disableAutoInjection(Run<?, ?> build,
+                                             FilePath workspace,
+                                             InjectionConfig config,
+                                             TaskListener listener
+    ) throws Exception {
+        Computer computer = workspace.toComputer();
+        if (computer == null) {
+            return;
+        }
+
+        EnvVars envVars = computer.buildEnvironment(listener);
+
+        if (shouldDisableGradleInjection(config)) {
+            build.addAction(GradleInjectionDisabledAction.INSTANCE);
+        }
+
+        if (shouldDisableMavenInjection(config)) {
+            String currentMavenOpts = envVars.get(MavenOptsHandler.MAVEN_OPTS);
+            if (currentMavenOpts != null) {
+                String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts));
+
+                build.addAction(new MavenInjectionDisabledMavenOptsAction(mavenOpts));
+            }
+        }
     }
 
-    private static boolean vcsRepositoryUrlMatches(InjectionConfig config, SCM scm) {
+    private static boolean isInjectionGloballyDisabled(InjectionConfig config) {
+        return config.isDisabled() || InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()));
+    }
+
+    private static boolean isInjectionEnabledForRepository(InjectionConfig config, SCM scm) {
+        if (!config.hasRepositoryFilter()) {
+            return true;
+        }
+
         if (scm instanceof GitSCM) {
             List<UserRemoteConfig> userRemoteConfigs = ((GitSCM) scm).getUserRemoteConfigs();
 
             for (UserRemoteConfig userRemoteConfig : userRemoteConfigs) {
-                for (String pattern : config.getParsedInjectionVcsRepositoryPatterns()) {
-                    String url = userRemoteConfig.getUrl();
-                    if (url != null && url.contains(pattern)) {
-                        return true;
-                    }
+                String url = userRemoteConfig.getUrl();
+                if (url == null) {
+                    return true;
+                }
+                switch (config.matchesRepositoryFilter(url)) {
+                    case EXCLUDED: return false;
+                    case INCLUDED: return true;
                 }
             }
         }
@@ -101,7 +118,7 @@ public class GitScmListener extends SCMListener {
     /**
      * Action that holds Maven environment variables to be set in {@link MavenInjectionEnvironmentContributor}.
      */
-    public static class MavenInjectionDisabledMavenOptsAction extends InvisibleAction {
+    public static final class MavenInjectionDisabledMavenOptsAction extends InvisibleAction {
 
         public final String mavenOpts;
 
@@ -114,7 +131,7 @@ public class GitScmListener extends SCMListener {
     /**
      * Marker action to ensure we disable injection in {@link GradleInjectionEnvironmentContributor}.
      */
-    public static class GradleInjectionDisabledAction extends InvisibleAction {
+    public static final class GradleInjectionDisabledAction extends InvisibleAction {
 
         public static final GradleInjectionDisabledAction INSTANCE = new GradleInjectionDisabledAction();
 
