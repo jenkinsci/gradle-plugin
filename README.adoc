@@ -305,15 +305,6 @@ A new form based configuration was introduced in this version, which replaces th
 - `JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES`
 2. Copy the previously saved values and enter them in the new form based configuration to have the same configuration as before.
 
-== Roadmap
-
-* Using the Gradle API for accessing all the Gradle functionalities
-* Providing a Maven-like or Ivy-like integration
-** Multi-project detection
-** Adding automatic tests result path detection
-** Listing executed tasks with time execution for each task
-** Providing a log for each module in a multi-project
-
 == Release Notes
 
 For the current release notes (`v1.34+`), please check the https://github.com/jenkinsci/gradle-plugin/releases[GitHub releases page].
