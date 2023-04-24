@@ -10,6 +10,7 @@ plugins {
     id("org.jenkins-ci.jpi") version "0.48.0"
     id("ru.vyarus.animalsniffer") version "1.7.0"
     id("com.github.spotbugs") version "5.0.14"
+    checkstyle
     id("codenarc")
     id("buildlogic.reproducible-archives")
 }
@@ -63,6 +64,14 @@ jenkinsPlugin {
     })
 
     generateTests.set(true)
+
+    enableSpotBugs()
+    enableCheckstyle()
+    enableJacoco()
+}
+
+checkstyle {
+    setIgnoreFailures(true)
 }
 
 java {
