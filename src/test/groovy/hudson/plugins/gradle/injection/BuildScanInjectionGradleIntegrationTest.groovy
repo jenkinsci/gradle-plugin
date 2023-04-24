@@ -466,7 +466,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
         j.assertLogContains("accessKey=foo.com=secret", secondRun)
         j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.11.1/token was not from Gradle Enterprise.", secondRun)
-        j.assertLogNotContains("ERROR: Gradle Enterprise access key format is not valid", secondRun)
+        j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, secondRun)
 
     }
 
@@ -504,7 +504,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.11.1/token was not from Gradle Enterprise.", secondRun)
 
         and:
-        StringUtils.countMatches(JenkinsRule.getLog(secondRun), "ERROR: Gradle Enterprise access key format is not valid") == 1
+        StringUtils.countMatches(JenkinsRule.getLog(secondRun), INVALID_ACCESS_KEY_FORMAT_ERROR) == 1
     }
 
     def "sets all mandatory environment variables"() {
