@@ -270,7 +270,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
 
         then:
         j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=scans.gradle.com=secret", build)
-        j.assertLogNotContains("ERROR: Gradle Enterprise access key format is not valid", build)
+        j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, build)
         j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
     }
 
@@ -293,7 +293,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
 
         and:
-        StringUtils.countMatches(JenkinsRule.getLog(build), "ERROR: Gradle Enterprise access key format is not valid") == 1
+        StringUtils.countMatches(JenkinsRule.getLog(build), INVALID_ACCESS_KEY_FORMAT_ERROR) == 1
     }
 
     def 'extension jars are copied and removed properly and MAVEN_OPTS is set'() {

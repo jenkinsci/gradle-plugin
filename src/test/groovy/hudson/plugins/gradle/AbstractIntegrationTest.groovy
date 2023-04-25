@@ -28,6 +28,8 @@ import spock.lang.Specification
  */
 abstract class AbstractIntegrationTest extends Specification {
 
+    public static final String INVALID_ACCESS_KEY_FORMAT_ERROR = "[Gradle Enterprise] - [ERROR] - Gradle Enterprise access key format is not valid"
+
     public final JenkinsRule j = new JenkinsRule()
     public final TestRule noSpaceInTmpDirs = FlagRule.systemProperty("jenkins.test.noSpaceInTmpDirs", "true")
 
