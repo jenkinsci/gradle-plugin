@@ -5,6 +5,7 @@ import org.hamcrest.Matcher;
 import org.jenkinsci.test.acceptance.junit.Resource;
 import org.jenkinsci.test.acceptance.junit.WithOS;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
+import org.jenkinsci.test.acceptance.plugins.envinject.EnvInjectAction;
 import org.jenkinsci.test.acceptance.plugins.git.GitScm;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleInstallation;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleStep;
@@ -133,6 +134,28 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         MockGeServer.ScanTokenRequest scanTokenRequest = mockGeServer.getLastScanTokenRequest();
         assertThat(scanTokenRequest, notNullValue());
         assertThat(scanTokenRequest.agentVersion, is(equalTo(AGENT_VERSION)));
+    }
+
+    @Test
+    @WithPlugins("envinject")
+    public void accessKeyIsMasked() {
+        // given
+        FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
+
+        job.copyDir(resource("/simple_gradle_project"));
+        GradleStep gradle = job.addBuildStep(GradleStep.class);
+        gradle.setVersion(GRADLE_VERSION);
+        gradle.setSwitches("--no-daemon");
+        gradle.setTasks("helloWorld");
+        job.save();
+
+        // when
+        Build build = job.startBuild();
+
+        // then
+        build.shouldSucceed();
+        assertBuildScanPublished(build);
+        build.action(EnvInjectAction.class).shouldContain("GRADLE_ENTERPRISE_ACCESS_KEY", "[*******]");
     }
 
     @Test
