@@ -11,6 +11,7 @@ plugins {
     id("ru.vyarus.animalsniffer") version "1.7.0"
     id("com.github.spotbugs") version "5.0.14"
     id("codenarc")
+    id("maven-publish")
     id("buildlogic.reproducible-archives")
 }
 
@@ -309,4 +310,16 @@ tasks.jar {
 
 artifacts {
     add(gradlePluginJpi.name, jpi)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJpi") {
+            pom {
+                scm {
+                    tag.set("unexistingtag-just-a-test")
+                }
+            }
+        }
+    }
 }
