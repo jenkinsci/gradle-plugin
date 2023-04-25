@@ -12,6 +12,7 @@ import hudson.plugins.gradle.GradleEnterpriseLogger;
 import hudson.util.Secret;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,14 +41,14 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
         return run.getAction(GradleEnterpriseParametersAction.class) != null;
     }
 
-    private static class GradleEnterpriseParametersAction extends ParametersAction {
+    public static class GradleEnterpriseParametersAction extends ParametersAction {
 
         private static final String GRADLE_ENTERPRISE_ACCESS_KEY = "GRADLE_ENTERPRISE_ACCESS_KEY";
 
         private static final GradleEnterpriseParametersAction EMPTY = new GradleEnterpriseParametersAction();
 
-        GradleEnterpriseParametersAction(List<ParameterValue> parameters) {
-            super(parameters);
+        GradleEnterpriseParametersAction(List<ParameterValue> parameters, Collection<String> additionalSafeParameters) {
+            super(parameters, additionalSafeParameters);
         }
 
         GradleEnterpriseParametersAction() {
@@ -60,9 +61,8 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
         static GradleEnterpriseParametersAction of(String accessKey) {
             return new GradleEnterpriseParametersAction(
-                Collections.singletonList(
-                    new PasswordParameterValue(GRADLE_ENTERPRISE_ACCESS_KEY, accessKey, null)
-                )
+                Collections.singletonList(new PasswordParameterValue(GRADLE_ENTERPRISE_ACCESS_KEY, accessKey, null)),
+                Collections.singleton(GRADLE_ENTERPRISE_ACCESS_KEY)
             );
         }
     }
