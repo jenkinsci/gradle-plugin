@@ -15,6 +15,7 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Extension
 public class BuildScanEnvironmentContributor extends EnvironmentContributor {
@@ -44,6 +45,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
     public static class GradleEnterpriseParametersAction extends ParametersAction {
 
         private static final String GRADLE_ENTERPRISE_ACCESS_KEY = "GRADLE_ENTERPRISE_ACCESS_KEY";
+        private static final Set<String> ADDITIONAL_SAFE_PARAMETERS = Collections.singleton(GRADLE_ENTERPRISE_ACCESS_KEY);
 
         private static final GradleEnterpriseParametersAction EMPTY = new GradleEnterpriseParametersAction();
 
@@ -62,7 +64,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
         static GradleEnterpriseParametersAction of(String accessKey) {
             return new GradleEnterpriseParametersAction(
                 Collections.singletonList(new PasswordParameterValue(GRADLE_ENTERPRISE_ACCESS_KEY, accessKey, null)),
-                Collections.singleton(GRADLE_ENTERPRISE_ACCESS_KEY)
+                ADDITIONAL_SAFE_PARAMETERS
             );
         }
     }
