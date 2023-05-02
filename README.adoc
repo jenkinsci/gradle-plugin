@@ -1,4 +1,3 @@
-// nothing
 :imagesdir: images
 :thumbnail: width=80%,align="center"
 
