@@ -196,9 +196,9 @@ tasks.named<CreateVersionlessLookupTask>("createVersionlessLookup") {
     })
 }
 
-tasks.named<GenerateJenkinsManifestTask>("generateJenkinsManifest").configure {
-    dynamicSnapshotVersion.set(false)
-}
+//tasks.named<GenerateJenkinsManifestTask>("generateJenkinsManifest").configure {
+//    dynamicSnapshotVersion.set(false)
+//}
 
 fun checkArchiveManifest(archive: File) {
     ZipFile(archive).use { zip ->
