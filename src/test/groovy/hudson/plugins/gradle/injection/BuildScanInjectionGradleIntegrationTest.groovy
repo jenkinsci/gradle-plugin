@@ -583,6 +583,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             enabled = true
             server = 'http://localhost'
             allowUntrusted = true
+            enforceUrl = true
             gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
             ccudPluginVersion = CCUD_PLUGIN_VERSION
             gradlePluginRepositoryUrl = 'http://localhost/repository'
@@ -596,6 +597,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == "true"
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.11.1'
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == "true"
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"

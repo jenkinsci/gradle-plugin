@@ -66,6 +66,8 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
+    private boolean enforceUrl;
+
     // Legacy property that is not used anymore
     private transient String injectionVcsRepositoryPatterns;
     private VcsRepositoryFilter parsedVcsRepositoryFilter = VcsRepositoryFilter.EMPTY;
@@ -240,6 +242,15 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setVcsRepositoryFilter(String vcsRepositoryFilter) {
         this.parsedVcsRepositoryFilter = VcsRepositoryFilter.of(vcsRepositoryFilter);
+    }
+
+    public boolean isEnforceUrl() {
+        return enforceUrl;
+    }
+
+    @DataBoundSetter
+    public void setEnforceUrl(boolean enforceUrl) {
+        this.enforceUrl = enforceUrl;
     }
 
     /**

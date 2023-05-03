@@ -275,6 +275,36 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         assertBuildScanPublished(build);
     }
 
+    @Test
+    public void setEnforceUrlPublishesBuildScan() throws Exception {
+        // given
+        setEnforceUrl();
+        setAllowUntrustedServer();
+        String expectedAgentVersion = "3.10.3";
+
+        FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
+
+        job.copyResource(resource("/simple_gradle_project/build.gradle"), "build.gradle");
+        // gradle settings pointing to scans.gradle.com
+        job.copyResource(settingsWithGradleEnterprise(expectedAgentVersion, PUBLIC_GE_SERVER.toString()), "settings.gradle");
+        GradleStep gradle = job.addBuildStep(GradleStep.class);
+        gradle.setVersion(GRADLE_VERSION);
+        gradle.setSwitches("--no-daemon");
+        gradle.setTasks("helloWorld");
+        job.save();
+
+        // when
+        Build build = job.startBuild();
+
+        // then
+        build.shouldSucceed();
+        assertBuildScanPublished(build, false, String.format("Enforcing Gradle Enterprise: %s, allowUntrustedServer: true", mockGeServer.getAddress().toString()));
+
+        MockGeServer.ScanTokenRequest scanTokenRequest = mockGeServer.getLastScanTokenRequest();
+        assertThat(scanTokenRequest, notNullValue());
+        assertThat(scanTokenRequest.agentVersion, is(equalTo(expectedAgentVersion)));
+    }
+
     private void assertBuildScanNotPublished(Build build, String... requiredLogsLines) {
         String output = build.getConsole();
 
@@ -312,10 +342,14 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     }
 
     private Resource settingsWithGradleEnterprise(String gePluginVersion) {
+        return settingsWithGradleEnterprise(gePluginVersion, mockGeServer.getAddress().toString());
+    }
+
+    private Resource settingsWithGradleEnterprise(String gePluginVersion, String server) {
         String template = resource("/settings_with_ge.gradle.template").asText();
         String resolvedTemplate = resolveTemplate(template, ImmutableMap.of(
             "ge_plugin_version", gePluginVersion,
-            "server", mockGeServer.getAddress().toString()
+            "server", server
         ));
 
         return createTmpFile(tempFolder, resolvedTemplate);

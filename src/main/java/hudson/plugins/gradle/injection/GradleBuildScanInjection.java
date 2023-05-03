@@ -110,6 +110,10 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER, "true");
         }
 
+        if (config.isEnforceUrl()) {
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL, "true");
+        }
+
         String pluginRepositoryUrl = config.getGradlePluginRepositoryUrl();
         if (pluginRepositoryUrl != null && InjectionUtil.isValid(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);

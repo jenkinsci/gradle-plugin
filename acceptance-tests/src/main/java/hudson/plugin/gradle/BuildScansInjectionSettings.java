@@ -43,6 +43,18 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         setBuildScansInjectionFormValue(SERVER_FIELD, server.toString());
     }
 
+    public void clickEnforceUrl() {
+        ensureConfigPage();
+
+        control(by.checkbox("Enforce Gradle Enterprise server url")).click();
+    }
+
+    public void clickAllowUntrustedServer() {
+        ensureConfigPage();
+
+        control(by.checkbox("Allow untrusted server")).click();
+    }
+
     public void setGradleEnterpriseAccessKey(String accessKey) {
         setBuildScansInjectionFormValue(GE_ACCESS_KEY_FIELD, accessKey);
     }

@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 @WithPlugins("gradle")
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
-    private static final URI PUBLIC_GE_SERVER = URI.create("https://scans.gradle.com");
+    protected static final URI PUBLIC_GE_SERVER = URI.create("https://scans.gradle.com");
 
     @Rule
     public MockGeServer mockGeServer = new MockGeServer();
@@ -85,6 +85,14 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         updateBuildScansInjectionSettings(settings ->
             settings.setGitRepositoryFilters(filters)
         );
+    }
+
+    protected final void setEnforceUrl() {
+        updateBuildScansInjectionSettings(BuildScansInjectionSettings::clickEnforceUrl);
+    }
+
+    protected final void setAllowUntrustedServer() {
+        updateBuildScansInjectionSettings(BuildScansInjectionSettings::clickAllowUntrustedServer);
     }
 
     protected final String getGitRepositoryFilters() {
