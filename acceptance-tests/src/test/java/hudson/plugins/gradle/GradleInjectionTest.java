@@ -280,7 +280,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         // given
         setEnforceUrl();
         setAllowUntrustedServer();
-        String expectedAgentVersion = "3.10.3";
+        String expectedAgentVersion = "3.13";
 
         FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
 

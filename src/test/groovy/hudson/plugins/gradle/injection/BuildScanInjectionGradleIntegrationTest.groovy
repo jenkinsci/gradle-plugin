@@ -536,8 +536,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.11.1'
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == 'false'
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == 'false'
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
             }
@@ -560,6 +560,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
             }
