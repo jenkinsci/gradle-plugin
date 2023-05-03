@@ -24,9 +24,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     }
 
     public void clickBuildScansEnriched() {
-        ensureConfigPage();
-
-        control(by.checkbox("Enable enriched summary")).click();
+        clickCheckboxOnConfig("Enable enriched summary");
     }
 
     public void setGradleEnterpriseBuildScanServerUrl(URI server) {
@@ -34,13 +32,19 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     }
 
     public void clickBuildScansInjection() {
-        ensureConfigPage();
-
-        control(by.checkbox("Enable auto-injection")).click();
+        clickCheckboxOnConfig("Enable auto-injection");
     }
 
     public void setGradleEnterpriseServerUrl(URI server) {
         setBuildScansInjectionFormValue(SERVER_FIELD, server.toString());
+    }
+
+    public void clickEnforceUrl() {
+        clickCheckboxOnConfig("Enforce Gradle Enterprise server url");
+    }
+
+    public void clickAllowUntrustedServer() {
+        clickCheckboxOnConfig("Allow untrusted server");
     }
 
     public void setGradleEnterpriseAccessKey(String accessKey) {
@@ -60,9 +64,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     }
 
     public void clickInjectMavenExtension() {
-        ensureConfigPage();
-
-        control(by.checkbox("Enable Gradle Enterprise Maven extension auto-injection")).click();
+        clickCheckboxOnConfig("Enable Gradle Enterprise Maven extension auto-injection");
     }
 
     private void setBuildScansInjectionFormValue(String field, String value) {
@@ -84,5 +86,11 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
 
         By xpath = By.xpath(String.format(XPATH, ENRICHED_CONFIG_PATH + field));
         driver.findElement(xpath).sendKeys(value);
+    }
+
+    private void clickCheckboxOnConfig(String locator) {
+        ensureConfigPage();
+
+        control(by.checkbox(locator)).click();
     }
 }

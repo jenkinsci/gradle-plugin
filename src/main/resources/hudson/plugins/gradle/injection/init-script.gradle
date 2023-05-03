@@ -49,6 +49,7 @@ initscript {
     }
 }
 
+def BUILD_SCAN_PLUGIN_ID = 'com.gradle.build-scan'
 def BUILD_SCAN_PLUGIN_CLASS = 'com.gradle.scan.plugin.BuildScanPlugin'
 
 def GRADLE_ENTERPRISE_PLUGIN_ID = 'com.gradle.enterprise'
@@ -77,6 +78,7 @@ if (gradleInjectionEnabled == "false") {
 
 def geUrl = getInputParam('jenkinsGradlePlugin.gradle-enterprise.url')
 def geAllowUntrustedServer = Boolean.parseBoolean(getInputParam('jenkinsGradlePlugin.gradle-enterprise.allow-untrusted-server'))
+def geEnforceUrl = Boolean.parseBoolean(getInputParam('jenkinsGradlePlugin.gradle-enterprise.enforce-url'))
 def gePluginVersion = getInputParam('jenkinsGradlePlugin.gradle-enterprise.plugin.version')
 def ccudPluginVersion = getInputParam('jenkinsGradlePlugin.ccud.plugin.version')
 
@@ -108,6 +110,16 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) buildScan.uploadInBackground = false  // uploadInBackground not available for build-scan-plugin 1.16
                     buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
                 }
+
+                if (geUrl && geEnforceUrl) {
+                    pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
+                        afterEvaluate {
+                            logger.quiet("Enforcing Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                            buildScan.server = geUrl
+                            buildScan.allowUntrustedServer = geAllowUntrustedServer
+                        }
+                    }
+                }
             }
 
             if (ccudPluginVersion && atLeastGradle4) {
@@ -134,6 +146,14 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     ext.buildScan.publishAlways()
                     ext.buildScan.uploadInBackground = false
                     ext.buildScan.value CI_AUTO_INJECTION_CUSTOM_VALUE_NAME, CI_AUTO_INJECTION_CUSTOM_VALUE_VALUE
+                }
+            }
+
+            if (geUrl && geEnforceUrl) {
+                extensionsWithPublicType(settings, GRADLE_ENTERPRISE_EXTENSION_CLASS).collect { settings[it.name] }.each { ext ->
+                    logger.quiet("Enforcing Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                    ext.server = geUrl
+                    ext.allowUntrustedServer = geAllowUntrustedServer
                 }
             }
         }

@@ -30,6 +30,9 @@
                 <f:entry field="allowUntrusted">
                     <f:checkbox title="${%Allow untrusted server}"/>
                 </f:entry>
+                <f:entry field="enforceUrl">
+                    <f:checkbox title="${%Enforce Gradle Enterprise server url}"/>
+                </f:entry>
                 <f:entry title="${%Gradle Enterprise access key}" field="accessKey">
                     <div class="alert alert-info" role="alert">
                         <l:icon class="icon-help icon-sm" alt="${%Access key format help}"/>

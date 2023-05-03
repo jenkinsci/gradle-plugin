@@ -134,6 +134,8 @@ Next set the URL of the Gradle Enterprise instance to which the build scans shou
 
 image::enable-auto-injection.png[Enable auto-injection,{thumbnail}]
 
+Optionally you can click the `Enforce Gradle Enterprise server url` checkbox to enforce the configured Gradle Enterprise URL over a URL configured in the project's build (only applies to Gradle projects).
+
 ===== VCS repository filtering (Beta)
 
 It is also possible to enable/disable injection for specific repositories by specifying VCS repository filters. These are _Newline-delimited_ set of rules in the form of `+|-:repository_matching_keyword`, which will be used in a contains check against the repository URL.
@@ -285,6 +287,7 @@ The following table shows the compatibility of the plugin version with Gradle En
 
 |===
 |Jenkins Gradle Plugin version  | Injected Gradle Enterprise Maven extension version | Injected Common Custom User Data Maven extension version  | Minimum supported Gradle Enterprise version
+|2.6                            | 1.17.1                                             | 1.11.1                                                    | 2022.3
 |2.5.1                          | 1.17                                               | 1.11.1                                                    | 2022.3
 |2.5                            | 1.17                                               | 1.11.1                                                    | 2022.3
 |2.4                            | 1.16.6                                             | 1.11.1                                                    | 2022.3
