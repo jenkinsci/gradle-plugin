@@ -106,13 +106,9 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
         EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL, config.getServer());
         EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION, config.getGradlePluginVersion());
 
-        if (config.isAllowUntrusted()) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER, "true");
-        }
+        EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER, Boolean.toString(config.isAllowUntrusted()));
 
-        if (config.isEnforceUrl()) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL, "true");
-        }
+        EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL, Boolean.toString(config.isEnforceUrl()));
 
         String pluginRepositoryUrl = config.getGradlePluginRepositoryUrl();
         if (pluginRepositoryUrl != null && InjectionUtil.isValid(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
