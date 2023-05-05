@@ -7,20 +7,23 @@ import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 @ExportedBean
 public abstract class AbstractBuildScanAction implements Action {
-
-    // Backward compatibility for old plugins versions which created an action per-scan
-    private transient String scanUrl;
 
     protected transient Actionable target;
 
     private List<String> scanUrls = new ArrayList<>();
 
-    private List<ScanDetail> scanDetails = new ArrayList<>();
+    private final List<ScanDetail> scanDetails = new ArrayList<>();
+
+    // Backward compatibility for old plugins versions which created an action per-scan
+    private transient String scanUrl;
 
     @Override
     public String getIconFileName() {
@@ -35,6 +38,13 @@ public abstract class AbstractBuildScanAction implements Action {
     @Override
     public String getUrlName() {
         return "buildScan";
+    }
+
+    public void addScanUrls(Collection<String> scanUrls, Function<String, Optional<ScanDetail>> scanDetailsFactory) {
+        for (String scanUrl : scanUrls) {
+            addScanUrl(scanUrl);
+            scanDetailsFactory.apply(scanUrl).ifPresent(this::addScanDetail);
+        }
     }
 
     public void addScanUrl(String scanUrl) {
@@ -59,15 +69,19 @@ public abstract class AbstractBuildScanAction implements Action {
         return Collections.unmodifiableList(scanDetails);
     }
 
+    public Actionable getTarget() {
+        return target;
+    }
+
+    /**
+     * Invoked by XStream when this object is read into memory.
+     */
+    @SuppressWarnings("unused")
     private Object readResolve() {
         if (scanUrl != null) {
             scanUrls = Collections.singletonList(scanUrl);
         }
 
         return this;
-    }
-
-    public Actionable getTarget() {
-        return target;
     }
 }

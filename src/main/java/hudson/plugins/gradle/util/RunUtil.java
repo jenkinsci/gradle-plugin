@@ -1,25 +1,30 @@
 package hudson.plugins.gradle.util;
 
+import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.model.FreeStyleBuild;
 import hudson.model.Run;
-import hudson.plugins.gradle.BuildScanAction;
 import hudson.plugins.gradle.Gradle;
 import hudson.tasks.Builder;
 
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public final class RunUtil {
 
     private RunUtil() {
     }
 
-    public static BuildScanAction getOrCreateBuildScanAction(Actionable build) {
-        BuildScanAction action = build.getAction(BuildScanAction.class);
+    public static <T extends Actionable, A extends Action> A getOrCreateAction(
+        T actionable,
+        Class<A> actionClass,
+        Supplier<A> actionFactory
+    ) {
+        A action = actionable.getAction(actionClass);
 
         if (action == null) {
-            action = new BuildScanAction();
-            build.addAction(action);
+            action = actionFactory.get();
+            actionable.addAction(action);
         }
 
         return action;

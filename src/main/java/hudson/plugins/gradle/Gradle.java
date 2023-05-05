@@ -47,13 +47,13 @@ public class Gradle extends Builder {
     private boolean makeExecutable;
     private boolean useWorkspaceAsHome;
     private String wrapperLocation;
-    private transient Boolean passAsProperties;
     private String systemProperties;
     private boolean passAllAsSystemProperties;
 
     private String projectProperties;
     private boolean passAllAsProjectProperties;
 
+    private transient Boolean passAsProperties;
     private transient boolean fromRootBuildScriptDir;
 
     @DataBoundConstructor
@@ -217,7 +217,7 @@ public class Gradle extends Builder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-            throws InterruptedException, IOException {
+        throws InterruptedException, IOException {
 
         GradleLogger gradleLogger = new GradleLogger(listener);
         gradleLogger.info("Launching build.");
@@ -318,7 +318,7 @@ public class Gradle extends Builder {
             int r;
             try {
                 r = launcher.launch().cmds(args).envs(env).stdout(gca)
-                        .pwd(rootLauncher).join();
+                    .pwd(rootLauncher).join();
             } finally {
                 gca.forceEol();
             }
@@ -396,20 +396,6 @@ public class Gradle extends Builder {
         return Collections.singletonList(moduleRoot);
     }
 
-    private Object readResolve() {
-        if (fromRootBuildScriptDir) {
-            wrapperLocation = rootBuildScriptDir;
-        }
-        if (passAsProperties != null) {
-            if (passAsProperties) {
-                passAllAsProjectProperties = true;
-            } else {
-                passAllAsSystemProperties = true;
-            }
-        }
-        return this;
-    }
-
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
@@ -480,5 +466,23 @@ public class Gradle extends Builder {
         setUseWorkspaceAsHome(useWorkspaceAsHome);
         setPassAllAsProjectProperties(passAsProperties);
         setPassAllAsSystemProperties(!passAsProperties);
+    }
+
+    /**
+     * Invoked by XStream when this object is read into memory.
+     */
+    @SuppressWarnings("unused")
+    private Object readResolve() {
+        if (fromRootBuildScriptDir) {
+            wrapperLocation = rootBuildScriptDir;
+        }
+        if (passAsProperties != null) {
+            if (passAsProperties) {
+                passAllAsProjectProperties = true;
+            } else {
+                passAllAsSystemProperties = true;
+            }
+        }
+        return this;
     }
 }

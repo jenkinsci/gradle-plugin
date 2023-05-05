@@ -70,14 +70,9 @@ public class WithGradleExecution extends StepExecution {
                 });
 
                 ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
-
                 Run run = context.get(Run.class);
-                BuildScanAction buildScanAction = RunUtil.getOrCreateBuildScanAction(run);
-                buildScans.forEach(scanUrl -> {
-                    buildScanAction.addScanUrl(scanUrl);
-                    scanDetailService.getScanDetail(scanUrl)
-                        .ifPresent(buildScanAction::addScanDetail);
-                });
+                RunUtil.getOrCreateAction(run, BuildScanAction.class, BuildScanAction::new)
+                    .addScanUrls(buildScans, scanDetailService::getScanDetail);
 
                 return buildScans;
             } catch (IOException e) {
