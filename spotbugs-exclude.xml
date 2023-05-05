@@ -23,10 +23,9 @@
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 
-    <!-- Capturing of OutputStream -->
     <Match>
-        <Class name="hudson.plugins.gradle.GradleConsoleAnnotator"/>
-        <Field name="out"/>
+        <Class name="hudson.plugins.gradle.injection.GradleEnterpriseExceptionLogProcessor"/>
+        <Field name="actionable"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 

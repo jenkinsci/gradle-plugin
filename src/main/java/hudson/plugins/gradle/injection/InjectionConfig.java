@@ -67,6 +67,7 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
     private boolean enforceUrl;
+    private boolean checkForBuildAgentErrors;
 
     // Legacy property that is not used anymore
     private transient String injectionVcsRepositoryPatterns;
@@ -251,6 +252,15 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setEnforceUrl(boolean enforceUrl) {
         this.enforceUrl = enforceUrl;
+    }
+
+    public boolean isCheckForBuildAgentErrors() {
+        return checkForBuildAgentErrors;
+    }
+
+    @DataBoundSetter
+    public void setCheckForBuildAgentErrors(boolean checkForBuildAgentErrors) {
+        this.checkForBuildAgentErrors = checkForBuildAgentErrors;
     }
 
     /**

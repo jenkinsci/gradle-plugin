@@ -57,6 +57,9 @@
                         </div>
                     </f:entry>
                 </j:if>
+                <f:entry field="checkForBuildAgentErrors">
+                    <f:checkbox title="${%Check for the Gradle Enterprise build agent errors}"/>
+                </f:entry>
             </f:section>
 
             <f:section title="${%Gradle settings}">

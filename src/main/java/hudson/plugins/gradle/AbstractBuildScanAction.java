@@ -6,6 +6,8 @@ import hudson.plugins.gradle.enriched.ScanDetail;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,10 +19,10 @@ import java.util.function.Function;
 public abstract class AbstractBuildScanAction implements Action {
 
     protected transient Actionable target;
-
     private List<String> scanUrls = new ArrayList<>();
-
     private final List<ScanDetail> scanDetails = new ArrayList<>();
+    @Nullable
+    private BuildAgentError buildAgentError;
 
     // Backward compatibility for old plugins versions which created an action per-scan
     private transient String scanUrl;
@@ -38,6 +40,13 @@ public abstract class AbstractBuildScanAction implements Action {
     @Override
     public String getUrlName() {
         return "buildScan";
+    }
+
+    public void addBuildAgentError(BuildAgentError buildAgentError) {
+        // Capture only the first error for now
+        if (this.buildAgentError == null) {
+            this.buildAgentError = buildAgentError;
+        }
     }
 
     public void addScanUrls(Collection<String> scanUrls, Function<String, Optional<ScanDetail>> scanDetailsFactory) {
@@ -67,6 +76,12 @@ public abstract class AbstractBuildScanAction implements Action {
     @Exported
     public List<ScanDetail> getScanDetails() {
         return Collections.unmodifiableList(scanDetails);
+    }
+
+    @CheckForNull
+    @Exported
+    public BuildAgentError getBuildAgentError() {
+        return buildAgentError;
     }
 
     public Actionable getTarget() {

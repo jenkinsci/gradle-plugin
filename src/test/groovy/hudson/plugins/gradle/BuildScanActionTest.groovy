@@ -9,11 +9,11 @@ class BuildScanActionTest extends Specification {
 
     ScanDetail buildScanDetail() {
         def scanDetail = new ScanDetail("http://foo.com")
-        scanDetail.buildToolType = ScanDetail.BuildToolType.GRADLE
+        scanDetail.buildToolType = BuildToolType.GRADLE
         scanDetail.buildToolVersion = "7.6"
         scanDetail.hasFailed = false
         scanDetail.projectName = "foo"
-        scanDetail.tasks = [ "clean", "build" ]
+        scanDetail.tasks = ["clean", "build"]
         scanDetail
     }
 
