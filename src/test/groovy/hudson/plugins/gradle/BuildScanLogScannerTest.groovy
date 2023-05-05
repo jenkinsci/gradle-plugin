@@ -10,14 +10,14 @@ class BuildScanLogScannerTest extends Specification {
 
     def 'properly captures build scan url given #log'(List<String> log, List<String> expectedUrls) {
         given:
-        def listener = new MockBuildScanPublishedListener();
+        def listener = new SimpleBuildScanPublishedListener()
         def scanner = new BuildScanLogScanner(listener)
 
         when:
         log.each { scanner.scanLine(it) }
 
         then:
-        listener.urls == expectedUrls
+        listener.buildScans == expectedUrls
 
         where:
         log                                                                                                         || expectedUrls
@@ -40,14 +40,5 @@ class BuildScanLogScannerTest extends Specification {
         }
 
         log
-    }
-
-    private static class MockBuildScanPublishedListener implements BuildScanPublishedListener {
-        List<String> urls = []
-
-        @Override
-        void onBuildScanPublished(String scanUrl) {
-            urls.add(scanUrl)
-        }
     }
 }
