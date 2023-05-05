@@ -1,10 +1,12 @@
 package hudson.plugins.gradle;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public final class SimpleBuildScanPublishedListener implements BuildScanPublishedListener, BuildScansAware {
+public final class SimpleBuildScanPublishedListener
+    implements BuildScanPublishedListener, BuildScansAware, Serializable {
 
     private final List<String> buildScans = new ArrayList<>();
 

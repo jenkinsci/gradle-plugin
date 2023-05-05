@@ -22,8 +22,8 @@ public class GradleEnterpriseExceptionLogFilter extends ConsoleLogFilter impleme
 
             @Override
             protected void eol(byte[] bytes, int length) throws IOException {
-                Charset charset = build.getCharset();
-                String line = charset.decode(ByteBuffer.wrap(bytes, 0, length)).toString();
+//                Charset charset = build.getCharset();
+//                String line = charset.decode(ByteBuffer.wrap(bytes, 0, length)).toString();
 
                 // TODO: process the line
 
