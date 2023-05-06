@@ -2,9 +2,7 @@ package hudson.plugins.gradle.injection
 
 import hudson.model.Actionable
 import hudson.plugins.gradle.AbstractGradleLogProcessor
-import hudson.plugins.gradle.BuildAgentError
 import hudson.plugins.gradle.BuildScanAction
-import hudson.plugins.gradle.BuildToolType
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -25,7 +23,8 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
         with(actionable.getAction(BuildScanAction)) {
             scanUrls.isEmpty()
             scanDetails.isEmpty()
-            buildAgentError == new BuildAgentError(BuildToolType.MAVEN)
+            hasMavenErrors
+            !hasGradleErrors
         }
     }
 
@@ -37,11 +36,12 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
         with(actionable.getAction(BuildScanAction)) {
             scanUrls.isEmpty()
             scanDetails.isEmpty()
-            buildAgentError == new BuildAgentError(BuildToolType.GRADLE)
+            !hasMavenErrors
+            hasGradleErrors
         }
     }
 
-    def "saves only the first error"() {
+    def "detects errors for Maven and Gradle"() {
         when:
         processor.processLogLine("Internal error in Gradle Enterprise Gradle plugin: com.acme.FooBar")
         processor.processLogLine("[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar")
@@ -50,7 +50,8 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
         with(actionable.getAction(BuildScanAction)) {
             scanUrls.isEmpty()
             scanDetails.isEmpty()
-            buildAgentError == new BuildAgentError(BuildToolType.GRADLE)
+            hasMavenErrors
+            hasGradleErrors
         }
     }
 
@@ -64,14 +65,7 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
 
     private static class TestActionable extends Actionable {
 
-        @Override
-        String getDisplayName() {
-            "Test"
-        }
-
-        @Override
-        String getSearchUrl() {
-            "test"
-        }
+        String displayName = "Test"
+        String searchUrl = "test"
     }
 }

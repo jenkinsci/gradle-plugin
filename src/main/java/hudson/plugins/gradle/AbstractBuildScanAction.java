@@ -6,13 +6,13 @@ import hudson.plugins.gradle.enriched.ScanDetail;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 @ExportedBean
@@ -21,8 +21,7 @@ public abstract class AbstractBuildScanAction implements Action {
     protected transient Actionable target;
     private List<String> scanUrls = new ArrayList<>();
     private final List<ScanDetail> scanDetails = new ArrayList<>();
-    @Nullable
-    private BuildAgentError buildAgentError;
+    private final Set<BuildAgentError> buildAgentErrors = new HashSet<>();
 
     // Backward compatibility for old plugins versions which created an action per-scan
     private transient String scanUrl;
@@ -43,10 +42,7 @@ public abstract class AbstractBuildScanAction implements Action {
     }
 
     public void addBuildAgentError(BuildAgentError buildAgentError) {
-        // Capture only the first error for now
-        if (this.buildAgentError == null) {
-            this.buildAgentError = buildAgentError;
-        }
+        buildAgentErrors.add(buildAgentError);
     }
 
     public void addScanUrls(Collection<String> scanUrls, Function<String, Optional<ScanDetail>> scanDetailsFactory) {
@@ -78,10 +74,18 @@ public abstract class AbstractBuildScanAction implements Action {
         return Collections.unmodifiableList(scanDetails);
     }
 
-    @CheckForNull
     @Exported
-    public BuildAgentError getBuildAgentError() {
-        return buildAgentError;
+    public boolean getHasMavenErrors() {
+        return hasError(BuildToolType.MAVEN);
+    }
+
+    @Exported
+    public boolean getHasGradleErrors() {
+        return hasError(BuildToolType.GRADLE);
+    }
+
+    private boolean hasError(BuildToolType buildToolType) {
+        return buildAgentErrors.stream().anyMatch(e -> e.getBuildToolType() == buildToolType);
     }
 
     public Actionable getTarget() {

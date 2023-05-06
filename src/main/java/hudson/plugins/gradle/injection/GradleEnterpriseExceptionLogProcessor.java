@@ -5,9 +5,7 @@ import hudson.model.Actionable;
 import hudson.model.Run;
 import hudson.plugins.gradle.AbstractGradleLogProcessor;
 import hudson.plugins.gradle.BuildAgentError;
-import hudson.plugins.gradle.BuildScanAction;
 import hudson.plugins.gradle.BuildToolType;
-import hudson.plugins.gradle.util.RunUtil;
 
 import java.io.OutputStream;
 import java.nio.charset.Charset;
@@ -22,7 +20,7 @@ public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleL
             new ExceptionDetector(BuildToolType.GRADLE, log -> log.startsWith("Internal error in Gradle Enterprise Gradle plugin:"))
         );
 
-    private final Actionable actionable;
+    private final BuildAgentErrorListener listener;
 
     public GradleEnterpriseExceptionLogProcessor(OutputStream out, Run<?, ?> build) {
         this(out, build.getCharset(), build);
@@ -30,7 +28,7 @@ public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleL
 
     public GradleEnterpriseExceptionLogProcessor(OutputStream out, Charset charset, Actionable actionable) {
         super(out, charset);
-        this.actionable = actionable;
+        this.listener = new DefaultBuildAgentErrorListener(actionable);
     }
 
     @Override
@@ -38,8 +36,7 @@ public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleL
         for (ExceptionDetector detector : DETECTORS) {
             if (detector.test(line)) {
                 BuildAgentError buildAgentError = new BuildAgentError(detector.buildToolType);
-                RunUtil.getOrCreateAction(actionable, BuildScanAction.class, BuildScanAction::new)
-                    .addBuildAgentError(buildAgentError);
+                listener.onBuildAgentError(buildAgentError);
             }
         }
     }

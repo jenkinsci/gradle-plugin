@@ -24,7 +24,7 @@
     </Match>
 
     <Match>
-        <Class name="hudson.plugins.gradle.injection.GradleEnterpriseExceptionLogProcessor"/>
+        <Class name="hudson.plugins.gradle.injection.DefaultBuildAgentErrorListener"/>
         <Field name="actionable"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
