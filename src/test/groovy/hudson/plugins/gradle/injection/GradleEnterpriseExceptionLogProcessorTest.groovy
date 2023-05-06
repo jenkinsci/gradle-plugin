@@ -1,8 +1,8 @@
 package hudson.plugins.gradle.injection
 
 import hudson.model.Actionable
-import hudson.plugins.gradle.AbstractGradleLogProcessor
 import hudson.plugins.gradle.BuildScanAction
+import hudson.plugins.gradle.GradleLogProcessor
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -13,7 +13,7 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
     OutputStream bos = new ByteArrayOutputStream()
     Actionable actionable = new TestActionable()
     @Subject
-    AbstractGradleLogProcessor processor = new GradleEnterpriseExceptionLogProcessor(bos, StandardCharsets.UTF_8, actionable)
+    GradleLogProcessor processor = new GradleEnterpriseExceptionLogProcessor(bos, StandardCharsets.UTF_8, actionable)
 
     def "detects Maven extension error"() {
         when:

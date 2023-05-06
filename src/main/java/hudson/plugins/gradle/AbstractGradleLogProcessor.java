@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-public abstract class AbstractGradleLogProcessor extends LineTransformationOutputStream {
+public abstract class AbstractGradleLogProcessor extends LineTransformationOutputStream implements GradleLogProcessor {
 
     // Don't parse too long lines
     private static final int DEFAULT_MAX_LINE_LENGTH = 500;
@@ -35,8 +35,6 @@ public abstract class AbstractGradleLogProcessor extends LineTransformationOutpu
 
         out.write(bytes, 0, length);
     }
-
-    protected abstract void processLogLine(String line) throws IOException;
 
     @Override
     public final void flush() throws IOException {

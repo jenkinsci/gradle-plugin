@@ -23,7 +23,7 @@ public final class GradleConsoleAnnotator extends AbstractGradleLogProcessor {
     }
 
     @Override
-    protected void processLogLine(String line) throws IOException {
+    public void processLogLine(String line) throws IOException {
         // TODO: do we need to trim EOL?
         // trim off CR/LF from the end
         line = trimEOL(line);

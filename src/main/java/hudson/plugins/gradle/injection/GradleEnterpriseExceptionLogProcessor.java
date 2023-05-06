@@ -32,7 +32,7 @@ public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleL
     }
 
     @Override
-    protected void processLogLine(String line) {
+    public void processLogLine(String line) {
         for (ExceptionDetector detector : DETECTORS) {
             if (detector.test(line)) {
                 BuildAgentError buildAgentError = new BuildAgentError(detector.buildToolType);
