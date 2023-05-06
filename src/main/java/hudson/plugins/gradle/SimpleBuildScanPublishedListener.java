@@ -1,8 +1,9 @@
 package hudson.plugins.gradle;
 
+import hudson.plugins.gradle.util.CollectionUtil;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public final class SimpleBuildScanPublishedListener
@@ -17,9 +18,6 @@ public final class SimpleBuildScanPublishedListener
 
     @Override
     public List<String> getBuildScans() {
-        if (buildScans.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return Collections.unmodifiableList(new ArrayList<>(buildScans));
+        return CollectionUtil.unmodifiableCopy(buildScans);
     }
 }
