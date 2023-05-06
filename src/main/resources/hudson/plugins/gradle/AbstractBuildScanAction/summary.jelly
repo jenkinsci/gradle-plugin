@@ -1,22 +1,9 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+<j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson" xmlns:st="jelly:stapler">
     <st:include page="enriched-css.jelly"/>
     <t:summary icon="/plugin/gradle/images/svgs/gradle-build-scan.svg">
         <h2>Build Scans</h2>
-        <j:if test="${it.hasMavenErrors}">
-            <div class="alert alert-danger" role="alert">
-                <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Maven extension errors detected}"/>
-                Gradle Enterprise Maven extension errors detected.
-                Please check the logs for details.
-            </div>
-        </j:if>
-        <j:if test="${it.hasGradleErrors}">
-            <div class="alert alert-danger" role="alert">
-                <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Gradle plugin errors detected}"/>
-                Gradle Enterprise Gradle plugin errors detected.
-                Please check the logs for details.
-            </div>
-        </j:if>
+        <st:include page="build-agent-errors.jelly"/>
         <j:if test="${empty(it.scanDetails)}">
             <ul>
                 <j:forEach items="${it.scanUrls}" var="scanUrl">

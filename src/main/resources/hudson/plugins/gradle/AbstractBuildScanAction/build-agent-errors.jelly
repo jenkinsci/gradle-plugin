@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout">
+    <j:if test="${it.hasMavenErrors}">
+        <div class="alert alert-danger" role="alert">
+            <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Maven extension errors detected}"/>
+            Gradle Enterprise Maven extension errors detected.
+            Please check the logs for details.
+        </div>
+    </j:if>
+    <j:if test="${it.hasGradleErrors}">
+        <div class="alert alert-danger" role="alert">
+            <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Gradle plugin errors detected}"/>
+            Gradle Enterprise Gradle plugin errors detected.
+            Please check the logs for details.
+        </div>
+    </j:if>
+</j:jelly>

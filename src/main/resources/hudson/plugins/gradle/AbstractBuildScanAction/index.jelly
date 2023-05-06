@@ -9,20 +9,7 @@
                      height="48"/>
                 Build Scans
             </h1>
-            <j:if test="${it.hasMavenErrors}">
-                <div class="alert alert-danger" role="alert">
-                    <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Maven extension errors detected}"/>
-                    Gradle Enterprise Maven extension errors detected.
-                    Please check the logs for details.
-                </div>
-            </j:if>
-            <j:if test="${it.hasGradleErrors}">
-                <div class="alert alert-danger" role="alert">
-                    <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Gradle plugin errors detected}"/>
-                    Gradle Enterprise Gradle plugin errors detected.
-                    Please check the logs for details.
-                </div>
-            </j:if>
+            <st:include page="build-agent-errors.jelly"/>
             <j:if test="${empty(it.scanDetails)}">
                 <ul>
                     <j:forEach items="${it.scanUrls}" var="scanUrl">
