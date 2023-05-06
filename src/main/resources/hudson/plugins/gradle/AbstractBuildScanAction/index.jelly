@@ -2,15 +2,33 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
     <l:layout title="Build Scans">
         <st:include page="sidepanel.jelly" it="${it.target}"/>
-        <st:include page="enriched-css.jelly" />
+        <st:include page="enriched-css.jelly"/>
         <l:main-panel>
-            <h1><img src="${resURL}/plugin/gradle/images/svgs/gradle-build-scan.svg" alt="Build Scan"
-                     width="48" height="48"/> Build Scans</h1>
-
+            <h1>
+                <img src="${resURL}/plugin/gradle/images/svgs/gradle-build-scan.svg" alt="Build Scans" width="48"
+                     height="48"/>
+                Build Scans
+            </h1>
+            <j:if test="${it.hasMavenErrors}">
+                <div class="alert alert-danger" role="alert">
+                    <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Maven extension errors detected}"/>
+                    Gradle Enterprise Maven extension errors detected.
+                    Please check the logs for details.
+                </div>
+            </j:if>
+            <j:if test="${it.hasGradleErrors}">
+                <div class="alert alert-danger" role="alert">
+                    <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Gradle plugin errors detected}"/>
+                    Gradle Enterprise Gradle plugin errors detected.
+                    Please check the logs for details.
+                </div>
+            </j:if>
             <j:if test="${empty(it.scanDetails)}">
                 <ul>
                     <j:forEach items="${it.scanUrls}" var="scanUrl">
-                        <li><a href="${scanUrl}">${scanUrl}</a></li>
+                        <li>
+                            <a href="${scanUrl}">${scanUrl}</a>
+                        </li>
                     </j:forEach>
                 </ul>
             </j:if>
@@ -36,7 +54,9 @@
                                     <td class="default-column">&#9989;</td>
                                 </j:otherwise>
                             </j:choose>
-                            <td class="medium-column"><a href="${scanDetail.url}" class="jenkins-table__link">Link</a></td>
+                            <td class="medium-column">
+                                <a href="${scanDetail.url}" class="jenkins-table__link">Link</a>
+                            </td>
                         </tr>
                     </j:forEach>
                 </table>

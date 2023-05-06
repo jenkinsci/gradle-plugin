@@ -1,12 +1,28 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson" xmlns:st="jelly:stapler">
-    <st:include page="enriched-css.jelly" />
+<j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+    <st:include page="enriched-css.jelly"/>
     <t:summary icon="/plugin/gradle/images/svgs/gradle-build-scan.svg">
         <h2>Build Scans</h2>
+        <j:if test="${it.hasMavenErrors}">
+            <div class="alert alert-danger" role="alert">
+                <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Maven extension errors detected}"/>
+                Gradle Enterprise Maven extension errors detected.
+                Please check the logs for details.
+            </div>
+        </j:if>
+        <j:if test="${it.hasGradleErrors}">
+            <div class="alert alert-danger" role="alert">
+                <l:icon class="icon-error icon-sm" alt="${%Gradle Enterprise Gradle plugin errors detected}"/>
+                Gradle Enterprise Gradle plugin errors detected.
+                Please check the logs for details.
+            </div>
+        </j:if>
         <j:if test="${empty(it.scanDetails)}">
             <ul>
                 <j:forEach items="${it.scanUrls}" var="scanUrl">
-                    <li><a href="${scanUrl}">${scanUrl}</a></li>
+                    <li>
+                        <a href="${scanUrl}">${scanUrl}</a>
+                    </li>
                 </j:forEach>
             </ul>
         </j:if>
@@ -32,7 +48,9 @@
                                 <td class="default-column">&#9989;</td>
                             </j:otherwise>
                         </j:choose>
-                        <td class="medium-column"><a href="${scanDetail.url}" class="jenkins-table__link build-scan-link">Link</a></td>
+                        <td class="medium-column">
+                            <a href="${scanDetail.url}" class="jenkins-table__link build-scan-link">Link</a>
+                        </td>
                     </tr>
                 </j:forEach>
             </table>

@@ -34,12 +34,12 @@ public abstract class AbstractBuildScanAction implements Action {
 
     @Override
     public String getDisplayName() {
-        return "Build Scan";
+        return "Build Scans";
     }
 
     @Override
     public String getUrlName() {
-        return "buildScan";
+        return "buildScans";
     }
 
     public void addBuildAgentError(BuildAgentError buildAgentError) {
@@ -89,6 +89,8 @@ public abstract class AbstractBuildScanAction implements Action {
         return buildAgentErrors.stream().anyMatch(e -> e.getBuildToolType() == buildToolType);
     }
 
+    // Used in the summary.jelly
+    @SuppressWarnings("unused")
     public Actionable getTarget() {
         return target;
     }
