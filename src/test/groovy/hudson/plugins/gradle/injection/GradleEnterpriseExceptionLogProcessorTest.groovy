@@ -1,5 +1,6 @@
 package hudson.plugins.gradle.injection
 
+import hudson.console.ConsoleNote
 import hudson.model.Actionable
 import hudson.plugins.gradle.BuildScanAction
 import hudson.plugins.gradle.GradleLogProcessor
@@ -17,7 +18,7 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
 
     def "detects Maven extension error"() {
         when:
-        processor.processLogLine("[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar")
+        processor.processLogLine(line)
 
         then:
         with(actionable.getAction(BuildScanAction)) {
@@ -26,6 +27,12 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
             hasMavenErrors
             !hasGradleErrors
         }
+
+        where:
+        line << [
+            "[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar",
+            "${ConsoleNote.PREAMBLE_STR}before${ConsoleNote.POSTAMBLE_STR}[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar${ConsoleNote.PREAMBLE_STR}after${ConsoleNote.POSTAMBLE_STR}"
+        ]
     }
 
     def "detects Gradle plugin error"() {
