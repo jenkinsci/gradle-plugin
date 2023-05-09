@@ -5,20 +5,15 @@ import hudson.model.Actionable;
 import hudson.model.Run;
 import hudson.plugins.gradle.AbstractGradleLogProcessor;
 import hudson.plugins.gradle.BuildAgentError;
-import hudson.plugins.gradle.BuildToolType;
 
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.function.Predicate;
 
 public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleLogProcessor {
 
-    private static final List<ExceptionDetector> DETECTORS =
-        ImmutableList.of(
-            new ExceptionDetector(BuildToolType.MAVEN, log -> log.startsWith("[ERROR] Internal error in Gradle Enterprise Maven extension:")),
-            new ExceptionDetector(BuildToolType.GRADLE, log -> log.startsWith("Internal error in Gradle Enterprise Gradle plugin:"))
-        );
+    private static final List<GradleEnterpriseExceptionDetector> DETECTORS =
+        ImmutableList.of(new GradlePluginExceptionDetector(), new MavenExtensionExceptionDetector());
 
     private final BuildAgentErrorListener listener;
 
@@ -33,36 +28,11 @@ public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleL
 
     @Override
     public void processLogLine(String line) {
-        for (ExceptionDetector detector : DETECTORS) {
-            if (detector.test(line)) {
-                BuildAgentError buildAgentError = new BuildAgentError(detector.buildToolType);
+        for (GradleEnterpriseExceptionDetector detector : DETECTORS) {
+            if (detector.detect(line)) {
+                BuildAgentError buildAgentError = new BuildAgentError(detector.getBuildToolType());
                 listener.onBuildAgentError(buildAgentError);
             }
-        }
-    }
-
-    private static class ExceptionDetector implements Predicate<String> {
-
-        private final BuildToolType buildToolType;
-        private final Predicate<String> predicate;
-
-        ExceptionDetector(BuildToolType buildToolType, Predicate<String> predicate) {
-            this.buildToolType = buildToolType;
-            this.predicate = notEmpty(predicate);
-        }
-
-        @Override
-        public boolean test(String line) {
-            return predicate.test(line);
-        }
-
-        private static Predicate<String> notEmpty(Predicate<String> delegate) {
-            return value -> {
-                if (value == null || value.isEmpty()) {
-                    return false;
-                }
-                return delegate.test(value);
-            };
         }
     }
 }
