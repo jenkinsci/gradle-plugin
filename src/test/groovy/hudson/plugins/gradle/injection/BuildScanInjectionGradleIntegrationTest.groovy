@@ -2,10 +2,13 @@ package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
 import hudson.Util
+import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
+import hudson.model.Result
 import hudson.model.Slave
 import hudson.plugins.git.GitSCM
 import hudson.plugins.gradle.BaseGradleIntegrationTest
+import hudson.plugins.gradle.BuildScanAction
 import hudson.plugins.gradle.Gradle
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
@@ -20,7 +23,7 @@ import spock.lang.Unroll
 @Unroll
 class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest {
 
-    private static final String GRADLE_ENTERPRISE_PLUGIN_VERSION = '3.11.1'
+    private static final String GRADLE_ENTERPRISE_PLUGIN_VERSION = '3.13.2'
     private static final String CCUD_PLUGIN_VERSION = '1.8.1'
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
@@ -28,6 +31,76 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
     private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.4', '7.6.1', '8.0.2']
 
     private static final EnvVars EMPTY_ENV = new EnvVars()
+
+    def "does not capture build agent errors if checking for errors is disabled"() {
+        given:
+        def gradleVersion = '8.1.1'
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+
+        FreeStyleProject p = j.createFreeStyleProject()
+        p.setAssignedNode(agent)
+
+        p.buildersList.add(helloTask())
+        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
+
+        when:
+        // first build to download Gradle
+        def firstRun = j.buildAndAssertSuccess(p)
+
+        then:
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
+
+        when:
+        enableBuildInjection(agent, gradleVersion)
+        withInjectionConfig {
+            checkForBuildAgentErrors = false
+        }
+        def secondRun = buildAndAssertFailure(p)
+
+        then:
+        secondRun.getAction(BuildScanAction) == null
+    }
+
+    def "captures build agent errors if checking for errors is enabled"() {
+        given:
+        def gradleVersion = '8.1.1'
+
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+
+        FreeStyleProject p = j.createFreeStyleProject()
+        p.setAssignedNode(agent)
+
+        p.buildersList.add(helloTask())
+        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
+
+        when:
+        // first build to download Gradle
+        def firstRun = j.buildAndAssertSuccess(p)
+
+        then:
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
+
+        when:
+        enableBuildInjection(agent, gradleVersion)
+        withInjectionConfig {
+            checkForBuildAgentErrors = true
+        }
+        def secondRun = buildAndAssertFailure(p)
+
+        then:
+        with(secondRun.getAction(BuildScanAction)) {
+            scanUrls.isEmpty()
+            hasGradleErrors
+            !hasMavenErrors
+        }
+    }
 
     def 'skips injection if the agent is offline'() {
         given:
@@ -735,6 +808,10 @@ task hello {
   }
 }
 """)
+    }
+
+    private FreeStyleBuild buildAndAssertFailure(FreeStyleProject job) {
+        return j.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0))
     }
 
     private DumbSlave createSlave(boolean setGeUrl = true) {
