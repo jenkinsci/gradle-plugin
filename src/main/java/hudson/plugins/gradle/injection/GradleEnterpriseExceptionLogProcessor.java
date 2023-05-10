@@ -6,8 +6,10 @@ import hudson.model.Run;
 import hudson.plugins.gradle.AbstractGradleLogProcessor;
 import hudson.plugins.gradle.BuildAgentError;
 
+import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleLogProcessor {
@@ -17,8 +19,8 @@ public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleL
 
     private final BuildAgentErrorListener listener;
 
-    public GradleEnterpriseExceptionLogProcessor(OutputStream out, Run<?, ?> build) {
-        this(out, build.getCharset(), build);
+    public GradleEnterpriseExceptionLogProcessor(OutputStream out, @Nullable Run<?, ?> build) {
+        this(out, build != null ? build.getCharset() : StandardCharsets.UTF_8, build);
     }
 
     public GradleEnterpriseExceptionLogProcessor(OutputStream out, Charset charset, Actionable actionable) {
