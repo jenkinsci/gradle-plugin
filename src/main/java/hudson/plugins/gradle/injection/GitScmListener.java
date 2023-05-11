@@ -5,6 +5,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Computer;
+import hudson.model.EnvironmentContributingAction;
 import hudson.model.InvisibleAction;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -17,10 +18,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.List;
 
+import static hudson.plugins.gradle.injection.GradleInjectionAware.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED;
+import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH;
 import static hudson.plugins.gradle.injection.MavenInjectionAware.MAVEN_OPTS_HANDLER;
+import static hudson.plugins.gradle.injection.MavenOptsHandler.MAVEN_OPTS;
 
 @Extension
 public class GitScmListener extends SCMListener {
@@ -54,10 +59,11 @@ public class GitScmListener extends SCMListener {
         }
     }
 
-    private static void disableAutoInjection(Run<?, ?> build,
-                                             FilePath workspace,
-                                             InjectionConfig config,
-                                             TaskListener listener
+    private static void disableAutoInjection(
+            Run<?, ?> build,
+            FilePath workspace,
+            InjectionConfig config,
+            TaskListener listener
     ) throws Exception {
         Computer computer = workspace.toComputer();
         if (computer == null) {
@@ -75,7 +81,7 @@ public class GitScmListener extends SCMListener {
             if (currentMavenOpts != null) {
                 String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts));
 
-                build.addAction(new MavenInjectionDisabledMavenOptsAction(mavenOpts));
+                build.addAction(new MavenInjectionDisabledAction(mavenOpts));
             }
         }
     }
@@ -116,26 +122,37 @@ public class GitScmListener extends SCMListener {
     }
 
     /**
-     * Action that holds Maven environment variables to be set in {@link MavenInjectionEnvironmentContributor}.
+     * Action that disables Gradle Plugin Injection by setting a flag to be read via init script.
      */
-    public static final class MavenInjectionDisabledMavenOptsAction extends InvisibleAction {
+    public static final class GradleInjectionDisabledAction extends InvisibleAction implements EnvironmentContributingAction {
 
-        public final String mavenOpts;
+        public static final GradleInjectionDisabledAction INSTANCE = new GradleInjectionDisabledAction();
 
-        public MavenInjectionDisabledMavenOptsAction(String mavenOpts) {
-            this.mavenOpts = mavenOpts;
+        private GradleInjectionDisabledAction() {
+        }
+
+        @Override
+        public void buildEnvironment(@Nonnull Run<?, ?> run, @Nonnull EnvVars envVars) {
+            envVars.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED, "false");
         }
 
     }
 
     /**
-     * Marker action to ensure we disable injection in {@link GradleInjectionEnvironmentContributor}.
+     * Action that disables Maven Extension Injection by modifying corresponding environment variables.
      */
-    public static final class GradleInjectionDisabledAction extends InvisibleAction {
+    public static final class MavenInjectionDisabledAction extends InvisibleAction implements EnvironmentContributingAction {
 
-        public static final GradleInjectionDisabledAction INSTANCE = new GradleInjectionDisabledAction();
+        private final String mavenOpts;
 
-        private GradleInjectionDisabledAction() {
+        public MavenInjectionDisabledAction(String mavenOpts) {
+            this.mavenOpts = mavenOpts;
+        }
+
+        @Override
+        public void buildEnvironment(@Nonnull Run<?, ?> run, @Nonnull EnvVars envVars) {
+            envVars.put(MAVEN_OPTS, mavenOpts);
+            envVars.put(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, "");
         }
 
     }

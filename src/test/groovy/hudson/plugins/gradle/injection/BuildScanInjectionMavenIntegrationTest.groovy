@@ -2,7 +2,12 @@ package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
 import hudson.FilePath
-import hudson.plugins.gradle.BaseJenkinsIntegrationTest
+import hudson.plugins.git.BranchSpec
+import hudson.plugins.git.GitSCM
+import hudson.plugins.git.UserRemoteConfig
+import hudson.plugins.git.browser.CGit
+import hudson.plugins.gradle.BaseMavenIntegrationTest
+import hudson.plugins.gradle.BuildScanBuildWrapper
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven
@@ -24,7 +29,7 @@ import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRA
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
 
 @Unroll
-class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest {
+class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
     private static final String GE_EXTENSION_JAR = "gradle-enterprise-maven-extension.jar"
     private static final String CCUD_EXTENSION_JAR = "common-custom-user-data-maven-extension.jar"
@@ -581,6 +586,39 @@ node {
         "+:not-found-pattern\n+:simple-"                | "withMaven(maven: 'mavenInstallationName') {"                         | true
         "+:this-one-does-not-match\n+:this-one-too"     | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"    | false
         "+:this-one-does-not-match\n+:this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"                         | false
+    }
+
+    def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
+        given:
+        mavenInstallationRule.mavenVersion = '3.9.2'
+        mavenInstallationRule.addInstallation()
+        withInjectionConfig {
+            vcsRepositoryFilter = filter
+        }
+        createSlaveAndTurnOnInjection()
+
+        def p = j.createFreeStyleProject()
+        p.buildWrappersList.add(new BuildScanBuildWrapper())
+        p.buildersList.add(new Maven('package', mavenInstallationRule.mavenVersion))
+        p.setScm(new GitSCM(Collections.singletonList(new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)), Collections.singletonList(new BranchSpec("main")), new CGit("https://github.com/c00ler/simple-maven-project"), "git", Collections.emptyList()))
+
+        def slave = createSlave('foo')
+        p.setAssignedNode(slave)
+
+        when:
+        def build = j.buildAndAssertSuccess(p)
+
+        then:
+        if (shouldApplyAutoInjection) {
+            j.assertLogContains("Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service", build)
+        } else {
+            j.assertLogNotContains("Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service", build)
+        }
+
+        where:
+        filter                                         | shouldApplyAutoInjection
+        "+:not-found-pattern\n+:simple-"               | true
+        "+:this-one-does-not-match\n+:this-one-too"    | false
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {
