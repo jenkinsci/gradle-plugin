@@ -8,16 +8,11 @@ import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven
 import hudson.util.Secret
-import jenkins.model.Jenkins
-import jenkins.mvn.DefaultGlobalSettingsProvider
-import jenkins.mvn.DefaultSettingsProvider
-import jenkins.mvn.GlobalMavenConfig
 import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule
-import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -32,8 +27,6 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
     private static final String GE_EXTENSION_JAR = "gradle-enterprise-maven-extension.jar"
     private static final String CCUD_EXTENSION_JAR = "common-custom-user-data-maven-extension.jar"
     private static final String CONFIGURATION_EXTENSION_JAR = "configuration-maven-extension.jar"
-
-    private static final String MAVEN_VERSION = "3.9.2"
 
     private static final List<String> ALL_EXTENSIONS = [GE_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
 
@@ -378,8 +371,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
     def "does not capture build agent errors if checking for errors is disabled"() {
         given:
-        mavenInstallationRule.mavenVersion = MAVEN_VERSION
-        mavenInstallationRule.addInstallation()
+        def mavenInstallationName = setupMavenInstallation()
 
         DumbSlave agent = createSlave('test')
 
@@ -387,7 +379,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         p.setAssignedNode(agent)
 
         p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
-        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', MAVEN_VERSION))
+        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', mavenInstallationName))
 
         when:
         def firstRun = j.buildAndAssertSuccess(p)
@@ -410,8 +402,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
     def "captures build agent errors if checking for errors is enabled"() {
         given:
-        mavenInstallationRule.mavenVersion = MAVEN_VERSION
-        mavenInstallationRule.addInstallation()
+        def mavenInstallationName = setupMavenInstallation()
 
         DumbSlave agent = createSlave('test')
 
@@ -419,7 +410,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         p.setAssignedNode(agent)
 
         p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
-        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', MAVEN_VERSION))
+        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', mavenInstallationName))
 
         when:
         def firstRun = j.buildAndAssertSuccess(p)
@@ -689,15 +680,11 @@ node {
 """
     }
 
-    private String setupMavenInstallation() {
-        def mavenInstallation = ToolInstallations.configureMaven35()
-        Jenkins.get().getDescriptorByType(Maven.DescriptorImpl.class).setInstallations(mavenInstallation)
-        def mavenInstallationName = mavenInstallation.getName()
+    private String setupMavenInstallation(mavenVersion = "3.9.2") {
+        mavenInstallationRule.mavenVersion = mavenVersion
+        mavenInstallationRule.addInstallation()
 
-        GlobalMavenConfig globalMavenConfig = j.get(GlobalMavenConfig.class)
-        globalMavenConfig.setGlobalSettingsProvider(new DefaultGlobalSettingsProvider())
-        globalMavenConfig.setSettingsProvider(new DefaultSettingsProvider())
-        mavenInstallationName
+        mavenVersion
     }
 
     private DumbSlave createSlaveAndTurnOnInjection() {
