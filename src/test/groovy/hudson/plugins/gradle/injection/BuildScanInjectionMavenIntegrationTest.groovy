@@ -4,7 +4,6 @@ import hudson.EnvVars
 import hudson.FilePath
 import hudson.plugins.gradle.BaseMavenIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
-import hudson.plugins.timestamper.TimestampNote
 import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
