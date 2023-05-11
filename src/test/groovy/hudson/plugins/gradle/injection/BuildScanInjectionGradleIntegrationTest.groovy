@@ -2,9 +2,7 @@ package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
 import hudson.Util
-import hudson.model.FreeStyleBuild
 import hudson.model.FreeStyleProject
-import hudson.model.Result
 import hudson.model.Slave
 import hudson.plugins.git.GitSCM
 import hudson.plugins.gradle.BaseGradleIntegrationTest
@@ -808,10 +806,6 @@ task hello {
   }
 }
 """)
-    }
-
-    private FreeStyleBuild buildAndAssertFailure(FreeStyleProject job) {
-        return j.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0))
     }
 
     private DumbSlave createSlave(boolean setGeUrl = true) {

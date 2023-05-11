@@ -2,7 +2,8 @@ package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
 import hudson.FilePath
-import hudson.plugins.gradle.BaseJenkinsIntegrationTest
+import hudson.plugins.gradle.BaseMavenIntegrationTest
+import hudson.plugins.gradle.BuildScanAction
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven
@@ -14,21 +15,25 @@ import jenkins.mvn.GlobalMavenConfig
 import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
+import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL
-import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
+import static hudson.plugins.gradle.injection.MavenSnippets.simplePom
 
 @Unroll
-class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest {
+class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
     private static final String GE_EXTENSION_JAR = "gradle-enterprise-maven-extension.jar"
     private static final String CCUD_EXTENSION_JAR = "common-custom-user-data-maven-extension.jar"
     private static final String CONFIGURATION_EXTENSION_JAR = "configuration-maven-extension.jar"
+
+    private static final String MAVEN_VERSION = "3.9.2"
 
     private static final List<String> ALL_EXTENSIONS = [GE_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
 
@@ -371,6 +376,74 @@ class BuildScanInjectionMavenIntegrationTest extends BaseJenkinsIntegrationTest 
         noMavenOpts(slave)
     }
 
+    def "does not capture build agent errors if checking for errors is disabled"() {
+        given:
+        mavenInstallationRule.mavenVersion = MAVEN_VERSION
+        mavenInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave('test')
+
+        def p = j.createFreeStyleProject()
+        p.setAssignedNode(agent)
+
+        p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
+        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', MAVEN_VERSION))
+
+        when:
+        def firstRun = j.buildAndAssertSuccess(p)
+
+        then:
+        firstRun.getAction(BuildScanAction) == null
+
+        when:
+        withInjectionConfig {
+            enabled = true
+            server = "https://scans.gradle.com"
+            injectMavenExtension = true
+            checkForBuildAgentErrors = false
+        }
+        def secondRun = buildAndAssertFailure(p)
+
+        then:
+        secondRun.getAction(BuildScanAction) == null
+    }
+
+    def "captures build agent errors if checking for errors is enabled"() {
+        given:
+        mavenInstallationRule.mavenVersion = MAVEN_VERSION
+        mavenInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave('test')
+
+        def p = j.createFreeStyleProject()
+        p.setAssignedNode(agent)
+
+        p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
+        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', MAVEN_VERSION))
+
+        when:
+        def firstRun = j.buildAndAssertSuccess(p)
+
+        then:
+        firstRun.getAction(BuildScanAction) == null
+
+        when:
+        withInjectionConfig {
+            enabled = true
+            server = "https://scans.gradle.com"
+            injectMavenExtension = true
+            checkForBuildAgentErrors = true
+        }
+        def secondRun = buildAndAssertFailure(p)
+
+        then:
+        with(secondRun.getAction(BuildScanAction)) {
+            scanUrls.isEmpty()
+            !hasGradleErrors
+            hasMavenErrors
+        }
+    }
+
     def 'injection is enabled and disabled based on node labels'() {
         given:
         DumbSlave slave = createSlaveAndTurnOnInjection()
@@ -576,11 +649,11 @@ node {
         }
 
         where:
-        filter                                          |  mavenSetup                                                           | shouldApplyAutoInjection
-        "+:not-found-pattern\n+:simple-"                | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"    | true
-        "+:not-found-pattern\n+:simple-"                | "withMaven(maven: 'mavenInstallationName') {"                         | true
-        "+:this-one-does-not-match\n+:this-one-too"     | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"    | false
-        "+:this-one-does-not-match\n+:this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"                         | false
+        filter                                      | mavenSetup                                                         | shouldApplyAutoInjection
+        "+:not-found-pattern\n+:simple-"            | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" | true
+        "+:not-found-pattern\n+:simple-"            | "withMaven(maven: 'mavenInstallationName') {"                      | true
+        "+:this-one-does-not-match\n+:this-one-too" | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" | false
+        "+:this-one-does-not-match\n+:this-one-too" | "withMaven(maven: 'mavenInstallationName') {"                      | false
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {

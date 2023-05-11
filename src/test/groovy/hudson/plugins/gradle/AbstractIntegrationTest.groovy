@@ -8,6 +8,7 @@ import hudson.model.Label
 import hudson.model.Node
 import hudson.model.ParametersAction
 import hudson.model.ParametersDefinitionProperty
+import hudson.model.Result
 import hudson.model.TextParameterDefinition
 import hudson.model.TextParameterValue
 import hudson.model.queue.QueueTaskFuture
@@ -74,6 +75,10 @@ abstract class AbstractIntegrationTest extends Specification {
         config.save()
 
         config
+    }
+
+    FreeStyleBuild buildAndAssertFailure(FreeStyleProject job) {
+        j.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0))
     }
 
     static List<NodeLabelItem> labels(String... labels) {
