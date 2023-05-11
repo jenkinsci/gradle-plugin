@@ -1,21 +1,30 @@
 package hudson.plugins.gradle.injection;
 
-import com.google.common.collect.ImmutableList;
+import hudson.console.ConsoleNote;
 import hudson.model.Actionable;
 import hudson.model.Run;
 import hudson.plugins.gradle.AbstractGradleLogProcessor;
 import hudson.plugins.gradle.BuildAgentError;
+import hudson.plugins.gradle.BuildToolType;
 
 import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleLogProcessor {
 
-    private static final List<GradleEnterpriseExceptionDetector> DETECTORS =
-        ImmutableList.of(new GradlePluginExceptionDetector(), new MavenExtensionExceptionDetector());
+    private static final GradleEnterpriseExceptionDetector[] DETECTORS =
+        {
+            new GradleEnterpriseExceptionDetector.ByPrefix(
+                BuildToolType.GRADLE,
+                "Internal error in Gradle Enterprise Gradle plugin:"
+            ),
+            new GradleEnterpriseExceptionDetector.ByPrefix(
+                BuildToolType.MAVEN,
+                "[ERROR] Internal error in Gradle Enterprise Maven extension:"
+            )
+        };
 
     private final BuildAgentErrorListener listener;
 
@@ -29,7 +38,8 @@ public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleL
     }
 
     @Override
-    public void processLogLine(String line) {
+    protected void processLogLine(String line) {
+        line = ConsoleNote.removeNotes(line);
         for (GradleEnterpriseExceptionDetector detector : DETECTORS) {
             if (detector.detect(line)) {
                 BuildAgentError buildAgentError = new BuildAgentError(detector.getBuildToolType());

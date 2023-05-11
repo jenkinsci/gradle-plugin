@@ -3,7 +3,6 @@ package hudson.plugins.gradle.injection
 import hudson.console.ConsoleNote
 import hudson.model.Actionable
 import hudson.plugins.gradle.BuildScanAction
-import hudson.plugins.gradle.GradleLogProcessor
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -11,10 +10,13 @@ import java.nio.charset.StandardCharsets
 
 class GradleEnterpriseExceptionLogProcessorTest extends Specification {
 
+    private static final String GRADLE_PLUGIN_ERROR = "Internal error in Gradle Enterprise Gradle plugin: com.acme.FooBar"
+    private static final String MAVEN_EXTENSION_ERROR = "[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar"
+
     OutputStream bos = new ByteArrayOutputStream()
     Actionable actionable = new TestActionable()
     @Subject
-    GradleLogProcessor processor = new GradleEnterpriseExceptionLogProcessor(bos, StandardCharsets.UTF_8, actionable)
+    GradleEnterpriseExceptionLogProcessor processor = new GradleEnterpriseExceptionLogProcessor(bos, StandardCharsets.UTF_8, actionable)
 
     def "detects Maven extension error"() {
         when:
@@ -30,14 +32,14 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
 
         where:
         line << [
-            "[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar",
-            "${ConsoleNote.PREAMBLE_STR}before${ConsoleNote.POSTAMBLE_STR}[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar${ConsoleNote.PREAMBLE_STR}after${ConsoleNote.POSTAMBLE_STR}"
+            MAVEN_EXTENSION_ERROR,
+            "${ConsoleNote.PREAMBLE_STR}before${ConsoleNote.POSTAMBLE_STR}${MAVEN_EXTENSION_ERROR}${ConsoleNote.PREAMBLE_STR}after${ConsoleNote.POSTAMBLE_STR}"
         ]
     }
 
     def "detects Gradle plugin error"() {
         when:
-        processor.processLogLine("Internal error in Gradle Enterprise Gradle plugin: com.acme.FooBar")
+        processor.processLogLine(GRADLE_PLUGIN_ERROR)
 
         then:
         with(actionable.getAction(BuildScanAction)) {
@@ -50,8 +52,8 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
 
     def "detects errors for Maven and Gradle"() {
         when:
-        processor.processLogLine("Internal error in Gradle Enterprise Gradle plugin: com.acme.FooBar")
-        processor.processLogLine("[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar")
+        processor.processLogLine(GRADLE_PLUGIN_ERROR)
+        processor.processLogLine(MAVEN_EXTENSION_ERROR)
 
         then:
         with(actionable.getAction(BuildScanAction)) {

@@ -8,6 +8,8 @@ import hudson.plugins.git.GitSCM
 import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
 import hudson.plugins.gradle.Gradle
+import hudson.plugins.timestamper.TimestampNote
+import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.util.Secret
@@ -32,6 +34,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "does not capture build agent errors if checking for errors is disabled"() {
         given:
+        System.setProperty(TimestampNote.systemProperty, 'true')
         def gradleVersion = '8.1.1'
 
         gradleInstallationRule.gradleVersion = gradleVersion
@@ -44,9 +47,9 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         p.buildersList.add(helloTask())
         p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
-        // first build to download Gradle
         def firstRun = j.buildAndAssertSuccess(p)
 
         then:
@@ -61,10 +64,14 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         secondRun.getAction(BuildScanAction) == null
+
+        cleanup:
+        System.clearProperty(TimestampNote.systemProperty)
     }
 
     def "captures build agent errors if checking for errors is enabled"() {
         given:
+        System.setProperty(TimestampNote.systemProperty, 'true')
         def gradleVersion = '8.1.1'
 
         gradleInstallationRule.gradleVersion = gradleVersion
@@ -77,6 +84,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         p.buildersList.add(helloTask())
         p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
         // first build to download Gradle
@@ -98,6 +106,9 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             hasGradleErrors
             !hasMavenErrors
         }
+
+        cleanup:
+        System.clearProperty(TimestampNote.systemProperty)
     }
 
     def 'skips injection if the agent is offline'() {

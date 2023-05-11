@@ -4,6 +4,8 @@ import hudson.EnvVars
 import hudson.FilePath
 import hudson.plugins.gradle.BaseMavenIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
+import hudson.plugins.timestamper.TimestampNote
+import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven
@@ -380,6 +382,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
         p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
         p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', mavenInstallationName))
+        p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
         def firstRun = j.buildAndAssertSuccess(p)
@@ -411,6 +414,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
         p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
         p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', mavenInstallationName))
+        p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
         def firstRun = j.buildAndAssertSuccess(p)
