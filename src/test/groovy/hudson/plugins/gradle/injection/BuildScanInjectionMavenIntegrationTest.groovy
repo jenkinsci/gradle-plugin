@@ -590,6 +590,8 @@ node {
 
     def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
         given:
+        def termsOfServiceAcceptance = "Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service"
+
         mavenInstallationRule.mavenVersion = '3.9.2'
         mavenInstallationRule.addInstallation()
         withInjectionConfig {
@@ -598,7 +600,6 @@ node {
         createSlaveAndTurnOnInjection()
 
         def p = j.createFreeStyleProject()
-        p.buildWrappersList.add(new BuildScanBuildWrapper())
         p.buildersList.add(new Maven('package', mavenInstallationRule.mavenVersion))
         p.setScm(new GitSCM(Collections.singletonList(new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)), Collections.singletonList(new BranchSpec("main")), new CGit("https://github.com/c00ler/simple-maven-project"), "git", Collections.emptyList()))
 
@@ -610,9 +611,9 @@ node {
 
         then:
         if (shouldApplyAutoInjection) {
-            j.assertLogContains("Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service", build)
+            j.assertLogContains(termsOfServiceAcceptance, build)
         } else {
-            j.assertLogNotContains("Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service", build)
+            j.assertLogNotContains(termsOfServiceAcceptance, build)
         }
 
         where:

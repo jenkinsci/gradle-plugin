@@ -122,7 +122,7 @@ public class GitScmListener extends SCMListener {
     }
 
     /**
-     * Action that disables Gradle Plugin Injection by setting a flag to be read via init script.
+     * Action that disables Gradle Plugin injection by setting a flag to be read by the init script.
      */
     public static final class GradleInjectionDisabledAction extends InvisibleAction implements EnvironmentContributingAction {
 
@@ -139,7 +139,7 @@ public class GitScmListener extends SCMListener {
     }
 
     /**
-     * Action that disables Maven Extension Injection by modifying corresponding environment variables.
+     * Action that disables Maven Extension injection by modifying corresponding environment variables.
      */
     public static final class MavenInjectionDisabledAction extends InvisibleAction implements EnvironmentContributingAction {
 
