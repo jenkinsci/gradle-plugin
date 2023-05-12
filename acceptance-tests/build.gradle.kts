@@ -33,7 +33,7 @@ dependencies {
     // same version as used by ATH
     annotationProcessor("org.jenkins-ci:annotation-indexer:1.12")
 
-    implementation("org.jenkins-ci:acceptance-test-harness:5497.vca_4a_876045ce")
+    implementation("org.jenkins-ci:acceptance-test-harness:5581.vfd8e43f46a_03")
 
     testImplementation(platform("io.netty:netty-bom:4.1.92.Final"))
     testImplementation("io.ratpack:ratpack-test:2.0.0-rc-1")
@@ -86,6 +86,12 @@ jenkinsVersions
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(jenkinsVersion.javaVersion)
             })
+
+            systemProperties(
+                mapOf(
+                    "jdk.xml.xpathExprOpLimit" to 150
+                )
+            )
 
             doFirst {
                 environment(
