@@ -609,7 +609,11 @@ node {
     }
 
     @SuppressWarnings("GStringExpressionWithinString")
-    def 'vcs repository pattern injection for pipeline remote project - #filter #mavenSetup #shouldApplyAutoInjection'(String filter, String mavenSetup, boolean shouldApplyAutoInjection) {
+    def 'vcs repository pattern injection for pipeline remote project - #filter #mavenSetup #shouldApplyAutoInjection'(
+        String filter,
+        String mavenSetup,
+        boolean shouldApplyAutoInjection
+    ) {
         given:
         withInjectionConfig {
             vcsRepositoryFilter = filter
@@ -654,7 +658,10 @@ node {
         "+:this-one-does-not-match\n+:this-one-too" | "withMaven(maven: 'mavenInstallationName') {"                      | false
     }
 
-    def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
+    def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(
+        String filter,
+        boolean shouldApplyAutoInjection
+    ) {
         given:
         def termsOfServiceAcceptance = "Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service"
 
@@ -667,7 +674,14 @@ node {
 
         def p = j.createFreeStyleProject()
         p.buildersList.add(new Maven('package', mavenInstallationRule.mavenVersion))
-        p.setScm(new GitSCM(Collections.singletonList(new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)), Collections.singletonList(new BranchSpec("main")), new CGit("https://github.com/c00ler/simple-maven-project"), "git", Collections.emptyList()))
+        p.setScm(
+            new GitSCM(
+                [new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)],
+                [new BranchSpec("main")], new CGit("https://github.com/c00ler/simple-maven-project"),
+                "git",
+                []
+            )
+        )
 
         def slave = createSlave('foo')
         p.setAssignedNode(slave)
@@ -683,9 +697,9 @@ node {
         }
 
         where:
-        filter                                         | shouldApplyAutoInjection
-        "+:not-found-pattern\n+:simple-"               | true
-        "+:this-one-does-not-match\n+:this-one-too"    | false
+        filter                                      | shouldApplyAutoInjection
+        "+:not-found-pattern\n+:simple-"            | true
+        "+:this-one-does-not-match\n+:this-one-too" | false
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {
