@@ -2,6 +2,10 @@ package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
 import hudson.FilePath
+import hudson.plugins.git.BranchSpec
+import hudson.plugins.git.GitSCM
+import hudson.plugins.git.UserRemoteConfig
+import hudson.plugins.git.browser.CGit
 import hudson.plugins.gradle.BaseMavenIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
 import hudson.plugins.timestamper.TimestamperBuildWrapper
@@ -648,6 +652,40 @@ node {
         "+:not-found-pattern\n+:simple-"            | "withMaven(maven: 'mavenInstallationName') {"                      | true
         "+:this-one-does-not-match\n+:this-one-too" | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" | false
         "+:this-one-does-not-match\n+:this-one-too" | "withMaven(maven: 'mavenInstallationName') {"                      | false
+    }
+
+    def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
+        given:
+        def termsOfServiceAcceptance = "Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service"
+
+        mavenInstallationRule.mavenVersion = '3.9.2'
+        mavenInstallationRule.addInstallation()
+        withInjectionConfig {
+            vcsRepositoryFilter = filter
+        }
+        createSlaveAndTurnOnInjection()
+
+        def p = j.createFreeStyleProject()
+        p.buildersList.add(new Maven('package', mavenInstallationRule.mavenVersion))
+        p.setScm(new GitSCM(Collections.singletonList(new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)), Collections.singletonList(new BranchSpec("main")), new CGit("https://github.com/c00ler/simple-maven-project"), "git", Collections.emptyList()))
+
+        def slave = createSlave('foo')
+        p.setAssignedNode(slave)
+
+        when:
+        def build = j.buildAndAssertSuccess(p)
+
+        then:
+        if (shouldApplyAutoInjection) {
+            j.assertLogContains(termsOfServiceAcceptance, build)
+        } else {
+            j.assertLogNotContains(termsOfServiceAcceptance, build)
+        }
+
+        where:
+        filter                                         | shouldApplyAutoInjection
+        "+:not-found-pattern\n+:simple-"               | true
+        "+:this-one-does-not-match\n+:this-one-too"    | false
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {

@@ -166,7 +166,7 @@ The injection will be performed for Git repository URLs which contain `foo`, but
 The exclusion patterns take precedence over the inclusion patterns.
 
 > **Note**
-> - This feature is currently in Beta and requires Git Plugin to be installed. If Git Plugin is not installed, the following warning message will be show instead. The feature supports Gradle Pipeline/FreeStyle and Maven Pipeline job configurations (Maven FreeStyle job configurations are not supported)
+> - This feature is currently in Beta and requires Git Plugin to be installed. If Git Plugin is not installed, the following warning message will be show instead. The feature supports both Gradle and Maven builds (FreeStyle and Pipeline job configurations)
 
 image::general-git-plugin-not-installed.png[Git Plugin is not installed, {thumbnail}]
 
