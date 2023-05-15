@@ -286,6 +286,7 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
     </hudson.plugins.gradle.injection.NodeLabelItem>
   </mavenInjectionDisabledNodes>
   <enforceUrl>false</enforceUrl>
+  <checkForBuildAgentErrors>false</checkForBuildAgentErrors>
   <parsedVcsRepositoryFilter>
     <vcsRepositoryFilter>+:foo
 -:bar</vcsRepositoryFilter>

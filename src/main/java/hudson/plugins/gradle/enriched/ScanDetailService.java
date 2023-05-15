@@ -83,7 +83,7 @@ public class ScanDetailService {
                     String apiBuildsResponse = EntityUtils.toString(httpEntityApiBuilds);
                     ObjectReader objectReader = MAPPER.readerForUpdating(scanDetail);
                     scanDetail = objectReader.readValue(apiBuildsResponse);
-                    String suffix = null != scanDetail.getBuildToolType() ? scanDetail.getBuildToolType().getAttributesUrlSuffix() : "unsupported";
+                    String suffix = (scanDetail.getBuildToolType() != null) ? scanDetail.getBuildToolType().getAttributesUrlSuffix() : "unsupported";
                     HttpGet httpGetBuildAttributes = buildGetRequest(baseApiUri + suffix);
 
                     try (CloseableHttpResponse responseApiBuildAttributes = httpclient.execute(httpGetBuildAttributes)) {

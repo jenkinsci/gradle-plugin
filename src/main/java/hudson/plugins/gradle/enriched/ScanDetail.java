@@ -2,40 +2,28 @@ package hudson.plugins.gradle.enriched;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.plugins.gradle.BuildToolType;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 @ExportedBean
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ScanDetail {
 
-    public enum BuildToolType {
-        @JsonProperty("gradle")
-        GRADLE,
-        @JsonProperty("maven")
-        MAVEN;
-
-        String getAttributesUrlSuffix() {
-            return String.format("/%s-attributes", name().toLowerCase(Locale.ROOT));
-        }
-    }
-
     private final String url;
 
-    @JsonAlias({"rootProjectName", "topLevelProjectName" })
+    @JsonAlias({"rootProjectName", "topLevelProjectName"})
     private String projectName;
-    @SuppressFBWarnings(value="UWF_UNWRITTEN_FIELD")
+    @SuppressFBWarnings(value = "UWF_UNWRITTEN_FIELD")
     private BuildToolType buildToolType;
-    @SuppressFBWarnings(value="UWF_UNWRITTEN_FIELD")
+    @SuppressFBWarnings(value = "UWF_UNWRITTEN_FIELD")
     private String buildToolVersion;
-    @JsonAlias({"requestedTasks", "requestedGoals" })
+    @JsonAlias({"requestedTasks", "requestedGoals"})
     private List<String> tasks;
-    @SuppressFBWarnings(value="UWF_UNWRITTEN_FIELD")
+    @SuppressFBWarnings(value = "UWF_UNWRITTEN_FIELD")
     private boolean hasFailed;
 
     ScanDetail(String url) {
@@ -54,7 +42,7 @@ public class ScanDetail {
         return buildToolVersion;
     }
 
-    @SuppressFBWarnings(value="EI_EXPOSE_REP")
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP")
     public List<String> getTasks() {
         return tasks;
     }
@@ -80,4 +68,3 @@ public class ScanDetail {
         return Objects.hash(url, projectName, buildToolType, buildToolVersion, tasks, hasFailed);
     }
 }
-

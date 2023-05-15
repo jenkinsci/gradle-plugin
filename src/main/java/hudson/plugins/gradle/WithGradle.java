@@ -22,12 +22,13 @@ public class WithGradle extends Step {
     }
 
     @Override
-    public StepExecution start(StepContext context) throws Exception {
-        return new WithGradleExecution(context, this);
+    public StepExecution start(StepContext context) {
+        return new WithGradleExecution(context);
     }
 
     @Extension
     public static final class DescriptorImpl extends StepDescriptor {
+
         @Override
         public Set<? extends Class<?>> getRequiredContext() {
             Set<Class<?>> context = new HashSet<>();

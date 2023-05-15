@@ -7,26 +7,24 @@ import hudson.plugins.git.GitSCM
 import hudson.plugins.git.UserRemoteConfig
 import hudson.plugins.git.browser.CGit
 import hudson.plugins.gradle.BaseMavenIntegrationTest
-import hudson.plugins.gradle.BuildScanBuildWrapper
+import hudson.plugins.gradle.BuildScanAction
+import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven
 import hudson.util.Secret
-import jenkins.model.Jenkins
-import jenkins.mvn.DefaultGlobalSettingsProvider
-import jenkins.mvn.DefaultSettingsProvider
-import jenkins.mvn.GlobalMavenConfig
 import org.apache.commons.lang3.StringUtils
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
+import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule
-import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL
-import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER
+import static hudson.plugins.gradle.injection.MavenSnippets.simplePom
 
 @Unroll
 class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
@@ -376,6 +374,74 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         noMavenOpts(slave)
     }
 
+    def "does not capture build agent errors if checking for errors is disabled"() {
+        given:
+        def mavenInstallationName = setupMavenInstallation()
+
+        DumbSlave agent = createSlave('test')
+
+        def p = j.createFreeStyleProject()
+        p.setAssignedNode(agent)
+
+        p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
+        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', mavenInstallationName))
+        p.getBuildWrappersList().add(new TimestamperBuildWrapper())
+
+        when:
+        def firstRun = j.buildAndAssertSuccess(p)
+
+        then:
+        firstRun.getAction(BuildScanAction) == null
+
+        when:
+        withInjectionConfig {
+            enabled = true
+            server = "https://scans.gradle.com"
+            injectMavenExtension = true
+            checkForBuildAgentErrors = false
+        }
+        def secondRun = buildAndAssertFailure(p)
+
+        then:
+        secondRun.getAction(BuildScanAction) == null
+    }
+
+    def "captures build agent errors if checking for errors is enabled"() {
+        given:
+        def mavenInstallationName = setupMavenInstallation()
+
+        DumbSlave agent = createSlave('test')
+
+        def p = j.createFreeStyleProject()
+        p.setAssignedNode(agent)
+
+        p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
+        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', mavenInstallationName))
+        p.getBuildWrappersList().add(new TimestamperBuildWrapper())
+
+        when:
+        def firstRun = j.buildAndAssertSuccess(p)
+
+        then:
+        firstRun.getAction(BuildScanAction) == null
+
+        when:
+        withInjectionConfig {
+            enabled = true
+            server = "https://scans.gradle.com"
+            injectMavenExtension = true
+            checkForBuildAgentErrors = true
+        }
+        def secondRun = buildAndAssertFailure(p)
+
+        then:
+        with(secondRun.getAction(BuildScanAction)) {
+            scanUrls.isEmpty()
+            !hasGradleErrors
+            hasMavenErrors
+        }
+    }
+
     def 'injection is enabled and disabled based on node labels'() {
         given:
         DumbSlave slave = createSlaveAndTurnOnInjection()
@@ -543,7 +609,11 @@ node {
     }
 
     @SuppressWarnings("GStringExpressionWithinString")
-    def 'vcs repository pattern injection for pipeline remote project - #filter #mavenSetup #shouldApplyAutoInjection'(String filter, String mavenSetup, boolean shouldApplyAutoInjection) {
+    def 'vcs repository pattern injection for pipeline remote project - #filter #mavenSetup #shouldApplyAutoInjection'(
+        String filter,
+        String mavenSetup,
+        boolean shouldApplyAutoInjection
+    ) {
         given:
         withInjectionConfig {
             vcsRepositoryFilter = filter
@@ -581,14 +651,17 @@ node {
         }
 
         where:
-        filter                                          |  mavenSetup                                                           | shouldApplyAutoInjection
-        "+:not-found-pattern\n+:simple-"                | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"    | true
-        "+:not-found-pattern\n+:simple-"                | "withMaven(maven: 'mavenInstallationName') {"                         | true
-        "+:this-one-does-not-match\n+:this-one-too"     | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"    | false
-        "+:this-one-does-not-match\n+:this-one-too"     | "withMaven(maven: 'mavenInstallationName') {"                         | false
+        filter                                      | mavenSetup                                                         | shouldApplyAutoInjection
+        "+:not-found-pattern\n+:simple-"            | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" | true
+        "+:not-found-pattern\n+:simple-"            | "withMaven(maven: 'mavenInstallationName') {"                      | true
+        "+:this-one-does-not-match\n+:this-one-too" | "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" | false
+        "+:this-one-does-not-match\n+:this-one-too" | "withMaven(maven: 'mavenInstallationName') {"                      | false
     }
 
-    def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
+    def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(
+        String filter,
+        boolean shouldApplyAutoInjection
+    ) {
         given:
         def termsOfServiceAcceptance = "Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service"
 
@@ -601,7 +674,14 @@ node {
 
         def p = j.createFreeStyleProject()
         p.buildersList.add(new Maven('package', mavenInstallationRule.mavenVersion))
-        p.setScm(new GitSCM(Collections.singletonList(new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)), Collections.singletonList(new BranchSpec("main")), new CGit("https://github.com/c00ler/simple-maven-project"), "git", Collections.emptyList()))
+        p.setScm(
+            new GitSCM(
+                [new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)],
+                [new BranchSpec("main")], new CGit("https://github.com/c00ler/simple-maven-project"),
+                "git",
+                []
+            )
+        )
 
         def slave = createSlave('foo')
         p.setAssignedNode(slave)
@@ -617,9 +697,9 @@ node {
         }
 
         where:
-        filter                                         | shouldApplyAutoInjection
-        "+:not-found-pattern\n+:simple-"               | true
-        "+:this-one-does-not-match\n+:this-one-too"    | false
+        filter                                      | shouldApplyAutoInjection
+        "+:not-found-pattern\n+:simple-"            | true
+        "+:this-one-does-not-match\n+:this-one-too" | false
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {
@@ -655,15 +735,11 @@ node {
 """
     }
 
-    private String setupMavenInstallation() {
-        def mavenInstallation = ToolInstallations.configureMaven35()
-        Jenkins.get().getDescriptorByType(Maven.DescriptorImpl.class).setInstallations(mavenInstallation)
-        def mavenInstallationName = mavenInstallation.getName()
+    private String setupMavenInstallation(mavenVersion = "3.9.2") {
+        mavenInstallationRule.mavenVersion = mavenVersion
+        mavenInstallationRule.addInstallation()
 
-        GlobalMavenConfig globalMavenConfig = j.get(GlobalMavenConfig.class)
-        globalMavenConfig.setGlobalSettingsProvider(new DefaultGlobalSettingsProvider())
-        globalMavenConfig.setSettingsProvider(new DefaultSettingsProvider())
-        mavenInstallationName
+        mavenVersion
     }
 
     private DumbSlave createSlaveAndTurnOnInjection() {

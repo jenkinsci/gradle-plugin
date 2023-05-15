@@ -3,28 +3,32 @@ package hudson.plugins.gradle;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public class GradleTaskListenerDecorator extends TaskListenerDecorator {
+public class GradleTaskListenerDecorator extends TaskListenerDecorator implements BuildScansAware {
 
-    private final List<String> buildScans = new ArrayList<>();
+    private final SimpleBuildScanPublishedListener buildScanListener;
+
+    public GradleTaskListenerDecorator() {
+        buildScanListener = new SimpleBuildScanPublishedListener();
+    }
 
     @Nonnull
     @Override
-    public OutputStream decorate(@Nonnull OutputStream logger) throws IOException, InterruptedException {
+    public OutputStream decorate(@Nonnull OutputStream logger) {
         return new GradleConsoleAnnotator(
             logger,
             StandardCharsets.UTF_8,
             true,
-            buildScans::add
+            buildScanListener
         );
     }
 
+    @Override
     public List<String> getBuildScans() {
-        return new ArrayList<>(buildScans);
+        return buildScanListener.getBuildScans();
     }
 }

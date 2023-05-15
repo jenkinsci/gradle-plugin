@@ -33,7 +33,7 @@ dependencies {
     // same version as used by ATH
     annotationProcessor("org.jenkins-ci:annotation-indexer:1.12")
 
-    implementation("org.jenkins-ci:acceptance-test-harness:5497.vca_4a_876045ce")
+    implementation("org.jenkins-ci:acceptance-test-harness:5581.vfd8e43f46a_03")
 
     testImplementation(platform("io.netty:netty-bom:4.1.92.Final"))
     testImplementation("io.ratpack:ratpack-test:2.0.0-rc-1")
@@ -46,7 +46,7 @@ val currentJava = JavaVersion.current()
 val jenkinsVersions = listOf(
     JenkinsVersion.LATEST,
     JenkinsVersion.LATEST_LTS,
-    JenkinsVersion.V2_356
+    JenkinsVersion.V2_375
 )
 
 jenkinsVersions
@@ -87,6 +87,12 @@ jenkinsVersions
                 languageVersion.set(jenkinsVersion.javaVersion)
             })
 
+            systemProperties(
+                mapOf(
+                    "jdk.xml.xpathExprOpLimit" to 150
+                )
+            )
+
             doFirst {
                 environment(
                     mapOf(
@@ -105,7 +111,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
 
         private const val LATEST_VERSION = "latest"
         private const val LATEST_LTS_VERSION = "latest-lts"
-        private const val V2_356_VERSION = "2.356"
+        private const val V2_375_VERSION = "2.375.4"
 
         private const val MIRROR = "https://get.jenkins.io"
 
@@ -115,7 +121,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
 
         val LATEST = of(LATEST_VERSION)
         val LATEST_LTS = of(LATEST_LTS_VERSION)
-        val V2_356 = of(V2_356_VERSION)
+        val V2_375 = of(V2_375_VERSION)
 
         private fun of(version: String, javaVersion: JavaLanguageVersion = JAVA_11): JenkinsVersion {
             val downloadUrl =
@@ -137,7 +143,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
     }
 
     val isDefault: Boolean
-        get() = version == V2_356_VERSION
+        get() = version == V2_375_VERSION
 
     val label: String
         get() = if (isJenkinsVersion(version)) {
