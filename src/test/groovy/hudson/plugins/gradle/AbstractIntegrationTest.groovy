@@ -19,6 +19,8 @@ import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.slaves.NodeProperty
 import org.jenkinsci.plugins.pipeline.maven.GlobalPipelineMavenConfig
 import org.jenkinsci.plugins.pipeline.maven.dao.PipelineMavenPluginDao
+import org.jenkinsci.plugins.workflow.job.WorkflowJob
+import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.junit.rules.TestRule
 import org.jvnet.hudson.test.FlagRule
 import org.jvnet.hudson.test.JenkinsRule
@@ -78,6 +80,10 @@ abstract class AbstractIntegrationTest extends Specification {
     }
 
     FreeStyleBuild buildAndAssertFailure(FreeStyleProject job) {
+        j.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0))
+    }
+
+    WorkflowRun buildAndAssertFailure(WorkflowJob job) {
         j.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0))
     }
 

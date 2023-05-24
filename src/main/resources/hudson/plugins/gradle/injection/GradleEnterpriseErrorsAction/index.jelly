@@ -1,0 +1,50 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:i="jelly:fmt">
+    <l:layout title="Gradle Enterprise" permission="${app.ADMINISTER}">
+        <l:main-panel>
+            <div class="jenkins-app-bar">
+                <div class="jenkins-app-bar__content">
+                    <h1>Gradle Enterprise</h1>
+                </div>
+            </div>
+            <section class="jenkins-section">
+                <h2 class="jenkins-section__title">${%Unhandled errors}</h2>
+                <table id="gradle-enterprise-errors" class="jenkins-table sortable">
+                    <thead>
+                        <tr>
+                            <th class="medium-column">${%Project}</th>
+                            <th class="medium-column">${%Build Tool}</th>
+                            <th class="small-column">${%Outcome}</th>
+                            <th class="small-column" initialSortDir="up">${%Start time}</th>
+                            <th class="medium-column">${%URL}</th>
+                        </tr>
+                    </thead>
+                    <j:forEach items="${it.errors}" var="e">
+                        <tr>
+                            <td class="medium-column">${e.project}</td>
+                            <td class="small-column">
+                                <j:choose>
+                                    <j:when test="${e.buildTool == 'GRADLE'}">
+                                        <l:icon src="/plugin/gradle/images/svgs/gradle-build-scan.svg" class="icon-lg" tooltip="${e.buildTool}" />
+                                    </j:when>
+                                    <j:otherwise>
+                                        <l:icon src="/plugin/gradle/images/svgs/maven.svg" class="icon-lg" tooltip="${e.buildTool}" />
+                                    </j:otherwise>
+                                </j:choose>
+                            </td>
+                            <td class="small-column">
+                                <l:icon tooltip="${e.buildStatus}" class="${e.buildStatusIconClassName} icon-lg" />
+                            </td>
+                            <td class="small-column">
+                                <i:formatDate value="${e.start}" type="both" dateStyle="medium" timeStyle="short" />
+                            </td>
+                            <td class="medium-column">
+                                <a class="jenkins-table__link" href="/${e.buildUrl}">${e.buildUrl}</a>
+                            </td>
+                        </tr>
+                    </j:forEach>
+                </table>
+            </section>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
