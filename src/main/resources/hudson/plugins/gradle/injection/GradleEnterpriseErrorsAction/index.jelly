@@ -8,13 +8,14 @@
                 </div>
             </div>
             <section class="jenkins-section">
-                <h2 class="jenkins-section__title">${%Unhandled errors}</h2>
+                <h2 class="jenkins-section__header">${%Unexpected errors}</h2>
+                <p>Errors that were not gracefully handled by the Gradle Enterprise plugin</p>
                 <table id="gradle-enterprise-errors" class="jenkins-table sortable">
                     <thead>
                         <tr>
                             <th class="medium-column">${%Project}</th>
-                            <th class="medium-column">${%Build Tool}</th>
-                            <th class="small-column">${%Outcome}</th>
+                            <th class="medium-column" style="text-align: center">${%Build Tool}</th>
+                            <th class="small-column" style="text-align: center">${%Outcome}</th>
                             <th class="small-column" initialSortDir="up">${%Start time}</th>
                             <th class="medium-column">${%URL}</th>
                         </tr>
@@ -22,7 +23,7 @@
                     <j:forEach items="${it.errors}" var="e">
                         <tr>
                             <td class="medium-column">${e.project}</td>
-                            <td class="small-column">
+                            <td class="small-column center">
                                 <j:choose>
                                     <j:when test="${e.buildTool == 'GRADLE'}">
                                         <l:icon src="/plugin/gradle/images/svgs/gradle-build-scan.svg" class="icon-lg" tooltip="${e.buildTool}" />
@@ -32,7 +33,7 @@
                                     </j:otherwise>
                                 </j:choose>
                             </td>
-                            <td class="small-column">
+                            <td class="small-column center">
                                 <l:icon tooltip="${e.buildStatus}" class="${e.buildStatusIconClassName} icon-lg" />
                             </td>
                             <td class="small-column">
