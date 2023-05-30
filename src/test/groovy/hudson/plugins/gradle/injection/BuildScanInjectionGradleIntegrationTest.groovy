@@ -28,7 +28,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
 
-    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.4', '7.6.1', '8.0.2']
+    // Gradle 5.6.x does not support JDK 11
+    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '6.9.4', '7.6.1', '8.0.2']
 
     private static final EnvVars EMPTY_ENV = new EnvVars()
 
