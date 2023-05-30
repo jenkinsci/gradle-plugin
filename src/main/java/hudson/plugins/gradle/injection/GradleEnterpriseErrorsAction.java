@@ -38,13 +38,13 @@ public class GradleEnterpriseErrorsAction implements RootAction, StaplerProxy {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Iterator<GeErrorModel> getErrors() {
         return RunList.fromJobs((Iterable) Jenkins.get().allItems(Job.class))
-            .limit(200)
             .completedOnly()
             .stream()
             .filter(r -> {
                 AbstractBuildScanAction action = ((Run) r).getAction(AbstractBuildScanAction.class);
                 return action != null && (action.getHasGradleErrors() || action.getHasMavenErrors());
             })
+            .limit(200)
             .map(r -> GeErrorModel.fromRun((Run) r))
             .iterator();
     }

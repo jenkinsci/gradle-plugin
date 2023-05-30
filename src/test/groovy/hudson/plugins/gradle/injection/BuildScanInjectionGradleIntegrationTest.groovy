@@ -138,14 +138,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
     }
 """, false))
 
-
-        when:
-        // first build to download Gradle
-        def build = j.buildAndAssertSuccess(pipelineJob)
-
-        then:
-        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, build)
-
         when:
         // first build to download Gradle
         def firstRun = j.buildAndAssertSuccess(pipelineJob)

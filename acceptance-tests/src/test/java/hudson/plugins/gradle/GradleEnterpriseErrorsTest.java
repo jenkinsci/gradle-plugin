@@ -14,7 +14,7 @@ import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
 public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
 
-    private static final String AGENT_VERSION = "3.13.2";
+    private static final String AGENT_VERSION = "3.13.3";
     private static final String GRADLE_VERSION = "Gradle 7.5.1";
 
     @Before
