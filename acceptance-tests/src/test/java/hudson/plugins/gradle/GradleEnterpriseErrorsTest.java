@@ -2,7 +2,12 @@ package hudson.plugins.gradle;
 
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleInstallation;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleStep;
-import org.jenkinsci.test.acceptance.po.*;
+import org.jenkinsci.test.acceptance.po.Action;
+import org.jenkinsci.test.acceptance.po.ActionPageObject;
+import org.jenkinsci.test.acceptance.po.Build;
+import org.jenkinsci.test.acceptance.po.ContainerPageObject;
+import org.jenkinsci.test.acceptance.po.FreeStyleJob;
+import org.jenkinsci.test.acceptance.po.Jenkins;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -80,7 +85,7 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
             WebElement firstRow = find(by.xpath("//table[@id = 'gradle-enterprise-errors']/tbody/tr[1]"));
             firstRow.findElement(by.link(build.url.toString().replace(parent.url("/").toString(), "")));
             firstRow.findElement(by.xpath("//td//*[local-name()='svg' and @tooltip='FAILURE']", build.getResult()));
-            firstRow.findElement(by.xpath("//td/img[@tooltip = '%s']", "GRADLE"));
+            firstRow.findElement(by.xpath("//td/img[@tooltip = '%s']", "Gradle"));
             firstRow.findElement(by.xpath("//td[normalize-space(text()) = '%s']", build.job.name));
             return this;
         }

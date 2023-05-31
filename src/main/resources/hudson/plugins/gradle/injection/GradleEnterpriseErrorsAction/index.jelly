@@ -4,7 +4,7 @@
         <l:main-panel>
             <h1>Gradle Enterprise</h1>
             <f:section title="${%Unexpected errors}"/>
-            <p>Errors that were not gracefully handled by the Gradle Enterprise plugin</p>
+            <p>Errors that were not gracefully handled by the Gradle Enterprise plugin/Gradle Enterprise Maven extension</p>
             <table id="gradle-enterprise-errors" class="pane bigtable sortable">
                 <thead>
                     <tr>
@@ -19,16 +19,10 @@
                     <tr>
                         <td class="medium-column">${e.project}</td>
                         <td class="small-column center">
-                            <j:choose>
-                                <j:when test="${e.buildTool == 'GRADLE'}">
-                                    <l:icon src="/plugin/gradle/images/svgs/gradle-build-scan.svg" class="icon-lg"
-                                            tooltip="${e.buildTool}"/>
-                                </j:when>
-                                <j:otherwise>
-                                    <l:icon src="/plugin/gradle/images/svgs/maven.svg" class="icon-lg"
-                                            tooltip="${e.buildTool}"/>
-                                </j:otherwise>
-                            </j:choose>
+                            <j:forEach items="${e.buildToolIcons}" var="b">
+                                <l:icon src="/plugin/gradle/images/svgs/${b.icon}" class="icon-lg"
+                                        tooltip="${b.tooltip}"/>
+                            </j:forEach>
                         </td>
                         <td class="small-column center">
                             <l:icon tooltip="${e.buildStatus}" class="${e.buildStatusIconClassName} icon-lg"/>

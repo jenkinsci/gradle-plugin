@@ -1,5 +1,6 @@
 package hudson.plugins.gradle;
 
+import com.google.common.collect.ImmutableList;
 import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.plugins.gradle.enriched.ScanDetail;
@@ -83,6 +84,14 @@ public abstract class AbstractBuildScanAction implements Action {
     @Exported
     public boolean getHasGradleErrors() {
         return hasError(BuildToolType.GRADLE);
+    }
+
+    public List<BuildAgentError> getBuildAgentErrors() {
+        return ImmutableList.copyOf(buildAgentErrors);
+    }
+
+    public boolean hasErrors() {
+        return !buildAgentErrors.isEmpty();
     }
 
     private boolean hasError(BuildToolType buildToolType) {

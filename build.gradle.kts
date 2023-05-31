@@ -75,6 +75,13 @@ java {
     }
 }
 
+// see https://github.com/jenkinsci/gradle-jpi-plugin#customizing-further
+tasks.server.configure {
+    execSpec {
+        classpath(layout.buildDirectory.dir("resources/test"))
+    }
+}
+
 val includedLibs: Configuration by configurations.creating
 val gradlePluginJpi: Configuration by configurations.creating { isCanBeConsumed = true; isCanBeResolved = false }
 
