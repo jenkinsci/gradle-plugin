@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import hudson.Extension;
 import hudson.model.Job;
+import hudson.model.Result;
 import hudson.model.RootAction;
 import hudson.model.Run;
 import hudson.plugins.gradle.AbstractBuildScanAction;
@@ -90,7 +91,7 @@ public class GradleEnterpriseErrorsAction implements RootAction, StaplerProxy {
                     BuildToolIcon.buildToolIcons(action.getBuildAgentErrors()),
                     r.getParent().getFullName(),
                     r.getBuildStatusIconClassName(),
-                    r.getResult() != null ? r.getResult().toString() : "",
+                    Optional.ofNullable(r.getResult()).map(Result::toString).orElse(""),
                     r.getUrl(),
                     new Date(r.getStartTimeInMillis())));
             } else {
@@ -150,7 +151,7 @@ public class GradleEnterpriseErrorsAction implements RootAction, StaplerProxy {
         }
 
         public Date getStart() {
-            return start;
+            return new Date(start.getTime());
         }
     }
 }

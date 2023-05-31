@@ -1,7 +1,6 @@
 package hudson.plugins.gradle.injection;
 
 import hudson.Extension;
-import hudson.console.ConsoleLogFilter;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
 import org.jenkinsci.plugins.workflow.steps.DynamicContext;
@@ -14,7 +13,6 @@ import java.io.OutputStream;
 @SuppressWarnings("unused")
 @Extension
 public class GradleEnterpriseExceptionTaskListenerDecoratorFactory extends DynamicContext.Typed<TaskListenerDecorator> {
-
 
     @Nonnull
     @Override
@@ -29,9 +27,11 @@ public class GradleEnterpriseExceptionTaskListenerDecoratorFactory extends Dynam
         return new GradleEnterpriseExceptionTaskListenerDecorator(run);
     }
 
+    @SuppressWarnings("rawtypes")
     public static class GradleEnterpriseExceptionTaskListenerDecorator extends TaskListenerDecorator {
+        private static final long serialVersionUID = 1L;
 
-        private transient Run run;
+        private final transient Run run;
 
         public GradleEnterpriseExceptionTaskListenerDecorator(Run run) {
             this.run = run;
