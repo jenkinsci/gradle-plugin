@@ -140,11 +140,11 @@ dependencies {
 
     jenkinsServer("org.jenkins-ci.plugins:git")
 
-
     components {
+        // dom4j brings a bogus xml parser (pull-parser) that takes over the jdk one
+        // see https://github.com/dom4j/dom4j/issues/99
         withModule<ClearDependencies>("org.dom4j:dom4j")
     }
-
 }
 
 class ClearDependencies : ComponentMetadataRule {

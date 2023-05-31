@@ -59,7 +59,7 @@ public class GradleEnterpriseErrorsAction implements RootAction, StaplerProxy {
     }
 
     private boolean isVisible() {
-        return InjectionConfig.get().isCheckForBuildAgentErrors();
+        return InjectionConfig.get().isEnabled() && InjectionConfig.get().isCheckForBuildAgentErrors();
     }
 
     public static class GeErrorModel {
