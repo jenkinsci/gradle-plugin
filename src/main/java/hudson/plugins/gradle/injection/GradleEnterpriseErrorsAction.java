@@ -101,7 +101,7 @@ public class GradleEnterpriseErrorsAction implements RootAction, StaplerProxy {
 
         public static class BuildToolIcon {
 
-            private static final Map<BuildToolType, BuildToolIcon> IconsForBuildTool = ImmutableMap.of(
+            private static final Map<BuildToolType, BuildToolIcon> ICONS_FOR_BUILD_TOOLS = ImmutableMap.of(
                 BuildToolType.GRADLE, new BuildToolIcon("Gradle", "gradle-build-scan.svg"),
                 BuildToolType.MAVEN, new BuildToolIcon("Maven", "maven.svg")
             );
@@ -116,7 +116,7 @@ public class GradleEnterpriseErrorsAction implements RootAction, StaplerProxy {
 
             public static List<BuildToolIcon> buildToolIcons(List<BuildAgentError> buildAgentErrors) {
                 return buildAgentErrors.stream()
-                    .map(e -> IconsForBuildTool.get(e.getBuildToolType()))
+                    .map(e -> ICONS_FOR_BUILD_TOOLS.get(e.getBuildToolType()))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             }
