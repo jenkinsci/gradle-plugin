@@ -17,9 +17,9 @@ plugins {
 group = "org.jenkins-ci.plugins"
 description = "This plugin adds Gradle support to Jenkins"
 
-val coreBaseVersion = "2.138"
-val corePatchVersion = "4"
-val coreBomVersion = "3"
+val coreBaseVersion = "2.303"
+val corePatchVersion = "3"
+val coreBomVersion = "1500.ve4d05cd32975"
 
 val gradleExt = (gradle as ExtensionAware).extra
 
@@ -75,6 +75,13 @@ java {
     }
 }
 
+// see https://github.com/jenkinsci/gradle-jpi-plugin#customizing-further
+tasks.server.configure {
+    execSpec {
+        classpath(layout.buildDirectory.dir("resources/test"))
+    }
+}
+
 val includedLibs: Configuration by configurations.creating
 val gradlePluginJpi: Configuration by configurations.creating { isCanBeConsumed = true; isCanBeResolved = false }
 
@@ -111,13 +118,14 @@ dependencies {
 
     signature("org.codehaus.mojo.signature:java18:1.0@signature")
 
-    testImplementation("org.jenkins-ci.main:jenkins-test-harness:2.56")
+    testImplementation("org.jenkins-ci.main:jenkins-test-harness")
     testImplementation("org.jenkins-ci.main:jenkins-test-harness-tools:2.2")
     testImplementation("io.jenkins:configuration-as-code:1.4")
-    testImplementation("org.jenkins-ci.plugins:timestamper:1.8.10")
-    testImplementation("org.jenkins-ci.plugins:pipeline-stage-step:2.3")
+    testImplementation("org.jenkins-ci.plugins:timestamper")
+    testImplementation("org.jenkins-ci.plugins:pipeline-stage-step")
     testImplementation("org.jenkins-ci.plugins:pipeline-maven:3.10.0")
-    testImplementation("org.spockframework:spock-core:1.3-groovy-2.4")
+    testImplementation("org.spockframework:spock-core:2.3-groovy-2.5")
+    testImplementation("org.spockframework:spock-junit4:2.3-groovy-2.5")
     testImplementation("net.bytebuddy:byte-buddy:1.14.5")
     testImplementation("org.objenesis:objenesis:3.3")
 
@@ -131,7 +139,20 @@ dependencies {
     testRuntimeOnly("org.jenkins-ci.main:jenkins-war:${coreBaseVersion}")
 
     jenkinsServer("org.jenkins-ci.plugins:git")
+
+    components {
+        // dom4j brings a bogus xml parser (pull-parser) that takes over the jdk one
+        // see https://github.com/dom4j/dom4j/issues/99
+        withModule<ClearDependencies>("org.dom4j:dom4j")
+    }
 }
+
+class ClearDependencies : ComponentMetadataRule {
+    override fun execute(t: ComponentMetadataContext) {
+        t.details.allVariants { withDependencies { clear() } }
+    }
+}
+
 
 spotbugs {
     toolVersion.set("4.7.2")
@@ -178,6 +199,7 @@ tasks.test {
             maxFailures.set(5)
         }
     }
+    useJUnitPlatform()
 }
 
 // See the original configuration: https://github.com/jenkinsci/gradle-jpi-plugin/blob/v0.47.0/src/main/kotlin/org/jenkinsci/gradle/plugins/testing/JpiTestingPlugin.kt#L79

@@ -47,6 +47,10 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         clickCheckboxOnConfig("Allow untrusted server");
     }
 
+    public void clickCheckForGradleEnterpriseErrors() {
+        clickCheckboxOnConfig("Check for the Gradle Enterprise build agent errors");
+    }
+
     public void setGradleEnterpriseAccessKey(String accessKey) {
         setBuildScansInjectionFormValue(GE_ACCESS_KEY_FIELD, accessKey);
     }

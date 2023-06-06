@@ -111,6 +111,55 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         System.clearProperty(TimestampNote.systemProperty)
     }
 
+    def "captures build agent errors in pipeline build if checking for errors is enabled"() {
+        given:
+        def gradleVersion = '8.1.1'
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+
+        def pipelineJob = j.createProject(WorkflowJob)
+
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+    stage('Build') {
+      node('foo') {
+        withGradle {
+          def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+          writeFile file: 'settings.gradle', text: ''
+          writeFile file: 'build.gradle', text: ""
+          if (isUnix()) {
+            sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain -Dcom.gradle.scan.trigger-synthetic-error=true"
+          } else {
+            bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain -Dcom.gradle.scan.trigger-synthetic-error=true/)
+          }
+        }
+      }
+    }
+""", false))
+
+        when:
+        // first build to download Gradle
+        def firstRun = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
+
+        when:
+        enableBuildInjection(agent, gradleVersion)
+        withInjectionConfig {
+            checkForBuildAgentErrors = true
+        }
+        def secondRun = buildAndAssertFailure(pipelineJob)
+
+        then:
+        with(secondRun.getAction(BuildScanAction)) {
+            scanUrls.isEmpty()
+            hasGradleErrors
+            !hasMavenErrors
+        }
+    }
+
     def 'skips injection if the agent is offline'() {
         given:
         def gradleVersion = '8.0.2'

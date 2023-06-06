@@ -95,6 +95,10 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         updateBuildScansInjectionSettings(BuildScansInjectionSettings::clickAllowUntrustedServer);
     }
 
+    protected final void setCheckForGradleEnterpriseErrors() {
+        updateBuildScansInjectionSettings(BuildScansInjectionSettings::clickCheckForGradleEnterpriseErrors);
+    }
+
     protected final String getGitRepositoryFilters() {
         BuildScansInjectionSettings settings = new BuildScansInjectionSettings(jenkins);
         settings.configure();
