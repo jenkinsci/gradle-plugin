@@ -125,7 +125,7 @@ dependencies {
     testImplementation("org.jenkins-ci.plugins:pipeline-stage-step")
     testImplementation("org.jenkins-ci.plugins:pipeline-maven:3.10.0")
     testImplementation("org.spockframework:spock-core:2.3-groovy-2.5")
-    testImplementation("org.spockframework:spock-junit4:2.3-groovy-2.5")
+    testImplementation("org.spockframework:spock-junit4:2.3-groovy-4.0")
     testImplementation("net.bytebuddy:byte-buddy:1.14.5")
     testImplementation("org.objenesis:objenesis:3.3")
 
