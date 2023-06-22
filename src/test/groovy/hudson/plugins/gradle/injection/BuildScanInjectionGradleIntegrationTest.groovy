@@ -23,7 +23,6 @@ import spock.lang.Unroll
 @Unroll
 class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest {
 
-    private static final String GRADLE_ENTERPRISE_PLUGIN_VERSION = '3.13.2'
     private static final String CCUD_PLUGIN_VERSION = '1.8.1'
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
@@ -119,24 +118,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         DumbSlave agent = createSlave()
 
-        def pipelineJob = j.createProject(WorkflowJob)
-
-        pipelineJob.setDefinition(new CpsFlowDefinition("""
-    stage('Build') {
-      node('foo') {
-        withGradle {
-          def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
-          writeFile file: 'settings.gradle', text: ''
-          writeFile file: 'build.gradle', text: ""
-          if (isUnix()) {
-            sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain -Dcom.gradle.scan.trigger-synthetic-error=true"
-          } else {
-            bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain -Dcom.gradle.scan.trigger-synthetic-error=true/)
-          }
-        }
-      }
-    }
-""", false))
+        def pipelineJob = GradleSnippets.pipelineJobWithError(j, gradleInstallationRule)
 
         when:
         // first build to download Gradle
@@ -158,6 +140,38 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             hasGradleErrors
             !hasMavenErrors
         }
+    }
+
+    def "credentials are always masked in logs"() {
+        given:
+        def secret = 'confidential'
+        registerCredentials('my-creds', secret)
+
+        def gradleVersion = '8.1.1'
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+        def pipelineJob = GradleSnippets.pipelineJobWithCredentials(j)
+
+        when:
+        // first build to download Gradle
+        def firstRun = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        j.assertLogContains('password=****', firstRun)
+        j.assertLogNotContains(secret, firstRun)
+
+        when:
+        enableBuildInjection(agent, gradleVersion)
+        withInjectionConfig {
+            checkForBuildAgentErrors = true
+        }
+        def secondRun = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        j.assertLogContains('password=****', secondRun)
+        j.assertLogNotContains(secret, secondRun)
     }
 
     def 'skips injection if the agent is offline'() {
@@ -879,31 +893,6 @@ task hello {
 
     private static File initScriptFile(DumbSlave agent, String gradleVersion) {
         return new File("${getGradleHome(agent, gradleVersion)}/init.d/init-build-scan.gradle")
-    }
-
-    private static String getGradleHome(DumbSlave slave, String gradleVersion) {
-        return "${slave.getRemoteFS()}/tools/hudson.plugins.gradle.GradleInstallation/${gradleVersion}"
-    }
-
-    private void enableBuildInjection(DumbSlave slave,
-                                      String gradleVersion,
-                                      URI repositoryAddress = null,
-                                      Boolean globalAutoInjectionCheckEnabled = false) {
-        withGlobalEnvVars {
-            put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
-            put('GRADLE_OPTS', '-Dscan.uploadInBackground=false')
-            if (globalAutoInjectionCheckEnabled) {
-                put("JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK", "true")
-            }
-        }
-
-        withInjectionConfig {
-            enabled = true
-            gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
-            gradlePluginRepositoryUrl = repositoryAddress?.toString()
-        }
-
-        restartSlave(slave)
     }
 
     private void disableBuildInjection(DumbSlave slave) {
