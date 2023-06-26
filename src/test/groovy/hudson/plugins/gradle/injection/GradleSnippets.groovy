@@ -7,7 +7,7 @@ import org.jvnet.hudson.test.JenkinsRule
 
 class GradleSnippets {
 
-    def static pipelineJobWithError(JenkinsRule j, GradleInstallationRule gradleInstallationRule) {
+    static WorkflowJob pipelineJobWithError(JenkinsRule j, GradleInstallationRule gradleInstallationRule) {
         def pipelineJob = j.createProject(WorkflowJob)
 
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -29,7 +29,7 @@ class GradleSnippets {
         return pipelineJob
     }
 
-    def static pipelineJobWithCredentials(JenkinsRule j) {
+    static WorkflowJob pipelineJobWithCredentials(JenkinsRule j) {
         def pipelineJob = j.createProject(WorkflowJob)
 
         pipelineJob.setDefinition(new CpsFlowDefinition("""

@@ -7,6 +7,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,6 +22,7 @@ public class GradleEnterpriseExceptionTaskListenerDecoratorFactory implements Ta
     private static final Logger LOGGER = Logger.getLogger(GradleEnterpriseExceptionTaskListenerDecoratorFactory.class.getName());
 
     @Override
+    @CheckForNull
     public TaskListenerDecorator of(@Nonnull FlowExecutionOwner owner) {
         if (!isBuildAgentErrorsEnabled()) {
             return null;
