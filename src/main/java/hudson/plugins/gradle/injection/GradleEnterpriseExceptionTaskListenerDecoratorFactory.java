@@ -1,34 +1,45 @@
 package hudson.plugins.gradle.injection;
 
 import hudson.Extension;
+import hudson.model.Queue;
 import hudson.model.Run;
+import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
-import org.jenkinsci.plugins.workflow.steps.DynamicContext;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @SuppressWarnings("unused")
 @Extension
-public class GradleEnterpriseExceptionTaskListenerDecoratorFactory extends DynamicContext.Typed<TaskListenerDecorator> {
+public class GradleEnterpriseExceptionTaskListenerDecoratorFactory implements TaskListenerDecorator.Factory {
 
-    @Nonnull
+    private static final Logger LOGGER = Logger.getLogger(GradleEnterpriseExceptionTaskListenerDecoratorFactory.class.getName());
+
     @Override
-    protected Class<TaskListenerDecorator> type() {
-        return TaskListenerDecorator.class;
-    }
-
     @CheckForNull
-    @Override
-    protected TaskListenerDecorator get(DelegatedContext context) throws IOException, InterruptedException {
-        Run run = context.get(Run.class);
-        return new GradleEnterpriseExceptionTaskListenerDecorator(run);
+    public TaskListenerDecorator of(@Nonnull FlowExecutionOwner owner) {
+        if (!isBuildAgentErrorsEnabled()) {
+            return null;
+        }
+        try {
+            Queue.Executable executable = owner.getExecutable();
+            if (executable instanceof WorkflowRun) {
+                return new GradleEnterpriseExceptionTaskListenerDecorator((WorkflowRun) executable);
+            }
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
+        }
+        return null;
     }
 
     @SuppressWarnings("rawtypes")
-    public static class GradleEnterpriseExceptionTaskListenerDecorator extends TaskListenerDecorator {
+    public static class GradleEnterpriseExceptionTaskListenerDecorator extends TaskListenerDecorator implements Serializable {
         private static final long serialVersionUID = 1L;
 
         private final transient Run run;
@@ -40,12 +51,16 @@ public class GradleEnterpriseExceptionTaskListenerDecoratorFactory extends Dynam
         @Nonnull
         @Override
         public OutputStream decorate(@Nonnull OutputStream logger) {
-            InjectionConfig injectionConfig = InjectionConfig.get();
-            if (injectionConfig.isEnabled() && injectionConfig.isCheckForBuildAgentErrors()) {
+            if (isBuildAgentErrorsEnabled()) {
                 return new GradleEnterpriseExceptionLogProcessor(logger, run);
             }
             return logger;
         }
+    }
+
+    static boolean isBuildAgentErrorsEnabled() {
+        InjectionConfig injectionConfig = InjectionConfig.get();
+        return injectionConfig.isEnabled() && injectionConfig.isCheckForBuildAgentErrors();
     }
 
 }
