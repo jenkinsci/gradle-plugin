@@ -35,7 +35,7 @@ dependencies {
 
     implementation("org.jenkins-ci:acceptance-test-harness:5581.vfd8e43f46a_03")
 
-    testImplementation(platform("io.netty:netty-bom:4.1.93.Final"))
+    testImplementation(platform("io.netty:netty-bom:4.1.94.Final"))
     testImplementation("io.ratpack:ratpack-test:2.0.0-rc-1")
 
     add(gradlePlugin.name, project(path = ":", configuration = "gradlePluginJpi"))
