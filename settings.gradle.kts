@@ -21,7 +21,7 @@ val ciJenkinsBuild by gradleExt { System.getenv("JENKINS_URL") != null }
 val ciTeamCityBuild by gradleExt { System.getenv("TEAMCITY_VERSION") != null }
 val isCi by gradleExt { ciJenkinsBuild || ciTeamCityBuild }
 val gradleEnterpriseMavenExtensionVersion by gradleExt { "1.17.3" }
-val commonCustomUserDataMavenExtensionVersion by gradleExt { "1.12" }
+val commonCustomUserDataMavenExtensionVersion by gradleExt { "1.12.1" }
 
 gradleEnterprise {
     buildScan {
