@@ -75,6 +75,11 @@ class BuildScanInjectionGradleWithDurableTaskStepUseWatchingIntegrationTest exte
         then:
         j.assertLogContains('password=****', secondRun)
         j.assertLogNotContains(secret, secondRun)
+
+        cleanup:
+        System.err.println('---%<--- agent logs')
+        agent.computer.logText.writeLogTo(0, System.err)
+        System.err.println('--->%---')
     }
 
 }

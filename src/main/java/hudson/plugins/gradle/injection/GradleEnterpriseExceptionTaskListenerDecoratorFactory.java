@@ -51,7 +51,7 @@ public class GradleEnterpriseExceptionTaskListenerDecoratorFactory implements Ta
         @Nonnull
         @Override
         public OutputStream decorate(@Nonnull OutputStream logger) {
-            if (isBuildAgentErrorsEnabled()) {
+            if (run != null) {
                 return new GradleEnterpriseExceptionLogProcessor(logger, run);
             }
             return logger;
