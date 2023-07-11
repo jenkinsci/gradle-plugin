@@ -1,12 +1,16 @@
 package hudson.plugins.gradle.injection;
 
 import hudson.console.ConsoleNote;
+import hudson.model.Actionable;
 import hudson.model.Run;
 import hudson.plugins.gradle.AbstractGradleLogProcessor;
 import hudson.plugins.gradle.BuildAgentError;
 import hudson.plugins.gradle.BuildToolType;
 
+import javax.annotation.Nullable;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleLogProcessor {
 
@@ -24,9 +28,13 @@ public final class GradleEnterpriseExceptionLogProcessor extends AbstractGradleL
 
     private final BuildAgentErrorListener listener;
 
-    public GradleEnterpriseExceptionLogProcessor(OutputStream out, Run<?, ?> build) {
-        super(out, build.getCharset());
-        this.listener = new DefaultBuildAgentErrorListener(build);
+    public GradleEnterpriseExceptionLogProcessor(OutputStream out, @Nullable Run<?, ?> build) {
+        this(out, build != null ? build.getCharset() : StandardCharsets.UTF_8, build);
+    }
+
+    public GradleEnterpriseExceptionLogProcessor(OutputStream out, Charset charset, Actionable actionable) {
+        super(out, charset);
+        this.listener = new DefaultBuildAgentErrorListener(actionable);
     }
 
     @Override
