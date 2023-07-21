@@ -14,7 +14,7 @@ public class GradleEnterpriseExceptionLogFilter extends ConsoleLogFilter impleme
     @Override
     public OutputStream decorateLogger(Run build, OutputStream logger) {
         InjectionConfig injectionConfig = InjectionConfig.get();
-        if (injectionConfig.isEnabled() && injectionConfig.isCheckForBuildAgentErrors()) {
+        if (injectionConfig.isEnabled() && injectionConfig.isCheckForBuildAgentErrors() && build != null) {
             return new GradleEnterpriseExceptionLogProcessor(logger, build);
         }
         return logger;

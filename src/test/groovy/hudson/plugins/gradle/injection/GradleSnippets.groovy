@@ -32,19 +32,19 @@ class GradleSnippets {
     static WorkflowJob pipelineJobWithCredentials(JenkinsRule j) {
         def pipelineJob = j.createProject(WorkflowJob)
 
-        pipelineJob.setDefinition(new CpsFlowDefinition("""
+        pipelineJob.setDefinition(new CpsFlowDefinition('''
     stage('Build') {
       node('foo') {
         withCredentials([string(credentialsId: 'my-creds', variable: 'PASSWORD')]) {
           if (isUnix()) {
-            sh "echo password=\$PASSWORD"
+            sh 'echo password=$PASSWORD'
           } else {
             bat "echo password=%PASSWORD%"
           }
         }
       }
     }
-""", false))
+''', false))
         return pipelineJob
     }
 
