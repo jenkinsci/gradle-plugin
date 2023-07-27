@@ -2,7 +2,7 @@ import org.gradle.api.internal.artifacts.transform.UnzipTransform
 import org.gradle.internal.os.OperatingSystem
 
 // Latest version: https://chromedriver.storage.googleapis.com/LATEST_RELEASE
-val chromeDriverVersion = "115.0.5790.114"
+val chromeDriverVersion = "114.0.5735.90"
 val ciTeamCityBuild: Boolean by (gradle as ExtensionAware).extra
 
 val os: OperatingSystem = OperatingSystem.current()
