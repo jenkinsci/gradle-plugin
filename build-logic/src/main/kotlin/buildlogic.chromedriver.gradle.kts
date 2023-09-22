@@ -2,7 +2,7 @@ import org.gradle.api.internal.artifacts.transform.UnzipTransform
 import org.gradle.internal.os.OperatingSystem
 
 // Latest version: https://chromedriver.storage.googleapis.com/LATEST_RELEASE
-val chromeDriverVersion = "114.0.5735.90"
+val chromeDriverVersion = "116.0.5845.96"
 val ciTeamCityBuild: Boolean by (gradle as ExtensionAware).extra
 
 val os: OperatingSystem = OperatingSystem.current()
@@ -18,9 +18,9 @@ repositories {
     exclusiveContent {
         forRepository {
             ivy {
-                url = uri("https://chromedriver.storage.googleapis.com/")
+                url = uri("https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/")
                 patternLayout {
-                    artifact("[revision]/[artifact]_[classifier].[ext]")
+                    artifact("[revision]/[classifier]/[artifact]-[classifier].[ext]")
                 }
                 metadataSources {
                     artifact()
