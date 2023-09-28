@@ -24,6 +24,7 @@ val gradleEnterpriseMavenExtensionVersion by gradleExt { "1.19.1" }
 val commonCustomUserDataMavenExtensionVersion by gradleExt { "1.12.3" }
 
 gradleEnterprise {
+    projectId = "jenkinsci-gradle-plugin"
     buildScan {
         capture { isTaskInputFiles = true }
         isUploadInBackground = !isCi
