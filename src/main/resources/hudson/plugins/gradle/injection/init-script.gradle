@@ -23,6 +23,8 @@ initscript {
     def pluginRepositoryUrl = getInputParam('jenkinsGradlePlugin.gradle.plugin-repository.url')
     def gePluginVersion = getInputParam('jenkinsGradlePlugin.gradle-enterprise.plugin.version')
     def ccudPluginVersion = getInputParam('jenkinsGradlePlugin.ccud.plugin.version')
+    def gradlePluginRepoUsername = getInputParam('jenkinsGradlePlugin.gradle.plugin-repository.username')
+    def gradlePluginRepoPassword = getInputParam('jenkinsGradlePlugin.gradle.plugin-repository.password')
 
     def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
     def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
@@ -30,9 +32,19 @@ initscript {
     if (gePluginVersion || ccudPluginVersion && atLeastGradle4) {
         pluginRepositoryUrl = pluginRepositoryUrl ?: 'https://plugins.gradle.org/m2'
         logger.quiet("Gradle Enterprise plugins resolution: $pluginRepositoryUrl")
-
         repositories {
-            maven { url pluginRepositoryUrl }
+            maven {
+                url pluginRepositoryUrl
+                if (gradlePluginRepoUsername && gradlePluginRepoPassword) {
+                    credentials {
+                        username(gradlePluginRepoUsername)
+                        password(gradlePluginRepoPassword)
+                    }
+                    authentication {
+                        basic(BasicAuthentication)
+                    }
+                }
+            }
         }
     }
 
