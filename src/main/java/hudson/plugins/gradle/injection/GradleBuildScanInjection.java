@@ -122,6 +122,13 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
         if (pluginRepositoryUrl != null && InjectionUtil.isValid(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
         }
+
+        if (config.getGradlePluginRepositoryUsername() != null) {
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_USERNAME, config.getGradlePluginRepositoryUsername());
+        } else {
+            EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_USERNAME);
+        }
+
         String ccudPluginVersion = config.getCcudPluginVersion();
         if (ccudPluginVersion != null && InjectionUtil.isValid(InjectionConfig.checkVersion(ccudPluginVersion))) {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION, ccudPluginVersion);

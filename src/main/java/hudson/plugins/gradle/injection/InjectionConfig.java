@@ -58,6 +58,8 @@ public class InjectionConfig extends GlobalConfiguration {
     private String gradlePluginVersion;
     private String ccudPluginVersion;
     private String gradlePluginRepositoryUrl;
+    private String gradlePluginRepositoryUsername;
+    private Secret gradlePluginRepositoryPassword;
     private ImmutableList<NodeLabelItem> gradleInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> gradleInjectionDisabledNodes;
 
@@ -145,6 +147,30 @@ public class InjectionConfig extends GlobalConfiguration {
             this.accessKey = null;
         } else {
             this.accessKey = accessKey;
+        }
+    }
+
+    @CheckForNull
+    public String getGradlePluginRepositoryUsername() {
+        return gradlePluginRepositoryUsername;
+    }
+
+    @DataBoundSetter
+    public void setGradlePluginRepositoryUsername(String gradlePluginRepositoryUsername) {
+        this.gradlePluginRepositoryUsername = Util.fixEmptyAndTrim(gradlePluginRepositoryUsername);
+    }
+
+    @CheckForNull
+    public Secret getGradlePluginRepositoryPassword() {
+        return gradlePluginRepositoryPassword;
+    }
+
+    @DataBoundSetter
+    public void setGradlePluginRepositoryPassword(Secret gradlePluginRepositoryPassword) {
+        if (Util.fixEmptyAndTrim(gradlePluginRepositoryPassword.getPlainText()) == null) {
+            this.gradlePluginRepositoryPassword = null;
+        } else {
+            this.gradlePluginRepositoryPassword = gradlePluginRepositoryPassword;
         }
     }
 

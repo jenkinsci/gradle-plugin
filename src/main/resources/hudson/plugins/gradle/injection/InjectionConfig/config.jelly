@@ -72,6 +72,12 @@
                 <f:entry title="${%Gradle plugin repository url}" field="gradlePluginRepositoryUrl">
                     <f:textbox checkMethod="post"/>
                 </f:entry>
+                <f:entry title="${%Gradle plugin repository username}" field="gradlePluginRepositoryUsername">
+                    <f:textbox checkMethod="post"/>
+                </f:entry>
+                <f:entry title="${%Gradle plugin repository password}" field="gradlePluginRepositoryPassword">
+                    <f:password/>
+                </f:entry>
                 <f:entry title="${%Gradle auto-injection enabled nodes}"
                          help="/plugin/gradle/help-gradleInjectionEnabledNodes.html">
                     <f:repeatableProperty field="gradleInjectionEnabledNodes">
