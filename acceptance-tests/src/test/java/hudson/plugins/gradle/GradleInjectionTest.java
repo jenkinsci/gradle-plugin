@@ -159,6 +159,29 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     }
 
     @Test
+    @WithPlugins("envinject")
+    public void gradlePluginRepoPasswordIsMasked() {
+        // given
+        setGradlePluginRepositoryPassword("foo");
+
+        FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
+        job.copyDir(resource("/simple_gradle_project"));
+        GradleStep gradle = job.addBuildStep(GradleStep.class);
+        gradle.setVersion(GRADLE_VERSION);
+        gradle.setSwitches("--no-daemon");
+        gradle.setTasks("helloWorld");
+        job.save();
+
+        // when
+        Build build = job.startBuild();
+
+        // then
+        build.shouldSucceed();
+        assertBuildScanPublished(build);
+        build.action(EnvInjectAction.class).shouldContain("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD", "[*******]");
+    }
+
+    @Test
     public void logsErrorIfBuildScanUploadFailed() {
         // given
         mockGeServer.rejectUpload();

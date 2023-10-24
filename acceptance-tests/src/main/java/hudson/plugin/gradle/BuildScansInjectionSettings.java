@@ -18,6 +18,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     private static final String GE_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
     private static final String GIT_REPOSITORY_FILTERS_FIELD = "vcsRepositoryFilter";
     private static final String GE_ACCESS_KEY_FIELD = "accessKey";
+    private static final String GE_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD = "gradlePluginRepositoryPassword";
 
     public BuildScansInjectionSettings(Jenkins jenkins) {
         super(jenkins);
@@ -53,6 +54,10 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
 
     public void setGradleEnterpriseAccessKey(String accessKey) {
         setBuildScansInjectionFormValue(GE_ACCESS_KEY_FIELD, accessKey);
+    }
+
+    public void setGradleEnterpriseGradlePluginRepoPassword(String password) {
+        setBuildScansInjectionFormValue(GE_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD, password);
     }
 
     public void setGradleEnterprisePluginVersion(String version) {
