@@ -33,7 +33,7 @@ dependencies {
     // same version as used by ATH
     annotationProcessor("org.jenkins-ci:annotation-indexer:1.12")
 
-    implementation("org.jenkins-ci:acceptance-test-harness:5699.v27deb_ef5796c")
+    implementation("org.jenkins-ci:acceptance-test-harness:5740.vd30f30408987")
 
     testImplementation(platform("io.netty:netty-bom:4.1.100.Final"))
     testImplementation("io.ratpack:ratpack-test:2.0.0-rc-1")
