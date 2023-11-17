@@ -8,8 +8,10 @@ import com.google.inject.name.Names;
 import hudson.plugin.gradle.ath.updatecenter.VersionOverridesDecorator;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jenkinsci.test.acceptance.guice.TestScope;
 import org.jenkinsci.test.acceptance.update_center.UpdateCenterMetadata;
 import org.jenkinsci.test.acceptance.update_center.UpdateCenterMetadataProvider;
+import org.openqa.selenium.WebDriver;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -31,6 +33,7 @@ public class GradleAcceptanceTestsModule extends AbstractModule implements Exten
             Matchers.returns(Matchers.subclassesOf(UpdateCenterMetadata.class)),
             new ResultDecoratingAdapter<>(new VersionOverridesDecorator())
         );
+        bind(WebDriver.class).toProvider(WebDriverProvider.class).in(TestScope.class);
     }
 
     private static class ResultDecoratingAdapter<T> implements MethodInterceptor {

@@ -79,8 +79,11 @@ jenkinsVersions
                 .withNormalizer(ClasspathNormalizer::class)
 
             onlyIf {
+                // Do not run on Jenkins since acceptance tests don't work there for some reason, one of them:
+                // https://github.com/jenkinsci/acceptance-test-harness/issues/1170
+                //
                 // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
-                !OperatingSystem.current().isWindows
+                !ciJenkinsBuild && !OperatingSystem.current().isWindows
             }
 
             javaLauncher.set(javaToolchains.launcherFor {
@@ -98,7 +101,7 @@ jenkinsVersions
                     mapOf(
                         "JENKINS_WAR" to downloadJenkinsTask.get().outputs.files.singleFile,
                         "LOCAL_JARS" to gradlePlugin.singleFile,
-                        "BROWSER" to if (ciJenkinsBuild) "firefox-container" else "chrome"
+                        "BROWSER" to "chrome"
                     )
                 )
             }
