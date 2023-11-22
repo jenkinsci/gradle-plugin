@@ -5,7 +5,6 @@ import java.net.URL
 
 plugins {
     java
-    id("buildlogic.chromedriver")
     id("de.undercouch.download") version "5.5.0"
 }
 

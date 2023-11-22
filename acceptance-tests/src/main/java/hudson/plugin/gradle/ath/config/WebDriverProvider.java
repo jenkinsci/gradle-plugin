@@ -62,7 +62,7 @@ class WebDriverProvider implements Provider<WebDriver> {
 
     private WebDriver createChromeWebDriver() {
         ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.setBinary("foo");
+        chromeOptions.setBrowserVersion("stable");
         chromeOptions.addArguments("--window-position=0,0");
         chromeOptions.addArguments("--window-size=1280,720");
         chromeOptions.addArguments("--lang=en_US");
