@@ -8,7 +8,7 @@ import spock.lang.Unroll
 @Subject(BuildScanLogScanner)
 class BuildScanLogScannerTest extends Specification {
 
-    def 'properly captures build scan url given #log'(List<String> log, List<String> expectedUrls) {
+    def 'properly captures build scan url given #label'(String label, List<String> log, List<String> expectedUrls) {
         given:
         def listener = new SimpleBuildScanPublishedListener()
         def scanner = new BuildScanLogScanner(listener)
@@ -20,12 +20,12 @@ class BuildScanLogScannerTest extends Specification {
         listener.buildScans == expectedUrls
 
         where:
-        log                                                                                                         || expectedUrls
-        logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"])                                             || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
-        logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]) || ["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]
-        logWithBuildScans(["https://scans.gradle.com/bzb4vn64kx3bc"])                                               || []
-        logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 1010)                                       || []
-        logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 900)                                        || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
+        label                                  | log                                                                                                         || expectedUrls
+        'One build scan URL'                   | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"])                                             || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
+        'Two build scan URLs'                  | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]) || ["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]
+        'Non build scan URL'                   | logWithBuildScans(["https://scans.gradle.com/bzb4vn64kx3bc"])                                               || []
+        'Too many lines before build scan URL' | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 1010)                                       || []
+        'Lot of lines before build scan URL'   | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 900)                                        || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
     }
 
     static List<String> logWithBuildScans(List<String> scanLinks, linesBetween = 10) {

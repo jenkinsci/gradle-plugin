@@ -198,6 +198,7 @@ tasks.test {
             maxRetries.set(2)
             maxFailures.set(5)
         }
+        failOnPassedAfterRetry.set(false)
     }
     useJUnitPlatform()
 }
