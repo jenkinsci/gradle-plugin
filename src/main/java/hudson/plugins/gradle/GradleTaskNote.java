@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 
+import static hudson.plugins.gradle.TimestampPrefixDetector.TimestampPattern;
+
 public final class GradleTaskNote extends ConsoleNote {
 
     private static final Collection<String> progressStatuses = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -21,8 +23,8 @@ public final class GradleTaskNote extends ConsoleNote {
             "NO-SOURCE"
     )));
 
-    private static final Pattern TASK_PATTERN_1 = Pattern.compile("^:([^:]\\S*)(\\s*)(\\S*)");
-    private static final Pattern TASK_PATTERN_2 = Pattern.compile("^> Task :([^:]\\S*)(\\s*)(\\S*)");
+    private static final Pattern TASK_PATTERN_1 = Pattern.compile("^(?:" + TimestampPattern + ")?:([^:]\\S*)(\\s*)(\\S*)");
+    private static final Pattern TASK_PATTERN_2 = Pattern.compile("^(?:" + TimestampPattern + ")?> Task :([^:]\\S*)(\\s*)(\\S*)");
 
     @Override
     public ConsoleAnnotator annotate(Object context, MarkupText text, int charPos) {
@@ -30,6 +32,7 @@ public final class GradleTaskNote extends ConsoleNote {
         if (!ENABLED)
             return null;
 
+        int timestampPrefix = TimestampPrefixDetector.detectTimestampPrefix(text.getText());
         int prefixLength = 1;
         MarkupText.SubText t = text.findToken(TASK_PATTERN_1);
         if (t == null) {
@@ -46,13 +49,13 @@ public final class GradleTaskNote extends ConsoleNote {
 
         // annotate task and progress status
         if (task != null && !task.isEmpty()) {
-            t.addMarkup(1, task.length() + prefixLength, "<b class=gradle-task>", "</b>");
-        }
-        if (progressStatus != null && !progressStatus.isEmpty()
+            t.addMarkup(timestampPrefix + 1, timestampPrefix + task.length() + prefixLength, "<b class=\"gradle-task\">", "</b>");
+            if (progressStatus != null && !progressStatus.isEmpty()
                 && progressStatuses.contains(progressStatus)) {
-            t.addMarkup(task.length() + delimiterSpace.length() + prefixLength,
-                    text.length(), "<span class=gradle-task-progress-status>",
+                t.addMarkup(timestampPrefix + task.length() + delimiterSpace.length() + prefixLength,
+                    text.length(), "<span class=\"gradle-task-progress-status\">",
                     "</span>");
+            }
         }
 
         return null;
