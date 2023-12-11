@@ -4,6 +4,7 @@ import hudson.plugins.timestamper.TimestamperConfig
 import hudson.slaves.DumbSlave
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
+import org.jvnet.hudson.test.JenkinsRule
 
 class GradleConsoleAnnotatorIntegrationTest extends BaseGradleIntegrationTest {
 
@@ -42,6 +43,7 @@ class GradleConsoleAnnotatorIntegrationTest extends BaseGradleIntegrationTest {
         def b = j.buildAndAssertSuccess(pipelineJob)
 
         then:
+        println "logs: \n${JenkinsRule.getLog(b)}"
         def client = j.createWebClient()
         def html = client.goTo(b.getUrl() + "console")
         html.getByXPath("//b[@class='gradle-task']")*.textContent*.toString() == [
