@@ -4,7 +4,6 @@ import hudson.plugins.timestamper.TimestamperConfig
 import hudson.slaves.DumbSlave
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
-import org.jvnet.hudson.test.JenkinsRule
 
 class GradleConsoleAnnotatorIntegrationTest extends BaseGradleIntegrationTest {
 
