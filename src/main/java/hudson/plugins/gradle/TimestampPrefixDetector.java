@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 class TimestampPrefixDetector {
 
     static final String TimestampPattern = "\\[\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z\\] ";
-    private static final Pattern TimestampPatternR = Pattern.compile("^(" + TimestampPattern + ").*\n?$");
+    private static final Pattern TimestampPatternR = Pattern.compile("^(" + TimestampPattern + ").*(?:\r?\n)?$");
 
     static String trimTimestampPrefix(int prefix, String line) {
         return line.substring(prefix);
