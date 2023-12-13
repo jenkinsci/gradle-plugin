@@ -105,7 +105,7 @@ dependencies {
         because("VCS repositories filtering is supported for Gradle Enterprise auto-injection")
     }
 
-    implementation("commons-validator:commons-validator:1.7") {
+    implementation("commons-validator:commons-validator:1.8.0") {
         exclude(group = "commons-beanutils", module = "commons-beanutils")
         exclude(group = "commons-logging", module = "commons-logging")
     }
