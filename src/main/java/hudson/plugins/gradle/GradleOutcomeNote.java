@@ -31,6 +31,8 @@ import hudson.console.ConsoleNote;
 
 import java.util.regex.Pattern;
 
+import static hudson.plugins.gradle.TimestampPrefixDetector.TimestampPattern;
+
 /**
  * Annotates the BUILD SUCCESSFUL/FAILED line of the Ant execution.
  *
@@ -38,7 +40,7 @@ import java.util.regex.Pattern;
  */
 public class GradleOutcomeNote extends ConsoleNote {
 
-    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("^(BUILD \\S*)");
+    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("^(?:" + TimestampPattern + ")?(BUILD \\S*)");
 
     public GradleOutcomeNote() {
     }
@@ -49,12 +51,13 @@ public class GradleOutcomeNote extends ConsoleNote {
         if (t == null) {
             return null;
         }
+        int timestampPrefix = TimestampPrefixDetector.detectTimestampPrefix(text.getText());
         String buildStatus = t.group(1);
         if (text.getText().contains("FAIL"))
-            text.addMarkup(0, buildStatus.length(),
+            text.addMarkup(timestampPrefix, timestampPrefix + buildStatus.length(),
                     "<span class=gradle-outcome-failure>", "</span>");
         if (text.getText().contains("SUCCESS"))
-            text.addMarkup(0, buildStatus.length(),
+            text.addMarkup(timestampPrefix, timestampPrefix + buildStatus.length(),
                     "<span class=gradle-outcome-success>", "</span>");
         return null;
     }
