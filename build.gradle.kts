@@ -9,7 +9,7 @@ import java.util.zip.ZipFile
 plugins {
     id("org.jenkins-ci.jpi") version "0.50.0"
     id("ru.vyarus.animalsniffer") version "1.7.1"
-    id("com.github.spotbugs") version "6.0.2"
+    id("com.github.spotbugs") version "6.0.4"
     id("codenarc")
     id("buildlogic.reproducible-archives")
 }
