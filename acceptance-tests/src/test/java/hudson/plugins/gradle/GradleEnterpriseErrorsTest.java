@@ -59,7 +59,7 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
             .hasRowForBuild(build);
     }
 
-    @ActionPageObject("gradle_enterprise")
+    @ActionPageObject("develocity")
     public static class GeErrorPage extends Action {
 
         public GeErrorPage(ContainerPageObject parent, String relative) {
@@ -74,7 +74,7 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
         public GeErrorPage canClickActionButton() {
             // Go to home page
             parent.open();
-            String label = "Gradle Enterprise";
+            String label = "Develocity";
             find(By.linkText(label)).click();
             waitFor(by.xpath("//h1[normalize-space(text()) = '%s']", label));
             return this;

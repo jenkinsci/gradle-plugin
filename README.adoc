@@ -12,7 +12,7 @@ image:https://img.shields.io/jenkins/plugin/i/gradle.svg?color=blue[Jenkins Plug
 This plugin adds http://www.gradle.org/[Gradle] Support to Jenkins.
 http://www.gradle.org/[Gradle] is managed as another tool inside Jenkins (the same way as Ant or Maven), including support for automatic installation and a new build step is provided to execute Gradle tasks.
 
-It also allows detecting https://gradle.com/build-scans/[Build Scans] in arbitrary console logs, for Maven and Gradle builds and display them in the Jenkins UI.
+It also allows detecting https://gradle.com/build-scans/[Develocity] in arbitrary console logs, for Maven and Gradle builds and display them in the Jenkins UI.
 
 You can have the https://docs.gradle.com/enterprise/gradle-plugin/[Develocity Gradle plugin] and the https://docs.gradle.com/enterprise/maven-extension/[Develocity Maven extension] automatically injected into your Gradle and Maven builds.
 See <<Develocity integration>> for more details.
