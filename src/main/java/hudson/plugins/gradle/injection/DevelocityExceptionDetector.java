@@ -2,13 +2,13 @@ package hudson.plugins.gradle.injection;
 
 import hudson.plugins.gradle.BuildToolType;
 
-public interface GradleEnterpriseExceptionDetector {
+public interface DevelocityExceptionDetector {
 
     BuildToolType getBuildToolType();
 
     boolean detect(String line);
 
-    final class ByPrefix implements GradleEnterpriseExceptionDetector {
+    final class ByPrefix implements DevelocityExceptionDetector {
 
         private final BuildToolType buildToolType;
         private final String prefix;

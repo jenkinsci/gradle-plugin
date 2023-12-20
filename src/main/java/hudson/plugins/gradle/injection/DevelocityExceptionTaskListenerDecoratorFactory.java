@@ -17,9 +17,9 @@ import java.util.logging.Logger;
 
 @SuppressWarnings("unused")
 @Extension
-public class GradleEnterpriseExceptionTaskListenerDecoratorFactory implements TaskListenerDecorator.Factory {
+public class DevelocityExceptionTaskListenerDecoratorFactory implements TaskListenerDecorator.Factory {
 
-    private static final Logger LOGGER = Logger.getLogger(GradleEnterpriseExceptionTaskListenerDecoratorFactory.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(DevelocityExceptionTaskListenerDecoratorFactory.class.getName());
 
     @Override
     @CheckForNull
@@ -30,7 +30,7 @@ public class GradleEnterpriseExceptionTaskListenerDecoratorFactory implements Ta
         try {
             Queue.Executable executable = owner.getExecutable();
             if (executable instanceof WorkflowRun) {
-                return new GradleEnterpriseExceptionTaskListenerDecorator((WorkflowRun) executable);
+                return new DevelocityExceptionTaskListenerDecorator((WorkflowRun) executable);
             }
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, null, ex);
@@ -39,12 +39,12 @@ public class GradleEnterpriseExceptionTaskListenerDecoratorFactory implements Ta
     }
 
     @SuppressWarnings("rawtypes")
-    public static class GradleEnterpriseExceptionTaskListenerDecorator extends TaskListenerDecorator implements Serializable {
+    public static class DevelocityExceptionTaskListenerDecorator extends TaskListenerDecorator implements Serializable {
         private static final long serialVersionUID = 1L;
 
         private final transient Run run;
 
-        public GradleEnterpriseExceptionTaskListenerDecorator(Run run) {
+        public DevelocityExceptionTaskListenerDecorator(Run run) {
             this.run = run;
         }
 
@@ -52,7 +52,7 @@ public class GradleEnterpriseExceptionTaskListenerDecoratorFactory implements Ta
         @Override
         public OutputStream decorate(@Nonnull OutputStream logger) {
             if (run != null) {
-                return new GradleEnterpriseExceptionLogProcessor(logger, run);
+                return new DevelocityExceptionLogProcessor(logger, run);
             }
             return logger;
         }

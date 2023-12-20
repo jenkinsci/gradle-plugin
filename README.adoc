@@ -14,8 +14,8 @@ http://www.gradle.org/[Gradle] is managed as another tool inside Jenkins (the sa
 
 It also allows detecting https://gradle.com/build-scans/[Build Scans] in arbitrary console logs, for Maven and Gradle builds and display them in the Jenkins UI.
 
-You can have the https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] and the https://docs.gradle.com/enterprise/maven-extension/[Gradle Enterprise Maven extension] automatically injected into your Gradle and Maven builds.
-See <<Gradle Enterprise integration>> for more details.
+You can have the https://docs.gradle.com/enterprise/gradle-plugin/[Develocity Gradle plugin] and the https://docs.gradle.com/enterprise/maven-extension/[Develocity Maven extension] automatically injected into your Gradle and Maven builds.
+See <<Develocity integration>> for more details.
 
 == Configuration
 
@@ -89,7 +89,7 @@ image::find-build-scans.png[Find build scans,{thumbnail}]
 
 == Enriched build scans
 
-Build scans links on the Job summary page can be enriched with data fetched from the https://docs.gradle.com/enterprise/api-manual/[Gradle Enterprise server API].
+Build scans links on the Job summary page can be enriched with data fetched from the https://docs.gradle.com/enterprise/api-manual/[Develocity server API].
 If enabled, the project name, requested tasks, build tool version, build outcome and build scan links will be provided.
 This feature is available for both Gradle and Maven builds and compatible with auto-injection documented below.
 
@@ -99,7 +99,7 @@ image::enriched-build-scans.png[Enriched build scans,{thumbnail}]
 > - Build scans published on the public instance (https://scans.gradle.com) are not eligible.
 
 > **Note**
-> - Enabling this feature will trigger 2 HTTP requests to the Gradle Enterprise server per build scan published.
+> - Enabling this feature will trigger 2 HTTP requests to the Develocity server per build scan published.
 
 === Enriched build scans configuration
 
@@ -113,9 +113,9 @@ HTTP client settings can also be customized.
 
 image::enriched-build-scans-configuration.png[Enriched build scans configuration,{thumbnail}]
 
-== Gradle Enterprise integration
+== Develocity integration
 
-The plugin can be configured to inject the https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] or the https://docs.gradle.com/enterprise/maven-extension/[Gradle Enterprise Maven extension] into any Gradle or Maven build that is executed on the Jenkins server or on any of its connected agents.
+The plugin can be configured to inject the https://docs.gradle.com/enterprise/gradle-plugin/[Develocity Gradle plugin] or the https://docs.gradle.com/enterprise/maven-extension/[Develocity Maven extension] into any Gradle or Maven build that is executed on the Jenkins server or on any of its connected agents.
 To achieve this, the plugin installs various files on each agent depending on the configuration via the global options in the `Manage Jenkins/Configure System` section.
 
 The same auto-injection behavior is available for the https://github.com/gradle/common-custom-user-data-gradle-plugin[Common Custom User Data Gradle plugin] and the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven extension].
@@ -129,12 +129,12 @@ The auto-injection is split into several levels to have fine-grained control ove
 
 ==== Global
 
-To globally enable the auto-injection, click the `Enable auto-injection` checkbox in the `Gradle Enterprise integration` section of the global options in the `Manage Jenkins/Configure System` section.
-Next set the URL of the Gradle Enterprise instance to which the build scans should be published to.
+To globally enable the auto-injection, click the `Enable auto-injection` checkbox in the `Develocity integration` section of the global options in the `Manage Jenkins/Configure System` section.
+Next set the URL of the Develocity instance to which the build scans should be published to.
 
 image::enable-auto-injection.png[Enable auto-injection,{thumbnail}]
 
-Optionally you can click the `Enforce Gradle Enterprise server url` checkbox to enforce the configured Gradle Enterprise URL over a URL configured in the project's build (only applies to Gradle projects).
+Optionally you can click the `Enforce Develocity server url` checkbox to enforce the configured Develocity URL over a URL configured in the project's build (only applies to Gradle projects).
 
 ===== VCS repository filtering (Beta)
 
@@ -172,7 +172,7 @@ image::general-git-plugin-not-installed.png[Git Plugin is not installed, {thumbn
 
 ==== Gradle
 
-To enable the auto-injection for Gradle builds, set the desired https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] version in the `Gradle Enterprise Gradle plugin version` field in the `Gradle settings` section of the configuration form.
+To enable the auto-injection for Gradle builds, set the desired https://docs.gradle.com/enterprise/gradle-plugin/[Develocity Gradle plugin] version in the `Develocity Gradle plugin version` field in the `Gradle settings` section of the configuration form.
 
 image::gradle-settings.png[Gradle settings,{thumbnail}]
 
@@ -180,7 +180,7 @@ Optionally set the desired version of the https://github.com/gradle/common-custo
 
 ==== Maven
 
-To enable the auto-injection for Maven builds, click the `Enable Gradle Enterprise Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
+To enable the auto-injection for Maven builds, click the `Enable Develocity Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
 
 image::maven-settings.png[Maven settings,{thumbnail}]
 
@@ -193,18 +193,18 @@ To see which versions are injected, refer to <<Auto-injection compatibility>>.
 
 === Disable auto-injection
 
-Disabling the auto-injection requires that all Gradle Enterprise resources are cleaned up from the agents.
+Disabling the auto-injection requires that all Develocity resources are cleaned up from the agents.
 To achieve this, the Gradle or Maven injections must be disabled individually (see the following sections).
 This triggers a cleanup of the resources.
 If the auto-injection should be disabled globally, then uncheck the `Enable auto-injection` checkbox as well.
 
 ==== Gradle
 
-To disable the auto-injection for Gradle builds, remove the `Gradle Enterprise Gradle plugin version` in the `Gradle settings` section of the configuration form.
+To disable the auto-injection for Gradle builds, remove the `Develocity Gradle plugin version` in the `Gradle settings` section of the configuration form.
 
 ==== Maven
 
-To disable the auto-injection for Maven builds, uncheck the `Enable Gradle Enterprise Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
+To disable the auto-injection for Maven builds, uncheck the `Enable Develocity Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
 
 === Control auto-injection based on node labels
 
@@ -223,70 +223,70 @@ The following sections list all available configuration options which can be set
 `Enable auto-injection` +
 Globally enable auto-injection.
 
-`Gradle Enterprise server url` +
-The URL of the Gradle Enterprise instance.
+`Develocity server url` +
+The URL of the Develocity instance.
 
 `Allow untrusted server` +
 Whether to allow publishing to a server with a self-signed certificate.
 
-`Gradle Enterprise access key` +
-The access key for authenticating with the Gradle Enterprise server.
+`Develocity access key` +
+The access key for authenticating with the Develocity server.
 The access key is stored encrypted within the Jenkins instance. During the job execution, the access key is decrypted and set as `GRADLE_ENTERPRISE_ACCESS_KEY` environment variable.
-Refer to the https://docs.gradle.com/enterprise/gradle-plugin/#via_environment_variable[Gradle Enterprise Gradle plugin manual] and the https://docs.gradle.com/enterprise/maven-extension/#via_environment_variable[Gradle Enterprise Maven Extension manual] for more details about this configuration.
+Refer to the https://docs.gradle.com/enterprise/gradle-plugin/#via_environment_variable[Develocity Gradle plugin manual] and the https://docs.gradle.com/enterprise/maven-extension/#via_environment_variable[Develocity Maven Extension manual] for more details about this configuration.
 
 ==== Gradle specific configuration options
 
-`Gradle Enterprise Gradle plugin version` +
-Enables auto-injection for Gradle builds and defines which version of the https://docs.gradle.com/enterprise/gradle-plugin/[Gradle Enterprise Gradle plugin] to use.
+`Develocity Gradle plugin version` +
+Enables auto-injection for Gradle builds and defines which version of the https://docs.gradle.com/enterprise/gradle-plugin/[Develocity Gradle plugin] to use.
 
 `Common Custom User Data Gradle plugin version` +
 Defines which version of the https://github.com/gradle/common-custom-user-data-gradle-plugin[Common Custom User Data Gradle plugin] to use.
 
 `Gradle plugin repository url` +
-The URL of the repository to use to resolve the Gradle Enterprise Gradle plugin and the Common Custom User Data Gradle plugin.
+The URL of the repository to use to resolve the Develocity Gradle plugin and the Common Custom User Data Gradle plugin.
 This is required if the Jenkins agents are not able to access the https://plugins.gradle.org[Gradle Plugin Portal].
 
 `Gradle auto-injection enabled nodes` +
-A list of node labels on which the Gradle Enterprise Gradle plugin or Common Custom User Data Gradle plugin injection should be enabled.
+A list of node labels on which the Develocity Gradle plugin or Common Custom User Data Gradle plugin injection should be enabled.
 By default, all nodes are enabled.
 
 `Gradle auto-injection disabled nodes` +
-A list of node labels on which the Gradle Enterprise Gradle plugin or Common Custom User Data Gradle plugin injection should be disabled.
+A list of node labels on which the Develocity Gradle plugin or Common Custom User Data Gradle plugin injection should be disabled.
 By default, all nodes are enabled.
 
 ==== Maven specific configuration options
 
-`Enable Gradle Enterprise Maven extension auto-injection` +
-Enables auto-injection for Maven builds and injects https://docs.gradle.com/enterprise/maven-extension[Gradle Enterprise Maven extension].
+`Enable Develocity Maven extension auto-injection` +
+Enables auto-injection for Maven builds and injects https://docs.gradle.com/enterprise/maven-extension[Develocity Maven extension].
 
 `Enable Common Custom User Data Maven extension auto-injection` +
 Enables auto-injection of https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven extension].
 
 `Maven auto-injection enabled nodes` +
-A list of node labels where the Gradle Enterprise Maven extension or Common Custom User Data Maven extension injection should be enabled.
+A list of node labels where the Develocity Maven extension or Common Custom User Data Maven extension injection should be enabled.
 By default, all nodes are enabled.
 
 `Maven auto-injection disabled nodes` +
-A list of node labels where the Gradle Enterprise Maven extension or Common Custom User Data Maven extension injection should be disabled.
+A list of node labels where the Develocity Maven extension or Common Custom User Data Maven extension injection should be disabled.
 By default, all nodes are enabled.
 
 === Auto-injection compatibility
-The following sections list the compatibility of the plugin with the Gradle Enterprise version based on the given build tool in use.
+The following sections list the compatibility of the plugin with the Develocity version based on the given build tool in use.
 
 ==== For Gradle builds
-For Gradle builds the version used for the Gradle Enterprise Gradle plugin is defined in the `Gradle Enterprise Gradle plugin version` field in the `Gradle settings` section of the configuration form.
+For Gradle builds the version used for the Develocity Gradle plugin is defined in the `Develocity Gradle plugin version` field in the `Gradle settings` section of the configuration form.
 See <<Enable auto-injection>> for details.
-The compatibility of the specified version with Gradle Enterprise can be found https://docs.gradle.com/enterprise/compatibility/#gradle_enterprise_gradle_plugin[here].
+The compatibility of the specified version with Develocity can be found https://docs.gradle.com/enterprise/compatibility/#gradle_enterprise_gradle_plugin[here].
 
-For the optional Common Custom User Data Gradle plugin which is defined the same form, you can see the compatibility of the specified version with the Gradle Enterprise Gradle plugin https://github.com/gradle/common-custom-user-data-gradle-plugin#version-compatibility[here].
+For the optional Common Custom User Data Gradle plugin which is defined the same form, you can see the compatibility of the specified version with the Develocity Gradle plugin https://github.com/gradle/common-custom-user-data-gradle-plugin#version-compatibility[here].
 
 ==== For Maven builds
-For Maven builds the version of the Gradle Enterprise Maven extension is bundled into the plugin, meaning that the user can’t change what version is injected into the Maven build.
+For Maven builds the version of the Develocity Maven extension is bundled into the plugin, meaning that the user can’t change what version is injected into the Maven build.
 
-The following table shows the compatibility of the plugin version with Gradle Enterprise:
+The following table shows the compatibility of the plugin version with Develocity:
 
 |===
-|Jenkins Gradle Plugin version  | Injected Gradle Enterprise Maven extension version | Injected Common Custom User Data Maven extension version  | Minimum supported Gradle Enterprise version
+|Jenkins Gradle Plugin version  | Injected Develocity Maven extension version        | Injected Common Custom User Data Maven extension version  | Minimum supported Develocity version
 |Next version                   | 1.20                                               | 1.12.5                                                    | 2023.4
 |2.9                            | 1.19.3                                             | 1.12.4                                                    | 2023.3
 |2.8.2                          | 1.18.1                                             | 1.12.2                                                    | 2023.2
@@ -310,14 +310,14 @@ The following table shows the compatibility of the plugin version with Gradle En
 
 == Disabling/uninstalling Gradle Jenkins plugin
 
-To ensure that all Gradle Enterprise resources are cleaned up from the agents, before disabling/uninstalling the plugin the auto-injection has to be manually disabled. Please, refer to the <<Disable auto-injection>> section for details.
+To ensure that all Develocity resources are cleaned up from the agents, before disabling/uninstalling the plugin the auto-injection has to be manually disabled. Please, refer to the <<Disable auto-injection>> section for details.
 
 == Upgrade notes
 
 === 2.0
 
 > **Note**
-> - These upgrade notes only apply if you configured the Gradle Enterprise auto-injection feature.
+> - These upgrade notes only apply if you configured the Develocity auto-injection feature.
 
 A new form based configuration was introduced in this version, which replaces the configuration via environment variables. There is no automatic migration, therefore you need to manually migrate the already configured auto-injection via environment variables you'd need to follow these steps:
 

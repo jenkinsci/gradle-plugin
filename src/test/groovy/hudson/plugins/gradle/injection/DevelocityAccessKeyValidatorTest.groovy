@@ -5,12 +5,12 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 @Unroll
-@Subject(GradleEnterpriseAccessKeyValidator)
-class GradleEnterpriseAccessKeyValidatorTest extends Specification {
+@Subject(DevelocityAccessKeyValidator)
+class DevelocityAccessKeyValidatorTest extends Specification {
 
     def 'valid access key: #accessKey'(String accessKey) {
         expect:
-        GradleEnterpriseAccessKeyValidator.instance.isValid(accessKey)
+        DevelocityAccessKeyValidator.instance.isValid(accessKey)
 
         where:
         accessKey << [
@@ -29,7 +29,7 @@ class GradleEnterpriseAccessKeyValidatorTest extends Specification {
 
     def 'invalid access key: #accessKey'(String accessKey) {
         expect:
-        !GradleEnterpriseAccessKeyValidator.instance.isValid(accessKey)
+        !DevelocityAccessKeyValidator.instance.isValid(accessKey)
 
         where:
         accessKey << [

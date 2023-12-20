@@ -3,8 +3,8 @@
   <components>
     <component>
       <role>com.gradle.maven.extension.api.GradleEnterpriseListener</role>
-      <role-hint>gradle-enterprise-configurer</role-hint>
-      <implementation>com.gradle.jenkins.maven.extension.internal.GradleEnterpriseConfigurerListener</implementation>
+      <role-hint>develocity-configurer</role-hint>
+      <implementation>com.gradle.jenkins.maven.extension.internal.DevelocityConfigurerListener</implementation>
       <isolated-realm>false</isolated-realm>
     </component>
   </components>

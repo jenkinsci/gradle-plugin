@@ -19,20 +19,20 @@ import java.util.function.Supplier;
 @Extension
 public class InjectionConfigChangeListener extends SaveableListener {
 
-    private final GradleEnterpriseInjector injector;
+    private final DevelocityInjector injector;
     private final Supplier<EnvVars> globalEnvVarsSupplier;
     private final Supplier<Collection<Computer>> computersSupplier;
 
     public InjectionConfigChangeListener() {
         this(
-            new GradleEnterpriseInjector(),
+            new DevelocityInjector(),
             new JenkinsGlobalEnvVars(),
             new JenkinsComputers()
         );
     }
 
     @VisibleForTesting
-    InjectionConfigChangeListener(GradleEnterpriseInjector injector,
+    InjectionConfigChangeListener(DevelocityInjector injector,
                                   Supplier<EnvVars> globalEnvVarsSupplier,
                                   Supplier<Collection<Computer>> computersSupplier) {
         this.injector = injector;

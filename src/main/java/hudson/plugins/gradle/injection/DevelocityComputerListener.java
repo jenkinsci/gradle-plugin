@@ -17,20 +17,20 @@ import java.util.logging.Logger;
  * @see InjectionConfig
  */
 @Extension
-public class GradleEnterpriseComputerListener extends ComputerListener {
+public class DevelocityComputerListener extends ComputerListener {
 
-    private static final Logger LOGGER = Logger.getLogger(GradleEnterpriseComputerListener.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(DevelocityComputerListener.class.getName());
 
-    private final GradleEnterpriseInjector injector;
+    private final DevelocityInjector injector;
     private final Supplier<InjectionConfig> injectionConfigSupplier;
 
-    public GradleEnterpriseComputerListener() {
-        this(new GradleEnterpriseInjector(), new JenkinsInjectionConfig());
+    public DevelocityComputerListener() {
+        this(new DevelocityInjector(), new JenkinsInjectionConfig());
     }
 
     @VisibleForTesting
-    GradleEnterpriseComputerListener(GradleEnterpriseInjector injector,
-                                     Supplier<InjectionConfig> injectionConfigSupplier) {
+    DevelocityComputerListener(DevelocityInjector injector,
+                               Supplier<InjectionConfig> injectionConfigSupplier) {
         this.injector = injector;
         this.injectionConfigSupplier = injectionConfigSupplier;
     }

@@ -10,7 +10,7 @@ import spock.lang.Unroll
 
 import static hudson.plugins.gradle.injection.InjectionUtil.JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK
 
-class GradleEnterpriseComputerListenerTest extends Specification {
+class DevelocityComputerListenerTest extends Specification {
 
     def globalEnvVars = new EnvVars([GLOBAL: "true"])
     def computer = Mock(Computer)
@@ -19,7 +19,7 @@ class GradleEnterpriseComputerListenerTest extends Specification {
 
     @Subject
     def gradleEnterpriseComputerListener =
-        new GradleEnterpriseComputerListener(new GradleEnterpriseInjector(injector), { injectionConfig })
+        new DevelocityComputerListener(new DevelocityInjector(injector), { injectionConfig })
 
     @Unroll
     def "performs injection when computer gets online (isGlobalAutoInjectionCheckEnabled=#isGlobalAutoInjectionCheckEnabled, isGlobalInjectionEnabled=#isGlobalInjectionEnabled)"() {

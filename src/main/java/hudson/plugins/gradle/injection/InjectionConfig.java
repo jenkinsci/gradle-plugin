@@ -354,7 +354,7 @@ public class InjectionConfig extends GlobalConfiguration {
             return FormValidation.ok();
         }
 
-        return GradleEnterpriseAccessKeyValidator.getInstance().isValid(accessKey)
+        return DevelocityAccessKeyValidator.getInstance().isValid(accessKey)
             ? FormValidation.ok()
             : FormValidation.error(Messages.InjectionConfig_InvalidAccessKey());
     }
@@ -396,7 +396,7 @@ public class InjectionConfig extends GlobalConfiguration {
                 : FormValidation.ok();
         }
 
-        return GradleEnterpriseVersionValidator.getInstance().isValid(version)
+        return DevelocityVersionValidator.getInstance().isValid(version)
             ? FormValidation.ok()
             : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
     }
