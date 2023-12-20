@@ -25,7 +25,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     private static final String CCUD_PLUGIN_VERSION = '1.8.1'
 
-    private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
+    private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Develocity: http://foo.com"
 
     private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.4', '7.6.1', '8.0.2']
 
