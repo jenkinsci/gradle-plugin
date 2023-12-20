@@ -268,7 +268,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         then:
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
         j.assertLogContains(
-            "Gradle Enterprise plugins resolution: ${StringUtils.removeEnd(proxyAddress.toString(), "/")}", secondRun)
+            "Develocity plugins resolution: ${StringUtils.removeEnd(proxyAddress.toString(), "/")}", secondRun)
 
         cleanup:
         proxy.close()
