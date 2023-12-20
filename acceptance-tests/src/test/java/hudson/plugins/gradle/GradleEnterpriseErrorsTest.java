@@ -52,7 +52,7 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
         // single build has the error
         build.open();
         assertThat(build.find(By.cssSelector(".alert")).getText(),
-            containsString("Gradle Enterprise Gradle plugin errors detected. Please check the logs for details."));
+            containsString("Develocity Gradle plugin errors detected. Please check the logs for details."));
 
         jenkins.action(GeErrorPage.class)
             .canClickActionButton()
