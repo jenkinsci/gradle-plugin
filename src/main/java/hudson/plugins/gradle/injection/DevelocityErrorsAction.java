@@ -130,7 +130,7 @@ public class DevelocityErrorsAction implements RootAction, StaplerProxy {
             }
         }
 
-        public List<BuildToolIcon> getBuildToolIcons() {
+        public List<BuildToolIcon> getBFuildToolIcons() {
             return ImmutableList.copyOf(buildToolIcons);
         }
 
