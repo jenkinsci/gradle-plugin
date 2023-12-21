@@ -321,7 +321,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
 
         // then
         build.shouldSucceed();
-        assertBuildScanPublished(build, false, String.format("Enforcing Gradle Enterprise: %s, allowUntrustedServer: true", mockGeServer.getAddress().toString()));
+        assertBuildScanPublished(build, false, String.format("Enforcing Develocity: %s, allowUntrustedServer: true", mockGeServer.getAddress().toString()));
 
         MockGeServer.ScanTokenRequest scanTokenRequest = mockGeServer.getLastScanTokenRequest();
         assertThat(scanTokenRequest, notNullValue());
