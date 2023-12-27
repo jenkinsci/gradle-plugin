@@ -52,14 +52,14 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
         // single build has the error
         build.open();
         assertThat(build.find(By.cssSelector(".alert")).getText(),
-            containsString("Gradle Enterprise Gradle plugin errors detected. Please check the logs for details."));
+            containsString("Develocity Gradle plugin errors detected. Please check the logs for details."));
 
         jenkins.action(GeErrorPage.class)
             .canClickActionButton()
             .hasRowForBuild(build);
     }
 
-    @ActionPageObject("gradle_enterprise")
+    @ActionPageObject("develocity")
     public static class GeErrorPage extends Action {
 
         public GeErrorPage(ContainerPageObject parent, String relative) {
@@ -74,7 +74,7 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
         public GeErrorPage canClickActionButton() {
             // Go to home page
             parent.open();
-            String label = "Gradle Enterprise";
+            String label = "Develocity";
             find(By.linkText(label)).click();
             waitFor(by.xpath("//h1[normalize-space(text()) = '%s']", label));
             return this;

@@ -12,7 +12,7 @@ import spock.lang.Unroll
 @Unroll
 class BuildScanInjectionGradleWithDurableTaskStepUseWatchingIntegrationTest extends BaseGradleIntegrationTest {
 
-    private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Gradle Enterprise: http://foo.com"
+    private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Develocity: http://foo.com"
 
     @Rule
     public final TestRule durableTaskStepRule = FlagRule.systemProperty("org.jenkinsci.plugins.workflow.steps.durable_task.DurableTaskStep.USE_WATCHING", "true")

@@ -10,18 +10,18 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public final class GradleEnterpriseInjector {
+public final class DevelocityInjector {
 
-    private static final Logger LOGGER = Logger.getLogger(GradleEnterpriseInjector.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(DevelocityInjector.class.getName());
 
     private final Collection<BuildScanInjection> injectors;
 
-    public GradleEnterpriseInjector() {
+    public DevelocityInjector() {
         this(new GradleBuildScanInjection(), new MavenBuildScanInjection());
     }
 
     @VisibleForTesting
-    GradleEnterpriseInjector(BuildScanInjection... injectors) {
+    DevelocityInjector(BuildScanInjection... injectors) {
         this.injectors = Arrays.asList(injectors);
     }
 

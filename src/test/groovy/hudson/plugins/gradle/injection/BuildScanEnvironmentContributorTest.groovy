@@ -5,7 +5,7 @@ import hudson.model.ParameterValue
 import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
-import hudson.plugins.gradle.injection.BuildScanEnvironmentContributor.GradleEnterpriseParametersAction
+import hudson.plugins.gradle.injection.BuildScanEnvironmentContributor.DevelocityParametersAction
 import hudson.util.Secret
 import spock.lang.Subject
 
@@ -53,7 +53,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
 
         then:
         1 * run.addAction { action ->
-            action.is(GradleEnterpriseParametersAction.empty())
+            action.is(DevelocityParametersAction.empty())
         }
     }
 
@@ -68,7 +68,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
 
         then:
-        1 * run.addAction { GradleEnterpriseParametersAction action ->
+        1 * run.addAction { DevelocityParametersAction action ->
             def parameters = action.getAllParameters()
             parameters.size() == 1
             paramEquals(parameters.first(), 'JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
@@ -86,7 +86,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
 
         then:
-        1 * run.addAction { GradleEnterpriseParametersAction action ->
+        1 * run.addAction { DevelocityParametersAction action ->
             def parameters = action.getAllParameters()
             parameters.size() == 1
             paramEquals(parameters.first(), 'GRADLE_ENTERPRISE_ACCESS_KEY', accessKey)
@@ -103,7 +103,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
 
         then:
-        1 * run.addAction { GradleEnterpriseParametersAction action ->
+        1 * run.addAction { DevelocityParametersAction action ->
             def parameters = action.getAllParameters()
             parameters.size() == 1
             paramEquals(parameters.first(), 'JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
@@ -121,7 +121,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
 
         then:
-        1 * run.addAction { GradleEnterpriseParametersAction action ->
+        1 * run.addAction { DevelocityParametersAction action ->
             def parameters = action.getAllParameters()
             parameters.size() == 2
             paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', 'server=secret')

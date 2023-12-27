@@ -1,10 +1,10 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:i="jelly:fmt" xmlns:f="/lib/form">
-    <l:layout title="Gradle Enterprise" permission="${app.ADMINISTER}">
+    <l:layout title="Develocity" permission="${app.ADMINISTER}">
         <l:main-panel>
-            <h1>Gradle Enterprise</h1>
+            <h1>Develocity</h1>
             <f:section title="${%Unexpected errors}"/>
-            <p>Errors that were not gracefully handled by the Gradle Enterprise plugin/Gradle Enterprise Maven extension</p>
+            <p>Errors that were not gracefully handled by the Develocity plugin/Develocity Maven extension</p>
             <table id="gradle-enterprise-errors" class="pane bigtable sortable">
                 <thead>
                     <tr>

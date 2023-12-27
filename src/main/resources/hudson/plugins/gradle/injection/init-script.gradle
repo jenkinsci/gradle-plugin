@@ -31,7 +31,7 @@ initscript {
 
     if (gePluginVersion || ccudPluginVersion && atLeastGradle4) {
         pluginRepositoryUrl = pluginRepositoryUrl ?: 'https://plugins.gradle.org/m2'
-        logger.quiet("Gradle Enterprise plugins resolution: $pluginRepositoryUrl")
+        logger.quiet("Develocity plugins resolution: $pluginRepositoryUrl")
         repositories {
             maven {
                 url pluginRepositoryUrl
@@ -114,7 +114,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 }
                 if (!scanPluginComponent) {
                     logger.quiet("Applying $BUILD_SCAN_PLUGIN_CLASS via init script")
-                    logger.quiet("Connection to Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                    logger.quiet("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
                     applyPluginExternally(pluginManager, BUILD_SCAN_PLUGIN_CLASS)
                     buildScan.server = geUrl
                     buildScan.allowUntrustedServer = geAllowUntrustedServer
@@ -126,7 +126,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                 if (geUrl && geEnforceUrl) {
                     pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
                         afterEvaluate {
-                            logger.quiet("Enforcing Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                            logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
                             buildScan.server = geUrl
                             buildScan.allowUntrustedServer = geAllowUntrustedServer
                         }
@@ -150,7 +150,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
         if (gePluginVersion) {
             if (!settings.pluginManager.hasPlugin(GRADLE_ENTERPRISE_PLUGIN_ID)) {
                 logger.quiet("Applying $GRADLE_ENTERPRISE_PLUGIN_CLASS via init script")
-                logger.quiet("Connection to Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                logger.quiet("Connection to Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
                 applyPluginExternally(settings.pluginManager, GRADLE_ENTERPRISE_PLUGIN_CLASS)
                 extensionsWithPublicType(settings, GRADLE_ENTERPRISE_EXTENSION_CLASS).collect { settings[it.name] }.each { ext ->
                     ext.server = geUrl
@@ -163,7 +163,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
 
             if (geUrl && geEnforceUrl) {
                 extensionsWithPublicType(settings, GRADLE_ENTERPRISE_EXTENSION_CLASS).collect { settings[it.name] }.each { ext ->
-                    logger.quiet("Enforcing Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
+                    logger.quiet("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
                     ext.server = geUrl
                     ext.allowUntrustedServer = geAllowUntrustedServer
                 }

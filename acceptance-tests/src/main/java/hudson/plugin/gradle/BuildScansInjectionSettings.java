@@ -41,7 +41,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     }
 
     public void clickEnforceUrl() {
-        clickCheckboxOnConfig("Enforce Gradle Enterprise server url");
+        clickCheckboxOnConfig("Enforce Develocity server url");
     }
 
     public void clickAllowUntrustedServer() {
@@ -49,7 +49,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     }
 
     public void clickCheckForGradleEnterpriseErrors() {
-        clickCheckboxOnConfig("Check for the Gradle Enterprise build agent errors");
+        clickCheckboxOnConfig("Check for the Develocity build agent errors");
     }
 
     public void setGradleEnterpriseAccessKey(String accessKey) {
@@ -73,7 +73,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     }
 
     public void clickInjectMavenExtension() {
-        clickCheckboxOnConfig("Enable Gradle Enterprise Maven extension auto-injection");
+        clickCheckboxOnConfig("Enable Develocity Maven extension auto-injection");
     }
 
     private void setBuildScansInjectionFormValue(String field, String value) {

@@ -21,7 +21,7 @@ class InjectionConfigChangeListenerTest extends Specification {
 
     @Subject
     def injectionConfigChangeListener =
-        new InjectionConfigChangeListener(new GradleEnterpriseInjector(injector), { globalEnvVars }, { [computer] })
+        new InjectionConfigChangeListener(new DevelocityInjector(injector), { globalEnvVars }, { [computer] })
 
     @Unroll
     def "performs injection when configuration changes (isGlobalAutoInjectionCheckEnabled=#isGlobalAutoInjectionCheckEnabled, isGlobalInjectionEnabled=#isGlobalInjectionEnabled, isComputerOffline=#isComputerOffline)"() {

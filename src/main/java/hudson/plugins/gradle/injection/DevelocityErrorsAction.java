@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Extension
-public class GradleEnterpriseErrorsAction implements RootAction, StaplerProxy {
+public class DevelocityErrorsAction implements RootAction, StaplerProxy {
     @Override
     public String getIconFileName() {
         return isVisible() && Jenkins.get().hasPermission(Jenkins.ADMINISTER) ? "/plugin/gradle/images/svgs/gradle-build-scan.svg" : null;
@@ -32,12 +32,12 @@ public class GradleEnterpriseErrorsAction implements RootAction, StaplerProxy {
 
     @Override
     public String getDisplayName() {
-        return "Gradle Enterprise";
+        return "Develocity";
     }
 
     @Override
     public String getUrlName() {
-        return "gradle_enterprise";
+        return "develocity";
     }
 
     @Override

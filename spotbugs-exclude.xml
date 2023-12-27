@@ -30,7 +30,7 @@
     </Match>
 
     <Match>
-        <Class name="hudson.plugins.gradle.injection.GradleEnterpriseExceptionTaskListenerDecoratorFactory$GradleEnterpriseExceptionTaskListenerDecorator"/>
+        <Class name="hudson.plugins.gradle.injection.DevelocityExceptionTaskListenerDecoratorFactory$DevelocityExceptionTaskListenerDecorator"/>
         <Field name="run"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>

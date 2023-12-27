@@ -1,14 +1,14 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:section title="${%Gradle Enterprise Build Scans}">
+    <f:section title="${%Develocity Build Scans}">
 
         <f:optionalBlock field="enrichedSummaryEnabled" title="${%Enable enriched summary}" inline="true">
 
-            <f:entry title="${%Gradle Enterprise server URL override}" field="buildScanServer">
+            <f:entry title="${%Develocity server URL override}" field="buildScanServer">
                 <f:textbox />
             </f:entry>
 
-            <f:entry title="${%Gradle Enterprise access key for build scan values}" field="buildScanAccessKey">
+            <f:entry title="${%Develocity access key for build scan values}" field="buildScanAccessKey">
                 <f:password/>
             </f:entry>
 

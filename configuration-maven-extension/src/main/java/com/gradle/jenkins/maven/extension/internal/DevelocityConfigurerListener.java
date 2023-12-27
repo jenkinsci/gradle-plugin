@@ -9,11 +9,11 @@ import org.slf4j.LoggerFactory;
 
 @Component(
     role = GradleEnterpriseListener.class,
-    hint = "gradle-enterprise-configurer"
+    hint = "develocity-configurer"
 )
-public class GradleEnterpriseConfigurerListener implements GradleEnterpriseListener {
+public class DevelocityConfigurerListener implements GradleEnterpriseListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GradleEnterpriseConfigurerListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DevelocityConfigurerListener.class);
 
     // Have to be in sync with what is set in MavenBuildScanInjection
     private static final String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL";
@@ -22,7 +22,7 @@ public class GradleEnterpriseConfigurerListener implements GradleEnterpriseListe
     @Override
     public void configure(GradleEnterpriseApi api, MavenSession session) {
         if (api.getServer() != null) {
-            LOGGER.debug("Gradle Enterprise server is already configured");
+            LOGGER.debug("Develocity server is already configured");
             return;
         }
 
@@ -33,13 +33,13 @@ public class GradleEnterpriseConfigurerListener implements GradleEnterpriseListe
         }
 
         api.setServer(server);
-        LOGGER.debug("Gradle Enterprise server URL is set to: {}", server);
+        LOGGER.debug("Develocity server URL is set to: {}", server);
 
         api.getBuildScan().setUploadInBackground(false);
 
         if (Boolean.parseBoolean(System.getenv(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER))) {
             api.setAllowUntrustedServer(true);
-            LOGGER.debug("Allow communication with a Gradle Enterprise server using an untrusted SSL certificate");
+            LOGGER.debug("Allow communication with a Develocity server using an untrusted SSL certificate");
         }
     }
 }

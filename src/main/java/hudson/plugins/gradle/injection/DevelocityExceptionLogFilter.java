@@ -9,13 +9,13 @@ import java.io.Serializable;
 
 @SuppressWarnings("unused")
 @Extension
-public class GradleEnterpriseExceptionLogFilter extends ConsoleLogFilter implements Serializable {
+public class DevelocityExceptionLogFilter extends ConsoleLogFilter implements Serializable {
 
     @Override
     public OutputStream decorateLogger(Run build, OutputStream logger) {
         InjectionConfig injectionConfig = InjectionConfig.get();
         if (injectionConfig.isEnabled() && injectionConfig.isCheckForBuildAgentErrors() && build != null) {
-            return new GradleEnterpriseExceptionLogProcessor(logger, build);
+            return new DevelocityExceptionLogProcessor(logger, build);
         }
         return logger;
     }

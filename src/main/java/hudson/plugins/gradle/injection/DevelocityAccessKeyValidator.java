@@ -2,14 +2,14 @@ package hudson.plugins.gradle.injection;
 
 import com.google.common.base.Strings;
 
-public final class GradleEnterpriseAccessKeyValidator implements Validator<String> {
+public final class DevelocityAccessKeyValidator implements Validator<String> {
 
-    private static final GradleEnterpriseAccessKeyValidator INSTANCE = new GradleEnterpriseAccessKeyValidator();
+    private static final DevelocityAccessKeyValidator INSTANCE = new DevelocityAccessKeyValidator();
 
-    private GradleEnterpriseAccessKeyValidator() {
+    private DevelocityAccessKeyValidator() {
     }
 
-    public static GradleEnterpriseAccessKeyValidator getInstance() {
+    public static DevelocityAccessKeyValidator getInstance() {
         return INSTANCE;
     }
 

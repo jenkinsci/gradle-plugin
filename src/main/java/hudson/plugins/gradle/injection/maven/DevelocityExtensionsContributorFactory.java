@@ -21,9 +21,9 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Extension(optional = true)
-public class GradleEnterpriseExtensionsContributorFactory extends PlexusModuleContributorFactory {
+public class DevelocityExtensionsContributorFactory extends PlexusModuleContributorFactory {
 
-    private static final Logger LOGGER = Logger.getLogger(GradleEnterpriseExtensionsContributorFactory.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(DevelocityExtensionsContributorFactory.class.getName());
 
     private static final PlexusModuleContributor EMPTY_CONTRIBUTOR = PlexusModuleContributor.of();
     private static final Splitter UNIX_CLASSPATH_SPLITTER = Splitter.on(':').omitEmptyStrings();
@@ -54,7 +54,7 @@ public class GradleEnterpriseExtensionsContributorFactory extends PlexusModuleCo
             if (!InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion)) {
                 LOGGER.log(
                     Level.WARNING,
-                    "Detected Maven Integration plugin version {0}. For auto-injection of the Gradle Enterprise Maven extension, version {1} or above is required. Please upgrade the version of the Maven Integration plugin",
+                    "Detected Maven Integration plugin version {0}. For auto-injection of the Develocity Maven extension, version {1} or above is required. Please upgrade the version of the Maven Integration plugin",
                     new VersionNumber[]{mavenPluginVersion, InjectionUtil.MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION}
                 );
                 return EMPTY_CONTRIBUTOR;

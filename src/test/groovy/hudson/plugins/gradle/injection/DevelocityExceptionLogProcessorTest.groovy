@@ -8,7 +8,7 @@ import spock.lang.Subject
 
 import java.nio.charset.StandardCharsets
 
-class GradleEnterpriseExceptionLogProcessorTest extends Specification {
+class DevelocityExceptionLogProcessorTest extends Specification {
 
     private static final String GRADLE_PLUGIN_ERROR = "Internal error in Gradle Enterprise Gradle plugin: com.acme.FooBar"
     private static final String MAVEN_EXTENSION_ERROR = "[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar"
@@ -16,7 +16,7 @@ class GradleEnterpriseExceptionLogProcessorTest extends Specification {
     OutputStream bos = new ByteArrayOutputStream()
     Actionable actionable = new TestActionable()
     @Subject
-    GradleEnterpriseExceptionLogProcessor processor = new GradleEnterpriseExceptionLogProcessor(bos, StandardCharsets.UTF_8, actionable)
+    DevelocityExceptionLogProcessor processor = new DevelocityExceptionLogProcessor(bos, StandardCharsets.UTF_8, actionable)
 
     def "detects Maven extension error"() {
         when:

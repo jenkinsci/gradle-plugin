@@ -8,7 +8,7 @@ import hudson.model.ParametersAction;
 import hudson.model.PasswordParameterValue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.plugins.gradle.GradleEnterpriseLogger;
+import hudson.plugins.gradle.DevelocityLogger;
 import hudson.util.Secret;
 
 import javax.annotation.Nonnull;
@@ -33,37 +33,37 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
             return;
         }
 
-        run.addAction(GradleEnterpriseParametersAction.of(new GradleEnterpriseLogger(listener), secretKey, secretPassword));
+        run.addAction(DevelocityParametersAction.of(new DevelocityLogger(listener), secretKey, secretPassword));
     }
 
     private static boolean alreadyExecuted(@Nonnull Run run) {
-        return run.getAction(GradleEnterpriseParametersAction.class) != null;
+        return run.getAction(DevelocityParametersAction.class) != null;
     }
 
-    public static class GradleEnterpriseParametersAction extends ParametersAction {
+    public static class DevelocityParametersAction extends ParametersAction {
 
         private static final String GRADLE_ENTERPRISE_ACCESS_KEY = "GRADLE_ENTERPRISE_ACCESS_KEY";
         private static final String GRADLE_ENTERPRISE_REPO_PASSWORD = JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD;
 
-        private static final GradleEnterpriseParametersAction EMPTY = new GradleEnterpriseParametersAction();
+        private static final DevelocityParametersAction EMPTY = new DevelocityParametersAction();
 
-        GradleEnterpriseParametersAction(List<ParameterValue> parameters, Collection<String> additionalSafeParameters) {
+        DevelocityParametersAction(List<ParameterValue> parameters, Collection<String> additionalSafeParameters) {
             super(parameters, additionalSafeParameters);
         }
 
-        GradleEnterpriseParametersAction() {
+        DevelocityParametersAction() {
             super(Collections.emptyList());
         }
 
-        static GradleEnterpriseParametersAction empty() {
+        static DevelocityParametersAction empty() {
             return EMPTY;
         }
 
-        static GradleEnterpriseParametersAction of(GradleEnterpriseLogger logger, @Nullable Secret accessKey, @Nullable Secret repoPassword) {
+        static DevelocityParametersAction of(DevelocityLogger logger, @Nullable Secret accessKey, @Nullable Secret repoPassword) {
             List<ParameterValue> values = new ArrayList<>();
             if (accessKey != null) {
-                if (!GradleEnterpriseAccessKeyValidator.getInstance().isValid(accessKey.getPlainText())) {
-                    logger.error("Gradle Enterprise access key format is not valid");
+                if (!DevelocityAccessKeyValidator.getInstance().isValid(accessKey.getPlainText())) {
+                    logger.error("Develocity access key format is not valid");
                 } else {
                     values.add(new PasswordParameterValue(GRADLE_ENTERPRISE_ACCESS_KEY, accessKey.getPlainText()));
                 }
@@ -72,9 +72,9 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
                 values.add(new PasswordParameterValue(GRADLE_ENTERPRISE_REPO_PASSWORD, repoPassword.getPlainText()));
             }
             if (values.isEmpty()) {
-                return GradleEnterpriseParametersAction.empty();
+                return DevelocityParametersAction.empty();
             }
-            return new GradleEnterpriseParametersAction(
+            return new DevelocityParametersAction(
                 values,
                 Stream.of(GRADLE_ENTERPRISE_ACCESS_KEY, GRADLE_ENTERPRISE_REPO_PASSWORD).collect(Collectors.toSet())
             );
