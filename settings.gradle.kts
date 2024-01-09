@@ -44,7 +44,8 @@ buildCache {
     if (ciTeamCityBuild) {
         remote(gradleEnterprise.buildCache) {
             isEnabled = true
-            isPush = true
+            val accessKey = System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY")
+            isPush = !accessKey.isNullOrEmpty()
             server = System.getenv("GRADLE_CACHE_REMOTE_URL")
         }
     }
