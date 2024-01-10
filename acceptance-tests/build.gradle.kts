@@ -115,7 +115,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
         private const val LATEST_LTS_VERSION = "latest-lts"
         private const val V2_375_VERSION = "2.375.4"
 
-        private const val MIRROR = "https://get.jenkins.io"
+        private const val MIRROR = "https://updates.jenkins.io"
 
         private val JENKINS_VERSION_PATTERN = "^\\d+([.]\\d+)*?\$".toRegex()
 
@@ -128,8 +128,8 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
         private fun of(version: String, javaVersion: JavaLanguageVersion = JAVA_11): JenkinsVersion {
             val downloadUrl =
                 when (version) {
-                    LATEST_VERSION -> "${MIRROR}/war/latest/jenkins.war"
-                    LATEST_LTS_VERSION -> "${MIRROR}/war-stable/latest/jenkins.war"
+                    LATEST_VERSION -> "${MIRROR}/current/latest/jenkins.war"
+                    LATEST_LTS_VERSION -> "${MIRROR}/stable/latest/jenkins.war"
                     else -> {
                         if (!isJenkinsVersion(version)) {
                             throw GradleException("Unsupported Jenkins version '${version}'")
