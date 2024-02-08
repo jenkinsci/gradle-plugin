@@ -23,18 +23,18 @@ import spock.lang.Unroll
 @Unroll
 class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest {
 
-    private static final String CCUD_PLUGIN_VERSION = '1.8.1'
+    private static final String CCUD_PLUGIN_VERSION = '1.12.1'
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Develocity: http://foo.com"
 
-    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.4', '7.6.1', '8.0.2']
+    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.4', '7.6.4', '8.6']
 
     private static final EnvVars EMPTY_ENV = new EnvVars()
 
     def "does not capture build agent errors if checking for errors is disabled"() {
         given:
         System.setProperty(TimestampNote.systemProperty, 'true')
-        def gradleVersion = '8.1.1'
+        def gradleVersion = '8.6'
 
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -71,7 +71,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
     def "captures build agent errors if checking for errors is enabled"() {
         given:
         System.setProperty(TimestampNote.systemProperty, 'true')
-        def gradleVersion = '8.1.1'
+        def gradleVersion = '8.6'
 
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -112,7 +112,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "captures build agent errors in pipeline build if checking for errors is enabled"() {
         given:
-        def gradleVersion = '8.1.1'
+        def gradleVersion = '8.6'
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
 
@@ -147,7 +147,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         def secret = 'confidential'
         registerCredentials('my-creds', secret)
 
-        def gradleVersion = '8.1.1'
+        def gradleVersion = '8.6'
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
 
@@ -176,7 +176,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def 'skips injection if the agent is offline'() {
         given:
-        def gradleVersion = '8.0.2'
+        def gradleVersion = '8.6'
 
         def agent = createSlave("test")
 
@@ -515,7 +515,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "doesn't copy init script if already exists"() {
         given:
-        def gradleVersion = '7.5.1'
+        def gradleVersion = '8.6'
 
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -543,7 +543,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "copies init script if it was changed"() {
         given:
-        def gradleVersion = '7.5.1'
+        def gradleVersion = '8.6'
 
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -580,7 +580,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
     @SuppressWarnings("GStringExpressionWithinString")
     def "access key is injected into the build"() {
         given:
-        def gradleVersion = '8.0.1'
+        def gradleVersion = '8.6'
 
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -610,14 +610,14 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         then:
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
         j.assertLogContains("accessKey=foo.com=secret", secondRun)
-        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.13.4/token was not from Gradle Enterprise.", secondRun)
+        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.16.2/token was not from Gradle Enterprise.", secondRun)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, secondRun)
 
     }
 
     def "invalid access key is not injected into the build"() {
         given:
-        def gradleVersion = '8.0.1'
+        def gradleVersion = '8.6'
 
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
@@ -646,7 +646,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
-        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.13.4/token was not from Gradle Enterprise.", secondRun)
+        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.16.2/token was not from Gradle Enterprise.", secondRun)
 
         and:
         StringUtils.countMatches(JenkinsRule.getLog(secondRun), INVALID_ACCESS_KEY_FORMAT_ERROR) == 1
@@ -654,7 +654,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "sets all mandatory environment variables"() {
         given:
-        def gradleVersion = '8.0.2'
+        def gradleVersion = '8.6'
 
         def agent = createSlave("test")
 
@@ -680,7 +680,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.13.4'
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.16.2'
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
@@ -714,7 +714,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "sets all optional environment variables"() {
         given:
-        def gradleVersion = '8.0.2'
+        def gradleVersion = '8.6'
 
         def agent = createSlave("test")
 
@@ -745,10 +745,10 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             with(getEnvVars()) {
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == "true"
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.13.4'
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.16.2'
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == "true"
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
-                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == "1.8.1"
+                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == "1.12.1"
             }
         }
 
@@ -780,8 +780,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
         given:
-        def gradleVersion = '8.0.2'
-        gradleInstallationRule.gradleVersion = '8.0.2'
+        def gradleVersion = '8.6'
+        gradleInstallationRule.gradleVersion = '8.6'
         gradleInstallationRule.addInstallation()
 
         DumbSlave slave = createSlave()
@@ -821,7 +821,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def 'vcs repository pattern injection for pipeline remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
         given:
-        def gradleVersion = '8.0.2'
+        def gradleVersion = '8.6'
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
 
