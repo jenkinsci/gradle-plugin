@@ -732,7 +732,7 @@ node {
 
         then:
         // Project has localhost:8080 configured
-        j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise: 403 Forbidden.", build)
+        j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise.", build)
 
         where:
         mavenSetup << ["withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" , "withMaven(maven: 'mavenInstallationName') {"]
@@ -763,7 +763,7 @@ node {
 
         then:
         // Project has localhost:8080 configured
-        j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise: 403 Forbidden.", build)
+        j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise.", build)
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {
