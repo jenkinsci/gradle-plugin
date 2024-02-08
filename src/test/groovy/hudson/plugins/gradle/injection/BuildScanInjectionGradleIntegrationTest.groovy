@@ -872,6 +872,42 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         "+:this-one-does-not-match" | false
     }
 
+    def "logs injection messages with default Gradle log level"(boolean quiet) {
+        given:
+        def gradleVersion = '8.1.1'
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+
+        FreeStyleProject project = j.createFreeStyleProject()
+        project.setAssignedNode(agent)
+
+        project.buildersList.add(helloTask())
+        project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon${quiet ? ' -q' : ''}"))
+
+        when:
+        // first build to download Gradle
+        def firstRun = j.buildAndAssertSuccess(project)
+
+        then:
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
+
+        when:
+        enableBuildInjection(agent, gradleVersion)
+        def secondRun = j.buildAndAssertSuccess(project)
+
+        then:
+        def log = JenkinsRule.getLog(secondRun)
+        assert quiet == !log.contains('Develocity plugins resolution: https://plugins.gradle.org/m2')
+        assert quiet == !log.contains('Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin via init script')
+        assert quiet == !log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false')
+        assert quiet == !log.contains('Applying com.gradle.CommonCustomUserDataGradlePlugin via init script')
+
+        where:
+        quiet << [true, false]
+    }
+
     private static CreateFileBuilder helloTask(String action = "println 'Hello!'") {
         return new CreateFileBuilder('build.gradle', """
 task hello {
