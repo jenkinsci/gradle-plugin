@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static hudson.plugins.gradle.injection.GradleInjectionAware.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED;
@@ -31,6 +32,8 @@ import static hudson.plugins.gradle.injection.MavenOptsHandler.MAVEN_OPTS;
 public class GitScmListener extends SCMListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GitScmListener.class);
+
+    private static final MavenCoordinates DEVELOCITY_EXTENSION_MAVEN_COORDINATES = new MavenCoordinates("com.gradle", "gradle-enterprise-maven-extension");
 
     @Override
     public void onCheckout(
@@ -48,12 +51,16 @@ public class GitScmListener extends SCMListener {
                 return;
             }
 
-            // By default, auto-injection is enabled. If repository matches the VCS filter we don't need to disable it
-            if (isInjectionEnabledForRepository(config, scm)) {
+            // By default, auto-injection is enabled. If it's not disabled for a repository - don't disable it
+            if (!isInjectionEnabledForRepository(config, scm)) {
+                disableAutoInjection(build, workspace, config, listener);
                 return;
             }
 
-            disableAutoInjection(build, workspace, config, listener);
+            // Check .mvn/extensions.xml for already applied Develocity extension for maven injection only
+            if (mavenExtensionAlreadyApplied(config, workspace)) {
+                disableAutoInjection(build, workspace, config, listener);
+            }
         } catch (Exception e) {
             LOGGER.error("Error occurred when processing onCheckout notification", e);
         }
@@ -119,6 +126,25 @@ public class GitScmListener extends SCMListener {
 
     private static boolean shouldDisableMavenInjection(InjectionConfig config) {
         return config.isInjectMavenExtension();
+    }
+
+    private static boolean mavenExtensionAlreadyApplied(InjectionConfig config, FilePath workspace) throws IOException, InterruptedException {
+        if (!config.isInjectMavenExtension()) {
+            return false;
+        }
+
+        FilePath extensionsFile = workspace.child(".mvn/extensions.xml");
+
+        if (extensionsFile.exists()) {
+            LOGGER.debug("Found extensions file: {}", extensionsFile);
+
+            MavenExtensions mavenExtensions = MavenExtensions.fromFilePath(extensionsFile);
+
+            return mavenExtensions.hasExtension(DEVELOCITY_EXTENSION_MAVEN_COORDINATES);
+        } else {
+            LOGGER.debug("Extensions file not found: {}", extensionsFile);
+            return false;
+        }
     }
 
     /**

@@ -20,7 +20,7 @@ class BuildScanInjectionGradleWithDurableTaskStepUseWatchingIntegrationTest exte
     @PendingFeature
     def "cannot capture build agent errors in pipeline build if DurableTaskStep.USE_WATCHING=true"() {
         given:
-        def gradleVersion = '8.1.1'
+        def gradleVersion = '8.6'
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
 
@@ -50,7 +50,7 @@ class BuildScanInjectionGradleWithDurableTaskStepUseWatchingIntegrationTest exte
         def secret = 'confidential'
         registerCredentials('my-creds', secret)
 
-        def gradleVersion = '8.1.1'
+        def gradleVersion = '8.6'
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
 

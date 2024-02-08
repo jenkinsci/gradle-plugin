@@ -56,7 +56,7 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseMavenIntegrationTest {
             '3.5.4',
             '3.6.3',
             '3.8.8',
-            '3.9.1'
+            '3.9.6'
         ]
     }
 }

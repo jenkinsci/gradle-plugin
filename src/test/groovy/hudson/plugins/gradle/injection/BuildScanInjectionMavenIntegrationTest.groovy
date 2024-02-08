@@ -702,6 +702,70 @@ node {
         "+:this-one-does-not-match\n+:this-one-too" | false
     }
 
+    @SuppressWarnings("GStringExpressionWithinString")
+    def 'extension already applied in pipeline project and build scan attempted to publish to project configured host - #mavenSetup'(String mavenSetup) {
+        given:
+        createSlaveAndTurnOnInjection()
+        def mavenInstallationName = setupMavenInstallation()
+        def replacedMavenSetup = mavenSetup.replaceAll("mavenInstallationName", mavenInstallationName)
+
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+   stage('Build') {
+        node('foo') {
+            $replacedMavenSetup
+                git branch: 'ge-extension', url: 'https://github.com/c00ler/simple-maven-project'
+                if (isUnix()) {
+                    sh "env"
+                    sh "mvn package -B"
+                } else {
+                    bat "set"
+                    bat "mvn package -B"
+                }
+            }
+        }
+   }
+""", false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        // Project has localhost:8080 configured
+        j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise: 403 Forbidden.", build)
+
+        where:
+        mavenSetup << ["withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" , "withMaven(maven: 'mavenInstallationName') {"]
+    }
+
+    def 'extension already applied in freestyle project and build scan attempted to publish to project configured host'() {
+        given:
+        mavenInstallationRule.mavenVersion = '3.9.2'
+        mavenInstallationRule.addInstallation()
+        createSlaveAndTurnOnInjection()
+
+        def project = j.createFreeStyleProject()
+        project.buildersList.add(new Maven('package', mavenInstallationRule.mavenVersion))
+        project.setScm(
+                new GitSCM(
+                        [new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)],
+                        [new BranchSpec("ge-extension")], new CGit("https://github.com/c00ler/simple-maven-project"),
+                        "git",
+                        []
+                )
+        )
+
+        def slave = createSlave('foo')
+        project.setAssignedNode(slave)
+
+        when:
+        def build = j.buildAndAssertSuccess(project)
+
+        then:
+        // Project has localhost:8080 configured
+        j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise: 403 Forbidden.", build)
+    }
+
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {
         def classpath = getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH)
         assert classpath != null
