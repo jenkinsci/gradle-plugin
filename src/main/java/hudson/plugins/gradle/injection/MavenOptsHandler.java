@@ -1,5 +1,6 @@
 package hudson.plugins.gradle.injection;
 
+import com.google.common.collect.Sets;
 import hudson.model.Node;
 
 import javax.annotation.Nullable;
@@ -107,6 +108,6 @@ final class MavenOptsHandler {
     }
 
     private boolean shouldBeKept(String systemProperty, Set<String> keepKeys) {
-        return keys.stream().filter(it -> !keepKeys.contains(it)).noneMatch(systemProperty::contains);
+        return Sets.difference(keys, keepKeys).stream().noneMatch(systemProperty::contains);
     }
 }
