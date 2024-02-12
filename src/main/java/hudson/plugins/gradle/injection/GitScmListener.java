@@ -1,6 +1,7 @@
 package hudson.plugins.gradle.injection;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -21,7 +22,9 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static hudson.plugins.gradle.injection.GradleInjectionAware.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED;
 import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH;
@@ -59,7 +62,7 @@ public class GitScmListener extends SCMListener {
 
             // Check .mvn/extensions.xml for already applied Develocity extension for maven injection only
             if (mavenExtensionAlreadyApplied(config, workspace)) {
-                disableAutoInjection(build, workspace, config, listener);
+                disableMavenAutoInjection(build, workspace, config, listener);
             }
         } catch (Exception e) {
             LOGGER.error("Error occurred when processing onCheckout notification", e);
@@ -90,6 +93,31 @@ public class GitScmListener extends SCMListener {
 
                 build.addAction(new MavenInjectionDisabledAction(mavenOpts));
             }
+        }
+    }
+
+    private static void disableMavenAutoInjection(
+            Run<?, ?> build,
+            FilePath workspace,
+            InjectionConfig config,
+            TaskListener listener
+    ) throws Exception {
+        Computer computer = workspace.toComputer();
+        if (computer == null) {
+            return;
+        }
+
+        EnvVars envVars = computer.buildEnvironment(listener);
+
+        String currentMavenOpts = envVars.get(MavenOptsHandler.MAVEN_OPTS);
+        if (currentMavenOpts != null) {
+            Set<String> keepUrl = config.isEnforceUrl()
+                    ? Sets.newHashSet(MavenInjectionAware.GRADLE_ENTERPRISE_URL_PROPERTY_KEY.name)
+                    : Collections.emptySet();
+
+            String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts, keepUrl));
+
+            build.addAction(new MavenInjectionDisabledAction(mavenOpts));
         }
     }
 

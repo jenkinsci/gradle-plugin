@@ -1,5 +1,6 @@
 package hudson.plugins.gradle.injection;
 
+import com.google.common.collect.Sets;
 import hudson.model.Node;
 
 import javax.annotation.Nullable;
@@ -41,7 +42,7 @@ final class MavenOptsHandler {
                 .map(SystemProperty::asString)
                 .collect(Collectors.joining(SPACE));
 
-        return filtered(getCurrentMavenOpts(node))
+        return filtered(getCurrentMavenOpts(node), Collections.emptySet())
                 .map(current -> String.join(SPACE, current, additionalProperties))
                 .orElse(additionalProperties);
     }
@@ -57,11 +58,15 @@ final class MavenOptsHandler {
             return;
         }
 
-        String mavenOpts = filtered(currentMavenOpts).orElse(null);
+        String mavenOpts = filtered(currentMavenOpts, Collections.emptySet()).orElse(null);
         EnvUtil.setEnvVar(node, MAVEN_OPTS, mavenOpts);
     }
 
     public String removeIfNeeded(String currentMavenOpts) {
+        return removeIfNeeded(currentMavenOpts, Collections.emptySet());
+    }
+
+    public String removeIfNeeded(String currentMavenOpts, Set<String> keepKeys) {
         if (currentMavenOpts == null || currentMavenOpts.isEmpty()) {
             return null;
         }
@@ -71,12 +76,12 @@ final class MavenOptsHandler {
             return null;
         }
 
-        return filtered(currentMavenOpts).orElse(null);
+        return filtered(currentMavenOpts, keepKeys).orElse(null);
     }
 
-    private Optional<String> filtered(@Nullable String mavenOpts) throws RuntimeException {
+    private Optional<String> filtered(@Nullable String mavenOpts, Set<String> keepKeys) throws RuntimeException {
         return Optional.ofNullable(mavenOpts)
-            .map(this::filterMavenOpts);
+            .map(it -> filterMavenOpts(it, keepKeys));
     }
 
     @Nullable
@@ -89,10 +94,10 @@ final class MavenOptsHandler {
      * that were added by the auto-injection.
      */
     @Nullable
-    private String filterMavenOpts(String mavenOpts) {
+    private String filterMavenOpts(String mavenOpts, Set<String> keepKeys) {
         String filtered =
             Arrays.stream(mavenOpts.split(SPACE))
-                .filter(this::shouldBeKept)
+                .filter(systemProperty -> shouldBeKept(systemProperty, keepKeys))
                 .collect(Collectors.joining(SPACE));
 
         if (filtered.isEmpty()) {
@@ -102,7 +107,7 @@ final class MavenOptsHandler {
         return filtered;
     }
 
-    private boolean shouldBeKept(String systemProperty) {
-        return keys.stream().noneMatch(systemProperty::contains);
+    private boolean shouldBeKept(String systemProperty, Set<String> keepKeys) {
+        return Sets.difference(keys, keepKeys).stream().noneMatch(systemProperty::contains);
     }
 }

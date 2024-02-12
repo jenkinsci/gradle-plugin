@@ -703,9 +703,13 @@ node {
     }
 
     @SuppressWarnings("GStringExpressionWithinString")
-    def 'extension already applied in pipeline project and build scan attempted to publish to project configured host - #mavenSetup'(String mavenSetup) {
+    def 'extension already applied in pipeline project and build scan attempted to publish to project configured host - #mavenSetup #isUrlEnforced'(String mavenSetup, boolean isUrlEnforced) {
         given:
+        withInjectionConfig {
+            enforceUrl = isUrlEnforced
+        }
         createSlaveAndTurnOnInjection()
+
         def mavenInstallationName = setupMavenInstallation()
         def replacedMavenSetup = mavenSetup.replaceAll("mavenInstallationName", mavenInstallationName)
 
@@ -731,17 +735,28 @@ node {
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        // Project has localhost:8080 configured
-        j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise.", build)
+        if (isUrlEnforced) {
+            j.assertLogContains("Publishing build scan...", build)
+        } else {
+            // Project has localhost:8080 configured
+            j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise", build)
+        }
 
         where:
-        mavenSetup << ["withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" , "withMaven(maven: 'mavenInstallationName') {"]
+        mavenSetup                                                          | isUrlEnforced
+        "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"  | false
+        "withMaven(maven: 'mavenInstallationName') {"                       | false
+        "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"  | true
+        "withMaven(maven: 'mavenInstallationName') {"                       | true
     }
 
-    def 'extension already applied in freestyle project and build scan attempted to publish to project configured host'() {
+    def 'extension already applied in freestyle project and build scan attempted to publish to project configured host - #isUrlEnforced'(boolean isUrlEnforced) {
         given:
-        mavenInstallationRule.mavenVersion = '3.9.2'
+        mavenInstallationRule.mavenVersion = '3.9.6'
         mavenInstallationRule.addInstallation()
+        withInjectionConfig {
+            enforceUrl = isUrlEnforced
+        }
         createSlaveAndTurnOnInjection()
 
         def project = j.createFreeStyleProject()
@@ -762,8 +777,15 @@ node {
         def build = j.buildAndAssertSuccess(project)
 
         then:
-        // Project has localhost:8080 configured
-        j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise.", build)
+        if (isUrlEnforced) {
+            j.assertLogContains("Publishing build scan...", build)
+        } else {
+            // Project has localhost:8080 configured
+            j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise", build)
+        }
+
+        where:
+        isUrlEnforced << [false, true]
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {
