@@ -1,9 +1,14 @@
 package hudson.plugins.gradle.injection;
 
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public final class SystemProperty {
 
     private final Key key;
     private final String value;
+    private static final Pattern SysPropPattern = Pattern.compile("-D(.*)=(.*)");
 
     public SystemProperty(Key key, String value) {
         this.key = key;
@@ -14,6 +19,36 @@ public final class SystemProperty {
         return String.format("-D%s=%s", key.name, value);
     }
 
+    public Key getKey() {
+        return key;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public static SystemProperty parse(String sysProp) {
+        Matcher matcher = SysPropPattern.matcher(sysProp);
+        if (matcher.matches()) {
+            return new SystemProperty(Key.optional(matcher.group(1)), matcher.group(2));
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SystemProperty that = (SystemProperty) o;
+        return Objects.equals(key, that.key) && Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, value);
+    }
+
     public static final class Key {
 
         public final String name;
@@ -22,6 +57,19 @@ public final class SystemProperty {
         private Key(String name, boolean required) {
             this.name = name;
             this.required = required;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Key key = (Key) o;
+            return required == key.required && Objects.equals(name, key.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, required);
         }
 
         /**

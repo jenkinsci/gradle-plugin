@@ -1,7 +1,6 @@
 package hudson.plugins.gradle.injection;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -21,22 +20,19 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static hudson.plugins.gradle.injection.GradleInjectionAware.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED;
-import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH;
-import static hudson.plugins.gradle.injection.MavenInjectionAware.MAVEN_OPTS_HANDLER;
+import static hudson.plugins.gradle.injection.MavenExtensionsDetector.detect;
+import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.*;
+import static hudson.plugins.gradle.injection.MavenInjectionAware.*;
 import static hudson.plugins.gradle.injection.MavenOptsHandler.MAVEN_OPTS;
 
 @Extension
 public class GitScmListener extends SCMListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GitScmListener.class);
-
-    private static final MavenCoordinates DEVELOCITY_EXTENSION_MAVEN_COORDINATES = new MavenCoordinates("com.gradle", "gradle-enterprise-maven-extension");
 
     @Override
     public void onCheckout(
@@ -61,19 +57,17 @@ public class GitScmListener extends SCMListener {
             }
 
             // Check .mvn/extensions.xml for already applied Develocity extension for maven injection only
-            if (mavenExtensionAlreadyApplied(config, workspace)) {
-                disableMavenAutoInjection(build, workspace, config, listener);
-            }
+            disableMavenAutoInjectionIfAlreadyApplied(build, workspace, config, listener);
         } catch (Exception e) {
             LOGGER.error("Error occurred when processing onCheckout notification", e);
         }
     }
 
     private static void disableAutoInjection(
-            Run<?, ?> build,
-            FilePath workspace,
-            InjectionConfig config,
-            TaskListener listener
+        Run<?, ?> build,
+        FilePath workspace,
+        InjectionConfig config,
+        TaskListener listener
     ) throws Exception {
         Computer computer = workspace.toComputer();
         if (computer == null) {
@@ -96,11 +90,11 @@ public class GitScmListener extends SCMListener {
         }
     }
 
-    private static void disableMavenAutoInjection(
-            Run<?, ?> build,
-            FilePath workspace,
-            InjectionConfig config,
-            TaskListener listener
+    private static void disableMavenAutoInjectionIfAlreadyApplied(
+        Run<?, ?> build,
+        FilePath workspace,
+        InjectionConfig config,
+        TaskListener listener
     ) throws Exception {
         Computer computer = workspace.toComputer();
         if (computer == null) {
@@ -111,13 +105,13 @@ public class GitScmListener extends SCMListener {
 
         String currentMavenOpts = envVars.get(MavenOptsHandler.MAVEN_OPTS);
         if (currentMavenOpts != null) {
-            Set<String> keepUrl = config.isEnforceUrl()
-                    ? Sets.newHashSet(MavenInjectionAware.GRADLE_ENTERPRISE_URL_PROPERTY_KEY.name)
-                    : Collections.emptySet();
-
-            String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts, keepUrl));
-
-            build.addAction(new MavenInjectionDisabledAction(mavenOpts));
+            Set<MavenExtension> knownExtensions = detect(config, workspace);
+            if (!knownExtensions.isEmpty()) {
+                build.addAction(
+                    new MavenInjectionDisabledAction(
+                        new MavenOptsDevelocityFilter(knownExtensions, isUnix(computer))
+                            .filter(currentMavenOpts, config.isEnforceUrl())));
+            }
         }
     }
 
@@ -154,25 +148,6 @@ public class GitScmListener extends SCMListener {
 
     private static boolean shouldDisableMavenInjection(InjectionConfig config) {
         return config.isInjectMavenExtension();
-    }
-
-    private static boolean mavenExtensionAlreadyApplied(InjectionConfig config, FilePath workspace) throws IOException, InterruptedException {
-        if (!config.isInjectMavenExtension()) {
-            return false;
-        }
-
-        FilePath extensionsFile = workspace.child(".mvn/extensions.xml");
-
-        if (extensionsFile.exists()) {
-            LOGGER.debug("Found extensions file: {}", extensionsFile);
-
-            MavenExtensions mavenExtensions = MavenExtensions.fromFilePath(extensionsFile);
-
-            return mavenExtensions.hasExtension(DEVELOCITY_EXTENSION_MAVEN_COORDINATES);
-        } else {
-            LOGGER.debug("Extensions file not found: {}", extensionsFile);
-            return false;
-        }
     }
 
     /**

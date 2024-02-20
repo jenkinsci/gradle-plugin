@@ -65,6 +65,8 @@ public class InjectionConfig extends GlobalConfiguration {
 
     private boolean injectMavenExtension;
     private boolean injectCcudExtension;
+    private String mavenExtensionCustomCoordinates;
+    private String ccudExtensionCustomCoordinates;
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
 
@@ -235,6 +237,26 @@ public class InjectionConfig extends GlobalConfiguration {
         this.injectMavenExtension = injectMavenExtension;
     }
 
+    @CheckForNull
+    public String getMavenExtensionCustomCoordinates() {
+        return mavenExtensionCustomCoordinates;
+    }
+
+    @DataBoundSetter
+    public void setMavenExtensionCustomCoordinates(String mavenExtensionCustomCoordinates) {
+        this.mavenExtensionCustomCoordinates = Util.fixEmptyAndTrim(mavenExtensionCustomCoordinates);
+    }
+
+    @CheckForNull
+    public String getCcudExtensionCustomCoordinates() {
+        return ccudExtensionCustomCoordinates;
+    }
+
+    @DataBoundSetter
+    public void setCcudExtensionCustomCoordinates(String ccudExtensionCustomCoordinates) {
+        this.ccudExtensionCustomCoordinates = Util.fixEmptyAndTrim(ccudExtensionCustomCoordinates);
+    }
+
     public boolean isInjectCcudExtension() {
         return injectCcudExtension;
     }
@@ -357,6 +379,20 @@ public class InjectionConfig extends GlobalConfiguration {
         return DevelocityAccessKeyValidator.getInstance().isValid(accessKey)
             ? FormValidation.ok()
             : FormValidation.error(Messages.InjectionConfig_InvalidAccessKey());
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckMavenExtensionCustomCoordinates(@QueryParameter String value) {
+        String coord = Util.fixEmptyAndTrim(value);
+        return coord == null || MavenCoordinates.isValid(coord) ? FormValidation.ok() : FormValidation.error(Messages.InjectionConfig_InvalidMavenExtensionCustomCoordinates());
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckCcudExtensionCustomCoordinates(@QueryParameter String value) {
+        String coord = Util.fixEmptyAndTrim(value);
+        return coord == null || MavenCoordinates.isValid(coord) ? FormValidation.ok() : FormValidation.error(Messages.InjectionConfig_InvalidMavenExtensionCustomCoordinates());
     }
 
     public static FormValidation checkRequiredUrl(String value) {

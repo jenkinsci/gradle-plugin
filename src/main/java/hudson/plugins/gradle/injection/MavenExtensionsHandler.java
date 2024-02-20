@@ -82,27 +82,5 @@ public class MavenExtensionsHandler {
         }
     }
 
-    public enum MavenExtension {
-        GRADLE_ENTERPRISE("gradle-enterprise-maven-extension", ExtensionsVersions.GE_EXTENSION_VERSION),
-        CCUD("common-custom-user-data-maven-extension", ExtensionsVersions.CCUD_EXTENSION_VERSION),
-        CONFIGURATION("configuration-maven-extension", "1.0.0");
 
-        private static final String JAR_EXTENSION = ".jar";
-
-        private final String name;
-        private final String version;
-
-        MavenExtension(String name, String version) {
-            this.name = name;
-            this.version = version;
-        }
-
-        public String getTargetJarName() {
-            return name + JAR_EXTENSION;
-        }
-
-        public String getEmbeddedJarName() {
-            return name + "-" + version + JAR_EXTENSION;
-        }
-    }
 }

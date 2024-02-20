@@ -2,9 +2,7 @@ package hudson.plugins.gradle.injection;
 
 import hudson.EnvVars;
 import hudson.FilePath;
-import hudson.model.Computer;
 import hudson.model.Node;
-import hudson.plugins.gradle.injection.MavenExtensionsHandler.MavenExtension;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,7 +10,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+
+import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.constructExtClasspath;
+import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.isUnix;
 
 public class MavenBuildScanInjection implements BuildScanInjection, MavenInjectionAware {
 
@@ -112,21 +112,6 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
         }
     }
 
-    private static String constructExtClasspath(List<FilePath> extensions, boolean isUnix) {
-        return extensions
-                .stream()
-                .map(FilePath::getRemote)
-                .collect(Collectors.joining(getDelimiter(isUnix)));
-    }
 
-    private static String getDelimiter(boolean isUnix) {
-        return isUnix ? ":" : ";";
-    }
-
-    private static boolean isUnix(Node node) {
-        Computer computer = node.toComputer();
-
-        return computer == null || Boolean.TRUE.equals(computer.isUnix());
-    }
 
 }
