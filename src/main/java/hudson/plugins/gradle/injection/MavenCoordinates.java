@@ -1,11 +1,12 @@
 package hudson.plugins.gradle.injection;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Describes a set of Maven coordinates, represented as a GAV.
  */
-public final class MavenCoordinates {
+public final class MavenCoordinates implements Serializable {
 
     private final String groupId;
     private final String artifactId;
