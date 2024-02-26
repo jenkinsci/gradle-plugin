@@ -384,13 +384,16 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckMavenExtensionCustomCoordinates(@QueryParameter String value) {
-        String coord = Util.fixEmptyAndTrim(value);
-        return coord == null || MavenCoordinates.isValid(coord) ? FormValidation.ok() : FormValidation.error(Messages.InjectionConfig_InvalidMavenExtensionCustomCoordinates());
+        return validateMavenCoordinates(value);
     }
 
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckCcudExtensionCustomCoordinates(@QueryParameter String value) {
+        return validateMavenCoordinates(value);
+    }
+
+    private static FormValidation validateMavenCoordinates(String value) {
         String coord = Util.fixEmptyAndTrim(value);
         return coord == null || MavenCoordinates.isValid(coord) ? FormValidation.ok() : FormValidation.error(Messages.InjectionConfig_InvalidMavenExtensionCustomCoordinates());
     }

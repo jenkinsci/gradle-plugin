@@ -7,8 +7,11 @@ import hudson.model.Node;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class MavenExtClasspathUtils {
+final class MavenExtClasspathUtils {
     static final String SPACE = " ";
+
+    private MavenExtClasspathUtils() {
+    }
 
     static String constructExtClasspath(List<FilePath> extensions, boolean isUnix) {
         return extensions

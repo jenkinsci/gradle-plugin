@@ -6,9 +6,9 @@ import java.util.regex.Pattern;
 
 public final class SystemProperty {
 
+    private static final Pattern SYS_PROP_PATTERN = Pattern.compile("-D(.*)=(.*)");
     private final Key key;
     private final String value;
-    private static final Pattern SysPropPattern = Pattern.compile("-D(.*)=(.*)");
 
     public SystemProperty(Key key, String value) {
         this.key = key;
@@ -28,7 +28,7 @@ public final class SystemProperty {
     }
 
     public static SystemProperty parse(String sysProp) {
-        Matcher matcher = SysPropPattern.matcher(sysProp);
+        Matcher matcher = SYS_PROP_PATTERN.matcher(sysProp);
         if (matcher.matches()) {
             return new SystemProperty(Key.optional(matcher.group(1)), matcher.group(2));
         } else {
