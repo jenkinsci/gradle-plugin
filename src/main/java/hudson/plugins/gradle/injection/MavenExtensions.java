@@ -44,7 +44,7 @@ final class MavenExtensions {
             document.normalizeDocument();
 
             return new MavenExtensions(document);
-        } catch (ParserConfigurationException | IOException | InterruptedException| SAXException e) {
+        } catch (ParserConfigurationException | IOException | InterruptedException | SAXException e) {
             LOGGER.warn("Failed to parse extensions file: {}", extensionsFile, e);
             return MavenExtensions.empty();
         }

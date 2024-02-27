@@ -1,7 +1,6 @@
 package hudson.plugins.gradle.injection
 
 import hudson.FilePath
-import hudson.plugins.gradle.injection.MavenExtensionsHandler.MavenExtension
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification

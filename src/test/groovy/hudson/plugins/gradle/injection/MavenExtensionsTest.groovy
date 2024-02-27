@@ -111,7 +111,7 @@ class MavenExtensionsTest extends Specification {
         mavenExtensions.hasExtension(coordinatesInExtensionsXml)
     }
 
-    def generateExtensionsXml(MavenCoordinates... extensions) {
+    def static generateExtensionsXml(MavenCoordinates... extensions) {
         """<?xml version="1.0" encoding="UTF-8"?>
             <extensions>
                 ${extensions.collect {

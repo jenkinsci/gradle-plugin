@@ -32,10 +32,12 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
     private static final String GE_EXTENSION_JAR = "gradle-enterprise-maven-extension.jar"
     private static final String CCUD_EXTENSION_JAR = "common-custom-user-data-maven-extension.jar"
     private static final String CONFIGURATION_EXTENSION_JAR = "configuration-maven-extension.jar"
+    private static final String TOS_MSG = "The Gradle Terms of Service have not been agreed to"
 
     private static final List<String> ALL_EXTENSIONS = [GE_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
 
     private static final String POM_XML = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
+    private static final String INJECT_CCUD = '[DEBUG] Executing extension: CommonCustomUserDataGradleEnterpriseListener'
 
     def 'does not copy #extension if it was not changed'() {
         when:
@@ -663,8 +665,6 @@ node {
         boolean shouldApplyAutoInjection
     ) {
         given:
-        def termsOfServiceAcceptance = "Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service"
-
         mavenInstallationRule.mavenVersion = '3.9.2'
         mavenInstallationRule.addInstallation()
         withInjectionConfig {
@@ -673,7 +673,7 @@ node {
         createSlaveAndTurnOnInjection()
 
         def p = j.createFreeStyleProject()
-        p.buildersList.add(new Maven('package', mavenInstallationRule.mavenVersion))
+        p.buildersList.add(new Maven('package -B', mavenInstallationRule.mavenVersion))
         p.setScm(
             new GitSCM(
                 [new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)],
@@ -691,9 +691,9 @@ node {
 
         then:
         if (shouldApplyAutoInjection) {
-            j.assertLogContains(termsOfServiceAcceptance, build)
+            j.assertLogContains(TOS_MSG, build)
         } else {
-            j.assertLogNotContains(termsOfServiceAcceptance, build)
+            j.assertLogNotContains(TOS_MSG, build)
         }
 
         where:
@@ -743,11 +743,62 @@ node {
         }
 
         where:
-        mavenSetup                                                          | isUrlEnforced
-        "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"  | false
-        "withMaven(maven: 'mavenInstallationName') {"                       | false
-        "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {"  | true
-        "withMaven(maven: 'mavenInstallationName') {"                       | true
+        mavenSetup                                                         | isUrlEnforced
+        "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" | false
+        "withMaven(maven: 'mavenInstallationName') {"                      | false
+        "withEnv([\"PATH+MAVEN=\${tool 'mavenInstallationName'}/bin\"]) {" | true
+        "withMaven(maven: 'mavenInstallationName') {"                      | true
+    }
+
+    def 'custom extension already applied in pipeline project and build scan attempted to publish to project configured host'() {
+        given:
+        withInjectionConfig {
+            mavenExtensionCustomCoordinates = customExtension
+            ccudExtensionCustomCoordinates = customCcud
+            injectCcudExtension = true
+        }
+        createSlaveAndTurnOnInjection()
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+   stage('Build') {
+        node('foo') {
+            withMaven(maven: '${setupMavenInstallation()}') {
+                git branch: 'custom-extension', url: 'https://github.com/alextu/simple-maven-project'
+                if (isUnix()) {
+                    sh "env"
+                    sh "mvn package -B -X"
+                } else {
+                    bat "set"
+                    bat "mvn package -B -X"
+                }
+            }
+        }
+   }
+""", false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        if (shouldInjectDv) {
+            j.assertLogContains(TOS_MSG, build)
+        } else {
+            j.assertLogNotContains(TOS_MSG, build)
+        }
+        if (shouldInjectCcud) {
+            j.assertLogContains(INJECT_CCUD, build)
+        } else {
+            j.assertLogNotContains(INJECT_CCUD, build)
+        }
+
+        where:
+        customExtension                                        | customCcud                                             | shouldInjectDv | shouldInjectCcud
+        null                                                   | 'org.apache.maven.extensions:maven-enforcer-extension' | true           | false
+        null                                                   | null                                                   | true           | true
+        'foo:bar:1.0'                                          | 'foo:bar:2.0'                                          | true           | true
+        'org.apache.maven.extensions:maven-enforcer-extension' | 'org.apache.maven.extensions:maven-enforcer-extension' | false          | false
+        // This case needs a real custom DV extension so that the injected CCUD works
+        //'org.apache.maven.extensions:maven-enforcer-extension' | null                                                   | false          | true
     }
 
     def 'extension already applied in freestyle project and build scan attempted to publish to project configured host - #isUrlEnforced'(boolean isUrlEnforced) {
@@ -762,12 +813,12 @@ node {
         def project = j.createFreeStyleProject()
         project.buildersList.add(new Maven('package', mavenInstallationRule.mavenVersion))
         project.setScm(
-                new GitSCM(
-                        [new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)],
-                        [new BranchSpec("ge-extension")], new CGit("https://github.com/c00ler/simple-maven-project"),
-                        "git",
-                        []
-                )
+            new GitSCM(
+                [new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)],
+                [new BranchSpec("ge-extension")], new CGit("https://github.com/c00ler/simple-maven-project"),
+                "git",
+                []
+            )
         )
 
         def slave = createSlave('foo')
@@ -786,6 +837,56 @@ node {
 
         where:
         isUrlEnforced << [false, true]
+    }
+
+    def 'custom extension already applied in freestyle project and build scan attempted to publish to project configured host'() {
+        given:
+        mavenInstallationRule.mavenVersion = '3.9.6'
+        mavenInstallationRule.addInstallation()
+        withInjectionConfig {
+            mavenExtensionCustomCoordinates = customExtension
+            ccudExtensionCustomCoordinates = customCcud
+            injectCcudExtension = true
+        }
+        createSlaveAndTurnOnInjection()
+
+        def project = j.createFreeStyleProject()
+        project.buildersList.add(new Maven('package -B -X', mavenInstallationRule.mavenVersion))
+        project.setScm(
+            new GitSCM(
+                [new UserRemoteConfig("https://github.com/alextu/simple-maven-project", null, null, null)],
+                [new BranchSpec("custom-extension")], new CGit("https://github.com/alextu/simple-maven-project"),
+                "git",
+                []
+            )
+        )
+
+        def slave = createSlave('foo')
+        project.setAssignedNode(slave)
+
+        when:
+        def build = j.buildAndAssertSuccess(project)
+
+        then:
+        if (shouldInjectDv) {
+            j.assertLogContains(TOS_MSG, build)
+        } else {
+            j.assertLogNotContains(TOS_MSG, build)
+        }
+        if (shouldInjectCcud) {
+            j.assertLogContains(INJECT_CCUD, build)
+        } else {
+            j.assertLogNotContains(INJECT_CCUD, build)
+        }
+
+        where:
+        customExtension                                        | customCcud                                             | shouldInjectDv | shouldInjectCcud
+        null                                                   | 'org.apache.maven.extensions:maven-enforcer-extension' | true           | false
+        null                                                   | null                                                   | true           | true
+        'foo:bar:1.0'                                          | 'foo:bar:2.0'                                          | true           | true
+        'org.apache.maven.extensions:maven-enforcer-extension' | 'org.apache.maven.extensions:maven-enforcer-extension' | false          | false
+        // This case needs a real custom DV extension so that the injected CCUD works
+        //'org.apache.maven.extensions:maven-enforcer-extension' | null                                                   | false          | true
     }
 
     private static void assertMavenConfigClasspathJars(DumbSlave slave, String... jars) {
@@ -821,7 +922,7 @@ node {
 """
     }
 
-    private String setupMavenInstallation(mavenVersion = "3.9.2") {
+    private String setupMavenInstallation(mavenVersion = "3.9.6") {
         mavenInstallationRule.mavenVersion = mavenVersion
         mavenInstallationRule.addInstallation()
 
