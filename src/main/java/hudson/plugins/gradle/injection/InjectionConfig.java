@@ -62,6 +62,7 @@ public class InjectionConfig extends GlobalConfiguration {
     private Secret gradlePluginRepositoryPassword;
     private ImmutableList<NodeLabelItem> gradleInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> gradleInjectionDisabledNodes;
+    private boolean gradleCaptureTaskInputFiles;
 
     private boolean injectMavenExtension;
     private boolean injectCcudExtension;
@@ -69,6 +70,7 @@ public class InjectionConfig extends GlobalConfiguration {
     private String ccudExtensionCustomCoordinates;
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
+    private boolean mavenCaptureGoalInputFiles;
 
     private boolean enforceUrl;
     private boolean checkForBuildAgentErrors;
@@ -228,6 +230,15 @@ public class InjectionConfig extends GlobalConfiguration {
             gradleInjectionDisabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionDisabledNodes);
     }
 
+    public boolean isGradleCaptureTaskInputFiles() {
+        return gradleCaptureTaskInputFiles;
+    }
+
+    @DataBoundSetter
+    public void setGradleCaptureTaskInputFiles(boolean gradleCaptureTaskInputFiles) {
+        this.gradleCaptureTaskInputFiles = gradleCaptureTaskInputFiles;
+    }
+
     public boolean isInjectMavenExtension() {
         return injectMavenExtension;
     }
@@ -286,6 +297,15 @@ public class InjectionConfig extends GlobalConfiguration {
     public void setMavenInjectionDisabledNodes(List<NodeLabelItem> mavenInjectionDisabledNodes) {
         this.mavenInjectionDisabledNodes =
             mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
+    }
+
+    public boolean isMavenCaptureGoalInputFiles() {
+        return mavenCaptureGoalInputFiles;
+    }
+
+    @DataBoundSetter
+    public void setMavenCaptureGoalInputFiles(boolean mavenCaptureGoalInputFiles) {
+        this.mavenCaptureGoalInputFiles = mavenCaptureGoalInputFiles;
     }
 
     @DataBoundSetter

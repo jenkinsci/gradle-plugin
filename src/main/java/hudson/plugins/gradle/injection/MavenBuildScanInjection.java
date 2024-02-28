@@ -83,6 +83,9 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             if (config.isAllowUntrusted()) {
                 systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
             }
+            if (config.isMavenCaptureGoalInputFiles()) {
+                systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_CAPTURE_GOAL_INPUT_FILES_PROPERTY_KEY, "true"));
+            }
 
             EnvUtil.setEnvVar(node, MavenOptsHandler.MAVEN_OPTS, MAVEN_OPTS_HANDLER.merge(node, systemProperties));
 
