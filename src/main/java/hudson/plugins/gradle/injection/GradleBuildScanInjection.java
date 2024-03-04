@@ -32,7 +32,8 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
             JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION,
             JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION,
             JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION,
-            JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED
+            JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED,
+            JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES
     );
 
     private static final String HOME = "HOME";
@@ -116,6 +117,12 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL, "true");
         } else {
             EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL);
+        }
+
+        if (config.isGradleCaptureTaskInputFiles()) {
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES, "true");
+        } else {
+            EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES);
         }
 
         String pluginRepositoryUrl = config.getGradlePluginRepositoryUrl();

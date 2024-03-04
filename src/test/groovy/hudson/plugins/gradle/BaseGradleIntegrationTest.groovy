@@ -32,7 +32,9 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
     def enableBuildInjection(DumbSlave slave,
                                       String gradleVersion,
                                       URI repositoryAddress = null,
-                                      Boolean globalAutoInjectionCheckEnabled = false) {
+                                      Boolean globalAutoInjectionCheckEnabled = false,
+                                      boolean captureTaskInputFiles = false
+    ) {
         withGlobalEnvVars {
             put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
             put('GRADLE_OPTS', '-Dscan.uploadInBackground=false')
@@ -43,8 +45,9 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
         withInjectionConfig {
             enabled = true
-            gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
+            gradlePluginVersion = gradleVersion < '5.0' ? "1.16" : GRADLE_ENTERPRISE_PLUGIN_VERSION
             gradlePluginRepositoryUrl = repositoryAddress?.toString()
+            gradleCaptureTaskInputFiles = captureTaskInputFiles
         }
 
         restartSlave(slave)

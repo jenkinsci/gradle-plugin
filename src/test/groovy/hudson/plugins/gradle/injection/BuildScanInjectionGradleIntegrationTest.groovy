@@ -685,6 +685,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES") == null
             }
         }
 
@@ -708,6 +709,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES") == null
             }
         }
     }
@@ -734,6 +736,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
             ccudPluginVersion = CCUD_PLUGIN_VERSION
             gradlePluginRepositoryUrl = 'http://localhost/repository'
+            gradleCaptureTaskInputFiles = true
         }
 
         restartSlave(agent)
@@ -749,6 +752,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == "true"
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == "1.12.1"
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES") == "true"
             }
         }
 
@@ -760,6 +764,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             gradlePluginVersion = null
             ccudPluginVersion = null
             gradlePluginRepositoryUrl = null
+            gradleCaptureTaskInputFiles = false
         }
 
         restartSlave(agent)
@@ -774,6 +779,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
                 get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
+                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES") == null
             }
         }
     }
@@ -906,6 +913,38 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         where:
         quiet << [true, false]
+    }
+
+    def 'capture task input files toggle is processed by init script'(String gradleVersion) {
+        given:
+        gradleInstallationRule.gradleVersion = gradleVersion
+        gradleInstallationRule.addInstallation()
+
+        DumbSlave agent = createSlave()
+
+        FreeStyleProject project = j.createFreeStyleProject()
+        project.setAssignedNode(agent)
+
+        project.buildersList.add(helloTask())
+        project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion))
+
+        when:
+        // first build to download Gradle
+        def firstRun = j.buildAndAssertSuccess(project)
+
+        then:
+        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
+
+        when:
+        enableBuildInjection(agent, gradleVersion, null, false, true)
+        def secondRun = j.buildAndAssertSuccess(project)
+
+        then:
+        def log = JenkinsRule.getLog(secondRun)
+        log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false, captureTaskInputFiles: true')
+
+        where:
+        gradleVersion << GRADLE_VERSIONS
     }
 
     private static CreateFileBuilder helloTask(String action = "println 'Hello!'") {

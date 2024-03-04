@@ -185,7 +185,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         }
 
         when:
-        turnOnBuildInjectionAndRestart(agent)
+        turnOnBuildInjectionAndRestart(agent, true, true)
 
         then:
         with(getMavenOptsFromNodeProperties(agent).split(" ").iterator()) {
@@ -202,6 +202,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
             }
             with(it.next()) {
                 it == '-Dgradle.enterprise.url=https://scans.gradle.com'
+            }
+            with(it.next()) {
+                it == '-Dgradle.scan.captureGoalInputFiles=true'
             }
             !it.hasNext()
         }
@@ -970,18 +973,20 @@ node {
             enabled = true
             server = 'https://scans.gradle.com'
             injectMavenExtension = false
+            mavenCaptureGoalInputFiles = false
         }
 
         // sync changes
         restartSlave(slave)
     }
 
-    void turnOnBuildInjectionAndRestart(DumbSlave slave, Boolean useCCUD = true) {
+    void turnOnBuildInjectionAndRestart(DumbSlave slave, Boolean useCCUD = true, boolean captureGoalInputFiles = false) {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
             injectMavenExtension = true
             injectCcudExtension = useCCUD
+            mavenCaptureGoalInputFiles = captureGoalInputFiles
         }
 
         // sync changes
