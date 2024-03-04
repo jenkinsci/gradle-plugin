@@ -98,7 +98,7 @@
                         </f:entry>
                     </f:repeatableProperty>
                 </f:entry>
-                <f:entry field="gradleCaptureTaskInputFiles" help="/plugin/gradle/help-captureFileInputs.html">
+                <f:entry field="gradleCaptureTaskInputFiles">
                     <f:checkbox title="${%Capture Task Input Files}"/>
                 </f:entry>
             </f:section>
@@ -136,7 +136,7 @@
                         </f:entry>
                     </f:repeatableProperty>
                 </f:entry>
-                <f:entry field="mavenCaptureGoalInputFiles" help="/plugin/gradle/help-captureFileInputs.html">
+                <f:entry field="mavenCaptureGoalInputFiles">
                     <f:checkbox title="${%Capture Goal Input Files}"/>
                 </f:entry>
             </f:section>
