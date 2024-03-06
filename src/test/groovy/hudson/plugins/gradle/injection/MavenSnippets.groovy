@@ -34,7 +34,7 @@ class MavenSnippets {
     <extension>
         <groupId>com.gradle</groupId>
         <artifactId>gradle-enterprise-maven-extension</artifactId>
-        <version>1.0.2</version>
+        <version>1.20.1</version>
     </extension>
 </extensions>
 '''
@@ -46,6 +46,7 @@ class MavenSnippets {
     xsi:schemaLocation="https://www.gradle.com/gradle-enterprise-maven https://www.gradle.com/schema/gradle-enterprise-maven.xsd">
   <buildScan>
     <publish>ALWAYS</publish>
+    <backgroundBuildScanUpload>false</backgroundBuildScanUpload>
     <termsOfService>
       <url>https://gradle.com/terms-of-service</url>
       <accept>true</accept>
