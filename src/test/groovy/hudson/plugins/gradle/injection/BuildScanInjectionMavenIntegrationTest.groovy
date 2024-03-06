@@ -766,7 +766,7 @@ node {
    stage('Build') {
         node('foo') {
             withMaven(maven: '${setupMavenInstallation()}') {
-                git branch: 'custom-extension', url: 'https://github.com/alextu/simple-maven-project'
+                git branch: 'custom-extension', url: 'https://github.com/c00ler/simple-maven-project'
                 if (isUnix()) {
                     sh "env"
                     sh "mvn package -B -X"
@@ -857,8 +857,8 @@ node {
         project.buildersList.add(new Maven('package -B -X', mavenInstallationRule.mavenVersion))
         project.setScm(
             new GitSCM(
-                [new UserRemoteConfig("https://github.com/alextu/simple-maven-project", null, null, null)],
-                [new BranchSpec("custom-extension")], new CGit("https://github.com/alextu/simple-maven-project"),
+                [new UserRemoteConfig("https://github.com/c00ler/simple-maven-project", null, null, null)],
+                [new BranchSpec("custom-extension")], new CGit("https://github.com/c00ler/simple-maven-project"),
                 "git",
                 []
             )
