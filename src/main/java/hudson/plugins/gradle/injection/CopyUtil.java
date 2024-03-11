@@ -3,8 +3,10 @@ package hudson.plugins.gradle.injection;
 import hudson.FilePath;
 import hudson.Util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public final class CopyUtil {
 
@@ -18,9 +20,29 @@ public final class CopyUtil {
         });
     }
 
+    public static void writeToNode(FilePath nodePath, String value) throws IOException, InterruptedException {
+        nodePath.write(value, StandardCharsets.UTF_8.name());
+    }
+
     public static String unsafeResourceDigest(String resourceName) {
         try {
             return doWithResource(resourceName, Util::getDigestOf);
+        } catch (IOException | InterruptedException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static String readResource(String resourceName) {
+        try {
+            return doWithResource(resourceName, is -> {
+                ByteArrayOutputStream result = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = is.read(buffer)) != -1) {
+                    result.write(buffer, 0, length);
+                }
+                return result.toString(StandardCharsets.UTF_8.name());
+            });
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }

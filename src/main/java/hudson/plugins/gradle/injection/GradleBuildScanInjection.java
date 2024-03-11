@@ -1,22 +1,22 @@
 package hudson.plugins.gradle.injection;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import hudson.EnvVars;
 import hudson.FilePath;
+import hudson.Util;
 import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
-import static hudson.plugins.gradle.injection.CopyUtil.unsafeResourceDigest;
+import static hudson.plugins.gradle.injection.CopyUtil.*;
+import static hudson.plugins.gradle.injection.InitScriptVariables.GRADLE_AUTO_INJECTION;
 
 public class GradleBuildScanInjection implements BuildScanInjection, GradleInjectionAware {
 
@@ -24,26 +24,16 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
 
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME";
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
-
-    private static final List<String> ALL_INJECTED_ENVIRONMENT_VARIABLES = Arrays.asList(
-            JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL,
-            JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER,
-            JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL,
-            JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION,
-            JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION,
-            JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION,
-            JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED,
-            JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES
-    );
-
     private static final String HOME = "HOME";
 
-    private static final String RESOURCE_INIT_SCRIPT_GRADLE = "init-script.gradle";
+    @VisibleForTesting
+    static final String RESOURCE_INIT_SCRIPT_GRADLE = "init-script.gradle";
     private static final String INIT_DIR = "init.d";
     private static final String GRADLE_DIR = ".gradle";
     private static final String GRADLE_INIT_FILE = "init-build-scan.gradle";
 
-    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
+    private final Supplier<String> initScript = Suppliers.memoize(() -> InitScriptTemplate.loadAndReplace(RESOURCE_INIT_SCRIPT_GRADLE));
+    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> Util.getDigestOf(initScript.get()));
 
     @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
@@ -86,59 +76,59 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
 
     private void inject(InjectionConfig config, Node node, String initScriptDirectory) {
         try {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_AUTO_INJECTION, "true");
-            injectInitScript(node.getChannel(), initScriptDirectory);
+            EnvUtil.setEnvVar(node, GRADLE_AUTO_INJECTION, "true");
+            injectInitScript(node, initScriptDirectory);
             injectEnvironmentVariables(config, node);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private void injectInitScript(VirtualChannel channel, String initScriptDirectory) throws IOException, InterruptedException {
-        FilePath gradleInitScriptFile = getInitScriptFile(channel, initScriptDirectory);
+    private void injectInitScript(Node node, String initScriptDirectory) throws IOException, InterruptedException {
+        FilePath gradleInitScriptFile = getInitScriptFile(node.getChannel(), initScriptDirectory);
         if (initScriptChanged(gradleInitScriptFile)) {
             LOGGER.info("Injecting Gradle init script " + gradleInitScriptFile);
-
-            copyResourceToNode(gradleInitScriptFile, RESOURCE_INIT_SCRIPT_GRADLE);
+            writeToNode(gradleInitScriptFile, initScript.get());
         }
     }
 
     private void injectEnvironmentVariables(InjectionConfig config, Node node) {
-        EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL, config.getServer());
-        EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION, config.getGradlePluginVersion());
+        EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_URL, config.getServer());
+        EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_PLUGIN_VERSION, config.getGradlePluginVersion());
+        EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_INIT_SCRIPT_NAME, GRADLE_INIT_FILE);
 
         if (config.isAllowUntrusted()) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER, "true");
+            EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_ALLOW_UNTRUSTED_SERVER, "true");
         } else {
-            EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER);
+            EnvUtil.removeEnvVar(node, InitScriptVariables.DEVELOCITY_ALLOW_UNTRUSTED_SERVER);
         }
 
         if (config.isEnforceUrl()) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL, "true");
+            EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_ENFORCE_URL, "true");
         } else {
-            EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL);
+            EnvUtil.removeEnvVar(node, InitScriptVariables.DEVELOCITY_ENFORCE_URL);
         }
 
         if (config.isGradleCaptureTaskInputFiles()) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES, "true");
+            EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_CAPTURE_TASK_INPUT_FILES, "true");
         } else {
-            EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES);
+            EnvUtil.removeEnvVar(node, InitScriptVariables.DEVELOCITY_CAPTURE_TASK_INPUT_FILES);
         }
 
         String pluginRepositoryUrl = config.getGradlePluginRepositoryUrl();
         if (pluginRepositoryUrl != null && InjectionUtil.isValid(InjectionConfig.checkUrl(pluginRepositoryUrl))) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
+            EnvUtil.setEnvVar(node, InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
         }
 
         if (config.getGradlePluginRepositoryUsername() != null) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_USERNAME, config.getGradlePluginRepositoryUsername());
+            EnvUtil.setEnvVar(node, InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_USERNAME, config.getGradlePluginRepositoryUsername());
         } else {
-            EnvUtil.removeEnvVar(node, JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_USERNAME);
+            EnvUtil.removeEnvVar(node, InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_USERNAME);
         }
 
         String ccudPluginVersion = config.getCcudPluginVersion();
         if (ccudPluginVersion != null && InjectionUtil.isValid(InjectionConfig.checkVersion(ccudPluginVersion))) {
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION, ccudPluginVersion);
+            EnvUtil.setEnvVar(node, InitScriptVariables.CCUD_PLUGIN_VERSION, ccudPluginVersion);
         }
     }
 
@@ -154,7 +144,7 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
         try {
             removeInitScript(node.getChannel(), initScriptDirectory);
 
-            EnvUtil.removeEnvVars(node, ALL_INJECTED_ENVIRONMENT_VARIABLES);
+            EnvUtil.removeEnvVars(node, InitScriptVariables.values());
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
