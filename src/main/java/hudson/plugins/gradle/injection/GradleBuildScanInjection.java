@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static hudson.plugins.gradle.injection.CopyUtil.*;
-import static hudson.plugins.gradle.injection.InitScriptVariables.GRADLE_AUTO_INJECTION;
 
 public class GradleBuildScanInjection implements BuildScanInjection, GradleInjectionAware {
 
@@ -76,7 +75,7 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
 
     private void inject(InjectionConfig config, Node node, String initScriptDirectory) {
         try {
-            EnvUtil.setEnvVar(node, GRADLE_AUTO_INJECTION, "true");
+            EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_INJECTION_ENABLED, "true");
             injectInitScript(node, initScriptDirectory);
             injectEnvironmentVariables(config, node);
         } catch (IOException | InterruptedException e) {

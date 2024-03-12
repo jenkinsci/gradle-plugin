@@ -389,7 +389,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         p.setAssignedNode(agent)
 
         p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
-        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', mavenInstallationName))
+        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true package', mavenInstallationName))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
@@ -421,7 +421,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         p.setAssignedNode(agent)
 
         p.buildersList.add(new CreateFileBuilder('pom.xml', simplePom()))
-        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true package', mavenInstallationName))
+        p.buildersList.add(new Maven('-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true package', mavenInstallationName))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:

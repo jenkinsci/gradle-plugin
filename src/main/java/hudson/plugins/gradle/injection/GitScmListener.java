@@ -19,7 +19,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_GRADLE_INJECTION_ENABLED;
+import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_INJECTION_ENABLED;
 import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.isUnix;
 import static hudson.plugins.gradle.injection.MavenExtensionsDetector.detect;
 import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH;
@@ -159,7 +159,7 @@ public class GitScmListener extends SCMListener {
 
         @Override
         public void buildEnvironment(@Nonnull Run<?, ?> run, @Nonnull EnvVars envVars) {
-            envVars.put(DEVELOCITY_GRADLE_INJECTION_ENABLED.getEnvVar(), "false");
+            envVars.put(DEVELOCITY_INJECTION_ENABLED.getEnvVar(), "false");
         }
 
     }

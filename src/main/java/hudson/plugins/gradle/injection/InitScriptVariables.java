@@ -2,14 +2,13 @@ package hudson.plugins.gradle.injection;
 
 public enum InitScriptVariables {
     DEVELOCITY_INIT_SCRIPT_NAME("develocity.injection.init-script-name"),
-    DEVELOCITY_GRADLE_INJECTION_ENABLED("develocity.injection-enabled"),
+    DEVELOCITY_INJECTION_ENABLED("develocity.injection-enabled"),
     GRADLE_PLUGIN_REPOSITORY_URL("gradle.plugin-repository.url"),
     GRADLE_PLUGIN_REPOSITORY_USERNAME("gradle.plugin-repository.username"),
     GRADLE_PLUGIN_REPOSITORY_PASSWORD("gradle.plugin-repository.password"),
     DEVELOCITY_PLUGIN_VERSION("develocity.plugin.version"),
     CCUD_PLUGIN_VERSION("develocity.ccud-plugin.version"),
     DEVELOCITY_URL("develocity.url"),
-    GRADLE_AUTO_INJECTION(""),
     DEVELOCITY_ENFORCE_URL("develocity.enforce-url"),
     DEVELOCITY_ALLOW_UNTRUSTED_SERVER("develocity.allow-untrusted-server"),
     DEVELOCITY_CAPTURE_TASK_INPUT_FILES("develocity.capture-file-fingerprints"),
