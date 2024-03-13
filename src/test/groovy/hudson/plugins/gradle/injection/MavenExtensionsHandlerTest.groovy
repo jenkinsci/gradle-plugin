@@ -39,7 +39,7 @@ class MavenExtensionsHandlerTest extends Specification {
         secondLastModified == firstLastModified
 
         where:
-        mavenExtension << MavenExtension.values()
+        mavenExtension << MavenExtension.values().findAll {it.injectable }
     }
 
     def "removes all files"() {
@@ -48,7 +48,7 @@ class MavenExtensionsHandlerTest extends Specification {
         def root = new FilePath(folder)
 
         when:
-        def geExtensionFilePath = mavenExtensionsHandler.copyExtensionToAgent(MavenExtension.GRADLE_ENTERPRISE, root)
+        def geExtensionFilePath = mavenExtensionsHandler.copyExtensionToAgent(MavenExtension.DEVELOCITY, root)
         def ccudExtensionFilePath = mavenExtensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, root)
 
         then:

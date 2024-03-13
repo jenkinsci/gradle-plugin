@@ -3,11 +3,18 @@ package hudson.plugins.gradle.injection
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_ALLOW_UNTRUSTED_SERVER
+import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_BUILD_SCAN_UPLOAD_IN_BACKGROUND
+import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_URL
+
 class MavenOptsDevelocityFilterTest extends Specification {
 
-    private final static DV_SYS_PROPS = '-Dgradle.enterprise.allowUntrustedServer=false ' +
-        '-Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com'
-    private final static DV_EXT_LIB = '/libs/gradle-enterprise-maven-extension.jar'
+    private final static DV_SYS_PROPS = [
+        DEVELOCITY_ALLOW_UNTRUSTED_SERVER.sysProp('false'),
+        DEVELOCITY_BUILD_SCAN_UPLOAD_IN_BACKGROUND.sysProp('false'),
+        DEVELOCITY_URL.sysProp('https://scans.gradle.com')
+    ].join(' ')
+    private final static DV_EXT_LIB = '/libs/develocity-maven-extension.jar'
     private final static DV_CCUD_EXT_LIB = '/libs/common-custom-user-data-maven-extension.jar'
 
     @Unroll("#scenario")
@@ -46,24 +53,24 @@ class MavenOptsDevelocityFilterTest extends Specification {
         ]
         extensionsAlreadyApplied << [
             [],
-            [MavenExtension.GRADLE_ENTERPRISE],
-            [MavenExtension.GRADLE_ENTERPRISE],
-            [MavenExtension.GRADLE_ENTERPRISE],
+            [MavenExtension.DEVELOCITY],
+            [MavenExtension.DEVELOCITY],
+            [MavenExtension.DEVELOCITY],
             [],
-            [MavenExtension.GRADLE_ENTERPRISE, MavenExtension.CCUD],
+            [MavenExtension.DEVELOCITY, MavenExtension.CCUD],
             [MavenExtension.CCUD],
             [MavenExtension.CCUD],
             [MavenExtension.CCUD]
         ]
         expected << [
-            '-Dmaven.ext.class.path=/libs/gradle-enterprise-maven-extension.jar -Dgradle.enterprise.allowUntrustedServer=false -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com',
+            "-Dmaven.ext.class.path=/libs/develocity-maven-extension.jar $DV_SYS_PROPS",
             '',
             '',
             '-Dmaven.ext.class.path=/libs/some/other/ext.jar:/libs/some/other/ext2.jar',
-            '-Dmaven.ext.class.path=/libs/gradle-enterprise-maven-extension.jar:/libs/common-custom-user-data-maven-extension.jar -Dgradle.enterprise.allowUntrustedServer=false -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com',
+            "-Dmaven.ext.class.path=/libs/develocity-maven-extension.jar:/libs/common-custom-user-data-maven-extension.jar $DV_SYS_PROPS",
             '',
-            '-Dmaven.ext.class.path=/libs/gradle-enterprise-maven-extension.jar -Dgradle.enterprise.allowUntrustedServer=false -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com',
-            '-Dmaven.ext.class.path=/libs/gradle-enterprise-maven-extension.jar -Dgradle.enterprise.allowUntrustedServer=false -Dgradle.scan.uploadInBackground=false -Dgradle.enterprise.url=https://scans.gradle.com',
+            "-Dmaven.ext.class.path=/libs/develocity-maven-extension.jar $DV_SYS_PROPS",
+            "-Dmaven.ext.class.path=/libs/develocity-maven-extension.jar $DV_SYS_PROPS",
             ''
         ]
 
@@ -81,13 +88,13 @@ class MavenOptsDevelocityFilterTest extends Specification {
 
         where:
         mavenOpts                                                                 | extensionsAlreadyApplied                                | expected
-        "-Dmaven.ext.class.path=${DV_EXT_LIB} ${DV_SYS_PROPS}"                    | [MavenExtension.GRADLE_ENTERPRISE]                      | '-Dgradle.enterprise.url=https://scans.gradle.com'
-        "-Dmaven.ext.class.path=${DV_EXT_LIB}:${DV_CCUD_EXT_LIB} ${DV_SYS_PROPS}" | [MavenExtension.GRADLE_ENTERPRISE, MavenExtension.CCUD] | '-Dgradle.enterprise.url=https://scans.gradle.com'
+        "-Dmaven.ext.class.path=${DV_EXT_LIB} ${DV_SYS_PROPS}"                    | [MavenExtension.DEVELOCITY]                             | DEVELOCITY_URL.sysProp('https://scans.gradle.com')
+        "-Dmaven.ext.class.path=${DV_EXT_LIB}:${DV_CCUD_EXT_LIB} ${DV_SYS_PROPS}" | [MavenExtension.DEVELOCITY, MavenExtension.CCUD]        | DEVELOCITY_URL.sysProp('https://scans.gradle.com')
     }
 
     def 'MAVEN_OPTS should be filtered on Windows'() {
         given:
-        def mavenOptsFilter = new MavenOptsDevelocityFilter([MavenExtension.GRADLE_ENTERPRISE] as Set, false)
+        def mavenOptsFilter = new MavenOptsDevelocityFilter([MavenExtension.DEVELOCITY] as Set, false)
 
         when:
         def filtered = mavenOptsFilter.filter("-Dmaven.ext.class.path=/libs/some/other/ext.jar;${DV_EXT_LIB};/libs/some/other/ext2.jar ${DV_SYS_PROPS}", false)

@@ -66,7 +66,7 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             LOGGER.info("Injecting Maven extensions " + nodeRootPath);
 
             List<FilePath> extensions = new ArrayList<>();
-            extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.GRADLE_ENTERPRISE, nodeRootPath));
+            extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.DEVELOCITY, nodeRootPath));
             if (config.isInjectCcudExtension()) {
                 extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, nodeRootPath));
             } else {
@@ -77,13 +77,17 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
 
             List<SystemProperty> systemProperties = new ArrayList<>();
             systemProperties.add(new SystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, constructExtClasspath(extensions, isUnix)));
+            systemProperties.add(new SystemProperty(DEVELOCITY_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
             systemProperties.add(new SystemProperty(BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
 
+            systemProperties.add(new SystemProperty(DEVELOCITY_URL_PROPERTY_KEY, server));
             systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, server));
             if (config.isAllowUntrusted()) {
+                systemProperties.add(new SystemProperty(DEVELOCITY_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
                 systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, "true"));
             }
             if (config.isMavenCaptureGoalInputFiles()) {
+                systemProperties.add(new SystemProperty(DEVELOCITY_CAPTURE_FILE_FINGERPRINTS_PROPERTY_KEY, "true"));
                 systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_CAPTURE_GOAL_INPUT_FILES_PROPERTY_KEY, "true"));
             }
 

@@ -29,12 +29,12 @@ import static hudson.plugins.gradle.injection.MavenSnippets.simplePom
 @Unroll
 class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
-    private static final String GE_EXTENSION_JAR = "gradle-enterprise-maven-extension.jar"
+    private static final String DEVELOCITY_EXTENSION_JAR = "develocity-maven-extension.jar"
     private static final String CCUD_EXTENSION_JAR = "common-custom-user-data-maven-extension.jar"
     private static final String CONFIGURATION_EXTENSION_JAR = "configuration-maven-extension.jar"
-    private static final String TOS_MSG = "The Gradle Terms of Service have not been agreed to"
+    private static final String TOU_MSG = "The Gradle Terms of Use have not been agreed to"
 
-    private static final List<String> ALL_EXTENSIONS = [GE_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
+    private static final List<String> ALL_EXTENSIONS = [DEVELOCITY_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
 
     private static final String POM_XML = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
     private static final String INJECT_CCUD = '[DEBUG] Executing extension: CommonCustomUserDataGradleEnterpriseListener'
@@ -153,11 +153,17 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         with(getMavenOptsFromNodeProperties(agent).split(" ").iterator()) {
             with(it.next()) {
                 it.startsWith('-Dmaven.ext.class.path=')
-                it.contains('gradle-enterprise-maven-extension.jar')
+                it.contains('develocity-maven-extension.jar')
                 it.contains('common-custom-user-data-maven-extension.jar')
             }
             with(it.next()) {
+                it == '-Ddevelocity.scan.uploadInBackground=false'
+            }
+            with(it.next()) {
                 it == '-Dgradle.scan.uploadInBackground=false'
+            }
+            with(it.next()) {
+                it == '-Ddevelocity.url=https://scans.gradle.com'
             }
             with(it.next()) {
                 it == '-Dgradle.enterprise.url=https://scans.gradle.com'
@@ -194,14 +200,23 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
             }
             with(it.next()) {
                 it.startsWith('-Dmaven.ext.class.path=')
-                it.contains('gradle-enterprise-maven-extension.jar')
+                it.contains('develocity-maven-extension.jar')
                 it.contains('common-custom-user-data-maven-extension.jar')
+            }
+            with(it.next()) {
+                it == '-Ddevelocity.scan.uploadInBackground=false'
             }
             with(it.next()) {
                 it == '-Dgradle.scan.uploadInBackground=false'
             }
             with(it.next()) {
+                it == '-Ddevelocity.url=https://scans.gradle.com'
+            }
+            with(it.next()) {
                 it == '-Dgradle.enterprise.url=https://scans.gradle.com'
+            }
+            with(it.next()) {
+                it == '-Ddevelocity.scan.captureFileFingerprints=true'
             }
             with(it.next()) {
                 it == '-Dgradle.scan.captureGoalInputFiles=true'
@@ -223,7 +238,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         then:
         slave.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class).size() == 1
 
-        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        hasJarInMavenExt(slave, DEVELOCITY_EXTENSION_JAR)
         !hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
 
         when:
@@ -232,7 +247,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         then:
         slave.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class).size() == 1
 
-        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        hasJarInMavenExt(slave, DEVELOCITY_EXTENSION_JAR)
         hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
 
         when:
@@ -257,7 +272,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
         then:
         def log = JenkinsRule.getLog(build)
-        hasJarInMavenExt(log, GE_EXTENSION_JAR)
+        hasJarInMavenExt(log, DEVELOCITY_EXTENSION_JAR)
         !hasJarInMavenExt(log, CCUD_EXTENSION_JAR)
         hasBuildScanPublicationAttempt(log)
     }
@@ -280,7 +295,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=scans.gradle.com=secret", build)
         j.assertLogContains("DEVELOCITY_ACCESS_KEY=scans.gradle.com=secret", build)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, build)
-        j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
+        j.assertLogContains("[INFO] The Gradle Terms of Use have not been agreed to.", build)
     }
 
     def 'invalid access key is not injected into the simple pipeline'() {
@@ -299,7 +314,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
         then:
         j.assertLogNotContains("GRADLE_ENTERPRISE_ACCESS_KEY=secret", build)
-        j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
+        j.assertLogContains("[INFO] The Gradle Terms of Use have not been agreed to.", build)
 
         and:
         StringUtils.countMatches(JenkinsRule.getLog(build), INVALID_ACCESS_KEY_FORMAT_ERROR) == 1
@@ -313,10 +328,10 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         then:
         extensionDirectory.exists()
         extensionDirectory.list().size() == 2
-        extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
+        extensionDirectory.list().find { it.name == DEVELOCITY_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
-        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        hasJarInMavenExt(slave, DEVELOCITY_EXTENSION_JAR)
         !hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
         !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
@@ -335,11 +350,11 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
         then:
         extensionDirectory.list().size() == 3
-        extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
+        extensionDirectory.list().find { it.name == DEVELOCITY_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
-        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        hasJarInMavenExt(slave, DEVELOCITY_EXTENSION_JAR)
         hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
         !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
@@ -349,10 +364,10 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
         then:
         extensionDirectory.list().size() == 2
-        extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
+        extensionDirectory.list().find { it.name == DEVELOCITY_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
-        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        hasJarInMavenExt(slave, DEVELOCITY_EXTENSION_JAR)
         !hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
         !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
@@ -362,11 +377,11 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
         then:
         extensionDirectory.list().size() == 3
-        extensionDirectory.list().find { it.name == GE_EXTENSION_JAR } != null
+        extensionDirectory.list().find { it.name == DEVELOCITY_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CCUD_EXTENSION_JAR } != null
         extensionDirectory.list().find { it.name == CONFIGURATION_EXTENSION_JAR } != null
 
-        hasJarInMavenExt(slave, GE_EXTENSION_JAR)
+        hasJarInMavenExt(slave, DEVELOCITY_EXTENSION_JAR)
         hasJarInMavenExt(slave, CCUD_EXTENSION_JAR)
         !hasJarInMavenExt(slave, CONFIGURATION_EXTENSION_JAR)
 
@@ -521,7 +536,7 @@ node {
 
         then:
         def log = JenkinsRule.getLog(build)
-        hasJarInMavenExt(log, GE_EXTENSION_JAR)
+        hasJarInMavenExt(log, DEVELOCITY_EXTENSION_JAR)
         !hasJarInMavenExt(log, CCUD_EXTENSION_JAR)
         hasBuildScanPublicationAttempt(log)
     }
@@ -546,7 +561,7 @@ node {
 
         then:
         def log = JenkinsRule.getLog(build)
-        hasJarInMavenExt(log, GE_EXTENSION_JAR)
+        hasJarInMavenExt(log, DEVELOCITY_EXTENSION_JAR)
         hasJarInMavenExt(log, CCUD_EXTENSION_JAR)
         hasBuildScanPublicationAttempt(log)
     }
@@ -569,7 +584,7 @@ node {
         then:
         def log = JenkinsRule.getLog(build)
         log =~ /MAVEN_OPTS=.*-Dfoo=bar.*/
-        !hasJarInMavenExt(log, GE_EXTENSION_JAR)
+        !hasJarInMavenExt(log, DEVELOCITY_EXTENSION_JAR)
         !hasBuildScanPublicationAttempt(log)
     }
 
@@ -580,7 +595,7 @@ node {
         then:
         getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
         getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
-        assertMavenConfigClasspathJars(slave, GE_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
+        assertMavenConfigClasspathJars(slave, DEVELOCITY_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
 
         when:
         withInjectionConfig {
@@ -591,7 +606,7 @@ node {
         then:
         getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
         getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == "true"
-        assertMavenConfigClasspathJars(slave, GE_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
+        assertMavenConfigClasspathJars(slave, DEVELOCITY_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
 
         when:
         withInjectionConfig {
@@ -603,7 +618,7 @@ node {
         then:
         getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL) == 'https://scans.gradle.com'
         getEnvVarFromNodeProperties(slave, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER) == null
-        assertMavenConfigClasspathJars(slave, GE_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
+        assertMavenConfigClasspathJars(slave, DEVELOCITY_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR)
 
         when:
         turnOffBuildInjectionAndRestart(slave)
@@ -651,9 +666,9 @@ node {
 
         then:
         if (shouldApplyAutoInjection) {
-            j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
+            j.assertLogContains("[INFO] The Gradle Terms of Use have not been agreed to.", build)
         } else {
-            j.assertLogNotContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
+            j.assertLogNotContains("[INFO] The Gradle Terms of Use have not been agreed to.", build)
         }
 
         where:
@@ -695,9 +710,9 @@ node {
 
         then:
         if (shouldApplyAutoInjection) {
-            j.assertLogContains(TOS_MSG, build)
+            j.assertLogContains(TOU_MSG, build)
         } else {
-            j.assertLogNotContains(TOS_MSG, build)
+            j.assertLogNotContains(TOU_MSG, build)
         }
 
         where:
@@ -785,9 +800,9 @@ node {
 
         then:
         if (shouldInjectDv) {
-            j.assertLogContains(TOS_MSG, build)
+            j.assertLogContains(TOU_MSG, build)
         } else {
-            j.assertLogNotContains(TOS_MSG, build)
+            j.assertLogNotContains(TOU_MSG, build)
         }
         if (shouldInjectCcud) {
             j.assertLogContains(INJECT_CCUD, build)
@@ -873,9 +888,9 @@ node {
 
         then:
         if (shouldInjectDv) {
-            j.assertLogContains(TOS_MSG, build)
+            j.assertLogContains(TOU_MSG, build)
         } else {
-            j.assertLogNotContains(TOS_MSG, build)
+            j.assertLogNotContains(TOU_MSG, build)
         }
         if (shouldInjectCcud) {
             j.assertLogContains(INJECT_CCUD, build)
