@@ -122,7 +122,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     buildScan.server = geUrl
                     buildScan.allowUntrustedServer = geAllowUntrustedServer
                     buildScan.publishAlways()
-                    if (isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
+                    if (geCaptureTaskInputFiles && isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
                         if (isAtLeast(gePluginVersion, '3.7')) {
                             buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
                         } else {
@@ -140,7 +140,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                             buildScan.server = geUrl
                             buildScan.allowUntrustedServer = geAllowUntrustedServer
                         }
-                        if (isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
+                        if (geCaptureTaskInputFiles && isAtLeast(gePluginVersion, '2.1') && atLeastGradle5) {
                             if (isAtLeast(gePluginVersion, '3.7')) {
                                 buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
                             } else {
@@ -174,7 +174,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     ext.allowUntrustedServer = geAllowUntrustedServer
                     ext.buildScan.publishAlways()
                     ext.buildScan.uploadInBackground = false
-                    if (isAtLeast(gePluginVersion, '2.1')) {
+                    if (geCaptureTaskInputFiles && isAtLeast(gePluginVersion, '2.1')) {
                         if (isAtLeast(gePluginVersion, '3.7')) {
                             ext.buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
                         } else {
@@ -190,7 +190,7 @@ if (GradleVersion.current() < GradleVersion.version('6.0')) {
                     logger.lifecycle("Enforcing Develocity: $geUrl, allowUntrustedServer: $geAllowUntrustedServer, captureTaskInputFiles: $geCaptureTaskInputFiles")
                     ext.server = geUrl
                     ext.allowUntrustedServer = geAllowUntrustedServer
-                    if (isAtLeast(gePluginVersion, '2.1')) {
+                    if (geCaptureTaskInputFiles && isAtLeast(gePluginVersion, '2.1')) {
                         if (isAtLeast(gePluginVersion, '3.7')) {
                             ext.buildScan.capture.taskInputFiles = geCaptureTaskInputFiles
                         } else {
