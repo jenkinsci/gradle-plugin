@@ -278,6 +278,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
         then:
         j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=scans.gradle.com=secret", build)
+        j.assertLogContains("DEVELOCITY_ACCESS_KEY=scans.gradle.com=secret", build)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, build)
         j.assertLogContains("[INFO] The Gradle Terms of Service have not been agreed to.", build)
     }
