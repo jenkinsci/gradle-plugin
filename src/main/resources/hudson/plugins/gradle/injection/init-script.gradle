@@ -53,13 +53,17 @@ initscript {
                     }
                 }
             }
+            // TODO remove before merge
+            maven {
+                url "https://repo.grdev.net/artifactory/public"
+            }
         }
     }
 
     dependencies {
         if (develocityPluginVersion) {
             if (atLeastGradle5) {
-                if (GradleVersion.version(develocityPluginVersion) >= GradleVersion.version("3.17")) {
+                if (GradleVersion.version(develocityPluginVersion).baseVersion >= GradleVersion.version("3.17")) {
                     classpath "com.gradle:develocity-gradle-plugin:$develocityPluginVersion"
                 } else {
                     classpath "com.gradle:gradle-enterprise-gradle-plugin:$develocityPluginVersion"
