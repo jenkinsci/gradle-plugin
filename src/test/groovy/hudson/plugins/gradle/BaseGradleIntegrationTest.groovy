@@ -16,7 +16,7 @@ import org.junit.rules.RuleChain
 abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
     public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
-    static final String DEVELOCITY_PLUGIN_VERSION = '3.16.2'
+    static final String DEVELOCITY_PLUGIN_VERSION = '3.17-rc-4'
 
     @Rule
     public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(gradleInstallationRule)
@@ -37,7 +37,7 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
     ) {
         withGlobalEnvVars {
             put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
-            put('GRADLE_OPTS', '-Dscan.uploadInBackground=false')
+            put('GRADLE_OPTS', '-Ddevelocity.build-scan.upload-in-background=false')
             if (globalAutoInjectionCheckEnabled) {
                 put("JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK", "true")
             }

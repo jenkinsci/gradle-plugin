@@ -610,7 +610,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         then:
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
         j.assertLogContains("accessKey=foo.com=secret", secondRun)
-        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.16.2/token was not from Gradle Enterprise.", secondRun)
+        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/${DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, secondRun)
 
     }
@@ -646,7 +646,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
-        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.16.2/token was not from Gradle Enterprise.", secondRun)
+        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/${DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
 
         and:
         StringUtils.countMatches(JenkinsRule.getLog(secondRun), INVALID_ACCESS_KEY_FORMAT_ERROR) == 1
@@ -680,7 +680,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             verifyAll(getEnvVars()) {
                 get("DEVELOCITY_URL") == "http://localhost"
-                get("DEVELOCITY_PLUGIN_VERSION") == '3.16.2'
+                get("DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
                 get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == null
                 get("DEVELOCITY_ENFORCE_URL") == null
                 get("GRADLE_PLUGIN_REPOSITORY_URL") == null
@@ -748,7 +748,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             verifyAll(getEnvVars()) {
                 get("DEVELOCITY_URL") == "http://localhost"
                 get("DEVELOCITY_ENFORCE_URL") == "true"
-                get("DEVELOCITY_PLUGIN_VERSION") == '3.16.2'
+                get("DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
                 get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == "true"
                 get("GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
                 get("DEVELOCITY_CCUD_PLUGIN_VERSION") == "1.12.1"
@@ -941,7 +941,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         def log = JenkinsRule.getLog(secondRun)
-        log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false, captureTaskInputFiles: true')
+        log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false, captureFileFingerprints: true')
         if (gradleVersion > '5.0') {
             assert log.contains('Setting captureTaskInputFiles: true')
         }
