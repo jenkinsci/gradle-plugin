@@ -942,6 +942,9 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         then:
         def log = JenkinsRule.getLog(secondRun)
         log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false, captureTaskInputFiles: true')
+        if (gradleVersion > '5.0') {
+            assert log.contains('Setting captureTaskInputFiles: true')
+        }
 
         where:
         gradleVersion << GRADLE_VERSIONS
