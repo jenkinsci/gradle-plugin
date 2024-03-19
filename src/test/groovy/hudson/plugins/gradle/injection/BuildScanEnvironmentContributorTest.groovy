@@ -71,7 +71,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         1 * run.addAction { DevelocityParametersAction action ->
             def parameters = action.getAllParameters()
             parameters.size() == 1
-            paramEquals(parameters.first(), 'JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
+            paramEquals(parameters.first(), 'GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
         }
     }
 
@@ -107,7 +107,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         1 * run.addAction { DevelocityParametersAction action ->
             def parameters = action.getAllParameters()
             parameters.size() == 1
-            paramEquals(parameters.first(), 'JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
+            paramEquals(parameters.first(), 'GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
         }
     }
 
@@ -127,7 +127,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
             parameters.size() == 3
             paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', 'server=secret')
             paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', 'server=secret')
-            paramEquals(parameters[2], 'JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
+            paramEquals(parameters[2], 'GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
         }
     }
 

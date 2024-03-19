@@ -1,6 +1,7 @@
 package hudson.plugins.gradle.injection;
 
 public enum InitScriptVariables {
+    DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE("develocity.auto-injection.custom-value"),
     DEVELOCITY_INIT_SCRIPT_NAME("develocity.injection.init-script-name"),
     DEVELOCITY_INJECTION_ENABLED("develocity.injection-enabled"),
     GRADLE_PLUGIN_REPOSITORY_URL("gradle.plugin-repository.url"),
@@ -26,11 +27,7 @@ public enum InitScriptVariables {
         return templateName;
     }
 
-    String getTemplateTargetName() {
-        return "jenkinsGradlePlugin." + templateName;
-    }
-
     String getEnvVar() {
-        return "JENKINSGRADLEPLUGIN_" + templateName.toUpperCase().replace('.', '_').replace('-', '_');
+        return templateName.toUpperCase().replace('.', '_').replace('-', '_');
     }
 }

@@ -31,8 +31,7 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
     private static final String GRADLE_DIR = ".gradle";
     private static final String GRADLE_INIT_FILE = "init-build-scan.gradle";
 
-    private final Supplier<String> initScript = Suppliers.memoize(() -> InitScriptTemplate.loadAndReplace(RESOURCE_INIT_SCRIPT_GRADLE));
-    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> Util.getDigestOf(initScript.get()));
+    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
 
     @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
@@ -76,18 +75,19 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
     private void inject(InjectionConfig config, Node node, String initScriptDirectory) {
         try {
             EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_INJECTION_ENABLED, "true");
-            injectInitScript(node, initScriptDirectory);
+            injectInitScript(node.getChannel(), initScriptDirectory);
             injectEnvironmentVariables(config, node);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private void injectInitScript(Node node, String initScriptDirectory) throws IOException, InterruptedException {
-        FilePath gradleInitScriptFile = getInitScriptFile(node.getChannel(), initScriptDirectory);
+    private void injectInitScript(VirtualChannel channel, String initScriptDirectory) throws IOException, InterruptedException {
+        FilePath gradleInitScriptFile = getInitScriptFile(channel, initScriptDirectory);
         if (initScriptChanged(gradleInitScriptFile)) {
             LOGGER.info("Injecting Gradle init script " + gradleInitScriptFile);
-            writeToNode(gradleInitScriptFile, initScript.get());
+
+            copyResourceToNode(gradleInitScriptFile, RESOURCE_INIT_SCRIPT_GRADLE);
         }
     }
 
@@ -95,6 +95,7 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
         EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_URL, config.getServer());
         EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_PLUGIN_VERSION, config.getGradlePluginVersion());
         EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_INIT_SCRIPT_NAME, GRADLE_INIT_FILE);
+        EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE, "Jenkins");
 
         if (config.isAllowUntrusted()) {
             EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_ALLOW_UNTRUSTED_SERVER, "true");
