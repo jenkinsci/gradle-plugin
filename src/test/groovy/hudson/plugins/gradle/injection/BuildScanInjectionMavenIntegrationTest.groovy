@@ -162,6 +162,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
             with(it.next()) {
                 it == '-Dgradle.enterprise.url=https://scans.gradle.com'
             }
+            with(it.next()) {
+                it == '-Dgradle.scan.captureGoalInputFiles=false'
+            }
             !it.hasNext()
         }
 

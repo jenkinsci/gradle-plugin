@@ -99,7 +99,7 @@
                     </f:repeatableProperty>
                 </f:entry>
                 <f:entry field="gradleCaptureTaskInputFiles">
-                    <f:checkbox title="${%Capture Task Input Files}"/>
+                    <f:checkbox title="${%Capture Task Input Files}" default="true"/>
                 </f:entry>
             </f:section>
 
@@ -137,7 +137,7 @@
                     </f:repeatableProperty>
                 </f:entry>
                 <f:entry field="mavenCaptureGoalInputFiles">
-                    <f:checkbox title="${%Capture Goal Input Files}"/>
+                    <f:checkbox title="${%Capture Goal Input Files}" default="true"/>
                 </f:entry>
             </f:section>
 
