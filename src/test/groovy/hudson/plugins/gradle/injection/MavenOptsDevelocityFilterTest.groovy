@@ -3,17 +3,25 @@ package hudson.plugins.gradle.injection
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_ALLOW_UNTRUSTED_SERVER
-import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_BUILD_SCAN_UPLOAD_IN_BACKGROUND
 import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_URL
+import static hudson.plugins.gradle.injection.MavenInjectionAware.BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY
+import static hudson.plugins.gradle.injection.MavenInjectionAware.DEVELOCITY_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY
+import static hudson.plugins.gradle.injection.MavenInjectionAware.DEVELOCITY_UPLOAD_IN_BACKGROUND_PROPERTY_KEY
+import static hudson.plugins.gradle.injection.MavenInjectionAware.DEVELOCITY_URL_PROPERTY_KEY
+import static hudson.plugins.gradle.injection.MavenInjectionAware.GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY
+import static hudson.plugins.gradle.injection.MavenInjectionAware.GRADLE_ENTERPRISE_URL_PROPERTY_KEY
 
 class MavenOptsDevelocityFilterTest extends Specification {
 
     private final static DV_SYS_PROPS = [
-        DEVELOCITY_ALLOW_UNTRUSTED_SERVER.sysProp('false'),
-        DEVELOCITY_BUILD_SCAN_UPLOAD_IN_BACKGROUND.sysProp('false'),
-        DEVELOCITY_URL.sysProp('https://scans.gradle.com')
-    ].join(' ')
+        new SystemProperty(DEVELOCITY_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, 'false'),
+        new SystemProperty(DEVELOCITY_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, 'false'),
+        new SystemProperty(DEVELOCITY_URL_PROPERTY_KEY, 'https://scans.gradle.com'),
+        new SystemProperty(GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY, 'false'),
+        new SystemProperty(GRADLE_ENTERPRISE_URL_PROPERTY_KEY, 'https://scans.gradle.com'),
+        new SystemProperty(BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, 'false')
+    ].collect { it.asString() }.join(' ')
+
     private final static DV_EXT_LIB = '/libs/develocity-maven-extension.jar'
     private final static DV_CCUD_EXT_LIB = '/libs/common-custom-user-data-maven-extension.jar'
 

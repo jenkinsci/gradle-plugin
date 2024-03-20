@@ -31,10 +31,6 @@ public enum InitScriptVariables {
         return templateName.toUpperCase().replace('.', '_').replace('-', '_');
     }
 
-    String envVar(String value) {
-        return getEnvVar() + "=" + value;
-    }
-
     String sysProp(String value) {
         return "-D" + getTemplateName() + "=" + value;
     }
