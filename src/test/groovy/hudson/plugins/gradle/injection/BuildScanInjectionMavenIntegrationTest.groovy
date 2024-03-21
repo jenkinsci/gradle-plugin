@@ -171,6 +171,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
             with(it.next()) {
                 it == '-Ddevelocity.scan.captureFileFingerprints=true'
             }
+            with(it.next()) {
+                it == '-Dgradle.scan.captureGoalInputFiles=true'
+            }
             !it.hasNext()
         }
 
