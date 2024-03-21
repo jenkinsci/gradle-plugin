@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
+@Ignore("Need to un-ignore once 1.21 is released")
 public class MavenInjectionTest extends AbstractAcceptanceTest {
 
     private static final String MAVEN_VERSION = "3.8.6";
@@ -36,7 +37,6 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
 
     @Test
     @WithPlugins("maven-plugin")
-    @Ignore("Need to un-ignore once 1.21 is released")
     public void mavenJobSendsBuildScan() {
         // given
         MavenModuleSet job = jenkins.jobs.create(MavenModuleSet.class);
@@ -101,7 +101,6 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
     @Test
     @WithOS(os = {WithOS.OS.MAC, WithOS.OS.LINUX})
     @WithPlugins("pipeline-model-definition")
-    @Ignore("Need to un-ignore once 1.21 is released")
     public void pipelineJobPublishesBuildScan() {
         // given
         WorkflowJob job = jenkins.jobs.create(WorkflowJob.class);
