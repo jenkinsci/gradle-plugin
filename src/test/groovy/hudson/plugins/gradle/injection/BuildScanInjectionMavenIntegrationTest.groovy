@@ -169,7 +169,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
                 it == '-Dgradle.enterprise.url=https://scans.gradle.com'
             }
             with(it.next()) {
-                it == '-Dgradle.scan.captureGoalInputFiles=true'
+                it == '-Ddevelocity.scan.captureFileFingerprints=true'
             }
             !it.hasNext()
         }
