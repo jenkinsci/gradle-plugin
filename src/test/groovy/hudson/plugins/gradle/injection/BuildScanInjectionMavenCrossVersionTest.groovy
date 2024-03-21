@@ -12,6 +12,8 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseMavenIntegrationTest {
 
     private static final String MINIMUM_SUPPORTED_MAVEN_VERSION = '3.3.1'
 
+    // Those are failing for now because:
+    // "Develocity Maven extension version 1.21-rc-3 is a release candidate version. Release candidate versions are not accepted by this Develocity server."
     def 'build scan is discovered from Maven build - #mavenVersion'(String mavenVersion) {
         given:
         mavenInstallationRule.mavenVersion = mavenVersion
