@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static hudson.plugins.gradle.injection.GradleInjectionAware.JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD;
-
 @Extension
 public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
@@ -43,7 +41,8 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
     public static class DevelocityParametersAction extends ParametersAction {
 
         private static final String GRADLE_ENTERPRISE_ACCESS_KEY = "GRADLE_ENTERPRISE_ACCESS_KEY";
-        private static final String GRADLE_ENTERPRISE_REPO_PASSWORD = JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD;
+        private static final String DEVELOCITY_ACCESS_KEY = "DEVELOCITY_ACCESS_KEY";
+        private static final String GRADLE_PLUGIN_REPOSITORY_PASSWORD = InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_PASSWORD.getEnvVar();
 
         private static final DevelocityParametersAction EMPTY = new DevelocityParametersAction();
 
@@ -66,17 +65,18 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
                     logger.error("Develocity access key format is not valid");
                 } else {
                     values.add(new PasswordParameterValue(GRADLE_ENTERPRISE_ACCESS_KEY, accessKey.getPlainText()));
+                    values.add(new PasswordParameterValue(DEVELOCITY_ACCESS_KEY, accessKey.getPlainText()));
                 }
             }
             if (repoPassword != null) {
-                values.add(new PasswordParameterValue(GRADLE_ENTERPRISE_REPO_PASSWORD, repoPassword.getPlainText()));
+                values.add(new PasswordParameterValue(GRADLE_PLUGIN_REPOSITORY_PASSWORD, repoPassword.getPlainText()));
             }
             if (values.isEmpty()) {
                 return DevelocityParametersAction.empty();
             }
             return new DevelocityParametersAction(
                 values,
-                Stream.of(GRADLE_ENTERPRISE_ACCESS_KEY, GRADLE_ENTERPRISE_REPO_PASSWORD).collect(Collectors.toSet())
+                Stream.of(GRADLE_ENTERPRISE_ACCESS_KEY, DEVELOCITY_ACCESS_KEY, GRADLE_PLUGIN_REPOSITORY_PASSWORD).collect(Collectors.toSet())
             );
         }
     }

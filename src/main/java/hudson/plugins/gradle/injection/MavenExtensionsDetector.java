@@ -25,7 +25,10 @@ public class MavenExtensionsDetector {
             MavenExtensions mavenExtensions = MavenExtensions.fromFilePath(extensionsFile);
 
             Set<MavenExtension> knownExtensions = new HashSet<>();
-            if (mavenExtensions.hasExtension(MavenExtension.GRADLE_ENTERPRISE.getCoordinates()) ||
+            if (mavenExtensions.hasExtension(MavenExtension.DEVELOCITY.getCoordinates()) ||
+                mavenExtensions.hasExtension(MavenCoordinates.parseCoordinates(config.getMavenExtensionCustomCoordinates()))) {
+                knownExtensions.add(MavenExtension.DEVELOCITY);
+            } else if (mavenExtensions.hasExtension(MavenExtension.GRADLE_ENTERPRISE.getCoordinates()) ||
                 mavenExtensions.hasExtension(MavenCoordinates.parseCoordinates(config.getMavenExtensionCustomCoordinates()))) {
                 knownExtensions.add(MavenExtension.GRADLE_ENTERPRISE);
             }

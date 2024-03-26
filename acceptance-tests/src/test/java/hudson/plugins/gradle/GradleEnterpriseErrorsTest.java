@@ -39,7 +39,7 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
         GradleStep gradle = job.addBuildStep(GradleStep.class);
         gradle.setVersion(GRADLE_VERSION);
         gradle.setSwitches("--no-daemon");
-        gradle.setTasks("helloWorld -Dcom.gradle.scan.trigger-synthetic-error=true");
+        gradle.setTasks("helloWorld -Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true");
         job.save();
 
         // when

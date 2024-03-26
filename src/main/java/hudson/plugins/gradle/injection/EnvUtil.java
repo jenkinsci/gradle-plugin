@@ -51,11 +51,22 @@ public final class EnvUtil {
     public static void removeEnvVars(Node node, Collection<String> keys) {
         keys.forEach(key -> removeEnvVar(node, key));
     }
+    public static void removeEnvVars(Node node, InitScriptVariables[] keys) {
+        for (InitScriptVariables key : keys) {
+            removeEnvVar(node, key);
+        }
+    }
 
     public static void removeEnvVar(Node node, String key) {
         setEnvVar(node, key, null);
     }
+    public static void removeEnvVar(Node node, InitScriptVariables key) {
+        setEnvVar(node, key, null);
+    }
 
+    public static void setEnvVar(Node node, InitScriptVariables key, @Nullable String value) {
+        setEnvVar(node, key.getEnvVar(), value);
+    }
     public static void setEnvVar(Node node, String key, @Nullable String value) {
         List<EnvironmentVariablesNodeProperty> all =
             node.getNodeProperties().getAll(EnvironmentVariablesNodeProperty.class);

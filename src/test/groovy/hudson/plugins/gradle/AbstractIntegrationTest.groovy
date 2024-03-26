@@ -49,8 +49,7 @@ abstract class AbstractIntegrationTest extends Specification {
         NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
         EnvVars env = nodeProperty.getEnvVars()
 
-        closure.setDelegate(env)
-        closure.run()
+        env.with(closure)
         j.jenkins.globalNodeProperties.clear()
         j.jenkins.globalNodeProperties.add(nodeProperty)
 
@@ -61,8 +60,7 @@ abstract class AbstractIntegrationTest extends Specification {
         NodeProperty nodeProperty = new EnvironmentVariablesNodeProperty()
         EnvVars env = nodeProperty.getEnvVars()
 
-        closure.setDelegate(env)
-        closure.run()
+        env.with(closure)
         node.nodeProperties.clear()
         node.nodeProperties.add(nodeProperty)
 
@@ -72,8 +70,7 @@ abstract class AbstractIntegrationTest extends Specification {
     InjectionConfig withInjectionConfig(@DelegatesTo(InjectionConfig) Closure closure) {
         def config = InjectionConfig.get()
 
-        closure.setDelegate(config)
-        closure.run()
+        config.with(closure)
         config.save()
 
         config

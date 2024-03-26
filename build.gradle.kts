@@ -4,6 +4,7 @@ import org.jenkinsci.gradle.plugins.jpi.JpiLicense
 import org.jenkinsci.gradle.plugins.jpi.deployment.CreateVersionlessLookupTask
 import org.jenkinsci.gradle.plugins.jpi.localization.LocalizationTask
 import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
+import java.net.URI
 import java.util.zip.ZipFile
 
 plugins {
@@ -23,10 +24,18 @@ val coreBomVersion = "1500.ve4d05cd32975"
 
 val gradleExt = (gradle as ExtensionAware).extra
 
-val gradleEnterpriseMavenExtensionVersion: String by gradleExt
+val develocityMavenExtensionVersion: String by gradleExt
 val commonCustomUserDataMavenExtensionVersion: String by gradleExt
 val ciJenkinsBuild: Boolean by gradleExt
 val isCi: Boolean by gradleExt
+
+// only necessary as long as we use a rc
+repositories {
+    mavenCentral()
+    maven {
+        url = URI.create("https://repo.grdev.net/artifactory/public")
+    }
+}
 
 jenkinsPlugin {
     // Version of Jenkins core this plugin depends on.
@@ -112,7 +121,7 @@ dependencies {
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
 
-    add(includedLibs.name, "com.gradle:gradle-enterprise-maven-extension:${gradleEnterpriseMavenExtensionVersion}")
+    add(includedLibs.name, "com.gradle:develocity-maven-extension:${develocityMavenExtensionVersion}")
     add(includedLibs.name, "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}")
     add(includedLibs.name, project(path = ":configuration-maven-extension", configuration = "mvnExtension"))
 
@@ -261,7 +270,7 @@ val localizeMessages: Task by tasks.getting(LocalizationTask::class) {
 }
 
 val generateExtensionsVersions: Task by tasks.creating {
-    inputs.property("gradleEnterpriseMavenExtensionVersion", gradleEnterpriseMavenExtensionVersion)
+    inputs.property("develocityMavenExtensionVersion", develocityMavenExtensionVersion)
     inputs.property("commonCustomUserDataMavenExtensionVersion", commonCustomUserDataMavenExtensionVersion)
 
     val srcDir = layout.buildDirectory.file("generated/sources/extensionsVersions/java/main")
@@ -282,7 +291,7 @@ val generateExtensionsVersions: Task by tasks.creating {
 
             public final class ExtensionsVersions {
 
-                public static final String GE_EXTENSION_VERSION = "$gradleEnterpriseMavenExtensionVersion";
+                public static final String DEVELOCITY_EXTENSION_VERSION = "$develocityMavenExtensionVersion";
                 public static final String CCUD_EXTENSION_VERSION = "$commonCustomUserDataMavenExtensionVersion";
 
                 private ExtensionsVersions() {
@@ -317,7 +326,7 @@ tasks.processTestResources {
 
 tasks.processResources {
     filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectMavenExtension.html") {
-        expand("gradleEnterpriseMavenExtensionVersion" to gradleEnterpriseMavenExtensionVersion)
+        expand("develocityMavenExtensionVersion" to develocityMavenExtensionVersion)
     }
     filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectCcudExtension.html") {
         expand("commonCustomUserDataMavenExtensionVersion" to commonCustomUserDataMavenExtensionVersion)

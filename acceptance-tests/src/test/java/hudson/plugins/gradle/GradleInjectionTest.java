@@ -178,7 +178,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         // then
         build.shouldSucceed();
         assertBuildScanPublished(build);
-        build.action(EnvInjectAction.class).shouldContain("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_PASSWORD", "[*******]");
+        build.action(EnvInjectAction.class).shouldContain("GRADLE_PLUGIN_REPOSITORY_PASSWORD", "[*******]");
     }
 
     @Test
