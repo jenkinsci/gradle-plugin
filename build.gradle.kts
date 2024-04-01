@@ -126,7 +126,7 @@ dependencies {
     testImplementation("org.jenkins-ci.plugins:pipeline-maven:3.10.0")
     testImplementation("org.spockframework:spock-core:2.3-groovy-2.5")
     testImplementation("org.spockframework:spock-junit4:2.3-groovy-2.5")
-    testImplementation("net.bytebuddy:byte-buddy:1.14.12")
+    testImplementation("net.bytebuddy:byte-buddy:1.14.13")
     testImplementation("org.objenesis:objenesis:3.3")
 
     testImplementation("io.ratpack:ratpack-groovy-test:1.9.0") {
