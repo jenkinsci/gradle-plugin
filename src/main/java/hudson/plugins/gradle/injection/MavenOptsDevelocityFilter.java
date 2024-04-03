@@ -19,7 +19,10 @@ public class MavenOptsDevelocityFilter {
     private final static MavenOptsHandler handler = new MavenOptsHandler(
         BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
         GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
-        GRADLE_ENTERPRISE_URL_PROPERTY_KEY
+        GRADLE_ENTERPRISE_URL_PROPERTY_KEY,
+        DEVELOCITY_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
+        DEVELOCITY_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
+        DEVELOCITY_URL_PROPERTY_KEY
     );
     private final Set<MavenExtension> knownExtensionsAlreadyApplied;
     private final boolean isUnix;
@@ -32,7 +35,13 @@ public class MavenOptsDevelocityFilter {
     String filter(String mavenOpts, boolean enforceUrl) {
         mavenOpts = removeKnownExtensionsFromExtClasspath(mavenOpts);
 
-        if (knownExtensionsAlreadyApplied.contains(MavenExtension.GRADLE_ENTERPRISE)) {
+        if (knownExtensionsAlreadyApplied.contains(MavenExtension.DEVELOCITY)) {
+            Set<String> keysToKeep = new HashSet<>();
+            if (enforceUrl) {
+                keysToKeep.add(MavenInjectionAware.DEVELOCITY_URL_PROPERTY_KEY.name);
+            }
+            mavenOpts = Strings.nullToEmpty(handler.removeIfNeeded(mavenOpts, keysToKeep));
+        } else if (knownExtensionsAlreadyApplied.contains(MavenExtension.GRADLE_ENTERPRISE)) {
             Set<String> keysToKeep = new HashSet<>();
             if (enforceUrl) {
                 keysToKeep.add(MavenInjectionAware.GRADLE_ENTERPRISE_URL_PROPERTY_KEY.name);

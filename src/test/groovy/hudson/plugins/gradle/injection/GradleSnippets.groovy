@@ -18,9 +18,9 @@ class GradleSnippets {
           writeFile file: 'settings.gradle', text: ''
           writeFile file: 'build.gradle', text: ""
           if (isUnix()) {
-            sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain -Dcom.gradle.scan.trigger-synthetic-error=true"
+            sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain -Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true"
           } else {
-            bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain -Dcom.gradle.scan.trigger-synthetic-error=true/)
+            bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain -Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true/)
           }
         }
       }

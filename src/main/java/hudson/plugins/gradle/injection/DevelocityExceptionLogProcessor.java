@@ -18,6 +18,14 @@ public final class DevelocityExceptionLogProcessor extends AbstractGradleLogProc
         {
             new DevelocityExceptionDetector.ByPrefix(
                 BuildToolType.GRADLE,
+                "Internal error in Develocity Gradle plugin:"
+            ),
+            new DevelocityExceptionDetector.ByPrefix(
+                BuildToolType.MAVEN,
+                "[ERROR] Internal error in Develocity Maven extension:"
+            ),
+            new DevelocityExceptionDetector.ByPrefix(
+                BuildToolType.GRADLE,
                 "Internal error in Gradle Enterprise Gradle plugin:"
             ),
             new DevelocityExceptionDetector.ByPrefix(

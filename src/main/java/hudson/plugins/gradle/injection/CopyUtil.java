@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection;
 
 import hudson.FilePath;
 import hudson.Util;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +22,14 @@ public final class CopyUtil {
     public static String unsafeResourceDigest(String resourceName) {
         try {
             return doWithResource(resourceName, Util::getDigestOf);
+        } catch (IOException | InterruptedException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static String readResource(String resourceName) {
+        try {
+            return doWithResource(resourceName, IOUtils::toString);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }

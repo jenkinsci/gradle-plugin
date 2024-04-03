@@ -4,11 +4,7 @@ import com.google.common.base.Strings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.model.Computer;
-import hudson.model.EnvironmentContributingAction;
-import hudson.model.InvisibleAction;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.model.listeners.SCMListener;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.UserRemoteConfig;
@@ -23,10 +19,11 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static hudson.plugins.gradle.injection.GradleInjectionAware.JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED;
+import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_INJECTION_ENABLED;
+import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.isUnix;
 import static hudson.plugins.gradle.injection.MavenExtensionsDetector.detect;
-import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.*;
-import static hudson.plugins.gradle.injection.MavenInjectionAware.*;
+import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH;
+import static hudson.plugins.gradle.injection.MavenInjectionAware.MAVEN_OPTS_HANDLER;
 import static hudson.plugins.gradle.injection.MavenOptsHandler.MAVEN_OPTS;
 
 @Extension
@@ -162,7 +159,7 @@ public class GitScmListener extends SCMListener {
 
         @Override
         public void buildEnvironment(@Nonnull Run<?, ?> run, @Nonnull EnvVars envVars) {
-            envVars.put(JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_GRADLE_INJECTION_ENABLED, "false");
+            envVars.put(DEVELOCITY_INJECTION_ENABLED.getEnvVar(), "false");
         }
 
     }

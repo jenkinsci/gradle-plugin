@@ -45,7 +45,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         p.setAssignedNode(agent)
 
         p.buildersList.add(helloTask())
-        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
@@ -82,7 +82,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         p.setAssignedNode(agent)
 
         p.buildersList.add(helloTask())
-        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
@@ -202,7 +202,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         with(agentEnvVars(agent)) {
-            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == "3.12.6"
+            get("DEVELOCITY_PLUGIN_VERSION") == "3.12.6"
         }
 
         when:
@@ -215,7 +215,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         with(agentEnvVars(agent)) {
-            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+            get("DEVELOCITY_PLUGIN_VERSION") == null
         }
 
         when:
@@ -230,7 +230,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         with(agentEnvVars(agent)) {
-            get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
+            get("DEVELOCITY_PLUGIN_VERSION") == null
         }
     }
 
@@ -590,7 +590,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject project = j.createFreeStyleProject()
         project.setAssignedNode(agent)
 
-        project.buildersList.add(helloTask('println "accessKey=${System.getenv(\'GRADLE_ENTERPRISE_ACCESS_KEY\')}"'))
+        project.buildersList.add(helloTask('println "accessKey=${System.getenv(\'DEVELOCITY_ACCESS_KEY\')}"'))
         project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
         when:
@@ -610,7 +610,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         then:
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
         j.assertLogContains("accessKey=foo.com=secret", secondRun)
-        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.16.2/token was not from Gradle Enterprise.", secondRun)
+        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/${DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, secondRun)
 
     }
@@ -646,7 +646,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
-        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/3.16.2/token was not from Gradle Enterprise.", secondRun)
+        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/${DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
 
         and:
         StringUtils.countMatches(JenkinsRule.getLog(secondRun), INVALID_ACCESS_KEY_FORMAT_ERROR) == 1
@@ -669,7 +669,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         withInjectionConfig {
             enabled = true
             server = "http://localhost"
-            gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
+            gradlePluginVersion = DEVELOCITY_PLUGIN_VERSION
         }
 
         restartSlave(agent)
@@ -678,14 +678,14 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         initScriptFile(agent, gradleVersion).exists()
 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
-            with(getEnvVars()) {
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.16.2'
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
-                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES") == null
+            verifyAll(getEnvVars()) {
+                get("DEVELOCITY_URL") == "http://localhost"
+                get("DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
+                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == null
+                get("DEVELOCITY_ENFORCE_URL") == null
+                get("GRADLE_PLUGIN_REPOSITORY_URL") == null
+                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == null
+                get("DEVELOCITY_CAPTURE_TASK_INPUT_FILES") == null
             }
         }
 
@@ -702,14 +702,14 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         !initScriptFile(agent, gradleVersion).exists()
 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
-            with(getEnvVars()) {
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
-                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES") == null
+            verifyAll(getEnvVars()) {
+                get("DEVELOCITY_URL") == null
+                get("DEVELOCITY_PLUGIN_VERSION") == null
+                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == null
+                get("DEVELOCITY_ENFORCE_URL") == null
+                get("GRADLE_PLUGIN_REPOSITORY_URL") == null
+                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == null
+                get("DEVELOCITY_CAPTURE_TASK_INPUT_FILES") == null
             }
         }
     }
@@ -733,7 +733,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             server = 'http://localhost'
             allowUntrusted = true
             enforceUrl = true
-            gradlePluginVersion = GRADLE_ENTERPRISE_PLUGIN_VERSION
+            gradlePluginVersion = DEVELOCITY_PLUGIN_VERSION
             ccudPluginVersion = CCUD_PLUGIN_VERSION
             gradlePluginRepositoryUrl = 'http://localhost/repository'
             gradleCaptureTaskInputFiles = true
@@ -745,14 +745,14 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         initScriptFile(agent, gradleVersion).exists()
 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
-            with(getEnvVars()) {
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == "http://localhost"
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ENFORCE_URL") == "true"
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == '3.16.2'
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == "true"
-                get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
-                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == "1.12.1"
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES") == "true"
+            verifyAll(getEnvVars()) {
+                get("DEVELOCITY_URL") == "http://localhost"
+                get("DEVELOCITY_ENFORCE_URL") == "true"
+                get("DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
+                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == "true"
+                get("GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
+                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == "1.12.1"
+                get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == "true"
             }
         }
 
@@ -773,14 +773,14 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         !initScriptFile(agent, gradleVersion).exists()
 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
-            with(getEnvVars()) {
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL") == null
-                get("JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER") == null
-                get("JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_CAPTURE_TASK_INPUT_FILES") == null
+            verifyAll(getEnvVars()) {
+                get("DEVELOCITY_URL") == null
+                get("DEVELOCITY_PLUGIN_VERSION") == null
+                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == null
+                get("GRADLE_PLUGIN_REPOSITORY_URL") == null
+                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == null
+                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == null
+                get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == null
             }
         }
     }
@@ -907,7 +907,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         then:
         def log = JenkinsRule.getLog(secondRun)
         assert quiet == !log.contains('Develocity plugins resolution: https://plugins.gradle.org/m2')
-        assert quiet == !log.contains('Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin via init script')
+        assert quiet == !log.contains('Applying com.gradle.develocity.agent.gradle.DevelocityPlugin via init script')
         assert quiet == !log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false')
         assert quiet == !log.contains('Applying com.gradle.CommonCustomUserDataGradlePlugin via init script')
 
@@ -941,9 +941,9 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         def log = JenkinsRule.getLog(secondRun)
-        log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false, captureTaskInputFiles: true')
+        log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false')
         if (gradleVersion > '5.0') {
-            assert log.contains('Setting captureTaskInputFiles: true')
+            assert log.contains('Setting captureFileFingerprints: true')
         }
 
         where:
