@@ -1,17 +1,17 @@
 package com.gradle.jenkins.maven.extension.internal;
 
-import com.gradle.maven.extension.api.GradleEnterpriseApi;
-import com.gradle.maven.extension.api.GradleEnterpriseListener;
+import com.gradle.develocity.agent.maven.api.DevelocityApi;
+import com.gradle.develocity.agent.maven.api.DevelocityListener;
 import org.apache.maven.execution.MavenSession;
 import org.codehaus.plexus.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(
-    role = GradleEnterpriseListener.class,
+    role = DevelocityListener.class,
     hint = "develocity-configurer"
 )
-public class DevelocityConfigurerListener implements GradleEnterpriseListener {
+public class DevelocityConfigurerListener implements DevelocityListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DevelocityConfigurerListener.class);
 
@@ -20,7 +20,7 @@ public class DevelocityConfigurerListener implements GradleEnterpriseListener {
     private static final String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER";
 
     @Override
-    public void configure(GradleEnterpriseApi api, MavenSession session) {
+    public void configure(DevelocityApi api, MavenSession session) {
         if (api.getServer() != null) {
             LOGGER.debug("Develocity server is already configured");
             return;

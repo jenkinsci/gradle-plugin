@@ -2,7 +2,7 @@
 <component-set>
   <components>
     <component>
-      <role>com.gradle.maven.extension.api.GradleEnterpriseListener</role>
+      <role>com.gradle.develocity.agent.maven.api.DevelocityListener</role>
       <role-hint>develocity-configurer</role-hint>
       <implementation>com.gradle.jenkins.maven.extension.internal.DevelocityConfigurerListener</implementation>
       <isolated-realm>false</isolated-realm>
