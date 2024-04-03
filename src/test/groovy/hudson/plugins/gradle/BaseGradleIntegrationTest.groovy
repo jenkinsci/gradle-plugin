@@ -16,7 +16,7 @@ import org.junit.rules.RuleChain
 abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
     public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
-    static final String DEVELOCITY_PLUGIN_VERSION = '3.17-rc-4'
+    static final String DEVELOCITY_PLUGIN_VERSION = '3.17'
 
     @Rule
     public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(gradleInstallationRule)

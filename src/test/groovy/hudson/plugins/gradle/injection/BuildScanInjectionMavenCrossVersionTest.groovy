@@ -5,7 +5,6 @@ import hudson.plugins.gradle.BuildScanAction
 import hudson.plugins.gradle.BuildScanBuildWrapper
 import hudson.tasks.Maven
 import org.jvnet.hudson.test.CreateFileBuilder
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 @Unroll
@@ -13,7 +12,6 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseMavenIntegrationTest {
 
     private static final String MINIMUM_SUPPORTED_MAVEN_VERSION = '3.3.1'
 
-    @Ignore("Need to un-ignore once 1.21 is released")
     def 'build scan is discovered from Maven build - #mavenVersion'(String mavenVersion) {
         given:
         mavenInstallationRule.mavenVersion = mavenVersion
