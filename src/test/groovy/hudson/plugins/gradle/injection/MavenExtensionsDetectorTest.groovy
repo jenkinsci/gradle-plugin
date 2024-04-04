@@ -42,18 +42,18 @@ class MavenExtensionsDetectorTest extends Specification {
 
         where:
         customCoordinates | ccudCustomCoordinates | extensions                        | expected
-        null              | null                  | [DV]                              | [MavenExtension.DEVELOCITY]
-        null              | null                  | [GRADLE_ENTERPRISE]               | [MavenExtension.GRADLE_ENTERPRISE]
+        null              | null                  | [DV]                              | [MavenExtension.DEVELOCITY, MavenExtension.GRADLE_ENTERPRISE]
+        null              | null                  | [GRADLE_ENTERPRISE]               | [MavenExtension.DEVELOCITY, MavenExtension.GRADLE_ENTERPRISE]
         null              | null                  | ['my:ext:1.0']                    | []
-        'my:ext'          | null                  | ['my:ext:2.0']                    | [MavenExtension.DEVELOCITY]
-        'my:ext:1.0'      | null                  | ['my:ext:1.0']                    | [MavenExtension.DEVELOCITY]
-        'my:ext:2.0'      | null                  | ['my:ext:1.0']                    | [MavenExtension.DEVELOCITY]
+        'my:ext'          | null                  | ['my:ext:2.0']                    | [MavenExtension.DEVELOCITY, MavenExtension.GRADLE_ENTERPRISE]
+        'my:ext:1.0'      | null                  | ['my:ext:1.0']                    | [MavenExtension.DEVELOCITY, MavenExtension.GRADLE_ENTERPRISE]
+        'my:ext:2.0'      | null                  | ['my:ext:1.0']                    | [MavenExtension.DEVELOCITY, MavenExtension.GRADLE_ENTERPRISE]
         null              | null                  | [CCUD]                            | [MavenExtension.CCUD]
         null              | 'my:ext-ccud'         | ['my:ext-ccud:1.0']               | [MavenExtension.CCUD]
         null              | 'my:ext-ccud:1.0'     | ['my:ext-ccud:1.0']               | [MavenExtension.CCUD]
         null              | 'my:ext-ccud:2.0'     | ['my:ext-ccud:1.0']               | [MavenExtension.CCUD]
-        null              | null                  | [DV, CCUD]                        | [MavenExtension.DEVELOCITY, MavenExtension.CCUD]
-        'my:ext'          | 'my:ext-ccud'         | ['my:ext:1.0', 'my:ext-ccud:1.0'] | [MavenExtension.DEVELOCITY, MavenExtension.CCUD]
+        null              | null                  | [DV, CCUD]                        | [MavenExtension.CCUD, MavenExtension.DEVELOCITY, MavenExtension.GRADLE_ENTERPRISE]
+        'my:ext'          | 'my:ext-ccud'         | ['my:ext:1.0', 'my:ext-ccud:1.0'] | [MavenExtension.CCUD, MavenExtension.DEVELOCITY, MavenExtension.GRADLE_ENTERPRISE]
     }
 
     def 'do not detect DV and CCUD extension when injection is disabled'() {
