@@ -4,6 +4,7 @@ import hudson.EnvVars
 import hudson.Util
 import hudson.model.FreeStyleProject
 import hudson.model.Slave
+import hudson.plugins.git.BranchSpec
 import hudson.plugins.git.GitSCM
 import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
@@ -794,7 +795,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         DumbSlave slave = createSlave()
 
         FreeStyleProject p = j.createFreeStyleProject()
-        p.setScm(new GitSCM("https://github.com/c00ler/simple-gradle-project"))
+        p.setScm(new GitSCM(GitSCM.createRepoList("https://github.com/c00ler/simple-gradle-project", null), [new BranchSpec('main')], null, null, null))
         p.setAssignedNode(slave)
 
         p.buildersList.add(new Gradle(tasks: 'clean', gradleName: gradleVersion, switches: "--no-daemon"))
