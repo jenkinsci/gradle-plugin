@@ -676,10 +676,8 @@ node {
             $replacedMavenSetup
                 git branch: 'main', url: 'https://github.com/c00ler/simple-maven-project'
                 if (isUnix()) {
-                    sh "echo \$MAVEN_OPTS"
                     sh "mvn package -B"
                 } else {
-                    bat "echo %MAVEN_OPTS%"
                     bat "mvn package -B"
                 }
             }
@@ -765,10 +763,8 @@ node {
             $replacedMavenSetup
                 git branch: 'ge-extension', url: 'https://github.com/c00ler/simple-maven-project'
                 if (isUnix()) {
-                    sh "echo \$MAVEN_OPTS"
                     sh "mvn package -B"
                 } else {
-                    bat "echo %MAVEN_OPTS%"
                     bat "mvn package -B"
                 }
             }
@@ -811,10 +807,8 @@ node {
             withMaven(maven: '${setupMavenInstallation()}') {
                 git branch: 'custom-extension', url: 'https://github.com/c00ler/simple-maven-project'
                 if (isUnix()) {
-                    sh "echo \$MAVEN_OPTS"
                     sh "mvn package -B -X"
                 } else {
-                    bat "echo %MAVEN_OPTS%"
                     bat "mvn package -B -X"
                 }
             }
