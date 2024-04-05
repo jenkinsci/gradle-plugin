@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection
 
 import hudson.EnvVars
 import hudson.FilePath
+import hudson.model.Run
 import hudson.plugins.git.BranchSpec
 import hudson.plugins.git.GitSCM
 import hudson.plugins.git.UserRemoteConfig
@@ -760,6 +761,7 @@ node {
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
+        assertNoDoubleApplication(build)
         if (isUrlEnforced) {
             j.assertLogContains("Publishing build scan...", build)
         } else {
@@ -805,6 +807,7 @@ node {
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
+        assertNoDoubleApplication(build)
         if (shouldInjectDv) {
             j.assertLogContains(TOU_MSG, build)
         } else {
@@ -853,6 +856,7 @@ node {
         def build = j.buildAndAssertSuccess(project)
 
         then:
+        assertNoDoubleApplication(build)
         if (isUrlEnforced) {
             j.assertLogContains("Publishing build scan...", build)
         } else {
@@ -893,6 +897,7 @@ node {
         def build = j.buildAndAssertSuccess(project)
 
         then:
+        assertNoDoubleApplication(build)
         if (shouldInjectDv) {
             j.assertLogContains(TOU_MSG, build)
         } else {
@@ -988,6 +993,10 @@ node {
 
     private static boolean hasBuildScanPublicationAttempt(String log) {
         (log =~ /The build scan was not published due to a configuration problem/).find()
+    }
+
+    private void assertNoDoubleApplication(Run build) {
+        j.assertLogNotContains("[WARNING] Simultaneous usage of develocity-maven-extension and gradle-enterprise-maven-extension. Please migrate to develocity-maven-extension.", build)
     }
 
     void turnOffBuildInjectionAndRestart(DumbSlave slave) {

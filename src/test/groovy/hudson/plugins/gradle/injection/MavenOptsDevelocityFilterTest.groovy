@@ -96,8 +96,8 @@ class MavenOptsDevelocityFilterTest extends Specification {
 
         where:
         mavenOpts                                                                 | extensionsAlreadyApplied                                | expected
-        "-Dmaven.ext.class.path=${DV_EXT_LIB} ${DV_SYS_PROPS}"                    | [MavenExtension.DEVELOCITY]                             | DEVELOCITY_URL.sysProp('https://scans.gradle.com')
-        "-Dmaven.ext.class.path=${DV_EXT_LIB}:${DV_CCUD_EXT_LIB} ${DV_SYS_PROPS}" | [MavenExtension.DEVELOCITY, MavenExtension.CCUD]        | DEVELOCITY_URL.sysProp('https://scans.gradle.com')
+        "-Dmaven.ext.class.path=${DV_EXT_LIB} ${DV_SYS_PROPS}"                    | [MavenExtension.DEVELOCITY]                             | "${DEVELOCITY_URL.sysProp('https://scans.gradle.com')} -Dgradle.enterprise.url=https://scans.gradle.com"
+        "-Dmaven.ext.class.path=${DV_EXT_LIB}:${DV_CCUD_EXT_LIB} ${DV_SYS_PROPS}" | [MavenExtension.DEVELOCITY, MavenExtension.CCUD]        | "${DEVELOCITY_URL.sysProp('https://scans.gradle.com')} -Dgradle.enterprise.url=https://scans.gradle.com"
     }
 
     def 'MAVEN_OPTS should be filtered on Windows'() {

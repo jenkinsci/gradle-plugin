@@ -35,15 +35,11 @@ public class MavenOptsDevelocityFilter {
     String filter(String mavenOpts, boolean enforceUrl) {
         mavenOpts = removeKnownExtensionsFromExtClasspath(mavenOpts);
 
-        if (knownExtensionsAlreadyApplied.contains(MavenExtension.DEVELOCITY)) {
+        if (knownExtensionsAlreadyApplied.contains(MavenExtension.DEVELOCITY) ||
+            knownExtensionsAlreadyApplied.contains(MavenExtension.GRADLE_ENTERPRISE)) {
             Set<String> keysToKeep = new HashSet<>();
             if (enforceUrl) {
                 keysToKeep.add(MavenInjectionAware.DEVELOCITY_URL_PROPERTY_KEY.name);
-            }
-            mavenOpts = Strings.nullToEmpty(handler.removeIfNeeded(mavenOpts, keysToKeep));
-        } else if (knownExtensionsAlreadyApplied.contains(MavenExtension.GRADLE_ENTERPRISE)) {
-            Set<String> keysToKeep = new HashSet<>();
-            if (enforceUrl) {
                 keysToKeep.add(MavenInjectionAware.GRADLE_ENTERPRISE_URL_PROPERTY_KEY.name);
             }
             mavenOpts = Strings.nullToEmpty(handler.removeIfNeeded(mavenOpts, keysToKeep));
