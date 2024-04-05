@@ -21,7 +21,7 @@ val ciJenkinsBuild by gradleExt { System.getenv("JENKINS_URL") != null }
 val ciTeamCityBuild by gradleExt { System.getenv("TEAMCITY_VERSION") != null }
 val isCi by gradleExt { ciJenkinsBuild || ciTeamCityBuild }
 val develocityMavenExtensionVersion by gradleExt { "1.21" }
-val commonCustomUserDataMavenExtensionVersion by gradleExt { "1.13" }
+val commonCustomUserDataMavenExtensionVersion by gradleExt { "2.0" }
 
 gradleEnterprise {
     projectId = "jenkinsci-gradle-plugin"

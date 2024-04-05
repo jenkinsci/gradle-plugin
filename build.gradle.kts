@@ -4,7 +4,6 @@ import org.jenkinsci.gradle.plugins.jpi.JpiLicense
 import org.jenkinsci.gradle.plugins.jpi.deployment.CreateVersionlessLookupTask
 import org.jenkinsci.gradle.plugins.jpi.localization.LocalizationTask
 import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
-import java.net.URI
 import java.util.zip.ZipFile
 
 plugins {
@@ -29,12 +28,8 @@ val commonCustomUserDataMavenExtensionVersion: String by gradleExt
 val ciJenkinsBuild: Boolean by gradleExt
 val isCi: Boolean by gradleExt
 
-// only necessary as long as we use a rc
 repositories {
     mavenCentral()
-    maven {
-        url = URI.create("https://repo.grdev.net/artifactory/public")
-    }
 }
 
 jenkinsPlugin {

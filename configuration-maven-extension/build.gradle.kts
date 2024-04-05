@@ -1,5 +1,3 @@
-import java.net.URI
-
 plugins {
     java
     id("buildlogic.reproducible-archives")
@@ -17,12 +15,8 @@ version = "1.0.0"
 
 val develocityMavenExtensionVersion: String by (gradle as ExtensionAware).extra
 
-// only necessary as long as we use a rc
 repositories {
     mavenCentral()
-    maven {
-        url = URI.create("https://repo.grdev.net/artifactory/public")
-    }
 }
 
 val mvnExtension: Configuration by configurations.creating { isCanBeConsumed = true; isCanBeResolved = false }
