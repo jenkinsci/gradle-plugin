@@ -300,12 +300,12 @@ node {
             withEnv(["PATH+MAVEN=\${tool '${mavenInstallationName}'}/bin"]) {
                 writeFile file: 'pom.xml', text: '$POM_XML'
                 if (isUnix()) {
-                    sh "echo \$GRADLE_ENTERPRISE_ACCESS_KEY"
-                    sh "echo \$DEVELOCITY_ACCESS_KEY"
+                    sh "echo GRADLE_ENTERPRISE_ACCESS_KEY=\$GRADLE_ENTERPRISE_ACCESS_KEY"
+                    sh "echo DEVELOCITY_ACCESS_KEY=\$DEVELOCITY_ACCESS_KEY"
                     sh "mvn package -B"
                 } else {
-                    bat "echo %GRADLE_ENTERPRISE_ACCESS_KEY%"
-                    bat "echo %DEVELOCITY_ACCESS_KEY%"
+                    bat "echo GRADLE_ENTERPRISE_ACCESS_KEY=%GRADLE_ENTERPRISE_ACCESS_KEY%"
+                    bat "echo DEVELOCITY_ACCESS_KEY=%DEVELOCITY_ACCESS_KEY%"
                     bat "mvn package -B"
                 }
             }
@@ -318,7 +318,8 @@ node {
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        j.assertLogContains("scans.gradle.com=secret", build)
+        j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=scans.gradle.com=secret", build)
+        j.assertLogContains("DEVELOCITY_ACCESS_KEY=scans.gradle.com=secret", build)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, build)
         j.assertLogContains("[INFO] The Gradle Terms of Use have not been agreed to.", build)
     }
@@ -531,7 +532,7 @@ node {
         extensionDirectory.list().size() == 0
     }
 
-    def 'build scan is published without GE plugin with Maven plugin'() {
+    def 'build scan is published without Develocity plugin with Maven plugin'() {
         given:
         createSlaveAndTurnOnInjection()
         def pipelineJob = j.createProject(WorkflowJob)
@@ -544,10 +545,10 @@ node {
             withMaven(maven: '$mavenInstallationName') {
                 writeFile file: 'pom.xml', text: '$POM_XML'
                 if (isUnix()) {
-                    sh "echo \$MAVEN_OPTS"
+                    sh "echo MAVEN_OPTS=\$MAVEN_OPTS"
                     sh "mvn package -B"
                 } else {
-                    bat "echo %MAVEN_OPTS%"
+                    bat "echo MAVEN_OPTS=%MAVEN_OPTS%"
                     bat "mvn package -B"
                 }
             }
@@ -608,7 +609,7 @@ node {
 
         then:
         def log = JenkinsRule.getLog(build)
-        log =~ /.*-Dfoo=bar.*/
+        log =~ /MAVEN_OPTS.*-Dfoo=bar.*/
         !hasJarInMavenExt(log, DEVELOCITY_EXTENSION_JAR)
         !hasBuildScanPublicationAttempt(log)
     }
@@ -957,10 +958,10 @@ node {
             withEnv(["PATH+MAVEN=\${tool '$mavenInstallationName'}/bin"]) {
                 writeFile file: 'pom.xml', text: '$POM_XML'
                 if (isUnix()) {
-                    sh "echo \$MAVEN_OPTS"
+                    sh "echo MAVEN_OPTS=\$MAVEN_OPTS"
                     sh "mvn package -B"
                 } else {
-                    bat "echo %MAVEN_OPTS%"
+                    bat "echo MAVEN_OPTS=%MAVEN_OPTS%"
                     bat "mvn package -B"
                 }
             }
@@ -988,7 +989,7 @@ node {
     }
 
     private static boolean hasJarInMavenExt(String log, String jar) {
-        (log =~ /.*-Dmaven\.ext\.class\.path=.*${jar}/).find()
+        (log =~ /MAVEN_OPTS=.*-Dmaven\.ext\.class\.path=.*${jar}/).find()
     }
 
     private static boolean hasJarInMavenExt(DumbSlave slave, String jar) {
