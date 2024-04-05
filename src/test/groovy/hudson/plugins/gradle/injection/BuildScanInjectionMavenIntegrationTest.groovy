@@ -38,7 +38,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
     private static final List<String> ALL_EXTENSIONS = [DEVELOCITY_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
 
     private static final String POM_XML = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
-    private static final String INJECT_CCUD = '[DEBUG] Executing extension: CommonCustomUserDataGradleEnterpriseListener'
+    private static final String INJECT_CCUD = '[DEBUG] Executing extension: CommonCustomUserDataDevelocityListener'
 
     def 'does not copy #extension if it was not changed'() {
         when:
