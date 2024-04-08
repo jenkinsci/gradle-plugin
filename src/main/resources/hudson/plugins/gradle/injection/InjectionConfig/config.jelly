@@ -41,6 +41,9 @@
                     </div>
                     <f:password/>
                 </f:entry>
+                <f:entry title="${%Develocity short-lived access tokens expiry}" field="shortLivedTokenExpiry">
+                    <f:textbox checkMethod="post"/>
+                </f:entry>
             </f:section>
 
             <f:section title="${%General settings}">

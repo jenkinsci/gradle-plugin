@@ -6,15 +6,17 @@ import hudson.model.Run
 import hudson.model.TaskListener
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.plugins.gradle.injection.BuildScanEnvironmentContributor.DevelocityParametersAction
+import hudson.plugins.gradle.injection.token.ShortLivedTokenClient
 import hudson.util.Secret
 import spock.lang.Subject
 
 class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
 
     def run = Mock(Run)
+    def shortLivedTokenClient = Mock(ShortLivedTokenClient)
 
     @Subject
-    def buildScanEnvironmentContributor = new BuildScanEnvironmentContributor()
+    def buildScanEnvironmentContributor = new BuildScanEnvironmentContributor(shortLivedTokenClient)
 
     def 'does nothing if no access key'() {
         given:
@@ -75,12 +77,15 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         }
     }
 
-    def 'adds an action with the access key'() {
+    def 'adds an action with the short lived token'() {
         given:
         def accessKey = "server=secret"
         def config = InjectionConfig.get()
+        config.setServer('localhost')
         config.setAccessKey(Secret.fromString(accessKey))
         config.save()
+
+        shortLivedTokenClient.get(config.getServer(), DevelocityAccessKey.parse(accessKey), null) >> Optional.of(DevelocityAccessKey.of('localhost', 'xyz'))
 
         when:
         buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
@@ -89,8 +94,8 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         1 * run.addAction { DevelocityParametersAction action ->
             def parameters = action.getAllParameters()
             parameters.size() == 2
-            paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', accessKey)
-            paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', accessKey)
+            paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', 'localhost=xyz')
+            paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', 'localhost=xyz')
         }
     }
 
@@ -111,12 +116,18 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         }
     }
 
-    def 'adds an action with access key and password'() {
+    def 'adds an action with short lived token and password'() {
         given:
         def config = InjectionConfig.get()
-        config.setAccessKey(Secret.fromString("server=secret"))
+        config.setServer('localhost')
+
+        def accessKey = "server=secret"
+        config.setAccessKey(Secret.fromString(accessKey))
         config.setGradlePluginRepositoryPassword(Secret.fromString("foo"))
         config.save()
+
+        shortLivedTokenClient.get(config.getServer(), DevelocityAccessKey.parse(accessKey), null) >> Optional.of(DevelocityAccessKey.of('localhost', 'xyz'))
+
 
         when:
         buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
@@ -125,8 +136,8 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         1 * run.addAction { DevelocityParametersAction action ->
             def parameters = action.getAllParameters()
             parameters.size() == 3
-            paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', 'server=secret')
-            paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', 'server=secret')
+            paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', 'localhost=xyz')
+            paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', 'localhost=xyz')
             paramEquals(parameters[2], 'GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
         }
     }

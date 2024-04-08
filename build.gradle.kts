@@ -116,6 +116,8 @@ dependencies {
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
 
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     add(includedLibs.name, "com.gradle:develocity-maven-extension:${develocityMavenExtensionVersion}")
     add(includedLibs.name, "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}")
     add(includedLibs.name, project(path = ":configuration-maven-extension", configuration = "mvnExtension"))
@@ -132,6 +134,7 @@ dependencies {
     testImplementation("org.spockframework:spock-junit4:2.3-groovy-2.5")
     testImplementation("net.bytebuddy:byte-buddy:1.14.13")
     testImplementation("org.objenesis:objenesis:3.3")
+    testImplementation(platform("io.netty:netty-bom:4.1.108.Final"))
 
     testImplementation("io.ratpack:ratpack-groovy-test:1.9.0") {
         exclude(group = "com.google.guava", module = "guava")

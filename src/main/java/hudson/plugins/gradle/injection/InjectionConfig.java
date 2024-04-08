@@ -12,6 +12,7 @@ import hudson.util.Secret;
 import hudson.util.VersionNumber;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -54,6 +55,7 @@ public class InjectionConfig extends GlobalConfiguration {
     private String server;
     private boolean allowUntrusted;
     private Secret accessKey;
+    private Integer shortLivedTokenExpiry;
 
     private String gradlePluginVersion;
     private String ccudPluginVersion;
@@ -152,6 +154,16 @@ public class InjectionConfig extends GlobalConfiguration {
         } else {
             this.accessKey = accessKey;
         }
+    }
+
+    @CheckForNull
+    public Integer getShortLivedTokenExpiry() {
+        return shortLivedTokenExpiry;
+    }
+
+    @DataBoundSetter
+    public void setShortLivedTokenExpiry(Integer shortLivedTokenExpiry) {
+        this.shortLivedTokenExpiry = shortLivedTokenExpiry;
     }
 
     @CheckForNull
@@ -396,9 +408,27 @@ public class InjectionConfig extends GlobalConfiguration {
             return FormValidation.ok();
         }
 
-        return DevelocityAccessKeyValidator.getInstance().isValid(accessKey)
+        return DevelocityAccessKey.isValid(accessKey)
             ? FormValidation.ok()
             : FormValidation.error(Messages.InjectionConfig_InvalidAccessKey());
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckShortLivedTokenExpiry(@QueryParameter String value) {
+        String shortLivedTokenExpiry = Util.fixEmptyAndTrim(value);
+        if (shortLivedTokenExpiry == null) {
+            return FormValidation.ok();
+        }
+
+        if (StringUtils.isNumeric(shortLivedTokenExpiry)) {
+            int expiry = Integer.parseInt(shortLivedTokenExpiry);
+            if (expiry > 0 && expiry <= 24) {
+                return FormValidation.ok();
+            }
+        }
+
+        return FormValidation.error(Messages.InjectionConfig_InvalidShortLivedTokenExpiry());
     }
 
     @Restricted(NoExternalUse.class)

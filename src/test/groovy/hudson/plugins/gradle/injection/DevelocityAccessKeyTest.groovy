@@ -1,16 +1,17 @@
 package hudson.plugins.gradle.injection
 
+
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 @Unroll
-@Subject(DevelocityAccessKeyValidator)
-class DevelocityAccessKeyValidatorTest extends Specification {
+@Subject(DevelocityAccessKey)
+class DevelocityAccessKeyTest extends Specification {
 
     def 'valid access key: #accessKey'(String accessKey) {
         expect:
-        DevelocityAccessKeyValidator.instance.isValid(accessKey)
+        DevelocityAccessKey.isValid(accessKey)
 
         where:
         accessKey << [
@@ -29,7 +30,7 @@ class DevelocityAccessKeyValidatorTest extends Specification {
 
     def 'invalid access key: #accessKey'(String accessKey) {
         expect:
-        !DevelocityAccessKeyValidator.instance.isValid(accessKey)
+        !DevelocityAccessKey.isValid(accessKey)
 
         where:
         accessKey << [

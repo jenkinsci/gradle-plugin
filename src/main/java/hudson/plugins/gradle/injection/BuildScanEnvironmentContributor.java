@@ -1,5 +1,6 @@
 package hudson.plugins.gradle.injection;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.EnvironmentContributor;
@@ -9,6 +10,7 @@ import hudson.model.PasswordParameterValue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.gradle.DevelocityLogger;
+import hudson.plugins.gradle.injection.token.ShortLivedTokenClient;
 import hudson.util.Secret;
 
 import javax.annotation.Nonnull;
@@ -23,7 +25,18 @@ import java.util.stream.Stream;
 @Extension
 public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
+    private final ShortLivedTokenClient tokenClient;
+
+    public BuildScanEnvironmentContributor() {
+        this.tokenClient = new ShortLivedTokenClient();
+    }
+
+    public BuildScanEnvironmentContributor(ShortLivedTokenClient tokenClient) {
+        this.tokenClient = tokenClient;
+    }
+
     @Override
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public void buildEnvironmentFor(@Nonnull Run run, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
         Secret secretKey = InjectionConfig.get().getAccessKey();
         Secret secretPassword = InjectionConfig.get().getGradlePluginRepositoryPassword();
@@ -31,7 +44,19 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
             return;
         }
 
-        run.addAction(DevelocityParametersAction.of(new DevelocityLogger(listener), secretKey, secretPassword));
+        Secret shortLivedToken = null;
+        DevelocityLogger logger = new DevelocityLogger(listener);
+        if (secretKey != null && DevelocityAccessKey.isValid(secretKey.getPlainText())) {
+            shortLivedToken = tokenClient.get(InjectionConfig.get().getServer(),
+                    DevelocityAccessKey.parse(secretKey.getPlainText()),
+                    InjectionConfig.get().getShortLivedTokenExpiry())
+                .map(k -> Secret.fromString(k.getRawAccessKey()))
+                .orElse(null);
+        } else {
+            logger.error("Develocity access key format is not valid");
+        }
+
+        run.addAction(DevelocityParametersAction.of(logger, shortLivedToken, secretPassword));
     }
 
     private static boolean alreadyExecuted(@Nonnull Run run) {
@@ -58,15 +83,11 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
             return EMPTY;
         }
 
-        static DevelocityParametersAction of(DevelocityLogger logger, @Nullable Secret accessKey, @Nullable Secret repoPassword) {
+        private static DevelocityParametersAction of(DevelocityLogger logger, @Nullable Secret shortLivedToken, @Nullable Secret repoPassword) {
             List<ParameterValue> values = new ArrayList<>();
-            if (accessKey != null) {
-                if (!DevelocityAccessKeyValidator.getInstance().isValid(accessKey.getPlainText())) {
-                    logger.error("Develocity access key format is not valid");
-                } else {
-                    values.add(new PasswordParameterValue(GRADLE_ENTERPRISE_ACCESS_KEY, accessKey.getPlainText()));
-                    values.add(new PasswordParameterValue(DEVELOCITY_ACCESS_KEY, accessKey.getPlainText()));
-                }
+            if (shortLivedToken != null) {
+                values.add(new PasswordParameterValue(GRADLE_ENTERPRISE_ACCESS_KEY, shortLivedToken.getPlainText()));
+                values.add(new PasswordParameterValue(DEVELOCITY_ACCESS_KEY, shortLivedToken.getPlainText()));
             }
             if (repoPassword != null) {
                 values.add(new PasswordParameterValue(GRADLE_PLUGIN_REPOSITORY_PASSWORD, repoPassword.getPlainText()));
