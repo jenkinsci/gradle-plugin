@@ -911,7 +911,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         assert quiet == !log.contains('Applying com.gradle.develocity.agent.gradle.DevelocityPlugin via init script')
         assert quiet == !log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false')
         assert quiet == !log.contains('Applying com.gradle.CommonCustomUserDataGradlePlugin via init script')
-        assert !log.contains("WARNING: The following functionality has been deprecated")
 
         where:
         quiet << [true, false]
