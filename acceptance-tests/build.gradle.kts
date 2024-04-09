@@ -113,7 +113,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
 
         private const val LATEST_VERSION = "latest"
         private const val LATEST_LTS_VERSION = "latest-lts"
-        private const val V2_375_VERSION = "2.375.4"
+        private const val V2_388_VERSION = "2.388"
 
         private const val MIRROR = "https://updates.jenkins.io"
 
@@ -123,7 +123,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
 
         val LATEST = of(LATEST_VERSION)
         val LATEST_LTS = of(LATEST_LTS_VERSION)
-        val V2_375 = of(V2_375_VERSION)
+        val V2_375 = of(V2_388_VERSION)
 
         private fun of(version: String, javaVersion: JavaLanguageVersion = JAVA_11): JenkinsVersion {
             val downloadUrl =
@@ -145,7 +145,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
     }
 
     val isDefault: Boolean
-        get() = version == V2_375_VERSION
+        get() = version == V2_388_VERSION
 
     val label: String
         get() = if (isJenkinsVersion(version)) {
