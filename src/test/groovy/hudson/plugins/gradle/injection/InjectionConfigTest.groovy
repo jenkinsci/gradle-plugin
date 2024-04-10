@@ -273,7 +273,6 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
       <label>gradle2</label>
     </hudson.plugins.gradle.injection.NodeLabelItem>
   </gradleInjectionDisabledNodes>
-  <gradleCaptureTaskInputFiles>false</gradleCaptureTaskInputFiles>
   <injectMavenExtension>true</injectMavenExtension>
   <injectCcudExtension>true</injectCcudExtension>
   <mavenInjectionEnabledNodes>
@@ -286,7 +285,6 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
       <label>maven2</label>
     </hudson.plugins.gradle.injection.NodeLabelItem>
   </mavenInjectionDisabledNodes>
-  <mavenCaptureGoalInputFiles>false</mavenCaptureGoalInputFiles>
   <enforceUrl>false</enforceUrl>
   <checkForBuildAgentErrors>false</checkForBuildAgentErrors>
   <parsedVcsRepositoryFilter>
