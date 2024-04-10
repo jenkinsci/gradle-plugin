@@ -6,7 +6,6 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import hudson.EnvVars;
 import hudson.FilePath;
-import hudson.Util;
 import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
 
@@ -110,9 +109,9 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
         }
 
         if (config.isGradleCaptureTaskInputFiles() == null || config.isGradleCaptureTaskInputFiles()) {
-            EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_CAPTURE_TASK_INPUT_FILES, "true");
+            EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_CAPTURE_FILE_FINGERPRINTS, "true");
         } else {
-            EnvUtil.removeEnvVar(node, InitScriptVariables.DEVELOCITY_CAPTURE_TASK_INPUT_FILES);
+            EnvUtil.removeEnvVar(node, InitScriptVariables.DEVELOCITY_CAPTURE_FILE_FINGERPRINTS);
         }
 
         String pluginRepositoryUrl = config.getGradlePluginRepositoryUrl();
