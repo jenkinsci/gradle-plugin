@@ -109,7 +109,7 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
             EnvUtil.removeEnvVar(node, InitScriptVariables.DEVELOCITY_ENFORCE_URL);
         }
 
-        if (config.isGradleCaptureTaskInputFiles()) {
+        if (config.isGradleCaptureTaskInputFiles() == null || config.isGradleCaptureTaskInputFiles()) {
             EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_CAPTURE_TASK_INPUT_FILES, "true");
         } else {
             EnvUtil.removeEnvVar(node, InitScriptVariables.DEVELOCITY_CAPTURE_TASK_INPUT_FILES);
