@@ -17,6 +17,7 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
     public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
     static final String DEVELOCITY_PLUGIN_VERSION = '3.17.1'
+    static final String CCUD_PLUGIN_VERSION = '2.0'
 
     @Rule
     public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(gradleInstallationRule)
@@ -46,6 +47,7 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
         withInjectionConfig {
             enabled = true
             gradlePluginVersion = gradleVersion < '5.0' ? "1.16" : DEVELOCITY_PLUGIN_VERSION
+            ccudPluginVersion = gradlePluginVersion == '1.6' ? '1.13' : CCUD_PLUGIN_VERSION
             gradlePluginRepositoryUrl = repositoryAddress?.toString()
             gradleCaptureTaskInputFiles = captureTaskInputFiles
         }
