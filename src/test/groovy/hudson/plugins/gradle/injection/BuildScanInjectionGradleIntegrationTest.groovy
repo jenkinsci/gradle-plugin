@@ -686,7 +686,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("DEVELOCITY_ENFORCE_URL") == null
                 get("GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("DEVELOCITY_CCUD_PLUGIN_VERSION") == null
-                get("DEVELOCITY_CAPTURE_TASK_INPUT_FILES") == null
+                get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == 'true'
             }
         }
 
@@ -710,7 +710,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("DEVELOCITY_ENFORCE_URL") == null
                 get("GRADLE_PLUGIN_REPOSITORY_URL") == null
                 get("DEVELOCITY_CCUD_PLUGIN_VERSION") == null
-                get("DEVELOCITY_CAPTURE_TASK_INPUT_FILES") == null
+                get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == null
             }
         }
     }

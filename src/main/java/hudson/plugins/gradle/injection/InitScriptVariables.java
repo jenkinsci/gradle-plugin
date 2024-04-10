@@ -12,7 +12,7 @@ public enum InitScriptVariables {
     DEVELOCITY_URL("develocity.url"),
     DEVELOCITY_ENFORCE_URL("develocity.enforce-url"),
     DEVELOCITY_ALLOW_UNTRUSTED_SERVER("develocity.allow-untrusted-server"),
-    DEVELOCITY_CAPTURE_TASK_INPUT_FILES("develocity.capture-file-fingerprints"),
+    DEVELOCITY_CAPTURE_FILE_FINGERPRINTS("develocity.capture-file-fingerprints"),
     DEVELOCITY_BUILD_SCAN_UPLOAD_IN_BACKGROUND("develocity.build-scan.upload-in-background"),
     DEVELOCITY_TERMS_OF_USE_URL("develocity.terms-of-use.url"),
     DEVELOCITY_TERMS_OF_USE_AGREE("develocity.terms-of-use.agree");
