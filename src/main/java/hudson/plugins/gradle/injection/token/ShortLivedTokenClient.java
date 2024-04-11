@@ -33,7 +33,7 @@ public class ShortLivedTokenClient {
     public Optional<DevelocityAccessKey> get(String server, DevelocityAccessKey accessKey, @Nullable Integer expiry) {
         String url = normalize(server) + "api/auth/token";
         if (expiry != null) {
-            url = url + "?expiry=" + expiry;
+            url = url + "?expiresInHours=" + expiry;
         }
 
         Request request = new Request.Builder()

@@ -30,7 +30,7 @@ class ShortLivedTokenClientTest extends Specification {
         def mockDevelocity = GroovyEmbeddedApp.of {
             handlers {
                 post("api/auth/token") {
-                    if (request.queryParams.get('expiry') == '3') {
+                    if (request.queryParams.get('expiresInHours') == '3') {
                         response.status(200)
                         response.send('some-token')
                     }
