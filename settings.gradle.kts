@@ -1,5 +1,5 @@
 plugins {
-    id("com.gradle.enterprise") version "3.17"
+    id("com.gradle.develocity") version "3.17.1"
     id("com.gradle.common-custom-user-data-gradle-plugin") version "2.0"
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
@@ -23,14 +23,12 @@ val isCi by gradleExt { ciJenkinsBuild || ciTeamCityBuild }
 val develocityMavenExtensionVersion by gradleExt { "1.21" }
 val commonCustomUserDataMavenExtensionVersion by gradleExt { "2.0" }
 
-gradleEnterprise {
+develocity {
     projectId = "jenkinsci-gradle-plugin"
     buildScan {
-        capture { isTaskInputFiles = true }
-        isUploadInBackground = !isCi
-        termsOfServiceUrl = "https://gradle.com/terms-of-service"
-        termsOfServiceAgree = "yes"
-        publishAlways()
+        uploadInBackground = !isCi
+        termsOfUseUrl = "https://gradle.com/terms-of-service"
+        termsOfUseAgree = "yes"
         obfuscation {
             ipAddresses { addresses -> addresses.map { _ -> "0.0.0.0" } }
         }
@@ -42,7 +40,7 @@ buildCache {
         isEnabled = true
     }
     if (ciTeamCityBuild) {
-        remote(gradleEnterprise.buildCache) {
+        remote(develocity.buildCache) {
             isEnabled = true
             val accessKey = System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY")
             isPush = !accessKey.isNullOrEmpty()
