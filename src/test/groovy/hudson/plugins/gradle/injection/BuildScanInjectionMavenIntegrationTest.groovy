@@ -285,7 +285,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         hasBuildScanPublicationAttempt(log)
     }
 
-    def 'access key is injected into the simple pipeline'() {
+    def 'short lived token is injected into the simple pipeline'() {
         given:
         createSlaveAndTurnOnInjection()
         def mavenInstallationName = setupMavenInstallation()
@@ -301,7 +301,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
 
         withInjectionConfig {
             server = mockDevelocity.address.toString()
-            accessKey = Secret.fromString("scans.gradle.com=secret")
+            accessKey = Secret.fromString("localhost=secret")
         }
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -329,9 +329,9 @@ node {
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=scans.gradle.com=some-token", build)
-        j.assertLogContains("DEVELOCITY_ACCESS_KEY=scans.gradle.com=some-token", build)
-        j.assertLogNotContains("scans.gradle.com=secret", build)
+        j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=localhost=some-token", build)
+        j.assertLogContains("DEVELOCITY_ACCESS_KEY=localhost=some-token", build)
+        j.assertLogNotContains("localhost=secret", build)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, build)
         j.assertLogContains("[WARNING] No build scan will be published: Develocity features were not enabled due to an unexpected error while contacting Develocity: 404 Not Found.", build)
     }

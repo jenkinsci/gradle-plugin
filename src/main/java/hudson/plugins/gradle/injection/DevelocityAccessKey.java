@@ -2,7 +2,9 @@ package hudson.plugins.gradle.injection;
 
 import com.google.common.base.Strings;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 public class DevelocityAccessKey {
     private final String hostname;
@@ -17,9 +19,13 @@ public class DevelocityAccessKey {
         return new DevelocityAccessKey(hostname, key);
     }
 
-    public static DevelocityAccessKey parse(String rawAccessKey) {
-        String[] parts = rawAccessKey.split("=");
-        return new DevelocityAccessKey(parts[0], parts[1]);
+
+    public static Optional<DevelocityAccessKey> parse(String rawAccessKey, String host) {
+        return Arrays.stream(rawAccessKey.split(";"))
+            .map(k -> k.split("="))
+            .filter(hostKey -> hostKey[0].equals(host))
+            .map(hostKey -> new DevelocityAccessKey(hostKey[0], hostKey[1]))
+            .findFirst();
     }
 
     public String getRawAccessKey() {

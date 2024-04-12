@@ -79,13 +79,15 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
 
     def 'adds an action with the short lived token'() {
         given:
-        def accessKey = "server=secret"
+        def accessKey = "localhost=secret"
         def config = InjectionConfig.get()
-        config.setServer('localhost')
+        config.setServer('http://localhost')
         config.setAccessKey(Secret.fromString(accessKey))
         config.save()
+        def key = DevelocityAccessKey.parse(accessKey, 'localhost').get()
 
-        shortLivedTokenClient.get(config.getServer(), DevelocityAccessKey.parse(accessKey), null) >> Optional.of(DevelocityAccessKey.of('localhost', 'xyz'))
+
+        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessKey.of('localhost', 'xyz'))
 
         when:
         buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
@@ -119,14 +121,15 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
     def 'adds an action with short lived token and password'() {
         given:
         def config = InjectionConfig.get()
-        config.setServer('localhost')
+        config.setServer('http://localhost')
 
-        def accessKey = "server=secret"
+        def accessKey = "localhost=secret"
         config.setAccessKey(Secret.fromString(accessKey))
         config.setGradlePluginRepositoryPassword(Secret.fromString("foo"))
         config.save()
+        def key = DevelocityAccessKey.parse(accessKey, 'localhost').get()
 
-        shortLivedTokenClient.get(config.getServer(), DevelocityAccessKey.parse(accessKey), null) >> Optional.of(DevelocityAccessKey.of('localhost', 'xyz'))
+        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessKey.of('localhost', 'xyz'))
 
 
         when:

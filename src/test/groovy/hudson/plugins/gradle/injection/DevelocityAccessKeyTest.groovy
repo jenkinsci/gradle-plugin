@@ -45,4 +45,22 @@ class DevelocityAccessKeyTest extends Specification {
             'server1, server2,, server3 = secret '
         ]
     }
+
+    def 'parse access key'() {
+        when:
+        def key = DevelocityAccessKey.parse(accessKey, 'host1')
+
+        then:
+        key == expected
+
+        where:
+        accessKey                          | expected
+        'host1=key1'                       | Optional.of(DevelocityAccessKey.of('host1', 'key1'))
+        'host1=key1;host2=key2'            | Optional.of(DevelocityAccessKey.of('host1', 'key1'))
+        'host2=key2;host1=key1'            | Optional.of(DevelocityAccessKey.of('host1', 'key1'))
+        'host2=key2;host1=key1;host3=key3' | Optional.of(DevelocityAccessKey.of('host1', 'key1'))
+        ''                                 | Optional.empty()
+        'host0=key0;host2=key2'            | Optional.empty()
+
+    }
 }

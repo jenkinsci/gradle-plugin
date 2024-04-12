@@ -615,14 +615,14 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         enableBuildInjection(agent, gradleVersion)
         withInjectionConfig {
             server = mockDevelocity.address.toString()
-            accessKey = Secret.fromString("foo.com=secret")
+            accessKey = Secret.fromString("localhost=secret")
         }
         def secondRun = j.buildAndAssertSuccess(project)
 
         then:
         j.assertLogContains("Connection to Develocity: ${mockDevelocity.address}", secondRun)
-        j.assertLogContains("accessKey=foo.com=some-token", secondRun)
-        j.assertLogNotContains("accessKey=foo.com=secret", secondRun)
+        j.assertLogContains("accessKey=localhost=some-token", secondRun)
+        j.assertLogNotContains("accessKey=localhost=secret", secondRun)
         j.assertLogContains("The response from ${mockDevelocity.address}scans/publish/gradle/${DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, secondRun)
 

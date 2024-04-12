@@ -16,9 +16,10 @@ class ShortLivedTokenClientTest extends Specification {
                 }
             }
         }
+        def key = DevelocityAccessKey.parse('localhost=xyz', 'localhost').get()
 
         when:
-        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), DevelocityAccessKey.parse('localhost=xyz'), null)
+        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
 
         then:
         token.get().key == 'some-token'
@@ -37,9 +38,10 @@ class ShortLivedTokenClientTest extends Specification {
                 }
             }
         }
+        def key = DevelocityAccessKey.parse('localhost=xyz', 'localhost').get()
 
         when:
-        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), DevelocityAccessKey.parse('localhost=xyz'), 3)
+        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, 3)
 
         then:
         token.get().key == 'some-token'
@@ -56,17 +58,21 @@ class ShortLivedTokenClientTest extends Specification {
                 }
             }
         }
+        def key = DevelocityAccessKey.parse('localhost=xyz', 'localhost').get()
 
         when:
-        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), DevelocityAccessKey.parse('localhost=xyz'), null)
+        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
 
         then:
         !token.isPresent()
     }
 
     def "get token sever fails with exception"() {
+        given:
+        def key = DevelocityAccessKey.parse('localhost=xyz', 'localhost').get()
+
         when:
-        def token = new ShortLivedTokenClient().get('http://localhost:8888', DevelocityAccessKey.parse('localhost=xyz'), null)
+        def token = new ShortLivedTokenClient().get('http://localhost:8888', key, null)
 
         then:
         !token.isPresent()

@@ -15,10 +15,13 @@ import hudson.util.Secret;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,27 +39,49 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
     }
 
     @Override
-    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public void buildEnvironmentFor(@Nonnull Run run, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
         Secret secretKey = InjectionConfig.get().getAccessKey();
         Secret secretPassword = InjectionConfig.get().getGradlePluginRepositoryPassword();
         if ((secretKey == null && secretPassword == null) || alreadyExecuted(run)) {
             return;
         }
-
-        Secret shortLivedToken = null;
         DevelocityLogger logger = new DevelocityLogger(listener);
-        if (secretKey != null && DevelocityAccessKey.isValid(secretKey.getPlainText())) {
-            shortLivedToken = tokenClient.get(InjectionConfig.get().getServer(),
-                    DevelocityAccessKey.parse(secretKey.getPlainText()),
-                    InjectionConfig.get().getShortLivedTokenExpiry())
-                .map(k -> Secret.fromString(k.getRawAccessKey()))
-                .orElse(null);
-        } else {
-            logger.error("Develocity access key format is not valid");
-        }
+
+        Secret shortLivedToken = getShortLivedToken(secretKey, logger);
 
         run.addAction(DevelocityParametersAction.of(logger, shortLivedToken, secretPassword));
+    }
+
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
+    private @Nullable Secret getShortLivedToken(Secret secretKey, DevelocityLogger logger) {
+        if (secretKey == null) {
+            return null;
+        }
+        String serverUrl = InjectionConfig.get().getServer();
+        String hostname = getHostnameFromServerUrl(serverUrl);
+        if (hostname == null) {
+            logger.error("Could not extract hostname from Develocity server URL");
+            return null;
+        }
+        if (!DevelocityAccessKey.isValid(secretKey.getPlainText())) {
+            logger.error("Develocity access key format is not valid");
+            return null;
+        }
+        Optional<DevelocityAccessKey> accessKey = DevelocityAccessKey.parse(secretKey.getPlainText(), hostname);
+        return accessKey
+            .map(k ->
+                tokenClient.get(serverUrl, k, InjectionConfig.get().getShortLivedTokenExpiry()))
+            .filter(Optional::isPresent)
+            .map(k -> Secret.fromString(k.get().getRawAccessKey()))
+            .orElse(null);
+    }
+
+    private String getHostnameFromServerUrl(String serverUrl) {
+        try {
+            return new URL(serverUrl).getHost();
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 
     private static boolean alreadyExecuted(@Nonnull Run run) {
