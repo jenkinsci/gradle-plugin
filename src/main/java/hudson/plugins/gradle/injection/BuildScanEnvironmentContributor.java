@@ -63,11 +63,11 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
             logger.error("Could not extract hostname from Develocity server URL");
             return null;
         }
-        if (!DevelocityAccessKey.isValid(secretKey.getPlainText())) {
+        if (!DevelocityAccessCredentials.isValid(secretKey.getPlainText())) {
             logger.error("Develocity access key format is not valid");
             return null;
         }
-        Optional<DevelocityAccessKey> accessKey = DevelocityAccessKey.parse(secretKey.getPlainText(), hostname);
+        Optional<DevelocityAccessCredentials> accessKey = DevelocityAccessCredentials.parse(secretKey.getPlainText(), hostname);
         return accessKey
             .map(k ->
                 tokenClient.get(serverUrl, k, InjectionConfig.get().getShortLivedTokenExpiry()))

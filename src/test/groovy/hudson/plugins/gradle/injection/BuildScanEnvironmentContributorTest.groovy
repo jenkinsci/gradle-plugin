@@ -84,10 +84,10 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         config.setServer('http://localhost')
         config.setAccessKey(Secret.fromString(accessKey))
         config.save()
-        def key = DevelocityAccessKey.parse(accessKey, 'localhost').get()
+        def key = DevelocityAccessCredentials.parse(accessKey, 'localhost').get()
 
 
-        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessKey.of('localhost', 'xyz'))
+        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.of('localhost', 'xyz'))
 
         when:
         buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
@@ -127,9 +127,9 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         config.setAccessKey(Secret.fromString(accessKey))
         config.setGradlePluginRepositoryPassword(Secret.fromString("foo"))
         config.save()
-        def key = DevelocityAccessKey.parse(accessKey, 'localhost').get()
+        def key = DevelocityAccessCredentials.parse(accessKey, 'localhost').get()
 
-        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessKey.of('localhost', 'xyz'))
+        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.of('localhost', 'xyz'))
 
 
         when:

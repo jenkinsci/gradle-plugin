@@ -6,12 +6,12 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 @Unroll
-@Subject(DevelocityAccessKey)
-class DevelocityAccessKeyTest extends Specification {
+@Subject(DevelocityAccessCredentials)
+class DevelocityAccessCredentialsTest extends Specification {
 
     def 'valid access key: #accessKey'(String accessKey) {
         expect:
-        DevelocityAccessKey.isValid(accessKey)
+        DevelocityAccessCredentials.isValid(accessKey)
 
         where:
         accessKey << [
@@ -30,7 +30,7 @@ class DevelocityAccessKeyTest extends Specification {
 
     def 'invalid access key: #accessKey'(String accessKey) {
         expect:
-        !DevelocityAccessKey.isValid(accessKey)
+        !DevelocityAccessCredentials.isValid(accessKey)
 
         where:
         accessKey << [
@@ -48,17 +48,17 @@ class DevelocityAccessKeyTest extends Specification {
 
     def 'parse access key'() {
         when:
-        def key = DevelocityAccessKey.parse(accessKey, 'host1')
+        def key = DevelocityAccessCredentials.parse(accessKey, 'host1')
 
         then:
         key == expected
 
         where:
         accessKey                          | expected
-        'host1=key1'                       | Optional.of(DevelocityAccessKey.of('host1', 'key1'))
-        'host1=key1;host2=key2'            | Optional.of(DevelocityAccessKey.of('host1', 'key1'))
-        'host2=key2;host1=key1'            | Optional.of(DevelocityAccessKey.of('host1', 'key1'))
-        'host2=key2;host1=key1;host3=key3' | Optional.of(DevelocityAccessKey.of('host1', 'key1'))
+        'host1=key1'                       | Optional.of(DevelocityAccessCredentials.of('host1', 'key1'))
+        'host1=key1;host2=key2'            | Optional.of(DevelocityAccessCredentials.of('host1', 'key1'))
+        'host2=key2;host1=key1'            | Optional.of(DevelocityAccessCredentials.of('host1', 'key1'))
+        'host2=key2;host1=key1;host3=key3' | Optional.of(DevelocityAccessCredentials.of('host1', 'key1'))
         ''                                 | Optional.empty()
         'host0=key0;host2=key2'            | Optional.empty()
 

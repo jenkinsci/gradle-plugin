@@ -2,7 +2,7 @@ package hudson.plugins.gradle.injection.token;
 
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import hudson.plugins.gradle.injection.DevelocityAccessKey;
+import hudson.plugins.gradle.injection.DevelocityAccessCredentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -12,25 +12,26 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class ShortLivedTokenClient {
 
     private static final RequestBody EMPTY_BODY = RequestBody.create(new byte[]{});
+    private static final int MAX_RETRIES = 3;
+    private static final Duration RETRY_INTERVAL = Duration.ofSeconds(1);
     private final OkHttpClient httpClient;
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortLivedTokenClient.class);
 
     public ShortLivedTokenClient() {
         httpClient = new OkHttpClient().newBuilder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .callTimeout(10, TimeUnit.SECONDS)
             .build();
     }
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    public Optional<DevelocityAccessKey> get(String server, DevelocityAccessKey accessKey, @Nullable Integer expiry) {
+    public Optional<DevelocityAccessCredentials> get(String server, DevelocityAccessCredentials accessKey, @Nullable Integer expiry) {
         String url = normalize(server) + "api/auth/token";
         if (expiry != null) {
             url = url + "?expiresInHours=" + expiry;
@@ -43,20 +44,29 @@ public class ShortLivedTokenClient {
             .post(EMPTY_BODY)
             .build();
 
-        try (Response response = httpClient.newCall(request).execute()) {
-            if (response.code() == 200 && response.body() != null) {
-                return Optional.of(DevelocityAccessKey.of(accessKey.getHostname(), response.body().string()));
-            } else if (response.body() == null) {
-                LOGGER.warn("Develocity short lived token request failed {} with empty body", url);
+        int tryCount = 0;
+        Integer errorCode = null;
+        while (tryCount < MAX_RETRIES) {
+            try (Response response = httpClient.newCall(request).execute()) {
+                if (response.code() == 200 && response.body() != null) {
+                    return Optional.of(DevelocityAccessCredentials.of(accessKey.getHostname(), response.body().string()));
+                } else if (response.code() == 401) {
+                    LOGGER.warn("Develocity short lived token request failed {} with status code 401", url);
+                    return Optional.empty();
+                } else {
+                    tryCount++;
+                    errorCode = response.code();
+                    Thread.sleep(RETRY_INTERVAL.toMillis());
+                }
+            } catch (IOException e) {
+                LOGGER.warn("Short lived token request failed {}", url, e);
                 return Optional.empty();
-            } else {
-                LOGGER.warn("Develocity short lived token request failed {} with status code {}", url, response.code());
-                return Optional.empty();
+            } catch (InterruptedException e) {
+                // Ignore sleep exception
             }
-        } catch (IOException e) {
-            LOGGER.warn("Short lived token request failed {}", url, e);
-            return Optional.empty();
         }
+        LOGGER.warn("Develocity short lived token request failed {} with status code {}", url, errorCode);
+        return Optional.empty();
     }
 
     private String normalize(String server) {

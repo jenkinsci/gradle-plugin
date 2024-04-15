@@ -408,7 +408,7 @@ public class InjectionConfig extends GlobalConfiguration {
             return FormValidation.ok();
         }
 
-        return DevelocityAccessKey.isValid(accessKey)
+        return DevelocityAccessCredentials.isValid(accessKey)
             ? FormValidation.ok()
             : FormValidation.error(Messages.InjectionConfig_InvalidAccessKey());
     }

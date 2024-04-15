@@ -6,25 +6,25 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
-public class DevelocityAccessKey {
+public class DevelocityAccessCredentials {
     private final String hostname;
     private final String key;
 
-    private DevelocityAccessKey(String hostname, String key) {
+    private DevelocityAccessCredentials(String hostname, String key) {
         this.hostname = hostname;
         this.key = key;
     }
 
-    public static DevelocityAccessKey of(String hostname, String key) {
-        return new DevelocityAccessKey(hostname, key);
+    public static DevelocityAccessCredentials of(String hostname, String key) {
+        return new DevelocityAccessCredentials(hostname, key);
     }
 
 
-    public static Optional<DevelocityAccessKey> parse(String rawAccessKey, String host) {
+    public static Optional<DevelocityAccessCredentials> parse(String rawAccessKey, String host) {
         return Arrays.stream(rawAccessKey.split(";"))
             .map(k -> k.split("="))
             .filter(hostKey -> hostKey[0].equals(host))
-            .map(hostKey -> new DevelocityAccessKey(hostKey[0], hostKey[1]))
+            .map(hostKey -> new DevelocityAccessCredentials(hostKey[0], hostKey[1]))
             .findFirst();
     }
 
@@ -74,7 +74,7 @@ public class DevelocityAccessKey {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DevelocityAccessKey that = (DevelocityAccessKey) o;
+        DevelocityAccessCredentials that = (DevelocityAccessCredentials) o;
         return Objects.equals(hostname, that.hostname) && Objects.equals(key, that.key);
     }
 
