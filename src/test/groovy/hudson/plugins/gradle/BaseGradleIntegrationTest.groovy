@@ -16,7 +16,7 @@ import org.junit.rules.RuleChain
 abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
     public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
-    static final String DEVELOCITY_PLUGIN_VERSION = '3.17'
+    static final String DEVELOCITY_PLUGIN_VERSION = '3.17.1'
     static final String CCUD_PLUGIN_VERSION = '2.0'
 
     @Rule

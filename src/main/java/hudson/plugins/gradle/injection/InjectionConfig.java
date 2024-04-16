@@ -64,7 +64,7 @@ public class InjectionConfig extends GlobalConfiguration {
     private Secret gradlePluginRepositoryPassword;
     private ImmutableList<NodeLabelItem> gradleInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> gradleInjectionDisabledNodes;
-    private boolean gradleCaptureTaskInputFiles;
+    private Boolean gradleCaptureTaskInputFiles;
 
     private boolean injectMavenExtension;
     private boolean injectCcudExtension;
@@ -72,7 +72,7 @@ public class InjectionConfig extends GlobalConfiguration {
     private String ccudExtensionCustomCoordinates;
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
-    private boolean mavenCaptureGoalInputFiles;
+    private Boolean mavenCaptureGoalInputFiles;
 
     private boolean enforceUrl;
     private boolean checkForBuildAgentErrors;
@@ -242,12 +242,12 @@ public class InjectionConfig extends GlobalConfiguration {
             gradleInjectionDisabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionDisabledNodes);
     }
 
-    public boolean isGradleCaptureTaskInputFiles() {
+    public Boolean isGradleCaptureTaskInputFiles() {
         return gradleCaptureTaskInputFiles;
     }
 
     @DataBoundSetter
-    public void setGradleCaptureTaskInputFiles(boolean gradleCaptureTaskInputFiles) {
+    public void setGradleCaptureTaskInputFiles(Boolean gradleCaptureTaskInputFiles) {
         this.gradleCaptureTaskInputFiles = gradleCaptureTaskInputFiles;
     }
 
@@ -311,12 +311,12 @@ public class InjectionConfig extends GlobalConfiguration {
             mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
     }
 
-    public boolean isMavenCaptureGoalInputFiles() {
+    public Boolean isMavenCaptureGoalInputFiles() {
         return mavenCaptureGoalInputFiles;
     }
 
     @DataBoundSetter
-    public void setMavenCaptureGoalInputFiles(boolean mavenCaptureGoalInputFiles) {
+    public void setMavenCaptureGoalInputFiles(Boolean mavenCaptureGoalInputFiles) {
         this.mavenCaptureGoalInputFiles = mavenCaptureGoalInputFiles;
     }
 
