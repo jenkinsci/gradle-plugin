@@ -57,23 +57,40 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
         if (secretKey == null) {
             return null;
         }
+        DevelocityAccessCredentials allKeys = DevelocityAccessCredentials.parse(secretKey.getPlainText());
+        if (allKeys.isEmpty()) {
+            return null;
+        }
         String serverUrl = InjectionConfig.get().getServer();
-        String hostname = getHostnameFromServerUrl(serverUrl);
-        if (hostname == null) {
-            logger.error("Could not extract hostname from Develocity server URL");
-            return null;
+
+        // If we know the URL or there's only one access key configured corresponding to the right URL
+        if (InjectionConfig.get().isEnforceUrl() || allKeys.isSingleKey()) {
+            String hostname = getHostnameFromServerUrl(serverUrl);
+            if (hostname == null) {
+                logger.error("Could not extract hostname from Develocity server URL");
+                return null;
+            }
+            if (!DevelocityAccessCredentials.isValid(secretKey.getPlainText())) {
+                logger.error("Develocity access key format is not valid");
+                return null;
+            }
+            return allKeys.find(hostname)
+                .map(k ->
+                    tokenClient.get(serverUrl, k, InjectionConfig.get().getShortLivedTokenExpiry()))
+                .filter(Optional::isPresent)
+                .map(k -> Secret.fromString(k.get().getRaw()))
+                .orElse(null);
         }
-        if (!DevelocityAccessCredentials.isValid(secretKey.getPlainText())) {
-            logger.error("Develocity access key format is not valid");
-            return null;
-        }
-        Optional<DevelocityAccessCredentials> accessKey = DevelocityAccessCredentials.parse(secretKey.getPlainText(), hostname);
-        return accessKey
-            .map(k ->
-                tokenClient.get(serverUrl, k, InjectionConfig.get().getShortLivedTokenExpiry()))
+
+        // We're not sure exactly which DV URL will be effectively used so as best effort:
+        // let's translate all access keys to short-lived tokens
+        List<DevelocityAccessCredentials.HostnameAccessKey> shortLivedTokens = allKeys.stream()
+            .map(k -> tokenClient.get("https://" + k.getHostname(), k, InjectionConfig.get().getShortLivedTokenExpiry()))
             .filter(Optional::isPresent)
-            .map(k -> Secret.fromString(k.get().getRawAccessKey()))
-            .orElse(null);
+            .map(Optional::get)
+            .collect(Collectors.toList());
+
+        return shortLivedTokens.isEmpty() ? null : Secret.fromString(DevelocityAccessCredentials.of(shortLivedTokens).getRaw());
     }
 
     private String getHostnameFromServerUrl(String serverUrl) {

@@ -31,7 +31,7 @@ public class ShortLivedTokenClient {
     }
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    public Optional<DevelocityAccessCredentials> get(String server, DevelocityAccessCredentials accessKey, @Nullable Integer expiry) {
+    public Optional<DevelocityAccessCredentials.HostnameAccessKey> get(String server, DevelocityAccessCredentials.HostnameAccessKey accessKey, @Nullable Integer expiry) {
         String url = normalize(server) + "api/auth/token";
         if (expiry != null) {
             url = url + "?expiresInHours=" + expiry;
@@ -49,7 +49,7 @@ public class ShortLivedTokenClient {
         while (tryCount < MAX_RETRIES) {
             try (Response response = httpClient.newCall(request).execute()) {
                 if (response.code() == 200 && response.body() != null) {
-                    return Optional.of(DevelocityAccessCredentials.of(accessKey.getHostname(), response.body().string()));
+                    return Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of(accessKey.getHostname(), response.body().string()));
                 } else if (response.code() == 401) {
                     LOGGER.warn("Develocity short lived token request failed {} with status code 401", url);
                     return Optional.empty();

@@ -3,41 +3,90 @@ package hudson.plugins.gradle.injection;
 import com.google.common.base.Strings;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DevelocityAccessCredentials {
-    private final String hostname;
-    private final String key;
 
-    private DevelocityAccessCredentials(String hostname, String key) {
-        this.hostname = hostname;
-        this.key = key;
+    private static final String KEY_DELIMITER = ";";
+    private static final String HOST_DELIMITER = "=";
+    private final List<HostnameAccessKey> keys;
+
+    private DevelocityAccessCredentials(List<HostnameAccessKey> keys) {
+        this.keys = keys;
     }
 
-    public static DevelocityAccessCredentials of(String hostname, String key) {
-        return new DevelocityAccessCredentials(hostname, key);
+    public static DevelocityAccessCredentials of(List<HostnameAccessKey> keys) {
+        return new DevelocityAccessCredentials(keys);
     }
 
+    public boolean isEmpty() {
+        return keys.isEmpty();
+    }
 
-    public static Optional<DevelocityAccessCredentials> parse(String rawAccessKey, String host) {
-        return Arrays.stream(rawAccessKey.split(";"))
+    public boolean isSingleKey() {
+        return keys.size() == 1;
+    }
+
+    public Optional<HostnameAccessKey> find(String host) {
+        return keys.stream().filter(k -> k.hostname.equals(host)).findFirst();
+    }
+
+    public String getRaw() {
+        return keys.stream().map(HostnameAccessKey::getRaw).collect(Collectors.joining(KEY_DELIMITER));
+    }
+
+    public Stream<HostnameAccessKey> stream() {
+        return keys.stream();
+    }
+
+    public static DevelocityAccessCredentials parse(String rawAccessKey) {
+        return new DevelocityAccessCredentials(Arrays.stream(rawAccessKey.split(KEY_DELIMITER))
             .map(k -> k.split("="))
-            .filter(hostKey -> hostKey[0].equals(host))
-            .map(hostKey -> new DevelocityAccessCredentials(hostKey[0], hostKey[1]))
-            .findFirst();
+            .filter(hostKey -> hostKey.length == 2)
+            .map(hostKey -> new HostnameAccessKey(hostKey[0], hostKey[1]))
+            .collect(Collectors.toList()));
     }
 
-    public String getRawAccessKey() {
-        return hostname + "=" + key;
-    }
+    public static class HostnameAccessKey {
+        private final String hostname;
+        private final String key;
+        private HostnameAccessKey(String hostname, String key) {
+            this.hostname = hostname;
+            this.key = key;
+        }
 
-    public String getHostname() {
-        return hostname;
-    }
+        public static HostnameAccessKey of(String hostname, String key) {
+            return new HostnameAccessKey(hostname, key);
+        }
 
-    public String getKey() {
-        return key;
+        public String getHostname() {
+            return hostname;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getRaw() {
+            return hostname + HOST_DELIMITER + key;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            HostnameAccessKey that = (HostnameAccessKey) o;
+            return Objects.equals(hostname, that.hostname) && Objects.equals(key, that.key);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(hostname, key);
+        }
     }
 
     public static boolean isValid(String value) {
@@ -70,16 +119,5 @@ public class DevelocityAccessCredentials {
         return true;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DevelocityAccessCredentials that = (DevelocityAccessCredentials) o;
-        return Objects.equals(hostname, that.hostname) && Objects.equals(key, that.key);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(hostname, key);
-    }
 }

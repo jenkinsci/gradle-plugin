@@ -77,17 +77,17 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         }
     }
 
-    def 'adds an action with the short lived token'() {
+    def 'adds an action with the short lived token from one single access key'() {
         given:
         def accessKey = "localhost=secret"
         def config = InjectionConfig.get()
         config.setServer('http://localhost')
         config.setAccessKey(Secret.fromString(accessKey))
         config.save()
-        def key = DevelocityAccessCredentials.parse(accessKey, 'localhost').get()
+        def key = DevelocityAccessCredentials.parse(accessKey).find('localhost').get()
 
 
-        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.of('localhost', 'xyz'))
+        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz'))
 
         when:
         buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
@@ -98,6 +98,55 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
             parameters.size() == 2
             paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', 'localhost=xyz')
             paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', 'localhost=xyz')
+        }
+    }
+
+    def 'adds an action with the short lived token with multiple keys and enforce url is true'() {
+        given:
+        def accessKey = "localhost=secret;other=secret2"
+        def config = InjectionConfig.get()
+        config.setServer('http://localhost')
+        config.setEnforceUrl(true)
+        config.setAccessKey(Secret.fromString(accessKey))
+        config.save()
+        def key = DevelocityAccessCredentials.parse(accessKey).find('localhost').get()
+
+
+        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz'))
+
+        when:
+        buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
+
+        then:
+        1 * run.addAction { DevelocityParametersAction action ->
+            def parameters = action.getAllParameters()
+            parameters.size() == 2
+            paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', 'localhost=xyz')
+            paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', 'localhost=xyz')
+        }
+    }
+
+    def 'adds an action with the short lived token with multiple keys and enforce url is false'() {
+        given:
+        def accessKey = "localhost=secret;other=secret2"
+        def config = InjectionConfig.get()
+        config.setServer('http://localhost')
+        config.setEnforceUrl(false)
+        config.setAccessKey(Secret.fromString(accessKey))
+        config.save()
+
+        shortLivedTokenClient.get("https://localhost", DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'secret'), null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz'))
+        shortLivedTokenClient.get("https://other", DevelocityAccessCredentials.HostnameAccessKey.of('other', 'secret2'), null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('other', 'abc'))
+
+        when:
+        buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
+
+        then:
+        1 * run.addAction { DevelocityParametersAction action ->
+            def parameters = action.getAllParameters()
+            parameters.size() == 2
+            paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', 'localhost=xyz;other=abc')
+            paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', 'localhost=xyz;other=abc')
         }
     }
 
@@ -127,9 +176,9 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         config.setAccessKey(Secret.fromString(accessKey))
         config.setGradlePluginRepositoryPassword(Secret.fromString("foo"))
         config.save()
-        def key = DevelocityAccessCredentials.parse(accessKey, 'localhost').get()
+        def key = DevelocityAccessCredentials.parse(accessKey).find('localhost').get()
 
-        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.of('localhost', 'xyz'))
+        shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz'))
 
 
         when:
