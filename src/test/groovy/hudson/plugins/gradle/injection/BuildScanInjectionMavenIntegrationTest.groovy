@@ -19,6 +19,7 @@ import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -284,13 +285,23 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         hasBuildScanPublicationAttempt(log)
     }
 
-    def 'access key is injected into the simple pipeline'() {
+    def 'short lived token is injected into the simple pipeline'() {
         given:
         createSlaveAndTurnOnInjection()
         def mavenInstallationName = setupMavenInstallation()
 
+        def mockDevelocity = GroovyEmbeddedApp.of {
+            handlers {
+                post("api/auth/token") {
+                    response.status(200)
+                    response.send('some-token')
+                }
+            }
+        }
+
         withInjectionConfig {
-            accessKey = Secret.fromString("scans.gradle.com=secret")
+            server = mockDevelocity.address.toString()
+            accessKey = Secret.fromString("localhost=secret")
         }
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -318,10 +329,11 @@ node {
         def build = j.buildAndAssertSuccess(pipelineJob)
 
         then:
-        j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=scans.gradle.com=secret", build)
-        j.assertLogContains("DEVELOCITY_ACCESS_KEY=scans.gradle.com=secret", build)
+        j.assertLogContains("GRADLE_ENTERPRISE_ACCESS_KEY=localhost=some-token", build)
+        j.assertLogContains("DEVELOCITY_ACCESS_KEY=localhost=some-token", build)
+        j.assertLogNotContains("localhost=secret", build)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, build)
-        j.assertLogContains("[INFO] The Gradle Terms of Use have not been agreed to.", build)
+        j.assertLogContains("[WARNING] No build scan will be published: Develocity features were not enabled due to an unexpected error while contacting Develocity: 404 Not Found.", build)
     }
 
     def 'invalid access key is not injected into the simple pipeline'() {

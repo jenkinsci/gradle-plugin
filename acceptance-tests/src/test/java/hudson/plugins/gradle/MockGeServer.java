@@ -52,6 +52,7 @@ public final class MockGeServer extends ExternalResource {
                 .get(":scanId/gradle-attributes", this::handleGetScanGradleAttributesById)
                 .get(":scanId/maven-attributes", this::handleGetScanMavenAttributesById)
             )
+            .prefix("api/auth", c3 -> c3.post("token", this::handleGetToken))
             .notFound()
         );
     }
@@ -147,6 +148,10 @@ public final class MockGeServer extends ExternalResource {
         ctx.getResponse()
             .contentType("application/json")
             .send(JSON_OBJECT_MAPPER.writeValueAsBytes(gradleScanAttributes));
+    }
+
+    private void handleGetToken(Context ctx) {
+        ctx.getResponse().send("some-token");
     }
 
     public String publicBuildScanId() {

@@ -19,6 +19,7 @@ import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import spock.lang.Unroll
 
 @Unroll
@@ -579,7 +580,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
     }
 
     @SuppressWarnings("GStringExpressionWithinString")
-    def "access key is injected into the build"() {
+    def "short lived token is injected into the build"() {
         given:
         def gradleVersion = '8.6'
 
@@ -594,24 +595,35 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         project.buildersList.add(helloTask('println "accessKey=${System.getenv(\'DEVELOCITY_ACCESS_KEY\')}"'))
         project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
+        def mockDevelocity = GroovyEmbeddedApp.of {
+            handlers {
+                post("api/auth/token") {
+                    response.status(200)
+                    response.send('some-token')
+                }
+            }
+        }
+
         when:
         // first build to download Gradle
         def firstRun = j.buildAndAssertSuccess(project)
 
         then:
-        j.assertLogNotContains(MSG_INIT_SCRIPT_APPLIED, firstRun)
+        j.assertLogNotContains("Connection to Develocity: ${mockDevelocity.address}", firstRun)
 
         when:
         enableBuildInjection(agent, gradleVersion)
         withInjectionConfig {
-            accessKey = Secret.fromString("foo.com=secret")
+            server = mockDevelocity.address.toString()
+            accessKey = Secret.fromString("localhost=secret")
         }
         def secondRun = j.buildAndAssertSuccess(project)
 
         then:
-        j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
-        j.assertLogContains("accessKey=foo.com=secret", secondRun)
-        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/${DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
+        j.assertLogContains("Connection to Develocity: ${mockDevelocity.address}", secondRun)
+        j.assertLogContains("accessKey=localhost=some-token", secondRun)
+        j.assertLogNotContains("accessKey=localhost=secret", secondRun)
+        j.assertLogContains("The response from ${mockDevelocity.address}scans/publish/gradle/${DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, secondRun)
 
     }
