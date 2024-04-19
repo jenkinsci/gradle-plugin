@@ -57,6 +57,10 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
         if (secretKey == null) {
             return null;
         }
+        if (!DevelocityAccessCredentials.isValid(secretKey.getPlainText())) {
+            logger.error("Develocity access key format is not valid");
+            return null;
+        }
         DevelocityAccessCredentials allKeys = DevelocityAccessCredentials.parse(secretKey.getPlainText());
         if (allKeys.isEmpty()) {
             return null;
@@ -68,10 +72,6 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
             String hostname = getHostnameFromServerUrl(serverUrl);
             if (hostname == null) {
                 logger.error("Could not extract hostname from Develocity server URL");
-                return null;
-            }
-            if (!DevelocityAccessCredentials.isValid(secretKey.getPlainText())) {
-                logger.error("Develocity access key format is not valid");
                 return null;
             }
             return allKeys.find(hostname)

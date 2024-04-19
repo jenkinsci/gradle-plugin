@@ -16,7 +16,7 @@ class ShortLivedTokenClientTest extends Specification {
                 }
             }
         }
-        def key = DevelocityAccessCredentials.parse('localhost=xyz', 'localhost').get()
+        def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
         def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
@@ -38,7 +38,7 @@ class ShortLivedTokenClientTest extends Specification {
                 }
             }
         }
-        def key = DevelocityAccessCredentials.parse('localhost=xyz', 'localhost').get()
+        def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
         def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, 3)
@@ -58,7 +58,7 @@ class ShortLivedTokenClientTest extends Specification {
                 }
             }
         }
-        def key = DevelocityAccessCredentials.parse('localhost=xyz', 'localhost').get()
+        def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
         def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
@@ -79,7 +79,7 @@ class ShortLivedTokenClientTest extends Specification {
                 }
             }
         }
-        def key = DevelocityAccessCredentials.parse('localhost=xyz', 'localhost').get()
+        def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
         def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
@@ -91,7 +91,7 @@ class ShortLivedTokenClientTest extends Specification {
 
     def "get token sever fails with exception"() {
         given:
-        def key = DevelocityAccessCredentials.parse('localhost=xyz', 'localhost').get()
+        def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
         def token = new ShortLivedTokenClient().get('http://localhost:8888', key, null)
@@ -117,7 +117,7 @@ class ShortLivedTokenClientTest extends Specification {
                 }
             }
         }
-        def key = DevelocityAccessCredentials.parse('localhost=xyz', 'localhost').get()
+        def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
         def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
