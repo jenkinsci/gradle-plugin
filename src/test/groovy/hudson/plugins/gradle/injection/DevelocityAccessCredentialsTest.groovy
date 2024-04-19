@@ -48,19 +48,83 @@ class DevelocityAccessCredentialsTest extends Specification {
 
     def 'parse access key'() {
         when:
-        def key = DevelocityAccessCredentials.parse(accessKey, 'host1')
+        def creds = DevelocityAccessCredentials.parse(accessKey)
 
         then:
-        key == expected
+        creds == expected
 
         where:
         accessKey                          | expected
-        'host1=key1'                       | Optional.of(DevelocityAccessCredentials.of('host1', 'key1'))
-        'host1=key1;host2=key2'            | Optional.of(DevelocityAccessCredentials.of('host1', 'key1'))
-        'host2=key2;host1=key1'            | Optional.of(DevelocityAccessCredentials.of('host1', 'key1'))
-        'host2=key2;host1=key1;host3=key3' | Optional.of(DevelocityAccessCredentials.of('host1', 'key1'))
-        ''                                 | Optional.empty()
-        'host0=key0;host2=key2'            | Optional.empty()
-
+        'host1=key1'                       | DevelocityAccessCredentials.of([DevelocityAccessCredentials.HostnameAccessKey.of('host1', 'key1')])
+        'host2=key2;host1=key1;host3=key3' | DevelocityAccessCredentials.of([
+            DevelocityAccessCredentials.HostnameAccessKey.of('host2', 'key2'),
+            DevelocityAccessCredentials.HostnameAccessKey.of('host1', 'key1'),
+            DevelocityAccessCredentials.HostnameAccessKey.of('host3', 'key3')])
+        ''                                 | DevelocityAccessCredentials.of([])
+        'foo'                              | DevelocityAccessCredentials.of([])
     }
+
+    def 'is empty'() {
+        given:
+        def creds = DevelocityAccessCredentials.of(keys)
+
+        expect:
+        creds.isEmpty() == expected
+
+        where:
+        keys                                                                | expected
+        []                                                                  | true
+        [DevelocityAccessCredentials.HostnameAccessKey.of('host1', 'key1')] | false
+    }
+
+    def 'is single'() {
+        given:
+        def creds = DevelocityAccessCredentials.of(keys)
+
+        expect:
+        creds.isSingleKey() == expected
+
+        where:
+        keys                                                                   | expected
+        []                                                                     | false
+        [DevelocityAccessCredentials.HostnameAccessKey.of('host1', 'key1')]    | true
+        [
+            DevelocityAccessCredentials.HostnameAccessKey.of('host1', 'key1'),
+            DevelocityAccessCredentials.HostnameAccessKey.of('host2', 'key2'),
+        ]                                                                      | false
+    }
+
+    def 'raw'() {
+        given:
+        def creds = DevelocityAccessCredentials.of([
+            DevelocityAccessCredentials.HostnameAccessKey.of('host1', 'key1'),
+            DevelocityAccessCredentials.HostnameAccessKey.of('host2', 'key2'),
+        ])
+
+        when:
+        def raw = creds.getRaw()
+
+        then:
+        raw == 'host1=key1;host2=key2'
+    }
+
+    def 'find'() {
+        given:
+        def creds = DevelocityAccessCredentials.of([
+            DevelocityAccessCredentials.HostnameAccessKey.of('host1', 'key1'),
+            DevelocityAccessCredentials.HostnameAccessKey.of('host2', 'key2'),
+        ])
+
+        def found = creds.find(host)
+
+        expect:
+        found == expected
+
+        where:
+        host    | expected
+        'host2' | Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('host2', 'key2'))
+        'host3' | Optional.empty()
+    }
+
+
 }

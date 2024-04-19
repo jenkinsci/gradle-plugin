@@ -43,6 +43,19 @@ public class DevelocityAccessCredentials {
         return keys.stream();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DevelocityAccessCredentials that = (DevelocityAccessCredentials) o;
+        return Objects.equals(keys, that.keys);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(keys);
+    }
+
     public static DevelocityAccessCredentials parse(String rawAccessKey) {
         return new DevelocityAccessCredentials(Arrays.stream(rawAccessKey.split(KEY_DELIMITER))
             .map(k -> k.split("="))
