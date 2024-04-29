@@ -132,7 +132,7 @@ dependencies {
     testImplementation("org.jenkins-ci.plugins:pipeline-maven:3.10.0")
     testImplementation("org.spockframework:spock-core:2.3-groovy-2.5")
     testImplementation("org.spockframework:spock-junit4:2.3-groovy-2.5")
-    testImplementation("net.bytebuddy:byte-buddy:1.14.13")
+    testImplementation("net.bytebuddy:byte-buddy:1.14.14")
     testImplementation("org.objenesis:objenesis:3.3")
     testImplementation(platform("io.netty:netty-bom:4.1.109.Final"))
 
