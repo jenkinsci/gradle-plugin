@@ -133,7 +133,7 @@ dependencies {
     testImplementation("org.spockframework:spock-core:2.3-groovy-2.5")
     testImplementation("org.spockframework:spock-junit4:2.3-groovy-2.5")
     testImplementation("net.bytebuddy:byte-buddy:1.14.15")
-    testImplementation("org.objenesis:objenesis:3.3")
+    testImplementation("org.objenesis:objenesis:3.4")
     testImplementation(platform("io.netty:netty-bom:4.1.109.Final"))
 
     testImplementation("io.ratpack:ratpack-groovy-test:1.9.0") {
