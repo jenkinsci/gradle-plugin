@@ -9,7 +9,7 @@ import java.util.zip.ZipFile
 plugins {
     id("org.jenkins-ci.jpi") version "0.50.0"
     id("ru.vyarus.animalsniffer") version "1.7.1"
-    id("com.github.spotbugs") version "6.0.12"
+    id("com.github.spotbugs") version "6.0.14"
     id("codenarc")
     id("buildlogic.reproducible-archives")
 }
@@ -114,7 +114,7 @@ dependencies {
         exclude(group = "commons-logging", module = "commons-logging")
     }
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
@@ -132,7 +132,7 @@ dependencies {
     testImplementation("org.jenkins-ci.plugins:pipeline-maven:3.10.0")
     testImplementation("org.spockframework:spock-core:2.3-groovy-2.5")
     testImplementation("org.spockframework:spock-junit4:2.3-groovy-2.5")
-    testImplementation("net.bytebuddy:byte-buddy:1.14.13")
+    testImplementation("net.bytebuddy:byte-buddy:1.14.15")
     testImplementation("org.objenesis:objenesis:3.4")
     testImplementation(platform("io.netty:netty-bom:4.1.109.Final"))
 
