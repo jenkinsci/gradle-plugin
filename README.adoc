@@ -129,7 +129,7 @@ The auto-injection is split into several levels to have fine-grained control ove
 
 [IMPORTANT]
 =====
-Develocity `2024.1` or above is required starting from version `2.12` and above. See <<_common_configuration_options>> for more infos.
+Develocity `2024.1` or above is required starting from version `2.12` and above. See <<_short_lived_access_tokens>> for more infos.
 =====
 
 ==== Global
@@ -223,7 +223,6 @@ The disabled labels list will take precedence over the enabled labels list.
 
 The following sections list all available configuration options which can be set via the configuration form.
 
-[#_common_configuration_options]
 ==== Common configuration options
 
 `Enable auto-injection` +
@@ -239,6 +238,8 @@ Whether to allow publishing to a server with a self-signed certificate.
 The access key for authenticating with the Develocity server.
 The access key is stored encrypted within the Jenkins instance. During the job execution, the access key is decrypted and used to get a short-lived token from the Develocity server.
 
+[#_short_lived_access_tokens]
+==== Short-lived access tokens
 Develocity access keys are long-lived, creating risks if they are leaked. To avoid this, users can use short-lived access tokens to authenticate with Develocity. Access tokens can be used wherever an access key would be used. Access tokens are only valid for the Develocity instance that created them.
 If a short-lived token fails to be retrieved (for example, if the Develocity server version is lower than `2024.1`), no access key will be set.
 In that case, Develocity authenticated operations like build cache read/write and build scan publication will fail without failing the build.
