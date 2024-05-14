@@ -114,7 +114,7 @@ dependencies {
         exclude(group = "commons-logging", module = "commons-logging")
     }
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
