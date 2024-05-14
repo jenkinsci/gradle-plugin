@@ -127,8 +127,10 @@ The same auto-injection behavior is available for the https://github.com/gradle/
 
 The auto-injection is split into several levels to have fine-grained control over the enablement of this feature.
 
-> **Note**
-> - Develocity 2024.1 or above is required starting from version `2.12` and above. See <<_common_configuration_options>> for more infos.
+[IMPORTANT]
+=====
+Develocity 2024.1 or above is required starting from version `2.12` and above. See <<_common_configuration_options>> for more infos.
+=====
 
 ==== Global
 
