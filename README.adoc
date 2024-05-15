@@ -127,6 +127,11 @@ The same auto-injection behavior is available for the https://github.com/gradle/
 
 The auto-injection is split into several levels to have fine-grained control over the enablement of this feature.
 
+[IMPORTANT]
+=====
+Develocity `2024.1` or above is required starting from version `2.12` and above. See <<_short_lived_access_tokens>> for more infos.
+=====
+
 ==== Global
 
 To globally enable the auto-injection, click the `Enable auto-injection` checkbox in the `Develocity integration` section of the global options in the `Manage Jenkins/Configure System` section.
@@ -231,8 +236,14 @@ Whether to allow publishing to a server with a self-signed certificate.
 
 `Develocity access key` +
 The access key for authenticating with the Develocity server.
-The access key is stored encrypted within the Jenkins instance. During the job execution, the access key is decrypted and set as `GRADLE_ENTERPRISE_ACCESS_KEY` environment variable.
-Refer to the https://docs.gradle.com/enterprise/gradle-plugin/#via_environment_variable[Develocity Gradle plugin manual] and the https://docs.gradle.com/enterprise/maven-extension/#via_environment_variable[Develocity Maven Extension manual] for more details about this configuration.
+The access key is stored encrypted within the Jenkins instance. During the job execution, the access key is decrypted and used to get a short-lived token from the Develocity server.
+
+[#_short_lived_access_tokens]
+==== Short-lived access tokens
+Develocity access keys are long-lived, creating risks if they are leaked. To avoid this, users can use short-lived access tokens to authenticate with Develocity. Access tokens can be used wherever an access key would be used. Access tokens are only valid for the Develocity instance that created them.
+If a short-lived token fails to be retrieved (for example, if the Develocity server version is lower than `2024.1`), no access key will be set.
+In that case, Develocity authenticated operations like build cache read/write and build scan publication will fail without failing the build.
+For more information on short-lived tokens, see https://docs.gradle.com/develocity/api-manual/#short_lived_access_tokens[Develocity API documentation].
 
 ==== Gradle specific configuration options
 
