@@ -13,6 +13,7 @@ import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 import org.jenkinsci.test.acceptance.po.Slave;
 import org.jenkinsci.test.acceptance.po.WorkflowJob;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 
@@ -56,6 +57,7 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
     @Test
     @WithVersionOverrides("maven-plugin=3.14")
     @WithPlugins("maven-plugin")
+    @Ignore("https://github.com/gradle/dv/issues/35892")
     public void autoInjectionSkippedWhenOldMavenPlugin() {
         // given
         MavenModuleSet job = jenkins.jobs.create(MavenModuleSet.class);
