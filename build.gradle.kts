@@ -109,7 +109,7 @@ dependencies {
         because("VCS repositories filtering is supported for Develocity auto-injection")
     }
 
-    implementation("commons-validator:commons-validator:1.8.0") {
+    implementation("commons-validator:commons-validator:1.9.0") {
         exclude(group = "commons-beanutils", module = "commons-beanutils")
         exclude(group = "commons-logging", module = "commons-logging")
     }
