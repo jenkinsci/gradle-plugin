@@ -92,6 +92,7 @@ val gradlePluginJpi: Configuration by configurations.creating { isCanBeConsumed 
 dependencies {
     api(platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}"))
 
+    implementation("org.jenkins-ci.plugins:jackson2-api")
     implementation("org.jenkins-ci.plugins:structs")
     implementation("org.jenkins-ci.plugins.workflow:workflow-api")
     implementation("org.jenkins-ci.plugins.workflow:workflow-cps")
@@ -99,6 +100,7 @@ dependencies {
     implementation("org.jenkins-ci.plugins.workflow:workflow-basic-steps")
     implementation("org.jenkins-ci.plugins.workflow:workflow-durable-task-step")
     implementation("org.jenkins-ci.plugins.workflow:workflow-step-api")
+    implementation("io.jenkins.plugins:okhttp-api")
 
     "optionalPluginImplementation"("org.jenkins-ci.main:maven-plugin:3.14") {
         because("Lowest version that works with our dependencies")
@@ -113,10 +115,6 @@ dependencies {
         exclude(group = "commons-beanutils", module = "commons-beanutils")
         exclude(group = "commons-logging", module = "commons-logging")
     }
-
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
-
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     add(includedLibs.name, "com.gradle:develocity-maven-extension:${develocityMavenExtensionVersion}")
     add(includedLibs.name, "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}")
