@@ -45,7 +45,7 @@ val currentJava = JavaVersion.current()
 val jenkinsVersions = listOf(
     JenkinsVersion.LATEST,
     JenkinsVersion.LATEST_LTS,
-    JenkinsVersion.V2_375
+    JenkinsVersion.V2_401
 )
 
 jenkinsVersions
@@ -113,17 +113,18 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
 
         private const val LATEST_VERSION = "latest"
         private const val LATEST_LTS_VERSION = "latest-lts"
-        private const val V2_388_VERSION = "2.388"
+        private const val V2_401_VERSION = "2.401.3"
 
         private const val MIRROR = "https://updates.jenkins.io"
 
         private val JENKINS_VERSION_PATTERN = "^\\d+([.]\\d+)*?\$".toRegex()
 
         private val JAVA_11 = JavaLanguageVersion.of(11)
+        private val JAVA_17 = JavaLanguageVersion.of(17)
 
-        val LATEST = of(LATEST_VERSION)
+        val LATEST = of(LATEST_VERSION, JAVA_17)
         val LATEST_LTS = of(LATEST_LTS_VERSION)
-        val V2_375 = of(V2_388_VERSION)
+        val V2_401 = of(V2_401_VERSION)
 
         private fun of(version: String, javaVersion: JavaLanguageVersion = JAVA_11): JenkinsVersion {
             val downloadUrl =
@@ -145,7 +146,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
     }
 
     val isDefault: Boolean
-        get() = version == V2_388_VERSION
+        get() = version == V2_401_VERSION
 
     val label: String
         get() = if (isJenkinsVersion(version)) {

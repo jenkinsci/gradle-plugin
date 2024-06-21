@@ -1,11 +1,11 @@
 package hudson.plugins.gradle.injection
 
-import com.gargoylesoftware.htmlunit.html.HtmlButton
-import com.gargoylesoftware.htmlunit.html.HtmlForm
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.util.FormValidation
 import hudson.util.XStream2
+import org.htmlunit.html.HtmlButton
+import org.htmlunit.html.HtmlForm
 import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -311,7 +311,7 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
     }
 
     private static HtmlButton getAddButton(HtmlForm form, String label) {
-        def xpath = "//div[contains(@class, 'setting-name') and text() = '$label']/following-sibling::div[contains(@class, 'setting-main')]//span[contains(@class, 'repeatable-add')]//button[text() = 'Add']"
+        def xpath = "//div[text() = '$label']/following-sibling::div[contains(@class, 'setting-main')]//span[contains(@class, 'repeatable-add')]//button[text() = 'Add']"
         return form.getFirstByXPath(xpath)
     }
 }

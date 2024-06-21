@@ -8,7 +8,6 @@ import java.util.zip.ZipFile
 
 plugins {
     id("org.jenkins-ci.jpi") version "0.50.0"
-    id("ru.vyarus.animalsniffer") version "1.7.1"
     id("com.github.spotbugs") version "6.0.15"
     id("codenarc")
     id("buildlogic.reproducible-archives")
@@ -17,9 +16,9 @@ plugins {
 group = "org.jenkins-ci.plugins"
 description = "This plugin adds Gradle support to Jenkins"
 
-val coreBaseVersion = "2.303"
+val coreBaseVersion = "2.401"
 val corePatchVersion = "3"
-val coreBomVersion = "1500.ve4d05cd32975"
+val coreBomVersion = "2745.vc7b_fe4c876fa_"
 
 val gradleExt = (gradle as ExtensionAware).extra
 
@@ -71,12 +70,16 @@ jenkinsPlugin {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 
     registerFeature("optionalPlugin") {
         usingSourceSet(sourceSets["main"])
     }
+}
+
+tasks.compileJava {
+    options.release = 11
 }
 
 // see https://github.com/jenkinsci/gradle-jpi-plugin#customizing-further
@@ -102,8 +105,10 @@ dependencies {
     implementation("org.jenkins-ci.plugins.workflow:workflow-step-api")
     implementation("io.jenkins.plugins:okhttp-api")
 
-    "optionalPluginImplementation"("org.jenkins-ci.main:maven-plugin:3.14") {
+    "optionalPluginImplementation"("org.jenkins-ci.main:maven-plugin:3.23") {
         because("Lowest version that works with our dependencies")
+        // conflicts with Jenkins bom bringing Guice 6.0.0
+        exclude(group = "com.google.inject", module = "guice")
     }
 
     // Higher versions fail in our tests with ClassNotFoundException during SCM initialization unless Jenkins is updated
@@ -120,9 +125,7 @@ dependencies {
     add(includedLibs.name, "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}")
     add(includedLibs.name, project(path = ":configuration-maven-extension", configuration = "mvnExtension"))
 
-    signature("org.codehaus.mojo.signature:java18:1.0@signature")
-
-    testImplementation("org.jenkins-ci.main:jenkins-test-harness")
+    testImplementation("org.jenkins-ci.main:jenkins-test-harness:2225.v04fa_3929c9b_5")
     testImplementation("org.jenkins-ci.main:jenkins-test-harness-tools:2.2")
     testImplementation("io.jenkins:configuration-as-code:1.4")
     testImplementation("org.jenkins-ci.plugins:timestamper")
@@ -175,13 +178,6 @@ tasks.spotbugsTest {
 
 val main: SourceSet by sourceSets.getting
 
-animalsniffer {
-    toolVersion = "1.18"
-    sourceSets = listOf(main)
-    // We need to exclude this dependency from animalsniffer since it contains an invalid class
-    excludeJars = listOf("icu4j-*")
-}
-
 val test: SourceSet by sourceSets.getting
 
 codenarc {
@@ -193,7 +189,10 @@ tasks.test {
     systemProperties(
         mapOf(
             "hudson.model.DownloadService.noSignatureCheck" to true,
-            "jenkins.test.timeout" to 300 // override default timeout
+            "jenkins.test.timeout" to 300, // override default timeout
+            "jdk8.home" to javaToolchains.compilerFor {
+                languageVersion = JavaLanguageVersion.of(8)
+            }.get().metadata.installationPath.toString()
         )
     )
     ignoreFailures = ciJenkinsBuild
