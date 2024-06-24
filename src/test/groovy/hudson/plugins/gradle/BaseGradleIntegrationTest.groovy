@@ -67,6 +67,7 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
         CredentialsProvider.lookupStores(j.jenkins).iterator().next().addCredentials(Domain.global(), creds)
     }
 
+    @SuppressWarnings("CatchException")
     def cleanup() {
         if(Functions.isWindows()) {
             try {
