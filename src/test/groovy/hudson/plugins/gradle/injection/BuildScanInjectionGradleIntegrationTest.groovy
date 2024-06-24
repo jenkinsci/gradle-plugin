@@ -363,6 +363,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain"
           } else {
             bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain/)
+            bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
           }
         }
       }
@@ -859,6 +860,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain"
           } else {
             bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-daemon --console=plain/)
+            bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
           }
         }
       }
