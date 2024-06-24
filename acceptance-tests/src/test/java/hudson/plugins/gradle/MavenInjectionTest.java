@@ -1,7 +1,6 @@
 package hudson.plugins.gradle;
 
 import com.google.common.collect.ImmutableMap;
-import hudson.plugin.gradle.ath.updatecenter.WithVersionOverrides;
 import org.apache.commons.text.StringSubstitutor;
 import org.jenkinsci.test.acceptance.junit.WithOS;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
@@ -52,28 +51,6 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
         // then
         build.shouldSucceed();
         assertBuildScanPublished(build);
-    }
-
-    @Test
-    @WithVersionOverrides("maven-plugin=3.14")
-    @WithPlugins("maven-plugin")
-    @Ignore("https://github.com/gradle/dv/issues/35892")
-    public void autoInjectionSkippedWhenOldMavenPlugin() {
-        // given
-        MavenModuleSet job = jenkins.jobs.create(MavenModuleSet.class);
-
-        job.configure();
-        job.copyDir(resource("/simple_maven_project"));
-        job.goals.set("clean compile");
-
-        job.save();
-
-        // when
-        Build build = job.startBuild();
-
-        // then
-        build.shouldSucceed();
-        assertBuildScanNotPublished(build);
     }
 
     @Test
