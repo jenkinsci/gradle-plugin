@@ -3,12 +3,15 @@ package hudson.plugins.gradle
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
+import hudson.Functions
 import hudson.slaves.DumbSlave
 import hudson.util.Secret
 import org.jenkinsci.plugins.plaincredentials.StringCredentials
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import org.junit.Rule
 import org.junit.rules.RuleChain
+
+import java.util.concurrent.TimeUnit
 
 /**
  * Base class for tests that need a Jenkins instance and Gradle tool.
@@ -62,6 +65,22 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
     def registerCredentials(String id, String secret) {
         StringCredentials creds = new StringCredentialsImpl(CredentialsScope.GLOBAL, id, null, Secret.fromString(secret))
         CredentialsProvider.lookupStores(j.jenkins).iterator().next().addCredentials(Domain.global(), creds)
+    }
+
+    @SuppressWarnings("CatchException")
+    def cleanup() {
+        if(Functions.isWindows()) {
+            try {
+                println 'Killing Gradle processes'
+                def proc = '''WMIC PROCESS where "Name like 'java%%' AND CommandLine like '%%GradleDaemon%%'" Call Terminate"'''.execute()
+                proc.waitFor(30, TimeUnit.SECONDS)
+                println "output: ${proc.text}"
+                println "code: ${proc.exitValue()}"
+            } catch (Exception e) {
+                System.err.println('Failed killing Gradle daemons')
+                e.printStackTrace()
+            }
+        }
     }
 
 }
