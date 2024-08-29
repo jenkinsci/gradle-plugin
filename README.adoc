@@ -185,11 +185,11 @@ Optionally set the desired version of the https://github.com/gradle/common-custo
 
 ==== Maven
 
-To enable the auto-injection for Maven builds, click the `Enable Develocity Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
+To enable the auto-injection for Maven builds, set the desired https://docs.gradle.com/enterprise/maven-extension/[Develocity Maven extension] version in the `Develocity Maven extension version` field in the `Maven settings` section of the configuration form.
 
 image::maven-settings.png[Maven settings,{thumbnail}]
 
-Optionally click the `Enable Common Custom User Data Maven extension auto-injection` checkbox to enable the auto-injection of the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension].
+Optionally set the desired version of the https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven Extension] to be used.
 
 To see which versions are injected, refer to <<Auto-injection compatibility>>.
 
@@ -209,7 +209,7 @@ To disable the auto-injection for Gradle builds, remove the `Develocity Gradle p
 
 ==== Maven
 
-To disable the auto-injection for Maven builds, uncheck the `Enable Develocity Maven extension auto-injection` checkbox in the `Maven settings` section of the configuration form.
+To disable the auto-injection for Maven builds, remove the `Develocity Maven extension version` in the `Maven settings` section of the configuration form.
 
 === Control auto-injection based on node labels
 
@@ -267,11 +267,11 @@ By default, all nodes are enabled.
 
 ==== Maven specific configuration options
 
-`Enable Develocity Maven extension auto-injection` +
-Enables auto-injection for Maven builds and injects https://docs.gradle.com/enterprise/maven-extension[Develocity Maven extension].
+`Develocity Maven extension version` +
+Enables auto-injection for Maven builds and defines which version of the https://docs.gradle.com/enterprise/maven-extension/[Develocity Maven extension] to use.
 
-`Enable Common Custom User Data Maven extension auto-injection` +
-Enables auto-injection of https://github.com/gradle/common-custom-user-data-maven-extension[Common Custom User Data Maven extension].
+`Common Custom User Data Maven extension version` +
+Defines which version of the https://github.com/gradle/common-custom-user-data-data-maven-extension[Common Custom User Data Maven extension].
 
 `Maven auto-injection enabled nodes` +
 A list of node labels where the Develocity Maven extension or Common Custom User Data Maven extension injection should be enabled.
@@ -292,36 +292,11 @@ The compatibility of the specified version with Develocity can be found https://
 For the optional Common Custom User Data Gradle plugin which is defined the same form, you can see the compatibility of the specified version with the Develocity Gradle plugin https://github.com/gradle/common-custom-user-data-gradle-plugin#version-compatibility[here].
 
 ==== For Maven builds
-For Maven builds the version of the Develocity Maven extension is bundled into the plugin, meaning that the user can’t change what version is injected into the Maven build.
+For Maven builds the version used for the Develocity Maven extension is defined in the `Develocity Maven extension version` field in the `Maven settings` section of the configuration form.
+See <<Enable auto-injection>> for details.
+The compatibility of the specified version with Develocity can be found https://docs.gradle.com/enterprise/compatibility/#maven_extension[here].
 
-The following table shows the compatibility of the plugin version with Develocity:
-
-|===
-|Jenkins Gradle Plugin version  | Injected Develocity Maven extension version        | Injected Common Custom User Data Maven extension version  | Minimum supported Develocity version
-|Next version                   | 1.22                                               | 2.0                                                       | 2024.2
-|2.12.1                         | 1.22                                               | 2.0                                                       | 2024.2
-|2.12                           | 1.21.3                                             | 2.0                                                       | 2024.1
-|2.11                           | 1.21.1                                             | 2.0                                                       | 2024.1
-|2.10                           | 1.20.1                                             | 1.12.5                                                    | 2023.4
-|2.9                            | 1.19.3                                             | 1.12.4                                                    | 2023.3
-|2.8.2                          | 1.18.1                                             | 1.12.2                                                    | 2023.2
-|2.8.1                          | 1.17.3                                             | 1.12                                                      | 2023.1
-|2.8                            | 1.17.3                                             | 1.12                                                      | 2023.1
-|2.7                            | 1.17.2                                             | 1.11.1                                                    | 2023.1
-|2.6                            | 1.17.1                                             | 1.11.1                                                    | 2023.1
-|2.5.1                          | 1.17                                               | 1.11.1                                                    | 2023.1
-|2.5                            | 1.17                                               | 1.11.1                                                    | 2023.1
-|2.4                            | 1.16.6                                             | 1.11.1                                                    | 2022.4
-|2.3.2                          | 1.16.5                                             | 1.11.1                                                    | 2022.4
-|2.3.1                          | 1.16.5                                             | 1.11.1                                                    | 2022.4
-|2.3                            | 1.16.4                                             | 1.11.1                                                    | 2022.4
-|2.2                            | 1.16.1                                             | 1.11.1                                                    | 2022.4
-|2.1.1                          | 1.15.5                                             | 1.11.1                                                    | 2022.3
-|2.1                            | 1.15.4                                             | 1.11.1                                                    | 2022.3
-|2.0                            | 1.15.4                                             | 1.11.1                                                    | 2022.3
-|1.40                           | 1.15.3                                             | 1.11.1                                                    | 2022.3
-|< 1.40                         | *Not supported*                                    | *Not supported*                                           | *Not supported*
-|===
+For the optional Common Custom User Data Maven extension which is defined the same form, you can see the compatibility of the specified version with the Develocity Maven extension https://github.com/gradle/common-custom-user-data-maven-extension#version-compatibility[here].
 
 == Disabling/uninstalling Gradle Jenkins plugin
 

@@ -36,12 +36,10 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
     private static final String CONFIGURATION_EXTENSION_JAR = "configuration-maven-extension.jar"
     private static final String TOU_MSG = "The Gradle Terms of Use have not been agreed to"
 
-    private static final List<String> ALL_EXTENSIONS = [DEVELOCITY_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
-
     private static final String POM_XML = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
     private static final String INJECT_CCUD = '[DEBUG] Executing extension: CommonCustomUserDataDevelocityListener'
 
-    def 'does not copy #extension if it was not changed'() {
+    def 'does not copy configuration extension if it was not changed'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
         turnOnBuildInjectionAndRestart(slave)
@@ -50,7 +48,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         then:
         extensionDirectory.list().size() == 3
 
-        def originalExtension = extensionDirectory.list().find { it.name == extension }
+        def originalExtension = extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }
         originalExtension != null
         def originalExtensionLastModified = originalExtension.lastModified()
         originalExtensionLastModified > 0
@@ -65,16 +63,13 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         then:
         extensionDirectory.list().size() == 3
 
-        def updatedExtension = extensionDirectory.list().find { it.name == extension }
+        def updatedExtension = extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }
         updatedExtension != null
         updatedExtension.lastModified() == originalExtensionLastModified
         updatedExtension.digest() == originalExtensionDigest
-
-        where:
-        extension << ALL_EXTENSIONS
     }
 
-    def 'copies a new version of #extension if it was changed'() {
+    def 'copies a new version of configuration extension if it was changed'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
         turnOnBuildInjectionAndRestart(slave)
@@ -83,7 +78,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         then:
         extensionDirectory.list().size() == 3
 
-        def originalExtension = extensionDirectory.list().find { it.name == extension }
+        def originalExtension = extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }
         originalExtension != null
         def originalExtensionLastModified = originalExtension.lastModified()
         originalExtensionLastModified > 0
@@ -100,7 +95,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        extensionDirectory.list().find { it.name == extension }?.lastModified() != originalExtensionLastModified
+        extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }?.lastModified() != originalExtensionLastModified
 
         when:
         restartSlave(slave)
@@ -108,13 +103,10 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        def updatedGeExtension = extensionDirectory.list().find { it.name == extension }
+        def updatedGeExtension = extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }
         updatedGeExtension != null
         updatedGeExtension.lastModified() != originalExtensionLastModified
         updatedGeExtension.digest() == originalExtensionDigest
-
-        where:
-        extension << ALL_EXTENSIONS
     }
 
     @Issue('https://issues.jenkins.io/browse/JENKINS-70663')
@@ -456,7 +448,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            injectMavenExtension = true
+            mavenExtensionVersion = '1.22'
             checkForBuildAgentErrors = false
         }
         def secondRun = buildAndAssertFailure(p)
@@ -488,7 +480,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            injectMavenExtension = true
+            mavenExtensionVersion = '1.22'
             checkForBuildAgentErrors = true
         }
         def secondRun = buildAndAssertFailure(p)
@@ -584,8 +576,8 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            injectMavenExtension = true
-            injectCcudExtension = true
+            mavenExtensionVersion = '1.22'
+            ccudExtensionVersion = '2.0'
         }
 
         createSlave('foo')
@@ -649,7 +641,7 @@ node {
         when:
         withInjectionConfig {
             allowUntrusted = false
-            injectCcudExtension = true
+            ccudExtensionVersion = '2.0'
         }
         restartSlave(slave)
 
@@ -720,7 +712,7 @@ node {
         boolean shouldApplyAutoInjection
     ) {
         given:
-        mavenInstallationRule.mavenVersion = '3.9.2'
+        mavenInstallationRule.mavenVersion = '3.9.9'
         mavenInstallationRule.addInstallation()
         withInjectionConfig {
             vcsRepositoryFilter = filter
@@ -809,7 +801,7 @@ node {
         withInjectionConfig {
             mavenExtensionCustomCoordinates = customExtension
             ccudExtensionCustomCoordinates = customCcud
-            injectCcudExtension = true
+            ccudExtensionVersion = '2.0'
         }
         createSlaveAndTurnOnInjection()
         def pipelineJob = j.createProject(WorkflowJob)
@@ -856,7 +848,7 @@ node {
 
     def 'extension already applied in freestyle project and build scan attempted to publish to project configured host - #isUrlEnforced'(boolean isUrlEnforced) {
         given:
-        mavenInstallationRule.mavenVersion = '3.9.6'
+        mavenInstallationRule.mavenVersion = '3.9.9'
         mavenInstallationRule.addInstallation()
         withInjectionConfig {
             enforceUrl = isUrlEnforced
@@ -895,12 +887,12 @@ node {
 
     def 'custom extension already applied in freestyle project and build scan attempted to publish to project configured host'() {
         given:
-        mavenInstallationRule.mavenVersion = '3.9.6'
+        mavenInstallationRule.mavenVersion = '3.9.9'
         mavenInstallationRule.addInstallation()
         withInjectionConfig {
             mavenExtensionCustomCoordinates = customExtension
             ccudExtensionCustomCoordinates = customCcud
-            injectCcudExtension = true
+            ccudExtensionVersion = '2.0'
         }
         createSlaveAndTurnOnInjection()
 
@@ -977,7 +969,7 @@ node {
 """
     }
 
-    private String setupMavenInstallation(mavenVersion = "3.9.6") {
+    private String setupMavenInstallation(mavenVersion = "3.9.9") {
         mavenInstallationRule.mavenVersion = mavenVersion
         mavenInstallationRule.addInstallation()
 
@@ -988,7 +980,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            injectMavenExtension = true
+            mavenExtensionVersion = '1.22'
         }
 
         createSlave('foo')
@@ -1028,7 +1020,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            injectMavenExtension = false
+            mavenExtensionVersion = ''
             mavenCaptureGoalInputFiles = false
         }
 
@@ -1040,8 +1032,8 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            injectMavenExtension = true
-            injectCcudExtension = useCCUD
+            mavenExtensionVersion = '1.22'
+            ccudExtensionVersion = useCCUD ? '2.0' : ''
             mavenCaptureGoalInputFiles = captureGoalInputFiles
         }
 

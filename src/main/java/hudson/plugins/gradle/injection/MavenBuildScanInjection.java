@@ -23,12 +23,12 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
 
     // MAVEN_OPTS is handled separately
     private static final List<String> ALL_INJECTED_ENVIRONMENT_VARIABLES =
-        Arrays.asList(
-            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH,
-            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL,
-            JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER,
-            JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION
-        );
+            Arrays.asList(
+                    JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH,
+                    JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL,
+                    JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER,
+                    JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION
+            );
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
 
@@ -67,9 +67,9 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             LOGGER.info("Injecting Maven extensions " + nodeRootPath);
 
             List<FilePath> extensions = new ArrayList<>();
-            extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.DEVELOCITY, nodeRootPath));
-            if (config.isInjectCcudExtension()) {
-                extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, nodeRootPath));
+            extensions.add(extensionsHandler.downloadExtensionToAgent(MavenExtension.DEVELOCITY, config.getMavenExtensionVersion(), nodeRootPath));
+            if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(config.getCcudExtensionVersion()))) {
+                extensions.add(extensionsHandler.downloadExtensionToAgent(MavenExtension.CCUD, config.getCcudExtensionVersion(), nodeRootPath));
             } else {
                 extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);
             }
@@ -119,7 +119,6 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             throw new IllegalStateException(e);
         }
     }
-
 
 
 }
