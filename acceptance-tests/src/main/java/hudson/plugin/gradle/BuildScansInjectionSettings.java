@@ -15,10 +15,11 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
 
     private static final String SERVER_FIELD = "server";
     private static final String BUILD_SCAN_SERVER_FIELD = "buildScanServer";
-    private static final String GE_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
+    private static final String DEVELOCITY_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
+    private static final String DEVELOCITY_EXTENSION_VERSION_FIELD = "mavenExtensionVersion";
     private static final String GIT_REPOSITORY_FILTERS_FIELD = "vcsRepositoryFilter";
-    private static final String GE_ACCESS_KEY_FIELD = "accessKey";
-    private static final String GE_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD = "gradlePluginRepositoryPassword";
+    private static final String DEVELOCITY_ACCESS_KEY_FIELD = "accessKey";
+    private static final String DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD = "gradlePluginRepositoryPassword";
 
     public BuildScansInjectionSettings(Jenkins jenkins) {
         super(jenkins);
@@ -36,7 +37,7 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         clickCheckboxOnConfig("Enable auto-injection");
     }
 
-    public void setGradleEnterpriseServerUrl(URI server) {
+    public void setDevelocityServerUrl(URI server) {
         setBuildScansInjectionFormValue(SERVER_FIELD, server.toString());
     }
 
@@ -53,15 +54,15 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     }
 
     public void setGradleEnterpriseAccessKey(String accessKey) {
-        setBuildScansInjectionFormValue(GE_ACCESS_KEY_FIELD, accessKey);
+        setBuildScansInjectionFormValue(DEVELOCITY_ACCESS_KEY_FIELD, accessKey);
     }
 
     public void setGradleEnterpriseGradlePluginRepoPassword(String password) {
-        setBuildScansInjectionFormValue(GE_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD, password);
+        setBuildScansInjectionFormValue(DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD, password);
     }
 
     public void setGradleEnterprisePluginVersion(String version) {
-        setBuildScansInjectionFormValue(GE_PLUGIN_VERSION_FIELD, version);
+        setBuildScansInjectionFormValue(DEVELOCITY_PLUGIN_VERSION_FIELD, version);
     }
 
     public void setGitRepositoryFilters(String filters) {
@@ -72,8 +73,8 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         return getBuildScansInjectionFormValue(GIT_REPOSITORY_FILTERS_FIELD);
     }
 
-    public void clickInjectMavenExtension() {
-        clickCheckboxOnConfig("Enable Develocity Maven extension auto-injection");
+    public void setDevelocityMavenExtensionVersion(String version) {
+        setBuildScansInjectionFormValue(DEVELOCITY_EXTENSION_VERSION_FIELD, version);
     }
 
     private void setBuildScansInjectionFormValue(String field, String value) {
