@@ -24,7 +24,7 @@ import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
 public class MavenInjectionTest extends AbstractAcceptanceTest {
 
-    private static final String MAVEN_VERSION = "3.9.9";
+    private static final String MAVEN_VERSION = "3.8.6";
 
     @Before
     public void beforeEach() {
