@@ -67,7 +67,10 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             LOGGER.info("Injecting Maven extensions " + nodeRootPath);
 
             List<FilePath> extensions = new ArrayList<>();
-            extensions.add(extensionsHandler.downloadExtensionToAgent(MavenExtension.DEVELOCITY, config.getMavenExtensionVersion(), nodeRootPath));
+            MavenExtension mavenExtension = MavenExtension.isDevelocityExtensionVersion(config.getMavenExtensionVersion())
+                    ? MavenExtension.DEVELOCITY
+                    : MavenExtension.GRADLE_ENTERPRISE;
+            extensions.add(extensionsHandler.downloadExtensionToAgent(mavenExtension, config.getMavenExtensionVersion(), nodeRootPath));
             if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(config.getCcudExtensionVersion()))) {
                 extensions.add(extensionsHandler.downloadExtensionToAgent(MavenExtension.CCUD, config.getCcudExtensionVersion(), nodeRootPath));
             } else {
