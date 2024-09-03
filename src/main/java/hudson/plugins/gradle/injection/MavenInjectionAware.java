@@ -38,11 +38,11 @@ public interface MavenInjectionAware {
     );
 
     default boolean isInjectionDisabledGlobally(InjectionConfig config) {
-        if (config.isDisabled() || !config.isInjectMavenExtension()) {
-            return true;
-        }
-
-        return InjectionUtil.isInvalid(InjectionConfig.checkRequiredUrl(config.getServer()));
+        return config.isDisabled() ||
+                InjectionUtil.isAnyInvalid(
+                        InjectionConfig.checkRequiredUrl(config.getServer()),
+                        InjectionConfig.checkRequiredVersion(config.getMavenExtensionVersion())
+                );
     }
 
     default boolean isInjectionEnabledForNode(InjectionConfig config, Node node) {

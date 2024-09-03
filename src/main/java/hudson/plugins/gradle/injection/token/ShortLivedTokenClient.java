@@ -1,6 +1,5 @@
 package hudson.plugins.gradle.injection.token;
 
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.plugins.gradle.injection.DevelocityAccessCredentials;
 import okhttp3.OkHttpClient;
@@ -11,23 +10,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class ShortLivedTokenClient {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShortLivedTokenClient.class);
     private static final RequestBody EMPTY_BODY = RequestBody.create(new byte[]{});
     private static final int MAX_RETRIES = 3;
     private static final Duration RETRY_INTERVAL = Duration.ofSeconds(1);
+
     private final OkHttpClient httpClient;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShortLivedTokenClient.class);
 
     public ShortLivedTokenClient() {
-        httpClient = new OkHttpClient().newBuilder()
-            .callTimeout(10, TimeUnit.SECONDS)
-            .build();
+        this.httpClient = new OkHttpClient().newBuilder()
+                .callTimeout(10, TimeUnit.SECONDS)
+                .build();
     }
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
@@ -38,11 +42,11 @@ public class ShortLivedTokenClient {
         }
 
         Request request = new Request.Builder()
-            .url(url)
-            .addHeader("Authorization", "Bearer " + accessKey.getKey())
-            .addHeader("Content-Type", "application/json")
-            .post(EMPTY_BODY)
-            .build();
+                .url(url)
+                .addHeader("Authorization", "Bearer " + accessKey.getKey())
+                .addHeader("Content-Type", "application/json")
+                .post(EMPTY_BODY)
+                .build();
 
         int tryCount = 0;
         Integer errorCode = null;
@@ -69,10 +73,11 @@ public class ShortLivedTokenClient {
         return Optional.empty();
     }
 
-    private String normalize(String server) {
+    private static String normalize(String server) {
         if (server.endsWith("/")) {
             return server;
         }
+
         return server + "/";
     }
 

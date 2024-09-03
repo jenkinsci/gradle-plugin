@@ -13,8 +13,6 @@ group = "com.gradle"
 description = "Maven extension to configure injected Gradle Enterprise Maven extension"
 version = "1.0.0"
 
-val develocityMavenExtensionVersion: String by (gradle as ExtensionAware).extra
-
 repositories {
     mavenCentral()
 }
@@ -23,7 +21,7 @@ val mvnExtension: Configuration by configurations.creating { isCanBeConsumed = t
 
 dependencies {
     compileOnly("org.apache.maven:maven-core:3.8.7")
-    compileOnly("com.gradle:develocity-maven-extension:${develocityMavenExtensionVersion}")
+    compileOnly("com.gradle:develocity-maven-extension:1.22")
 }
 
 val jar by tasks.getting(Jar::class)

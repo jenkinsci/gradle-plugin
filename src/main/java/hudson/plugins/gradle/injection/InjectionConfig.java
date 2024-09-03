@@ -66,8 +66,8 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> gradleInjectionDisabledNodes;
     private Boolean gradleCaptureTaskInputFiles;
 
-    private boolean injectMavenExtension;
-    private boolean injectCcudExtension;
+    private String mavenExtensionVersion;
+    private String ccudExtensionVersion;
     private String mavenExtensionCustomCoordinates;
     private String ccudExtensionCustomCoordinates;
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
@@ -251,13 +251,13 @@ public class InjectionConfig extends GlobalConfiguration {
         this.gradleCaptureTaskInputFiles = gradleCaptureTaskInputFiles;
     }
 
-    public boolean isInjectMavenExtension() {
-        return injectMavenExtension;
+    public String getMavenExtensionVersion() {
+        return mavenExtensionVersion;
     }
 
     @DataBoundSetter
-    public void setInjectMavenExtension(boolean injectMavenExtension) {
-        this.injectMavenExtension = injectMavenExtension;
+    public void setMavenExtensionVersion(String mavenExtensionVersion) {
+        this.mavenExtensionVersion = Util.fixEmptyAndTrim(mavenExtensionVersion);
     }
 
     @CheckForNull
@@ -280,13 +280,13 @@ public class InjectionConfig extends GlobalConfiguration {
         this.ccudExtensionCustomCoordinates = Util.fixEmptyAndTrim(ccudExtensionCustomCoordinates);
     }
 
-    public boolean isInjectCcudExtension() {
-        return injectCcudExtension;
+    public String getCcudExtensionVersion() {
+        return ccudExtensionVersion;
     }
 
     @DataBoundSetter
-    public void setInjectCcudExtension(boolean injectCcudExtension) {
-        this.injectCcudExtension = injectCcudExtension;
+    public void setCcudExtensionVersion(String ccudExtensionVersion) {
+        this.ccudExtensionVersion = Util.fixEmptyAndTrim(ccudExtensionVersion);
     }
 
     @CheckForNull

@@ -23,8 +23,6 @@ val coreBomVersion = "1500.ve4d05cd32975"
 
 val gradleExt = (gradle as ExtensionAware).extra
 
-val develocityMavenExtensionVersion: String by gradleExt
-val commonCustomUserDataMavenExtensionVersion: String by gradleExt
 val ciJenkinsBuild: Boolean by gradleExt
 val isCi: Boolean by gradleExt
 
@@ -118,8 +116,6 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-    add(includedLibs.name, "com.gradle:develocity-maven-extension:${develocityMavenExtensionVersion}")
-    add(includedLibs.name, "com.gradle:common-custom-user-data-maven-extension:${commonCustomUserDataMavenExtensionVersion}")
     add(includedLibs.name, project(path = ":configuration-maven-extension", configuration = "mvnExtension"))
 
     signature("org.codehaus.mojo.signature:java18:1.0@signature")
@@ -267,41 +263,8 @@ val localizeMessages: Task by tasks.getting(LocalizationTask::class) {
     outputDir.set(layout.buildDirectory.file("generated/sources/localizeMessages/java/main").map { it.asFile })
 }
 
-val generateExtensionsVersions: Task by tasks.creating {
-    inputs.property("develocityMavenExtensionVersion", develocityMavenExtensionVersion)
-    inputs.property("commonCustomUserDataMavenExtensionVersion", commonCustomUserDataMavenExtensionVersion)
-
-    val srcDir = layout.buildDirectory.file("generated/sources/extensionsVersions/java/main")
-    outputs
-        .dir(srcDir)
-        .withPropertyName("extensionsVersions")
-
-    doLast {
-        val packages = File(srcDir.get().asFile, "hudson/plugins/gradle/injection")
-        if (!packages.exists()) {
-            packages.mkdirs()
-        }
-
-        val file = File(packages, "ExtensionsVersions.java")
-        file.writeText(
-            """
-            package hudson.plugins.gradle.injection;
-
-            public final class ExtensionsVersions {
-
-                public static final String DEVELOCITY_EXTENSION_VERSION = "$develocityMavenExtensionVersion";
-                public static final String CCUD_EXTENSION_VERSION = "$commonCustomUserDataMavenExtensionVersion";
-
-                private ExtensionsVersions() {
-                }
-            }
-        """.trimIndent()
-        )
-    }
-}
-
 sourceSets.main {
-    java.srcDirs(localizeMessages, generateExtensionsVersions)
+    java.srcDirs(localizeMessages)
 }
 
 val createWrapperZip by tasks.creating(Zip::class) {
@@ -319,15 +282,6 @@ tasks.processTestResources {
 
     from(includedLibs) {
         into("hudson/plugins/gradle/injection")
-    }
-}
-
-tasks.processResources {
-    filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectMavenExtension.html") {
-        expand("develocityMavenExtensionVersion" to develocityMavenExtensionVersion)
-    }
-    filesMatching("hudson/plugins/gradle/injection/InjectionConfig/help-injectCcudExtension.html") {
-        expand("commonCustomUserDataMavenExtensionVersion" to commonCustomUserDataMavenExtensionVersion)
     }
 }
 

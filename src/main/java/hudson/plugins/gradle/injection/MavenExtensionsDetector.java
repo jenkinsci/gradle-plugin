@@ -13,7 +13,7 @@ public class MavenExtensionsDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenExtensionsDetector.class);
 
     static Set<MavenExtension> detect(InjectionConfig config, FilePath workspace) throws IOException, InterruptedException {
-        if (!config.isInjectMavenExtension()) {
+        if (InjectionUtil.isInvalid(InjectionConfig.checkRequiredVersion(config.getMavenExtensionVersion()))) {
             return Collections.emptySet();
         }
 

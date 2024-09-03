@@ -151,8 +151,8 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
         getAddButton(form, "Gradle auto-injection disabled nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("gradle2")
 
-        form.getInputByName("_.injectMavenExtension").click()
-        form.getInputByName("_.injectCcudExtension").click()
+        form.getInputByName("_.mavenExtensionVersion").setValueAttribute("1.22")
+        form.getInputByName("_.ccudExtensionVersion").setValueAttribute("2.0")
 
         getAddButton(form, "Maven auto-injection enabled nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("maven1")
@@ -176,8 +176,8 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
             gradleInjectionEnabledNodes*.label == ['gradle1']
             gradleInjectionDisabledNodes*.label == ['gradle2']
 
-            injectMavenExtension
-            injectCcudExtension
+            mavenExtensionVersion == "1.22"
+            ccudExtensionVersion == "2.0"
             mavenInjectionEnabledNodes*.label == ['maven1']
             mavenInjectionDisabledNodes*.label == ['maven2']
         }
@@ -227,8 +227,8 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
       <label>gradle2</label>
     </hudson.plugins.gradle.injection.NodeLabelItem>
   </gradleInjectionDisabledNodes>
-  <injectMavenExtension>true</injectMavenExtension>
-  <injectCcudExtension>true</injectCcudExtension>
+  <mavenExtensionVersion>1.22</mavenExtensionVersion>
+  <ccudExtensionVersion>2.0</ccudExtensionVersion>
   <mavenInjectionEnabledNodes>
     <hudson.plugins.gradle.injection.NodeLabelItem>
       <label>maven1</label>
@@ -273,8 +273,8 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
       <label>gradle2</label>
     </hudson.plugins.gradle.injection.NodeLabelItem>
   </gradleInjectionDisabledNodes>
-  <injectMavenExtension>true</injectMavenExtension>
-  <injectCcudExtension>true</injectCcudExtension>
+  <mavenExtensionVersion>1.22</mavenExtensionVersion>
+  <ccudExtensionVersion>2.0</ccudExtensionVersion>
   <mavenInjectionEnabledNodes>
     <hudson.plugins.gradle.injection.NodeLabelItem>
       <label>maven1</label>

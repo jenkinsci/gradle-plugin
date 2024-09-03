@@ -3,7 +3,9 @@ package hudson.plugins.gradle.injection;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import hudson.FilePath;
+import hudson.plugins.gradle.injection.extension.ExtensionClient;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
@@ -19,16 +21,16 @@ public class MavenExtensionsHandler {
     static final String LIB_DIR_PATH = "jenkins-gradle-plugin/lib";
 
     private final Map<MavenExtension, MavenExtensionFileHandler> fileHandlers =
-        Arrays.stream(MavenExtension.values())
-            .map(MavenExtensionFileHandler::new)
-            .collect(Collectors.toMap(h -> h.extension, Function.identity()));
+            Arrays.stream(MavenExtension.values())
+                    .map(MavenExtensionFileHandler::new)
+                    .collect(Collectors.toMap(h -> h.extension, Function.identity()));
 
     public FilePath copyExtensionToAgent(MavenExtension extension, FilePath rootPath) throws IOException, InterruptedException {
         return fileHandlers.get(extension).copyExtensionToAgent(rootPath);
     }
 
-    public FilePath getExtensionLocation(MavenExtension extension, FilePath rootPath) {
-        return fileHandlers.get(extension).getExtensionLocation(rootPath);
+    public FilePath downloadExtensionToAgent(MavenExtension extension, String version, FilePath rootPath) throws IOException, InterruptedException {
+        return fileHandlers.get(extension).downloadExtensionToAgent(rootPath, version);
     }
 
     public void deleteExtensionFromAgent(MavenExtension extension, FilePath rootPath) throws IOException, InterruptedException {
@@ -46,8 +48,7 @@ public class MavenExtensionsHandler {
 
         MavenExtensionFileHandler(MavenExtension extension) {
             this.extension = extension;
-            this.extensionDigest =
-                Suppliers.memoize(() -> unsafeResourceDigest(extension.getEmbeddedJarName()));
+            this.extensionDigest = Suppliers.memoize(() -> unsafeResourceDigest(extension.getEmbeddedJarName()));
         }
 
         /**
@@ -59,6 +60,18 @@ public class MavenExtensionsHandler {
             if (extensionChanged(extensionLocation)) {
                 copyResourceToNode(extensionLocation, extension.getEmbeddedJarName());
             }
+            return extensionLocation;
+        }
+
+        /**
+         * Downloads the extension to the agent from a repository and returns a path to the extension on the agent.
+         */
+        public FilePath downloadExtensionToAgent(FilePath rootPath, String version) throws IOException, InterruptedException {
+            FilePath extensionLocation = getExtensionLocation(rootPath);
+            try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(extensionLocation.write())) {
+                ExtensionClient.INSTANCE.downloadExtension(extension, version, bufferedOutputStream);
+            }
+
             return extensionLocation;
         }
 
