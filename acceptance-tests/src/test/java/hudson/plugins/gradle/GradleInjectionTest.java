@@ -309,7 +309,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
 
         job.copyResource(resource("/simple_gradle_project/build.gradle"), "build.gradle");
         // gradle settings pointing to scans.gradle.com
-        job.copyResource(settingsWithGradleEnterprise(expectedAgentVersion, PUBLIC_GE_SERVER.toString()), "settings.gradle");
+        job.copyResource(settingsWithGradleEnterprise(expectedAgentVersion, PUBLIC_DEVELOCITY_SERVER.toString()), "settings.gradle");
         GradleStep gradle = job.addBuildStep(GradleStep.class);
         gradle.setVersion(GRADLE_VERSION);
         gradle.setSwitches("--no-daemon");

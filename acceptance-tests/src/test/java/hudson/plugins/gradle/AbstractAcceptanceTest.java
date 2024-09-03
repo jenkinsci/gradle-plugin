@@ -36,7 +36,9 @@ import java.util.stream.Stream;
 @WithPlugins("gradle")
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
-    protected static final URI PUBLIC_GE_SERVER = URI.create("https://scans.gradle.com");
+    protected static final URI PUBLIC_DEVELOCITY_SERVER = URI.create("https://scans.gradle.com");
+    
+    private static final String DEVELOCITY_MAVEN_EXTENSION_VERSION = "1.22";
 
     @Rule
     public MockGeServer mockGeServer = new MockGeServer();
@@ -75,7 +77,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     protected final void enableBuildScansForGradle(URI server, String agentVersion) {
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansInjection();
-            settings.setGradleEnterpriseServerUrl(server);
+            settings.setDevelocityServerUrl(server);
             settings.setGradleEnterprisePluginVersion(agentVersion);
             settings.setGradleEnterpriseAccessKey(String.format("%s=secret", server.getHost()));
         });
@@ -109,8 +111,8 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     protected final void enableBuildScansForMaven() {
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansInjection();
-            settings.setGradleEnterpriseServerUrl(PUBLIC_GE_SERVER);
-            settings.clickInjectMavenExtension();
+            settings.setDevelocityServerUrl(PUBLIC_DEVELOCITY_SERVER);
+            settings.setDevelocityMavenExtensionVersion(DEVELOCITY_MAVEN_EXTENSION_VERSION);
         });
     }
 

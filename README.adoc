@@ -537,3 +537,4 @@ From Gradle 0.5, the window launcher is a .bat file that conserves the correct E
 === Release 1.0 (October 04, 2008)
 
 * Initial release
+

@@ -144,7 +144,7 @@ public class GitScmListener extends SCMListener {
     }
 
     private static boolean shouldDisableMavenInjection(InjectionConfig config) {
-        return config.isInjectMavenExtension();
+        return InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(config.getMavenExtensionVersion()));
     }
 
     /**

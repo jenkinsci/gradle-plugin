@@ -107,11 +107,11 @@
             </f:section>
 
             <f:section title="${%Maven settings}">
-                <f:entry field="injectMavenExtension">
-                    <f:checkbox title="${%Enable Develocity Maven extension auto-injection}"/>
+                <f:entry title="${%Develocity Maven extension version}" field="mavenExtensionVersion">
+                    <f:textbox checkMethod="post"/>
                 </f:entry>
-                <f:entry field="injectCcudExtension">
-                    <f:checkbox title="${%Enable Common Custom User Data Maven extension auto-injection}"/>
+                <f:entry title="${%Common Custom User Data Maven extension version}" field="ccudExtensionVersion">
+                    <f:textbox checkMethod="post"/>
                 </f:entry>
                 <f:entry title="${%Develocity Maven Extension Custom Coordinates}" field="mavenExtensionCustomCoordinates">
                     <f:textbox checkMethod="post"/>
