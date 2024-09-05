@@ -117,9 +117,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     }
 
     protected final void setGradlePluginRepositoryPassword(String password) {
-        updateBuildScansInjectionSettings(settings -> {
-            settings.setGradleEnterpriseGradlePluginRepoPassword(password);
-        });
+        updateBuildScansInjectionSettings(settings -> settings.setGradleEnterpriseGradlePluginRepoPassword(password));
     }
 
     private void updateBuildScansInjectionSettings(Consumer<BuildScansInjectionSettings> spec) {

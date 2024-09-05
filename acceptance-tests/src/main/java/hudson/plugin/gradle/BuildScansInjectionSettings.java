@@ -1,10 +1,17 @@
 package hudson.plugin.gradle;
 
+import org.jenkinsci.test.acceptance.plugins.credentials.CredentialsPage;
+import org.jenkinsci.test.acceptance.plugins.credentials.ManagedCredentials;
+import org.jenkinsci.test.acceptance.plugins.credentials.StringCredentials;
+import org.jenkinsci.test.acceptance.plugins.credentials.UserPwdCredential;
 import org.jenkinsci.test.acceptance.po.Jenkins;
 import org.jenkinsci.test.acceptance.po.JenkinsConfig;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
 
 import java.net.URI;
+import java.util.UUID;
 
 public class BuildScansInjectionSettings extends JenkinsConfig {
 
@@ -18,8 +25,8 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     private static final String DEVELOCITY_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
     private static final String DEVELOCITY_EXTENSION_VERSION_FIELD = "mavenExtensionVersion";
     private static final String GIT_REPOSITORY_FILTERS_FIELD = "vcsRepositoryFilter";
-    private static final String DEVELOCITY_ACCESS_KEY_FIELD = "accessKey";
-    private static final String DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD = "gradlePluginRepositoryPassword";
+    private static final String DEVELOCITY_ACCESS_KEY_CREDENTIAL_ID_FIELD = "accessKeyCredentialId";
+    private static final String DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_CREDENTIAL_ID_FIELD = "gradlePluginRepositoryCredentialId";
 
     public BuildScansInjectionSettings(Jenkins jenkins) {
         super(jenkins);
@@ -54,11 +61,42 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     }
 
     public void setGradleEnterpriseAccessKey(String accessKey) {
-        setBuildScansInjectionFormValue(DEVELOCITY_ACCESS_KEY_FIELD, accessKey);
+        JenkinsConfig configPage = jenkins.getConfigPage();
+        configPage.configure();
+
+        CredentialsPage credentialsPage = new CredentialsPage(jenkins, ManagedCredentials.DEFAULT_DOMAIN);
+        credentialsPage.open();
+
+        StringCredentials stringCredentials = credentialsPage.add(StringCredentials.class);
+        stringCredentials.setId(UUID.randomUUID().toString());
+        stringCredentials.secret.set(accessKey);
+
+        String credentialDescription = "Gradle Plugin Repository Password";
+        stringCredentials.description.set(credentialDescription);
+
+        credentialsPage.create();
+
+        setBuildScansInjectionFormSelect(DEVELOCITY_ACCESS_KEY_CREDENTIAL_ID_FIELD, credentialDescription);
     }
 
     public void setGradleEnterpriseGradlePluginRepoPassword(String password) {
-        setBuildScansInjectionFormValue(DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD, password);
+        JenkinsConfig configPage = jenkins.getConfigPage();
+        configPage.configure();
+
+        CredentialsPage credentialsPage = new CredentialsPage(jenkins, ManagedCredentials.DEFAULT_DOMAIN);
+        credentialsPage.open();
+
+        UserPwdCredential usernamePasswordCredentials = credentialsPage.add(UserPwdCredential.class);
+        usernamePasswordCredentials.setId(UUID.randomUUID().toString());
+        usernamePasswordCredentials.username.set("johndoe");
+        usernamePasswordCredentials.password.set(password);
+
+        String credentialDescription = "Gradle Plugin Repository Password";
+        usernamePasswordCredentials.description.set(credentialDescription);
+
+        credentialsPage.create();
+
+        setBuildScansInjectionFormSelect(DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_CREDENTIAL_ID_FIELD, credentialDescription);
     }
 
     public void setGradleEnterprisePluginVersion(String version) {
@@ -82,6 +120,16 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
 
         By xpath = By.xpath(String.format(XPATH, INJECTION_CONFIG_PATH + field));
         driver.findElement(xpath).sendKeys(value);
+    }
+
+    private void setBuildScansInjectionFormSelect(String field, String value) {
+        ensureConfigPage();
+
+        By xpath = By.xpath(String.format(XPATH, INJECTION_CONFIG_PATH + field));
+        WebElement webElement = driver.findElement(xpath);
+
+        Select select = new Select(webElement);
+        select.selectByVisibleText(value);
     }
 
     private String getBuildScansInjectionFormValue(String field) {

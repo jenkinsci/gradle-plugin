@@ -1,5 +1,7 @@
 package hudson.plugins.gradle.injection
 
+import com.cloudbees.plugins.credentials.CredentialsScope
+import com.cloudbees.plugins.credentials.SystemCredentialsProvider
 import hudson.EnvVars
 import hudson.FilePath
 import hudson.model.Run
@@ -15,6 +17,7 @@ import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.tasks.Maven
 import hudson.util.Secret
 import org.apache.commons.lang3.StringUtils
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
@@ -291,10 +294,20 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
             }
         }
 
+        def credentialId = UUID.randomUUID().toString()
         withInjectionConfig {
             server = mockDevelocity.address.toString()
-            accessKey = Secret.fromString("localhost=secret")
+            accessKeyCredentialId = credentialId
         }
+        SystemCredentialsProvider.getInstance().getCredentials().add(
+                new StringCredentialsImpl(
+                        CredentialsScope.GLOBAL,
+                        credentialId,
+                        "Develocity Access Key",
+                        Secret.fromString("localhost=secret")
+                ))
+        SystemCredentialsProvider.getInstance().save()
+
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
 node {
@@ -333,9 +346,18 @@ node {
         createSlaveAndTurnOnInjection()
         def mavenInstallationName = setupMavenInstallation()
 
+        def credentialId = UUID.randomUUID().toString()
         withInjectionConfig {
-            accessKey = Secret.fromString("secret")
+            accessKeyCredentialId = credentialId
         }
+        SystemCredentialsProvider.getInstance().getCredentials().add(
+                new StringCredentialsImpl(
+                        CredentialsScope.GLOBAL,
+                        credentialId,
+                        "Develocity Access Key",
+                        Secret.fromString("secret")
+                ))
+        SystemCredentialsProvider.getInstance().save()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(mavenInstallationName), false))
 

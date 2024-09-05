@@ -1,30 +1,48 @@
 package hudson.plugins.gradle.injection;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
+import hudson.model.Item;
 import hudson.plugins.gradle.Messages;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import hudson.util.VersionNumber;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
@@ -55,6 +73,7 @@ public class InjectionConfig extends GlobalConfiguration {
     private String server;
     private boolean allowUntrusted;
     private Secret accessKey;
+    private String accessKeyCredentialId;
     private Integer shortLivedTokenExpiry;
 
     private String gradlePluginVersion;
@@ -62,12 +81,15 @@ public class InjectionConfig extends GlobalConfiguration {
     private String gradlePluginRepositoryUrl;
     private String gradlePluginRepositoryUsername;
     private Secret gradlePluginRepositoryPassword;
+    private String gradlePluginRepositoryCredentialId;
     private ImmutableList<NodeLabelItem> gradleInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> gradleInjectionDisabledNodes;
     private Boolean gradleCaptureTaskInputFiles;
 
     private String mavenExtensionVersion;
     private String ccudExtensionVersion;
+    private String mavenExtensionRepositoryUrl;
+    private String mavenExtensionRepositoryCredentialId;
     private String mavenExtensionCustomCoordinates;
     private String ccudExtensionCustomCoordinates;
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
@@ -143,17 +165,13 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @CheckForNull
-    public Secret getAccessKey() {
-        return accessKey;
+    public String getAccessKeyCredentialId() {
+        return accessKeyCredentialId;
     }
 
     @DataBoundSetter
-    public void setAccessKey(Secret accessKey) {
-        if (Util.fixEmptyAndTrim(accessKey.getPlainText()) == null) {
-            this.accessKey = null;
-        } else {
-            this.accessKey = accessKey;
-        }
+    public void setAccessKeyCredentialId(String accessKeyCredentialId) {
+        this.accessKeyCredentialId = Util.fixEmptyAndTrim(accessKeyCredentialId);
     }
 
     @CheckForNull
@@ -167,27 +185,13 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @CheckForNull
-    public String getGradlePluginRepositoryUsername() {
-        return gradlePluginRepositoryUsername;
+    public String getGradlePluginRepositoryCredentialId() {
+        return gradlePluginRepositoryCredentialId;
     }
 
     @DataBoundSetter
-    public void setGradlePluginRepositoryUsername(String gradlePluginRepositoryUsername) {
-        this.gradlePluginRepositoryUsername = Util.fixEmptyAndTrim(gradlePluginRepositoryUsername);
-    }
-
-    @CheckForNull
-    public Secret getGradlePluginRepositoryPassword() {
-        return gradlePluginRepositoryPassword;
-    }
-
-    @DataBoundSetter
-    public void setGradlePluginRepositoryPassword(Secret gradlePluginRepositoryPassword) {
-        if (Util.fixEmptyAndTrim(gradlePluginRepositoryPassword.getPlainText()) == null) {
-            this.gradlePluginRepositoryPassword = null;
-        } else {
-            this.gradlePluginRepositoryPassword = gradlePluginRepositoryPassword;
-        }
+    public void setGradlePluginRepositoryCredentialId(String gradlePluginRepositoryCredentialId) {
+        this.gradlePluginRepositoryCredentialId = Util.fixEmptyAndTrim(gradlePluginRepositoryCredentialId);
     }
 
     @CheckForNull
@@ -287,6 +291,26 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setCcudExtensionVersion(String ccudExtensionVersion) {
         this.ccudExtensionVersion = Util.fixEmptyAndTrim(ccudExtensionVersion);
+    }
+
+    @CheckForNull
+    public String getMavenExtensionRepositoryUrl() {
+        return mavenExtensionRepositoryUrl;
+    }
+
+    @DataBoundSetter
+    public void setMavenExtensionRepositoryUrl(String mavenExtensionRepositoryUrl) {
+        this.mavenExtensionRepositoryUrl = Util.fixEmptyAndTrim(mavenExtensionRepositoryUrl);
+    }
+
+    @CheckForNull
+    public String getMavenExtensionRepositoryCredentialId() {
+        return mavenExtensionRepositoryCredentialId;
+    }
+
+    @DataBoundSetter
+    public void setMavenExtensionRepositoryCredentialId(String mavenExtensionRepositoryCredentialId) {
+        this.mavenExtensionRepositoryCredentialId = Util.fixEmptyAndTrim(mavenExtensionRepositoryCredentialId);
     }
 
     @CheckForNull
@@ -402,13 +426,21 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @Restricted(NoExternalUse.class)
     @POST
-    public FormValidation doCheckAccessKey(@QueryParameter String value) {
-        String accessKey = Util.fixEmptyAndTrim(value);
-        if (accessKey == null) {
+    public FormValidation doCheckAccessKeyCredentialId(@QueryParameter String value) {
+        String accessKeyId = Util.fixEmptyAndTrim(value);
+        if (accessKeyId == null) {
             return FormValidation.ok();
         }
 
-        return DevelocityAccessCredentials.isValid(accessKey)
+        List<StringCredentials> credentials = CredentialsProvider.lookupCredentialsInItem(StringCredentials.class, null, null);
+
+        String accessKeyFromCredentialId = credentials.stream()
+                .filter(it -> it.getId().equals(accessKeyId))
+                .findFirst()
+                .map(it -> it.getSecret().getPlainText())
+                .orElse(null);
+
+        return DevelocityAccessCredentials.isValid(accessKeyFromCredentialId)
             ? FormValidation.ok()
             : FormValidation.error(Messages.InjectionConfig_InvalidAccessKey());
     }
@@ -441,6 +473,68 @@ public class InjectionConfig extends GlobalConfiguration {
     @POST
     public FormValidation doCheckCcudExtensionCustomCoordinates(@QueryParameter String value) {
         return validateMavenCoordinates(value);
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckMavenExtensionRepositoryUrl(@QueryParameter String value) {
+        return checkUrl(value);
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckMavenExtensionVersion(@QueryParameter String value) {
+        return checkVersion(value);
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckCcudExtensionVersion(@QueryParameter String value) {
+        return checkVersion(value);
+    }
+
+    @SuppressWarnings("called by Jelly")
+    @POST
+    public ListBoxModel doFillGradlePluginRepositoryCredentialIdItems(@AncestorInPath Item project) {
+       return getAllCredentials(project);
+    }
+
+    @SuppressWarnings("called by Jelly")
+    @POST
+    public ListBoxModel doFillMavenExtensionRepositoryCredentialIdItems(@AncestorInPath Item project) {
+       return getAllCredentials(project);
+    }
+
+    @SuppressWarnings("called by Jelly")
+    @POST
+    public ListBoxModel doFillAccessKeyCredentialIdItems(@AncestorInPath Item project) {
+       return getAllCredentials(project);
+    }
+
+    private static ListBoxModel getAllCredentials(Item project) {
+        StandardListBoxModel listBoxModel = new StandardListBoxModel();
+
+        listBoxModel
+                .includeEmptyValue()
+                // Add project scoped credentials:
+                .includeMatchingAs(ACL.SYSTEM, project, StandardCredentials.class, Collections.emptyList(),
+                        CredentialsMatchers.anyOf(
+                                CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
+                                CredentialsMatchers.instanceOf(StringCredentials.class)
+                        ));
+
+        Jenkins jenkins = Jenkins.getInstanceOrNull();
+        if (jenkins != null) {
+                // Add Jenkins system scoped credentials
+                listBoxModel.includeMatchingAs(ACL.SYSTEM, jenkins, StandardCredentials.class, Collections.emptyList(),
+                    CredentialsMatchers.anyOf(
+                            CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
+                            CredentialsMatchers.instanceOf(StringCredentials.class)
+                    )
+            );
+        }
+
+        return listBoxModel;
     }
 
     private static FormValidation validateMavenCoordinates(String value) {
@@ -494,10 +588,37 @@ public class InjectionConfig extends GlobalConfiguration {
      * Invoked by XStream when this object is read into memory.
      */
     @SuppressWarnings("unused")
-    protected Object readResolve() {
+    protected Object readResolve() throws IOException {
         if (injectionVcsRepositoryPatterns != null) {
             String filters = migrateLegacyRepositoryFilters(injectionVcsRepositoryPatterns);
             parsedVcsRepositoryFilter = VcsRepositoryFilter.of(filters);
+        }
+        if (accessKey != null && accessKeyCredentialId == null) {
+            StringCredentials stringCredentials = new StringCredentialsImpl(
+                    CredentialsScope.GLOBAL,
+                    UUID.randomUUID().toString(),
+                    "Migrated Develocity Access Key",
+                    Secret.fromString(accessKey.getPlainText())
+            );
+
+            SystemCredentialsProvider.getInstance().getCredentials().add(stringCredentials);
+            SystemCredentialsProvider.getInstance().save();
+
+            setAccessKeyCredentialId(stringCredentials.getId());
+        }
+        if (gradlePluginRepositoryUsername != null && gradlePluginRepositoryPassword != null && gradlePluginRepositoryCredentialId == null) {
+            StandardUsernamePasswordCredentials standardUsernameCredentials = new UsernamePasswordCredentialsImpl(
+                    CredentialsScope.GLOBAL,
+                    UUID.randomUUID().toString(),
+                    "Migrated Gradle Plugin Respoitory credentials",
+                    gradlePluginRepositoryUsername,
+                    gradlePluginRepositoryPassword.getPlainText()
+            );
+
+            SystemCredentialsProvider.getInstance().getCredentials().add(standardUsernameCredentials);
+            SystemCredentialsProvider.getInstance().save();
+
+            setGradlePluginRepositoryCredentialId(standardUsernameCredentials.getId());
         }
         return this;
     }
@@ -509,4 +630,5 @@ public class InjectionConfig extends GlobalConfiguration {
             .map(p -> VcsRepositoryFilter.INCLUSION_QUALIFIER + p)
             .collect(Collectors.joining(VcsRepositoryFilter.SEPARATOR));
     }
+
 }
