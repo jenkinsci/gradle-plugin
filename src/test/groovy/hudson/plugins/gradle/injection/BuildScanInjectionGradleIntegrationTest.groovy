@@ -784,7 +784,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
                 get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == "true"
                 get("GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
-                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == "1.12.1"
+                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == "2.0"
                 get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == "true"
             }
         }
