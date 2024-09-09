@@ -146,7 +146,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         stringCredentials.setId(UUID.randomUUID().toString());
         stringCredentials.secret.set(String.format("%s=secret", server.getHost()));
 
-        String credentialDescription = "Gradle Plugin Repository Password";
+        String credentialDescription = "Develocity Access Key credential";
         stringCredentials.description.set(credentialDescription);
 
         credentialsPage.create();
@@ -163,7 +163,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         usernamePasswordCredentials.username.set("johndoe");
         usernamePasswordCredentials.password.set(password);
 
-        String credentialDescription = "Gradle Plugin Repository Password";
+        String credentialDescription = "Gradle Plugin Repository Password credential";
         usernamePasswordCredentials.description.set(credentialDescription);
 
         credentialsPage.create();

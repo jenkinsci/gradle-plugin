@@ -99,7 +99,10 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         WebElement webElement = driver.findElement(xpath);
 
         Select select = new Select(webElement);
-        select.selectByVisibleText(value);
+        select.getOptions().stream()
+                .filter(option -> option.getText().contains(value))
+                .findFirst()
+                .ifPresent(it -> select.selectByVisibleText(it.getText()));
     }
 
     private String getBuildScansInjectionFormValue(String field) {
