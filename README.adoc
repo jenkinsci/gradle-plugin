@@ -313,7 +313,7 @@ The compatibility of the specified version with Develocity can be found https://
 
 For the optional Common Custom User Data Maven extension which is defined the same form, you can see the compatibility of the specified version with the Develocity Maven extension https://github.com/gradle/common-custom-user-data-maven-extension#version-compatibility[here].
 
-For plugin version older that `2.13`, the Maven extension is bundled with the plugin and does not require a version configuration. Please refer to https://github.com/jenkinsci/gradle-plugin/tree/gradle-2.12.1?tab=readme-ov-file#for-maven-builds[this] README version for a compatibility matrix .
+For plugin version older that `2.13`, the Maven extension is bundled with the plugin and does not require a version configuration. Please refer to https://github.com/jenkinsci/gradle-plugin/tree/gradle-2.12.1?tab=readme-ov-file#for-maven-builds[this] README version for a compatibility matrix.
 
 == Disabling/uninstalling Gradle Jenkins plugin
 
