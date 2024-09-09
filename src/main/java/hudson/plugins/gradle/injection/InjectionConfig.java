@@ -403,7 +403,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckServer(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating Server URL requires 'Administer' permission");
         }
 
@@ -413,7 +413,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckGradlePluginVersion(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating Gradle Plugin version requires 'Administer' permission");
         }
 
@@ -423,7 +423,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckCcudPluginVersion(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating CCUD Plugin version requires 'Administer' permission");
         }
 
@@ -433,7 +433,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckGradlePluginRepositoryUrl(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating Gradle Plugin repository URL requires 'Administer' permission");
         }
 
@@ -443,7 +443,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckAccessKeyCredentialId(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating access key credential ID requires 'Administer' permission");
         }
 
@@ -468,7 +468,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckShortLivedTokenExpiry(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating short-lived token expiry requires 'Administer' permission");
         }
 
@@ -490,7 +490,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckMavenExtensionCustomCoordinates(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating Maven Extension custom coordinates requires 'Administer' permission");
         }
 
@@ -500,7 +500,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckCcudExtensionCustomCoordinates(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating Maven Extension custom coordinates requires 'Administer' permission");
         }
 
@@ -510,7 +510,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckMavenExtensionRepositoryUrl(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating Maven Extension repository URL requires 'Administer' permission");
         }
 
@@ -520,7 +520,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckMavenExtensionVersion(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating Maven Extension version requires 'Administer' permission");
         }
 
@@ -530,7 +530,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckCcudExtensionVersion(@QueryParameter String value) {
-        if (checkAdministerPermission()) {
+        if (doesNotHaveAdministerPermission()) {
             return FormValidation.error("Validating CCUD Extension version requires 'Administer' permission");
         }
 
@@ -676,10 +676,10 @@ public class InjectionConfig extends GlobalConfiguration {
                 .collect(Collectors.joining(VcsRepositoryFilter.SEPARATOR));
     }
 
-    private static boolean checkAdministerPermission() {
+    private static boolean doesNotHaveAdministerPermission() {
         Jenkins jenkins = Jenkins.getInstanceOrNull();
 
-        return jenkins == null || jenkins.hasPermission(Jenkins.ADMINISTER);
+        return jenkins == null || !jenkins.hasPermission(Jenkins.ADMINISTER);
     }
 
 }
