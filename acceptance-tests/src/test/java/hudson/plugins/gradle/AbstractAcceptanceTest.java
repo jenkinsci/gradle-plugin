@@ -12,6 +12,10 @@ import org.jenkinsci.test.acceptance.controller.LocalController;
 import org.jenkinsci.test.acceptance.junit.AbstractJUnitTest;
 import org.jenkinsci.test.acceptance.junit.Resource;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
+import org.jenkinsci.test.acceptance.plugins.credentials.CredentialsPage;
+import org.jenkinsci.test.acceptance.plugins.credentials.ManagedCredentials;
+import org.jenkinsci.test.acceptance.plugins.credentials.StringCredentials;
+import org.jenkinsci.test.acceptance.plugins.credentials.UserPwdCredential;
 import org.jenkinsci.test.acceptance.slave.SlaveController;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -75,11 +80,13 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     }
 
     protected final void enableBuildScansForGradle(URI server, String agentVersion) {
+        String credentialDescription = createDevelocityAccessKeyCredential(server);
+
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansInjection();
             settings.setDevelocityServerUrl(server);
             settings.setGradleEnterprisePluginVersion(agentVersion);
-            settings.setGradleEnterpriseAccessKey(String.format("%s=secret", server.getHost()));
+            settings.setDevelocityAccessKeyCredentialId(credentialDescription);
         });
     }
 
@@ -117,7 +124,9 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     }
 
     protected final void setGradlePluginRepositoryPassword(String password) {
-        updateBuildScansInjectionSettings(settings -> settings.setGradleEnterpriseGradlePluginRepoPassword(password));
+        String credentialDescription = createGradlePluginRepositoryPasswordCredential(password);
+
+        updateBuildScansInjectionSettings(settings -> settings.setGradlePluginRepositoryCredentialId(credentialDescription));
     }
 
     private void updateBuildScansInjectionSettings(Consumer<BuildScansInjectionSettings> spec) {
@@ -127,6 +136,39 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         spec.accept(settings);
 
         settings.save();
+    }
+
+    private String createDevelocityAccessKeyCredential(URI server) {
+        CredentialsPage credentialsPage = new CredentialsPage(jenkins, ManagedCredentials.DEFAULT_DOMAIN);
+        credentialsPage.open();
+
+        StringCredentials stringCredentials = credentialsPage.add(StringCredentials.class);
+        stringCredentials.setId(UUID.randomUUID().toString());
+        stringCredentials.secret.set(String.format("%s=secret", server.getHost()));
+
+        String credentialDescription = "Gradle Plugin Repository Password";
+        stringCredentials.description.set(credentialDescription);
+
+        credentialsPage.create();
+
+        return credentialDescription;
+    }
+
+    private String createGradlePluginRepositoryPasswordCredential(String password) {
+        CredentialsPage credentialsPage = new CredentialsPage(jenkins, ManagedCredentials.DEFAULT_DOMAIN);
+        credentialsPage.open();
+
+        UserPwdCredential usernamePasswordCredentials = credentialsPage.add(UserPwdCredential.class);
+        usernamePasswordCredentials.setId(UUID.randomUUID().toString());
+        usernamePasswordCredentials.username.set("johndoe");
+        usernamePasswordCredentials.password.set(password);
+
+        String credentialDescription = "Gradle Plugin Repository Password";
+        usernamePasswordCredentials.description.set(credentialDescription);
+
+        credentialsPage.create();
+
+        return credentialDescription;
     }
 
     protected final String copyResourceDirStep(Resource dir) {

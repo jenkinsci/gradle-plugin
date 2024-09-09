@@ -1,9 +1,5 @@
 package hudson.plugin.gradle;
 
-import org.jenkinsci.test.acceptance.plugins.credentials.CredentialsPage;
-import org.jenkinsci.test.acceptance.plugins.credentials.ManagedCredentials;
-import org.jenkinsci.test.acceptance.plugins.credentials.StringCredentials;
-import org.jenkinsci.test.acceptance.plugins.credentials.UserPwdCredential;
 import org.jenkinsci.test.acceptance.po.Jenkins;
 import org.jenkinsci.test.acceptance.po.JenkinsConfig;
 import org.openqa.selenium.By;
@@ -11,7 +7,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 
 import java.net.URI;
-import java.util.UUID;
 
 public class BuildScansInjectionSettings extends JenkinsConfig {
 
@@ -60,41 +55,16 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         clickCheckboxOnConfig("Check for the Develocity build agent errors");
     }
 
-    public void setGradleEnterpriseAccessKey(String accessKey) {
+    public void setDevelocityAccessKeyCredentialId(String credentialDescription) {
         JenkinsConfig configPage = jenkins.getConfigPage();
         configPage.configure();
-
-        CredentialsPage credentialsPage = new CredentialsPage(jenkins, ManagedCredentials.DEFAULT_DOMAIN);
-        credentialsPage.open();
-
-        StringCredentials stringCredentials = credentialsPage.add(StringCredentials.class);
-        stringCredentials.setId(UUID.randomUUID().toString());
-        stringCredentials.secret.set(accessKey);
-
-        String credentialDescription = "Gradle Plugin Repository Password";
-        stringCredentials.description.set(credentialDescription);
-
-        credentialsPage.create();
 
         setBuildScansInjectionFormSelect(DEVELOCITY_ACCESS_KEY_CREDENTIAL_ID_FIELD, credentialDescription);
     }
 
-    public void setGradleEnterpriseGradlePluginRepoPassword(String password) {
+    public void setGradlePluginRepositoryCredentialId(String credentialDescription) {
         JenkinsConfig configPage = jenkins.getConfigPage();
         configPage.configure();
-
-        CredentialsPage credentialsPage = new CredentialsPage(jenkins, ManagedCredentials.DEFAULT_DOMAIN);
-        credentialsPage.open();
-
-        UserPwdCredential usernamePasswordCredentials = credentialsPage.add(UserPwdCredential.class);
-        usernamePasswordCredentials.setId(UUID.randomUUID().toString());
-        usernamePasswordCredentials.username.set("johndoe");
-        usernamePasswordCredentials.password.set(password);
-
-        String credentialDescription = "Gradle Plugin Repository Password";
-        usernamePasswordCredentials.description.set(credentialDescription);
-
-        credentialsPage.create();
 
         setBuildScansInjectionFormSelect(DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_CREDENTIAL_ID_FIELD, credentialDescription);
     }
