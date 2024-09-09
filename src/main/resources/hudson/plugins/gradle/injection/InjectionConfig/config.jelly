@@ -33,7 +33,7 @@
                 <f:entry field="enforceUrl">
                     <f:checkbox title="${%Enforce Develocity server url}"/>
                 </f:entry>
-                <f:entry title="Develocity Access Key Credential ID" field="accessKeyCredentialId">
+                <f:entry title="Develocity Access Key credential ID" field="accessKeyCredentialId">
                     <div class="alert alert-info" role="alert">
                         <l:icon class="icon-help icon-sm" alt="${%Access key format help}"/>
                         The access key must be in the <b><span>&lt;</span>server host name<span>&gt;</span>=<span>&lt;</span>access key<span>&gt;</span></b> format.
