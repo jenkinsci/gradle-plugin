@@ -133,8 +133,8 @@ Develocity `2024.1` or above is required starting from version `2.12` and above.
 =====
 [IMPORTANT]
 =====
-Starting from plugin version `2.13`, Maven extensions are not coming as bundled and require an explicit version configuration to be injected.
-When upgrading from a lower version, the injection will be turned off until the version is configured.
+Starting from plugin version `2.13`, the Maven extension is not bundled with the Jenkins Gradle plugin and requires an explicit version configuration to be injected.
+When upgrading from an earlier version, the injection will be turned off until the version is configured.
 =====
 
 ==== Global
