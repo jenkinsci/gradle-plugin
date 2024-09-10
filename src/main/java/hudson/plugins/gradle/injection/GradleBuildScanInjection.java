@@ -1,5 +1,8 @@
 package hudson.plugins.gradle.injection;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.common.UsernameCredentials;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
@@ -10,6 +13,7 @@ import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -119,8 +123,9 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
             EnvUtil.setEnvVar(node, InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_URL, pluginRepositoryUrl);
         }
 
-        if (config.getGradlePluginRepositoryUsername() != null) {
-            EnvUtil.setEnvVar(node, InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_USERNAME, config.getGradlePluginRepositoryUsername());
+        String repositoryUsername = getRepositoryUsername(config.getGradlePluginRepositoryCredentialId());
+        if (repositoryUsername != null) {
+            EnvUtil.setEnvVar(node, InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_USERNAME, repositoryUsername);
         } else {
             EnvUtil.removeEnvVar(node, InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_USERNAME);
         }
@@ -163,6 +168,17 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
         Preconditions.checkState(initScriptDirectory != null, "init script directory is null");
 
         return new FilePath(channel, filePath(initScriptDirectory, GRADLE_INIT_FILE));
+    }
+
+    private static String getRepositoryUsername(String gradlePluginRepositoryCredentialId) {
+        List<StandardUsernamePasswordCredentials> allCredentials
+                = CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
+
+        return allCredentials.stream()
+                .filter(it -> it.getId().equals(gradlePluginRepositoryCredentialId))
+                .findFirst()
+                .map(UsernameCredentials::getUsername)
+                .orElse(null);
     }
 
     private static String filePath(String... parts) {

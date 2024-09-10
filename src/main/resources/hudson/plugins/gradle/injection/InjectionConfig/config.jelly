@@ -1,5 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:l="/lib/layout">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:l="/lib/layout" xmlns:c="/lib/credentials">
     <f:section title="${%Develocity integration}">
         <f:optionalBlock field="enabled" title="${%Enable auto-injection}" inline="true">
 
@@ -33,13 +33,13 @@
                 <f:entry field="enforceUrl">
                     <f:checkbox title="${%Enforce Develocity server url}"/>
                 </f:entry>
-                <f:entry title="${%Develocity access key}" field="accessKey">
+                <f:entry title="Develocity Access Key credential ID" field="accessKeyCredentialId">
                     <div class="alert alert-info" role="alert">
                         <l:icon class="icon-help icon-sm" alt="${%Access key format help}"/>
                         The access key must be in the <b><span>&lt;</span>server host name<span>&gt;</span>=<span>&lt;</span>access key<span>&gt;</span></b> format.
                         For more details please refer to the <a class="alert-link" href="https://docs.gradle.com/enterprise/gradle-plugin/#manual_access_key_configuration" target="_blank">documentation</a>.
                     </div>
-                    <f:password/>
+                    <c:select default="${instance.accessKeyCredentialId}"/>
                 </f:entry>
                 <f:entry title="${%Develocity short-lived access tokens expiry}" field="shortLivedTokenExpiry">
                     <f:textbox checkMethod="post"/>
@@ -75,11 +75,8 @@
                 <f:entry title="${%Gradle plugin repository url}" field="gradlePluginRepositoryUrl">
                     <f:textbox checkMethod="post"/>
                 </f:entry>
-                <f:entry title="${%Gradle plugin repository username}" field="gradlePluginRepositoryUsername">
-                    <f:textbox checkMethod="post"/>
-                </f:entry>
-                <f:entry title="${%Gradle plugin repository password}" field="gradlePluginRepositoryPassword">
-                    <f:password/>
+                <f:entry title="Gradle plugin repository credential ID" field="gradlePluginRepositoryCredentialId">
+                    <c:select default="${instance.gradlePluginRepositoryCredentialId}"/>
                 </f:entry>
                 <f:entry title="${%Gradle auto-injection enabled nodes}"
                          help="/plugin/gradle/help-gradleInjectionEnabledNodes.html">
@@ -112,6 +109,12 @@
                 </f:entry>
                 <f:entry title="${%Common Custom User Data Maven extension version}" field="ccudExtensionVersion">
                     <f:textbox checkMethod="post"/>
+                </f:entry>
+                <f:entry title="${%Maven extension repository url}" field="mavenExtensionRepositoryUrl">
+                    <f:textbox checkMethod="post"/>
+                </f:entry>
+                <f:entry title="Maven Extension repository credential ID" field="mavenExtensionRepositoryCredentialId">
+                    <c:select default="${instance.mavenExtensionRepositoryCredentialId}"/>
                 </f:entry>
                 <f:entry title="${%Develocity Maven Extension Custom Coordinates}" field="mavenExtensionCustomCoordinates">
                     <f:textbox checkMethod="post"/>

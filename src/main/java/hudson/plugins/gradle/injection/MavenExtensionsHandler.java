@@ -5,6 +5,7 @@ import com.google.common.base.Suppliers;
 import hudson.FilePath;
 import hudson.plugins.gradle.injection.extension.ExtensionClient;
 
+import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,8 +30,14 @@ public class MavenExtensionsHandler {
         return fileHandlers.get(extension).copyExtensionToAgent(rootPath);
     }
 
-    public FilePath downloadExtensionToAgent(MavenExtension extension, String version, FilePath rootPath) throws IOException, InterruptedException {
-        return fileHandlers.get(extension).downloadExtensionToAgent(rootPath, version);
+    public FilePath downloadExtensionToAgent(
+            MavenExtension extension,
+            String version,
+            FilePath rootPath,
+            @Nullable MavenExtension.RepositoryCredentials repositoryCredentials,
+            @Nullable String repositoryUrl
+    ) throws IOException, InterruptedException {
+        return fileHandlers.get(extension).downloadExtensionToAgent(rootPath, version, repositoryCredentials, repositoryUrl);
     }
 
     public void deleteExtensionFromAgent(MavenExtension extension, FilePath rootPath) throws IOException, InterruptedException {
@@ -66,10 +73,17 @@ public class MavenExtensionsHandler {
         /**
          * Downloads the extension to the agent from a repository and returns a path to the extension on the agent.
          */
-        public FilePath downloadExtensionToAgent(FilePath rootPath, String version) throws IOException, InterruptedException {
+        public FilePath downloadExtensionToAgent(
+                FilePath rootPath,
+                String version,
+                @Nullable MavenExtension.RepositoryCredentials repositoryCredentials,
+                @Nullable String repositoryUrl
+        ) throws IOException, InterruptedException {
             FilePath extensionLocation = getExtensionLocation(rootPath);
             try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(extensionLocation.write())) {
-                ExtensionClient.INSTANCE.downloadExtension(extension, version, bufferedOutputStream);
+                ExtensionClient.INSTANCE.downloadExtension(
+                        extension.createDownloadUrl(version, repositoryUrl), repositoryCredentials, bufferedOutputStream
+                );
             }
 
             return extensionLocation;

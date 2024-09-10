@@ -43,13 +43,13 @@ class MavenExtensionsHandlerTest extends Specification {
         def root = new FilePath(folder)
 
         when:
-        def firstFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.DEVELOCITY, "1.22", root)
+        def firstFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.DEVELOCITY, "1.22", root, null, null)
 
         then:
         firstFilePath.exists()
 
         when:
-        def secondFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.CCUD, "2.0", root)
+        def secondFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.CCUD, "2.0", root, null, null)
 
         then:
         secondFilePath.exists()
@@ -61,8 +61,8 @@ class MavenExtensionsHandlerTest extends Specification {
         def root = new FilePath(folder)
 
         when:
-        def geExtensionFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.DEVELOCITY, "1.22", root)
-        def ccudExtensionFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.CCUD, "2.0", root)
+        def geExtensionFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.DEVELOCITY, "1.22", root, null, null)
+        def ccudExtensionFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.CCUD, "2.0", root, null, null)
 
         then:
         geExtensionFilePath.exists()
@@ -77,4 +77,5 @@ class MavenExtensionsHandlerTest extends Specification {
         !geExtensionFilePath.exists()
         !ccudExtensionFilePath.exists()
     }
+
 }
