@@ -1,5 +1,7 @@
 package hudson.plugins.gradle.injection;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -12,6 +14,7 @@ import hudson.model.TaskListener;
 import hudson.plugins.gradle.DevelocityLogger;
 import hudson.plugins.gradle.injection.token.ShortLivedTokenClient;
 import hudson.util.Secret;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,8 +43,18 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
     @Override
     public void buildEnvironmentFor(@Nonnull Run run, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
-        Secret secretKey = InjectionConfig.get().getAccessKey();
-        Secret secretPassword = InjectionConfig.get().getGradlePluginRepositoryPassword();
+        String accessKeyCredentialId = InjectionConfig.get().getAccessKeyCredentialId();
+        String gradlePluginRepositoryCredentialId = InjectionConfig.get().getGradlePluginRepositoryCredentialId();
+
+        Secret secretKey = Optional.ofNullable(accessKeyCredentialId)
+                .map(it -> CredentialsProvider.findCredentialById(it, StringCredentials.class, run))
+                .map(StringCredentials::getSecret)
+                .orElse(null);
+        Secret secretPassword = Optional.ofNullable(gradlePluginRepositoryCredentialId)
+                .map(it -> CredentialsProvider.findCredentialById(it, StandardUsernamePasswordCredentials.class, run))
+                .map(StandardUsernamePasswordCredentials::getPassword)
+                .orElse(null);
+
         if ((secretKey == null && secretPassword == null) || alreadyExecuted(run)) {
             return;
         }
@@ -75,20 +88,20 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
                 return null;
             }
             return allKeys.find(hostname)
-                .map(k ->
-                    tokenClient.get(serverUrl, k, InjectionConfig.get().getShortLivedTokenExpiry()))
-                .filter(Optional::isPresent)
-                .map(k -> Secret.fromString(k.get().getRaw()))
-                .orElse(null);
+                    .map(k ->
+                            tokenClient.get(serverUrl, k, InjectionConfig.get().getShortLivedTokenExpiry()))
+                    .filter(Optional::isPresent)
+                    .map(k -> Secret.fromString(k.get().getRaw()))
+                    .orElse(null);
         }
 
         // We're not sure exactly which DV URL will be effectively used so as best effort:
         // let's translate all access keys to short-lived tokens
         List<DevelocityAccessCredentials.HostnameAccessKey> shortLivedTokens = allKeys.stream()
-            .map(k -> tokenClient.get("https://" + k.getHostname(), k, InjectionConfig.get().getShortLivedTokenExpiry()))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.toList());
+                .map(k -> tokenClient.get("https://" + k.getHostname(), k, InjectionConfig.get().getShortLivedTokenExpiry()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
 
         return shortLivedTokens.isEmpty() ? null : Secret.fromString(DevelocityAccessCredentials.of(shortLivedTokens).getRaw());
     }
@@ -138,8 +151,8 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
                 return DevelocityParametersAction.empty();
             }
             return new DevelocityParametersAction(
-                values,
-                Stream.of(GRADLE_ENTERPRISE_ACCESS_KEY, DEVELOCITY_ACCESS_KEY, GRADLE_PLUGIN_REPOSITORY_PASSWORD).collect(Collectors.toSet())
+                    values,
+                    Stream.of(GRADLE_ENTERPRISE_ACCESS_KEY, DEVELOCITY_ACCESS_KEY, GRADLE_PLUGIN_REPOSITORY_PASSWORD).collect(Collectors.toSet())
             );
         }
     }

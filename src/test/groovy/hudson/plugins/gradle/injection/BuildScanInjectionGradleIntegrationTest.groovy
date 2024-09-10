@@ -1,5 +1,7 @@
 package hudson.plugins.gradle.injection
 
+import com.cloudbees.plugins.credentials.CredentialsScope
+import com.cloudbees.plugins.credentials.SystemCredentialsProvider
 import hudson.EnvVars
 import hudson.Util
 import hudson.model.FreeStyleProject
@@ -15,6 +17,7 @@ import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.util.Secret
 import org.apache.commons.lang3.StringUtils
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
@@ -24,8 +27,6 @@ import spock.lang.Unroll
 
 @Unroll
 class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest {
-
-    private static final String CCUD_PLUGIN_VERSION = '1.12.1'
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Develocity: http://foo.com"
 
@@ -613,10 +614,19 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         when:
         enableBuildInjection(agent, gradleVersion)
+        def credentialId = UUID.randomUUID().toString()
         withInjectionConfig {
             server = mockDevelocity.address.toString()
-            accessKey = Secret.fromString("localhost=secret")
+            accessKeyCredentialId = credentialId
         }
+        SystemCredentialsProvider.getInstance().getCredentials().add(
+                new StringCredentialsImpl(
+                        CredentialsScope.GLOBAL,
+                        credentialId,
+                        "Develocity Access Key",
+                        Secret.fromString("localhost=secret")
+                ))
+        SystemCredentialsProvider.getInstance().save()
         def secondRun = j.buildAndAssertSuccess(project)
 
         then:
@@ -652,9 +662,18 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         when:
         enableBuildInjection(agent, gradleVersion)
+        def credentialId =UUID.randomUUID().toString()
         withInjectionConfig {
-            accessKey = Secret.fromString("secret")
+            accessKeyCredentialId = credentialId
         }
+        SystemCredentialsProvider.getInstance().getCredentials().add(
+                new StringCredentialsImpl(
+                        CredentialsScope.GLOBAL,
+                        credentialId,
+                        "Develocity Access Key",
+                        Secret.fromString("secret")
+                ))
+        SystemCredentialsProvider.getInstance().save()
         def secondRun = j.buildAndAssertSuccess(project)
 
         then:
@@ -764,7 +783,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
                 get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == "true"
                 get("GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
-                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == "1.12.1"
+                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == "2.0"
                 get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == "true"
             }
         }

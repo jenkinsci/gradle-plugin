@@ -3,6 +3,8 @@ package hudson.plugin.gradle;
 import org.jenkinsci.test.acceptance.po.Jenkins;
 import org.jenkinsci.test.acceptance.po.JenkinsConfig;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
 
 import java.net.URI;
 
@@ -18,8 +20,8 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
     private static final String DEVELOCITY_PLUGIN_VERSION_FIELD = "gradlePluginVersion";
     private static final String DEVELOCITY_EXTENSION_VERSION_FIELD = "mavenExtensionVersion";
     private static final String GIT_REPOSITORY_FILTERS_FIELD = "vcsRepositoryFilter";
-    private static final String DEVELOCITY_ACCESS_KEY_FIELD = "accessKey";
-    private static final String DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD = "gradlePluginRepositoryPassword";
+    private static final String DEVELOCITY_ACCESS_KEY_CREDENTIAL_ID_FIELD = "accessKeyCredentialId";
+    private static final String DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_CREDENTIAL_ID_FIELD = "gradlePluginRepositoryCredentialId";
 
     public BuildScansInjectionSettings(Jenkins jenkins) {
         super(jenkins);
@@ -53,12 +55,18 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
         clickCheckboxOnConfig("Check for the Develocity build agent errors");
     }
 
-    public void setGradleEnterpriseAccessKey(String accessKey) {
-        setBuildScansInjectionFormValue(DEVELOCITY_ACCESS_KEY_FIELD, accessKey);
+    public void setDevelocityAccessKeyCredentialId(String credentialDescription) {
+        JenkinsConfig configPage = jenkins.getConfigPage();
+        configPage.configure();
+
+        setBuildScansInjectionFormSelect(DEVELOCITY_ACCESS_KEY_CREDENTIAL_ID_FIELD, credentialDescription);
     }
 
-    public void setGradleEnterpriseGradlePluginRepoPassword(String password) {
-        setBuildScansInjectionFormValue(DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_PASSWORD_FIELD, password);
+    public void setGradlePluginRepositoryCredentialId(String credentialDescription) {
+        JenkinsConfig configPage = jenkins.getConfigPage();
+        configPage.configure();
+
+        setBuildScansInjectionFormSelect(DEVELOCITY_GRADLE_PLUGIN_REPOSITORY_CREDENTIAL_ID_FIELD, credentialDescription);
     }
 
     public void setGradleEnterprisePluginVersion(String version) {
@@ -82,6 +90,19 @@ public class BuildScansInjectionSettings extends JenkinsConfig {
 
         By xpath = By.xpath(String.format(XPATH, INJECTION_CONFIG_PATH + field));
         driver.findElement(xpath).sendKeys(value);
+    }
+
+    private void setBuildScansInjectionFormSelect(String field, String value) {
+        ensureConfigPage();
+
+        By xpath = By.xpath(String.format(XPATH, INJECTION_CONFIG_PATH + field));
+        WebElement webElement = driver.findElement(xpath);
+
+        Select select = new Select(webElement);
+        select.getOptions().stream()
+                .filter(option -> option.getText().contains(value))
+                .findFirst()
+                .ifPresent(it -> select.selectByVisibleText(it.getText()));
     }
 
     private String getBuildScansInjectionFormValue(String field) {

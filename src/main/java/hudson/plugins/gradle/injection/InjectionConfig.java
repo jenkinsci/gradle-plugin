@@ -1,30 +1,48 @@
 package hudson.plugins.gradle.injection;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
+import hudson.model.Item;
 import hudson.plugins.gradle.Messages;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import hudson.util.VersionNumber;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 // TODO: Consider splitting into two forms, one for Gradle, and one for Maven
@@ -34,27 +52,28 @@ public class InjectionConfig extends GlobalConfiguration {
     private static final String GIT_PLUGIN_SHORT_NAME = "git";
 
     private static final Set<String> LEGACY_GLOBAL_ENVIRONMENT_VARIABLES =
-        ImmutableSet.of(
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER",
-            "GRADLE_ENTERPRISE_ACCESS_KEY",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION",
-            "JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION",
-            "JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL",
-            "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES",
-            "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES",
-            "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION",
-            "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION",
-            "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES",
-            "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"
-        );
+            ImmutableSet.of(
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_INJECTION",
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_URL",
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_ALLOW_UNTRUSTED_SERVER",
+                    "GRADLE_ENTERPRISE_ACCESS_KEY",
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_PLUGIN_VERSION",
+                    "JENKINSGRADLEPLUGIN_CCUD_PLUGIN_VERSION",
+                    "JENKINSGRADLEPLUGIN_GRADLE_PLUGIN_REPOSITORY_URL",
+                    "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_ENABLED_NODES",
+                    "JENKINSGRADLEPLUGIN_GRADLE_INJECTION_DISABLED_NODES",
+                    "JENKINSGRADLEPLUGIN_GRADLE_ENTERPRISE_EXTENSION_VERSION",
+                    "JENKINSGRADLEPLUGIN_CCUD_EXTENSION_VERSION",
+                    "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_ENABLED_NODES",
+                    "JENKINSGRADLEPLUGIN_MAVEN_INJECTION_DISABLED_NODES"
+            );
 
     private boolean enabled;
 
     private String server;
     private boolean allowUntrusted;
     private Secret accessKey;
+    private String accessKeyCredentialId;
     private Integer shortLivedTokenExpiry;
 
     private String gradlePluginVersion;
@@ -62,12 +81,15 @@ public class InjectionConfig extends GlobalConfiguration {
     private String gradlePluginRepositoryUrl;
     private String gradlePluginRepositoryUsername;
     private Secret gradlePluginRepositoryPassword;
+    private String gradlePluginRepositoryCredentialId;
     private ImmutableList<NodeLabelItem> gradleInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> gradleInjectionDisabledNodes;
     private Boolean gradleCaptureTaskInputFiles;
 
     private String mavenExtensionVersion;
     private String ccudExtensionVersion;
+    private String mavenExtensionRepositoryUrl;
+    private String mavenExtensionRepositoryCredentialId;
     private String mavenExtensionCustomCoordinates;
     private String ccudExtensionCustomCoordinates;
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
@@ -101,8 +123,8 @@ public class InjectionConfig extends GlobalConfiguration {
         VersionNumber mavenPluginVersion = InjectionUtil.mavenPluginVersionNumber().orElse(null);
 
         return mavenPluginVersion == null || InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion)
-            ? null
-            : new UnsupportedMavenPluginWarningDetails(mavenPluginVersion);
+                ? null
+                : new UnsupportedMavenPluginWarningDetails(mavenPluginVersion);
     }
 
     @Restricted(NoExternalUse.class)
@@ -143,17 +165,13 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @CheckForNull
-    public Secret getAccessKey() {
-        return accessKey;
+    public String getAccessKeyCredentialId() {
+        return accessKeyCredentialId;
     }
 
     @DataBoundSetter
-    public void setAccessKey(Secret accessKey) {
-        if (Util.fixEmptyAndTrim(accessKey.getPlainText()) == null) {
-            this.accessKey = null;
-        } else {
-            this.accessKey = accessKey;
-        }
+    public void setAccessKeyCredentialId(String accessKeyCredentialId) {
+        this.accessKeyCredentialId = Util.fixEmptyAndTrim(accessKeyCredentialId);
     }
 
     @CheckForNull
@@ -167,27 +185,13 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @CheckForNull
-    public String getGradlePluginRepositoryUsername() {
-        return gradlePluginRepositoryUsername;
+    public String getGradlePluginRepositoryCredentialId() {
+        return gradlePluginRepositoryCredentialId;
     }
 
     @DataBoundSetter
-    public void setGradlePluginRepositoryUsername(String gradlePluginRepositoryUsername) {
-        this.gradlePluginRepositoryUsername = Util.fixEmptyAndTrim(gradlePluginRepositoryUsername);
-    }
-
-    @CheckForNull
-    public Secret getGradlePluginRepositoryPassword() {
-        return gradlePluginRepositoryPassword;
-    }
-
-    @DataBoundSetter
-    public void setGradlePluginRepositoryPassword(Secret gradlePluginRepositoryPassword) {
-        if (Util.fixEmptyAndTrim(gradlePluginRepositoryPassword.getPlainText()) == null) {
-            this.gradlePluginRepositoryPassword = null;
-        } else {
-            this.gradlePluginRepositoryPassword = gradlePluginRepositoryPassword;
-        }
+    public void setGradlePluginRepositoryCredentialId(String gradlePluginRepositoryCredentialId) {
+        this.gradlePluginRepositoryCredentialId = Util.fixEmptyAndTrim(gradlePluginRepositoryCredentialId);
     }
 
     @CheckForNull
@@ -228,7 +232,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setGradleInjectionEnabledNodes(List<NodeLabelItem> gradleInjectionEnabledNodes) {
         this.gradleInjectionEnabledNodes =
-            gradleInjectionEnabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionEnabledNodes);
+                gradleInjectionEnabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionEnabledNodes);
     }
 
     @CheckForNull
@@ -239,7 +243,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setGradleInjectionDisabledNodes(List<NodeLabelItem> gradleInjectionDisabledNodes) {
         this.gradleInjectionDisabledNodes =
-            gradleInjectionDisabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionDisabledNodes);
+                gradleInjectionDisabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionDisabledNodes);
     }
 
     public Boolean isGradleCaptureTaskInputFiles() {
@@ -290,6 +294,26 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @CheckForNull
+    public String getMavenExtensionRepositoryUrl() {
+        return mavenExtensionRepositoryUrl;
+    }
+
+    @DataBoundSetter
+    public void setMavenExtensionRepositoryUrl(String mavenExtensionRepositoryUrl) {
+        this.mavenExtensionRepositoryUrl = Util.fixEmptyAndTrim(mavenExtensionRepositoryUrl);
+    }
+
+    @CheckForNull
+    public String getMavenExtensionRepositoryCredentialId() {
+        return mavenExtensionRepositoryCredentialId;
+    }
+
+    @DataBoundSetter
+    public void setMavenExtensionRepositoryCredentialId(String mavenExtensionRepositoryCredentialId) {
+        this.mavenExtensionRepositoryCredentialId = Util.fixEmptyAndTrim(mavenExtensionRepositoryCredentialId);
+    }
+
+    @CheckForNull
     public List<NodeLabelItem> getMavenInjectionEnabledNodes() {
         return mavenInjectionEnabledNodes;
     }
@@ -297,7 +321,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setMavenInjectionEnabledNodes(List<NodeLabelItem> mavenInjectionEnabledNodes) {
         this.mavenInjectionEnabledNodes =
-            mavenInjectionEnabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionEnabledNodes);
+                mavenInjectionEnabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionEnabledNodes);
     }
 
     @CheckForNull
@@ -308,7 +332,7 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setMavenInjectionDisabledNodes(List<NodeLabelItem> mavenInjectionDisabledNodes) {
         this.mavenInjectionDisabledNodes =
-            mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
+                mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
     }
 
     public Boolean isMavenCaptureGoalInputFiles() {
@@ -379,43 +403,75 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckServer(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating Server URL requires 'Administer' permission");
+        }
+
         return checkRequiredUrl(value);
     }
 
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckGradlePluginVersion(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating Gradle Plugin version requires 'Administer' permission");
+        }
+
         return checkVersion(value);
     }
 
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckCcudPluginVersion(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating CCUD Plugin version requires 'Administer' permission");
+        }
+
         return checkVersion(value);
     }
 
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckGradlePluginRepositoryUrl(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating Gradle Plugin repository URL requires 'Administer' permission");
+        }
+
         return checkUrl(value);
     }
 
     @Restricted(NoExternalUse.class)
     @POST
-    public FormValidation doCheckAccessKey(@QueryParameter String value) {
-        String accessKey = Util.fixEmptyAndTrim(value);
-        if (accessKey == null) {
+    public FormValidation doCheckAccessKeyCredentialId(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating access key credential ID requires 'Administer' permission");
+        }
+
+        String accessKeyId = Util.fixEmptyAndTrim(value);
+        if (accessKeyId == null) {
             return FormValidation.ok();
         }
 
-        return DevelocityAccessCredentials.isValid(accessKey)
-            ? FormValidation.ok()
-            : FormValidation.error(Messages.InjectionConfig_InvalidAccessKey());
+        List<StringCredentials> credentials = CredentialsProvider.lookupCredentialsInItem(StringCredentials.class, null, null);
+
+        String accessKeyFromCredentialId = credentials.stream()
+                .filter(it -> it.getId().equals(accessKeyId))
+                .findFirst()
+                .map(it -> it.getSecret().getPlainText())
+                .orElse(null);
+
+        return DevelocityAccessCredentials.isValid(accessKeyFromCredentialId)
+                ? FormValidation.ok()
+                : FormValidation.error(Messages.InjectionConfig_InvalidAccessKey());
     }
 
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckShortLivedTokenExpiry(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating short-lived token expiry requires 'Administer' permission");
+        }
+
         String shortLivedTokenExpiry = Util.fixEmptyAndTrim(value);
         if (shortLivedTokenExpiry == null) {
             return FormValidation.ok();
@@ -434,13 +490,93 @@ public class InjectionConfig extends GlobalConfiguration {
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckMavenExtensionCustomCoordinates(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating Maven Extension custom coordinates requires 'Administer' permission");
+        }
+
         return validateMavenCoordinates(value);
     }
 
     @Restricted(NoExternalUse.class)
     @POST
     public FormValidation doCheckCcudExtensionCustomCoordinates(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating Maven Extension custom coordinates requires 'Administer' permission");
+        }
+
         return validateMavenCoordinates(value);
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckMavenExtensionRepositoryUrl(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating Maven Extension repository URL requires 'Administer' permission");
+        }
+
+        return checkUrl(value);
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckMavenExtensionVersion(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating Maven Extension version requires 'Administer' permission");
+        }
+
+        return checkVersion(value);
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckCcudExtensionVersion(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating CCUD Extension version requires 'Administer' permission");
+        }
+
+        return checkVersion(value);
+    }
+
+    @SuppressWarnings("called by Jelly")
+    @POST
+    public ListBoxModel doFillGradlePluginRepositoryCredentialIdItems(@AncestorInPath Item project) {
+        return getAllCredentials(project);
+    }
+
+    @SuppressWarnings("called by Jelly")
+    @POST
+    public ListBoxModel doFillMavenExtensionRepositoryCredentialIdItems(@AncestorInPath Item project) {
+        return getAllCredentials(project);
+    }
+
+    @SuppressWarnings("called by Jelly")
+    @POST
+    public ListBoxModel doFillAccessKeyCredentialIdItems(@AncestorInPath Item project) {
+        return getAllCredentials(project);
+    }
+
+    private static ListBoxModel getAllCredentials(Item project) {
+        StandardListBoxModel listBoxModel = new StandardListBoxModel();
+
+        Jenkins jenkins = Jenkins.getInstanceOrNull();
+        if (jenkins != null && jenkins.hasPermission(Jenkins.ADMINISTER)) {
+            listBoxModel
+                    .includeEmptyValue()
+                    // Add project scoped credentials:
+                    .includeMatchingAs(ACL.SYSTEM, project, StandardCredentials.class, Collections.emptyList(),
+                            CredentialsMatchers.anyOf(
+                                    CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
+                                    CredentialsMatchers.instanceOf(StringCredentials.class)
+                            ))
+                    .includeMatchingAs(ACL.SYSTEM, jenkins, StandardCredentials.class, Collections.emptyList(),
+                            CredentialsMatchers.anyOf(
+                                    CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
+                                    CredentialsMatchers.instanceOf(StringCredentials.class)
+                            )
+                    );
+        }
+
+        return listBoxModel;
     }
 
     private static FormValidation validateMavenCoordinates(String value) {
@@ -460,13 +596,13 @@ public class InjectionConfig extends GlobalConfiguration {
         String url = Util.fixEmptyAndTrim(value);
         if (url == null) {
             return required
-                ? FormValidation.error(Messages.InjectionConfig_Required())
-                : FormValidation.ok();
+                    ? FormValidation.error(Messages.InjectionConfig_Required())
+                    : FormValidation.ok();
         }
 
         return HttpUrlValidator.getInstance().isValid(url)
-            ? FormValidation.ok()
-            : FormValidation.error(Messages.InjectionConfig_InvalidUrl());
+                ? FormValidation.ok()
+                : FormValidation.error(Messages.InjectionConfig_InvalidUrl());
     }
 
     public static FormValidation checkRequiredVersion(String value) {
@@ -481,32 +617,69 @@ public class InjectionConfig extends GlobalConfiguration {
         String version = Util.fixEmptyAndTrim(value);
         if (version == null) {
             return required
-                ? FormValidation.error(Messages.InjectionConfig_Required())
-                : FormValidation.ok();
+                    ? FormValidation.error(Messages.InjectionConfig_Required())
+                    : FormValidation.ok();
         }
 
         return DevelocityVersionValidator.getInstance().isValid(version)
-            ? FormValidation.ok()
-            : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
+                ? FormValidation.ok()
+                : FormValidation.error(Messages.InjectionConfig_InvalidVersion());
     }
 
     /**
      * Invoked by XStream when this object is read into memory.
      */
     @SuppressWarnings("unused")
-    protected Object readResolve() {
+    protected Object readResolve() throws IOException {
         if (injectionVcsRepositoryPatterns != null) {
             String filters = migrateLegacyRepositoryFilters(injectionVcsRepositoryPatterns);
             parsedVcsRepositoryFilter = VcsRepositoryFilter.of(filters);
+        }
+        if (accessKey != null && accessKeyCredentialId == null) {
+            StringCredentials stringCredentials = new StringCredentialsImpl(
+                    CredentialsScope.GLOBAL,
+                    UUID.randomUUID().toString(),
+                    "Migrated Develocity Access Key",
+                    Secret.fromString(accessKey.getPlainText())
+            );
+
+            SystemCredentialsProvider.getInstance().getCredentials().add(stringCredentials);
+            SystemCredentialsProvider.getInstance().save();
+
+            setAccessKeyCredentialId(stringCredentials.getId());
+            accessKey = null;
+        }
+        if (gradlePluginRepositoryUsername != null && gradlePluginRepositoryPassword != null && gradlePluginRepositoryCredentialId == null) {
+            StandardUsernamePasswordCredentials standardUsernameCredentials = new UsernamePasswordCredentialsImpl(
+                    CredentialsScope.GLOBAL,
+                    UUID.randomUUID().toString(),
+                    "Migrated Gradle Plugin Respoitory credentials",
+                    gradlePluginRepositoryUsername,
+                    gradlePluginRepositoryPassword.getPlainText()
+            );
+
+            SystemCredentialsProvider.getInstance().getCredentials().add(standardUsernameCredentials);
+            SystemCredentialsProvider.getInstance().save();
+
+            setGradlePluginRepositoryCredentialId(standardUsernameCredentials.getId());
+            gradlePluginRepositoryUsername = null;
+            gradlePluginRepositoryPassword = null;
         }
         return this;
     }
 
     private static String migrateLegacyRepositoryFilters(String injectionVcsRepositoryPatterns) {
         return Arrays.stream(injectionVcsRepositoryPatterns.split(","))
-            .map(Util::fixEmptyAndTrim)
-            .filter(Objects::nonNull)
-            .map(p -> VcsRepositoryFilter.INCLUSION_QUALIFIER + p)
-            .collect(Collectors.joining(VcsRepositoryFilter.SEPARATOR));
+                .map(Util::fixEmptyAndTrim)
+                .filter(Objects::nonNull)
+                .map(p -> VcsRepositoryFilter.INCLUSION_QUALIFIER + p)
+                .collect(Collectors.joining(VcsRepositoryFilter.SEPARATOR));
     }
+
+    private static boolean doesNotHaveAdministerPermission() {
+        Jenkins jenkins = Jenkins.getInstanceOrNull();
+
+        return jenkins == null || !jenkins.hasPermission(Jenkins.ADMINISTER);
+    }
+
 }

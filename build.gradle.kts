@@ -97,6 +97,9 @@ dependencies {
     implementation("org.jenkins-ci.plugins.workflow:workflow-basic-steps")
     implementation("org.jenkins-ci.plugins.workflow:workflow-durable-task-step")
     implementation("org.jenkins-ci.plugins.workflow:workflow-step-api")
+    implementation("org.jenkins-ci.plugins:credentials")
+    implementation("org.jenkins-ci.plugins:plain-credentials")
+    implementation("io.jenkins.plugins:okhttp-api")
 
     "optionalPluginImplementation"("org.jenkins-ci.main:maven-plugin:3.14") {
         because("Lowest version that works with our dependencies")

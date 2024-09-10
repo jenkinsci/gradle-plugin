@@ -1,12 +1,15 @@
 package hudson.plugins.gradle.injection.extension;
 
 import hudson.plugins.gradle.injection.MavenExtension;
+import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
 
+import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
@@ -14,8 +17,6 @@ import java.util.concurrent.TimeUnit;
 public final class ExtensionClient {
 
     public static final ExtensionClient INSTANCE = new ExtensionClient();
-
-    private static final String DEFAULT_REPOSITORY_URL = "https://repo1.maven.org/maven2/com/gradle/%s/%s/%s-%s.jar";
 
     private final OkHttpClient httpClient;
 
@@ -25,15 +26,21 @@ public final class ExtensionClient {
                 .build();
     }
 
-    public void downloadExtension(MavenExtension mavenExtension, String version, OutputStream outputStream) throws IOException {
-        String url = String.format(DEFAULT_REPOSITORY_URL, mavenExtension.getName(), version, mavenExtension.getName(), version);
+    public void downloadExtension(
+            String downloadUrl,
+            @Nullable MavenExtension.RepositoryCredentials repositoryCredentials,
+            OutputStream outputStream
+    ) throws IOException {
+        Request.Builder requestBuilder = new Request.Builder().url(downloadUrl);
+        if (repositoryCredentials != null) {
+            String basicCredentials = Credentials.basic(repositoryCredentials.username(), repositoryCredentials.password());
+            requestBuilder.addHeader("Authorization", basicCredentials);
+        }
 
-        Request request = new Request.Builder().url(url).build();
-
-        try (Response response = httpClient.newCall(request).execute()) {
+        try (Response response = httpClient.newCall(requestBuilder.build()).execute()) {
             ResponseBody responseBody = response.body();
             if (!response.isSuccessful() || responseBody == null) {
-                throw new IOException("Could not download the extension from " + url);
+                throw new IOException("Could not download the extension from " + downloadUrl);
             }
             IOUtils.copy(responseBody.byteStream(), outputStream);
         }
