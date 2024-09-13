@@ -648,6 +648,8 @@ public class InjectionConfig extends GlobalConfiguration {
 
             setAccessKeyCredentialId(stringCredentials.getId());
             accessKey = null;
+
+            save();
         }
         if (gradlePluginRepositoryUsername != null && gradlePluginRepositoryPassword != null && gradlePluginRepositoryCredentialId == null) {
             StandardUsernamePasswordCredentials standardUsernameCredentials = new UsernamePasswordCredentialsImpl(
@@ -664,7 +666,10 @@ public class InjectionConfig extends GlobalConfiguration {
             setGradlePluginRepositoryCredentialId(standardUsernameCredentials.getId());
             gradlePluginRepositoryUsername = null;
             gradlePluginRepositoryPassword = null;
+
+            save();
         }
+
         return this;
     }
 
