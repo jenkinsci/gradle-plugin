@@ -1,17 +1,30 @@
 package hudson.plugins.gradle.injection;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.XmlFile;
 import hudson.model.Computer;
+import hudson.model.Node;
 import hudson.model.Saveable;
 import hudson.model.listeners.SaveableListener;
+import hudson.plugins.gradle.injection.extension.ExtensionClient;
 import jenkins.model.Jenkins;
 
+import java.io.BufferedOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Performs build scans auto-injection/cleanup when the {@link InjectionConfig} changes.
@@ -19,23 +32,35 @@ import java.util.function.Supplier;
 @Extension
 public class InjectionConfigChangeListener extends SaveableListener {
 
-    private final DevelocityInjector injector;
+    private static final Logger LOGGER = Logger.getLogger(InjectionConfigChangeListener.class.getName());
+
+    private final GradleBuildScanInjection gradleBuildScanInjection;
+    private final MavenBuildScanInjection mavenBuildScanInjection;
+    private final MavenExtensionDownloadHandler mavenExtensionDownloadHandler;
     private final Supplier<EnvVars> globalEnvVarsSupplier;
     private final Supplier<Collection<Computer>> computersSupplier;
 
     public InjectionConfigChangeListener() {
         this(
-            new DevelocityInjector(),
-            new JenkinsGlobalEnvVars(),
-            new JenkinsComputers()
+                new GradleBuildScanInjection(),
+                new MavenBuildScanInjection(),
+                new MavenExtensionDownloadHandler(),
+                new JenkinsGlobalEnvVars(),
+                new JenkinsComputers()
         );
     }
 
     @VisibleForTesting
-    InjectionConfigChangeListener(DevelocityInjector injector,
-                                  Supplier<EnvVars> globalEnvVarsSupplier,
-                                  Supplier<Collection<Computer>> computersSupplier) {
-        this.injector = injector;
+    InjectionConfigChangeListener(
+            GradleBuildScanInjection gradleBuildScanInjection,
+            MavenBuildScanInjection mavenBuildScanInjection,
+            MavenExtensionDownloadHandler mavenExtensionDownloadHandler,
+            Supplier<EnvVars> globalEnvVarsSupplier,
+            Supplier<Collection<Computer>> computersSupplier
+    ) {
+        this.gradleBuildScanInjection = gradleBuildScanInjection;
+        this.mavenBuildScanInjection = mavenBuildScanInjection;
+        this.mavenExtensionDownloadHandler = mavenExtensionDownloadHandler;
         this.globalEnvVarsSupplier = globalEnvVarsSupplier;
         this.computersSupplier = computersSupplier;
     }
@@ -50,10 +75,20 @@ public class InjectionConfigChangeListener extends SaveableListener {
                 return;
             }
 
-            for (Computer computer : computersSupplier.get()) {
-                if (computer.isOnline()) {
-                    injector.inject(computer, globalEnvVars);
+            try {
+                Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(injectionConfig);
+
+                for (Computer computer : computersSupplier.get()) {
+                    if (computer.isOnline()) {
+                        Node node = computer.getNode();
+                        EnvVars computerEnvVars = computer.getEnvironment();
+
+                        gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars);
+                        mavenBuildScanInjection.inject(node, extensionsDigest);
+                    }
                 }
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Invocation of onChange failed", e);
             }
         }
     }

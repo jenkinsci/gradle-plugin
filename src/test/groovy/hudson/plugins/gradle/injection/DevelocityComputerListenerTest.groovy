@@ -14,12 +14,14 @@ class DevelocityComputerListenerTest extends Specification {
 
     def globalEnvVars = new EnvVars([GLOBAL: "true"])
     def computer = Mock(Computer)
-    def injector = Mock(BuildScanInjection)
+    def gradleBuildScanInjection = Mock(GradleBuildScanInjection)
+    def mavenBuildScanInjection = Mock(MavenBuildScanInjection)
+    def mavenExtensionDownloadHandler = Mock(MavenExtensionDownloadHandler)
     def injectionConfig = Mock(InjectionConfig)
 
     @Subject
     def gradleEnterpriseComputerListener =
-        new DevelocityComputerListener(new DevelocityInjector(injector), { injectionConfig })
+        new DevelocityComputerListener(gradleBuildScanInjection, mavenBuildScanInjection, mavenExtensionDownloadHandler, { injectionConfig })
 
     @Unroll
     def "performs injection when computer gets online (isGlobalAutoInjectionCheckEnabled=#isGlobalAutoInjectionCheckEnabled, isGlobalInjectionEnabled=#isGlobalInjectionEnabled)"() {
@@ -34,12 +36,13 @@ class DevelocityComputerListenerTest extends Specification {
         def computerEnvVars = new EnvVars([COMPUTER: "ture"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded(injectionConfig) >> { }
 
         when:
         gradleEnterpriseComputerListener.onOnline(computer, Mock(TaskListener))
 
         then:
-        (isInjectionExpected ? 1 : 0) * injector.inject(node, globalEnvVars, computerEnvVars)
+        (isInjectionExpected ? 1 : 0) * gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars)
 
         where:
         isGlobalAutoInjectionCheckEnabled | isGlobalInjectionEnabled || isInjectionExpected
@@ -58,8 +61,10 @@ class DevelocityComputerListenerTest extends Specification {
         def computerEnvVars = new EnvVars([COMPUTER: "ture"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded(injectionConfig) >> { }
 
-        injector.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
+        gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
+        mavenBuildScanInjection.inject(node, [:])
 
         when:
         gradleEnterpriseComputerListener.onOnline(computer, Mock(TaskListener))

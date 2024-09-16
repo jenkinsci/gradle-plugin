@@ -16,12 +16,14 @@ class InjectionConfigChangeListenerTest extends Specification {
 
     def globalEnvVars = new EnvVars([GLOBAL: "true"])
     def computer = Mock(Computer)
-    def injector = Mock(BuildScanInjection)
+    def gradleBuildScanInjection = Mock(GradleBuildScanInjection)
+    def mavenBuildScanInjection = Mock(MavenBuildScanInjection)
+    def mavenExtensionDownloadHandler = Mock(MavenExtensionDownloadHandler)
     def injectionConfig = Mock(InjectionConfig)
 
     @Subject
     def injectionConfigChangeListener =
-        new InjectionConfigChangeListener(new DevelocityInjector(injector), { globalEnvVars }, { [computer] })
+        new InjectionConfigChangeListener(gradleBuildScanInjection, mavenBuildScanInjection, mavenExtensionDownloadHandler, { globalEnvVars }, { [computer] })
 
     @Unroll
     def "performs injection when configuration changes (isGlobalAutoInjectionCheckEnabled=#isGlobalAutoInjectionCheckEnabled, isGlobalInjectionEnabled=#isGlobalInjectionEnabled, isComputerOffline=#isComputerOffline)"() {
@@ -36,12 +38,13 @@ class InjectionConfigChangeListenerTest extends Specification {
         def computerEnvVars = new EnvVars([COMPUTER: "ture"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded(injectionConfig) >> { }
 
         when:
         injectionConfigChangeListener.onChange(injectionConfig, UNUSED_XML_FILE)
 
         then:
-        (isInjectionExpected ? 1 : 0) * injector.inject(node, globalEnvVars, computerEnvVars)
+        (isInjectionExpected ? 1 : 0) * gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars)
 
         where:
         isGlobalAutoInjectionCheckEnabled | isGlobalInjectionEnabled | isComputerOffline || isInjectionExpected
@@ -64,8 +67,10 @@ class InjectionConfigChangeListenerTest extends Specification {
         def computerEnvVars = new EnvVars([COMPUTER: "ture"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded(injectionConfig) >> { }
 
-        injector.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
+        gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
+        mavenBuildScanInjection.inject(node, [:])
 
         when:
         injectionConfigChangeListener.onChange(injectionConfig, UNUSED_XML_FILE)

@@ -1,15 +1,15 @@
 package hudson.plugins.gradle.injection;
 
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
+import jenkins.model.Jenkins;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.constructExtClasspath;
 import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.isUnix;
 
-public class MavenBuildScanInjection implements BuildScanInjection, MavenInjectionAware {
+public class MavenBuildScanInjection implements MavenInjectionAware {
 
     private static final Logger LOGGER = Logger.getLogger(MavenBuildScanInjection.class.getName());
 
@@ -34,8 +34,7 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
 
-    @Override
-    public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
+    public void inject(Node node, Map<MavenExtension, String> extensionsDigest) {
         if (node == null) {
             return;
         }
@@ -49,7 +48,7 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
         boolean enabled = isInjectionEnabledForNode(config, node);
         try {
             if (enabled) {
-                inject(config, node, nodeRootPath);
+                inject(config, node, nodeRootPath, extensionsDigest);
             } else {
                 cleanup(node, nodeRootPath);
             }
@@ -60,7 +59,7 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
         }
     }
 
-    private void inject(InjectionConfig config, Node node, FilePath nodeRootPath) {
+    private void inject(InjectionConfig config, Node node, FilePath nodeRootPath, Map<MavenExtension, String> extensionsDigest) {
         try {
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_AUTO_INJECTION, "true");
 
@@ -69,24 +68,12 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             LOGGER.info("Injecting Maven extensions " + nodeRootPath);
 
             List<FilePath> extensions = new ArrayList<>();
-            MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(config.getMavenExtensionVersion());
-            MavenExtension.RepositoryCredentials repositoryCredentials = getRepositoryCredentials(config.getMavenExtensionRepositoryCredentialId());
-            extensions.add(extensionsHandler.downloadExtensionToAgent(
-                    develocityMavenExtension,
-                    config.getMavenExtensionVersion(),
-                    nodeRootPath,
-                    repositoryCredentials,
-                    config.getMavenExtensionRepositoryUrl()
-            ));
-            if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(config.getCcudExtensionVersion()))) {
-                extensions.add(extensionsHandler.downloadExtensionToAgent(
-                        MavenExtension.CCUD,
-                        config.getCcudExtensionVersion(),
-                        nodeRootPath,
-                        repositoryCredentials,
-                        config.getMavenExtensionRepositoryUrl()
-                ));
-            } else {
+            FilePath controllerRootPath = Jenkins.get().getRootPath();
+            for (Map.Entry<MavenExtension, String> entry : extensionsDigest.entrySet()) {
+                extensions.add(extensionsHandler.copyExtensionToAgent(entry.getKey(), controllerRootPath, nodeRootPath, entry.getValue()));
+            }
+
+            if (InjectionUtil.isInvalid(InjectionConfig.checkRequiredVersion(config.getCcudExtensionVersion()))) {
                 extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);
             }
 
@@ -125,17 +112,6 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
         }
     }
 
-    private static MavenExtension.RepositoryCredentials getRepositoryCredentials(String repositoryCredentialId) {
-        List<StandardUsernamePasswordCredentials> allCredentials
-                = CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
-
-        return allCredentials.stream()
-                .filter(it -> it.getId().equals(repositoryCredentialId))
-                .findFirst()
-                .map(it -> new MavenExtension.RepositoryCredentials(it.getUsername(), it.getPassword().getPlainText()))
-                .orElse(null);
-    }
-
     private void cleanup(Node node, FilePath rootPath) {
         try {
             extensionsHandler.deleteAllExtensionsFromAgent(rootPath);
@@ -146,6 +122,5 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
             throw new IllegalStateException(e);
         }
     }
-
 
 }

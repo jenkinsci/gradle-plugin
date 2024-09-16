@@ -4,9 +4,11 @@ import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.Computer;
+import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerListener;
 
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,29 +23,49 @@ public class DevelocityComputerListener extends ComputerListener {
 
     private static final Logger LOGGER = Logger.getLogger(DevelocityComputerListener.class.getName());
 
-    private final DevelocityInjector injector;
+    private final GradleBuildScanInjection gradleBuildScanInjection;
+    private final MavenBuildScanInjection mavenBuildScanInjection;
+    private final MavenExtensionDownloadHandler mavenExtensionDownloadHandler;
     private final Supplier<InjectionConfig> injectionConfigSupplier;
 
     public DevelocityComputerListener() {
-        this(new DevelocityInjector(), new JenkinsInjectionConfig());
+        this(
+                new GradleBuildScanInjection(),
+                new MavenBuildScanInjection(),
+                new MavenExtensionDownloadHandler(),
+                new JenkinsInjectionConfig()
+        );
     }
 
     @VisibleForTesting
-    DevelocityComputerListener(DevelocityInjector injector,
-                               Supplier<InjectionConfig> injectionConfigSupplier) {
-        this.injector = injector;
+    DevelocityComputerListener(
+            GradleBuildScanInjection gradleBuildScanInjection,
+            MavenBuildScanInjection mavenBuildScanInjection,
+            MavenExtensionDownloadHandler mavenExtensionDownloadHandler,
+            Supplier<InjectionConfig> injectionConfigSupplier
+    ) {
+        this.gradleBuildScanInjection = gradleBuildScanInjection;
+        this.mavenBuildScanInjection = mavenBuildScanInjection;
+        this.mavenExtensionDownloadHandler = mavenExtensionDownloadHandler;
         this.injectionConfigSupplier = injectionConfigSupplier;
     }
 
     @Override
     public void onOnline(Computer computer, TaskListener listener) {
         try {
+            InjectionConfig injectionConfig = injectionConfigSupplier.get();
             EnvVars globalEnvVars = computer.buildEnvironment(listener);
-            if (InjectionUtil.globalAutoInjectionCheckEnabled(globalEnvVars) && isFeatureDisabled()) {
+            if (InjectionUtil.globalAutoInjectionCheckEnabled(globalEnvVars) && injectionConfig.isDisabled()) {
                 return;
             }
 
-            injector.inject(computer, globalEnvVars);
+            Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(injectionConfig);
+
+            Node node = computer.getNode();
+            EnvVars computerEnvVars = computer.getEnvironment();
+
+            gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars);
+            mavenBuildScanInjection.inject(node, extensionsDigest);
         } catch (Throwable t) {
             /*
              * We should catch everything because this is not handled by {@link hudson.slaves.SlaveComputer#setChannel(Channel, OutputStream, Channel.Listener)}
@@ -56,11 +78,6 @@ public class DevelocityComputerListener extends ComputerListener {
 
             LOGGER.log(Level.WARNING, "Invocation of onOnline failed for " + computer.getName(), t);
         }
-    }
-
-    private boolean isFeatureDisabled() {
-        InjectionConfig injectionConfig = injectionConfigSupplier.get();
-        return injectionConfig.isDisabled();
     }
 
     private static final class JenkinsInjectionConfig implements Supplier<InjectionConfig> {

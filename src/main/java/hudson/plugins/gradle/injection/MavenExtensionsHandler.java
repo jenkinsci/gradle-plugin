@@ -3,21 +3,20 @@ package hudson.plugins.gradle.injection;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import hudson.FilePath;
-import hudson.plugins.gradle.injection.extension.ExtensionClient;
 
-import javax.annotation.Nullable;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static hudson.plugins.gradle.injection.CopyUtil.copyDownloadedResourceToNode;
 import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
 import static hudson.plugins.gradle.injection.CopyUtil.unsafeResourceDigest;
 
-public class MavenExtensionsHandler {
+public final class MavenExtensionsHandler {
 
     static final String LIB_DIR_PATH = "jenkins-gradle-plugin/lib";
 
@@ -30,14 +29,8 @@ public class MavenExtensionsHandler {
         return fileHandlers.get(extension).copyExtensionToAgent(rootPath);
     }
 
-    public FilePath downloadExtensionToAgent(
-            MavenExtension extension,
-            String version,
-            FilePath rootPath,
-            @Nullable MavenExtension.RepositoryCredentials repositoryCredentials,
-            @Nullable String repositoryUrl
-    ) throws IOException, InterruptedException {
-        return fileHandlers.get(extension).downloadExtensionToAgent(rootPath, version, repositoryCredentials, repositoryUrl);
+    public FilePath copyExtensionToAgent(MavenExtension extension, FilePath controllerRootPath, FilePath rootPath, String digest) throws IOException, InterruptedException {
+        return fileHandlers.get(extension).copyExtensionToAgent(controllerRootPath, rootPath, digest);
     }
 
     public void deleteExtensionFromAgent(MavenExtension extension, FilePath rootPath) throws IOException, InterruptedException {
@@ -55,7 +48,8 @@ public class MavenExtensionsHandler {
 
         MavenExtensionFileHandler(MavenExtension extension) {
             this.extension = extension;
-            this.extensionDigest = Suppliers.memoize(() -> unsafeResourceDigest(extension.getEmbeddedJarName()));
+            this.extensionDigest =
+                    Suppliers.memoize(() -> unsafeResourceDigest(extension.getEmbeddedJarName()));
         }
 
         /**
@@ -67,23 +61,18 @@ public class MavenExtensionsHandler {
             if (extensionChanged(extensionLocation)) {
                 copyResourceToNode(extensionLocation, extension.getEmbeddedJarName());
             }
+
             return extensionLocation;
         }
 
         /**
-         * Downloads the extension to the agent from a repository and returns a path to the extension on the agent.
+         * Copies the extension to the agent, if it is not already present, and returns a path to the extension
+         * on the agent. Uses passed digest to verify if the extension has changed.
          */
-        public FilePath downloadExtensionToAgent(
-                FilePath rootPath,
-                String version,
-                @Nullable MavenExtension.RepositoryCredentials repositoryCredentials,
-                @Nullable String repositoryUrl
-        ) throws IOException, InterruptedException {
+        public FilePath copyExtensionToAgent(FilePath controllerRootPath, FilePath rootPath, String digest) throws IOException, InterruptedException {
             FilePath extensionLocation = getExtensionLocation(rootPath);
-            try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(extensionLocation.write())) {
-                ExtensionClient.INSTANCE.downloadExtension(
-                        extension.createDownloadUrl(version, repositoryUrl), repositoryCredentials, bufferedOutputStream
-                );
+            if (extensionChanged(extensionLocation, digest)) {
+                copyDownloadedResourceToNode(controllerRootPath, extensionLocation, extension.getEmbeddedJarName());
             }
 
             return extensionLocation;
@@ -101,13 +90,18 @@ public class MavenExtensionsHandler {
         }
 
         private boolean extensionChanged(FilePath nodePath) throws IOException, InterruptedException {
+            return extensionChanged(nodePath, extensionDigest.get());
+        }
+
+        private boolean extensionChanged(FilePath nodePath, String digest) throws IOException, InterruptedException {
             if (!nodePath.exists()) {
                 return true;
             }
             String existingFileDigest = nodePath.digest();
-            return !Objects.equals(existingFileDigest, extensionDigest.get());
-        }
-    }
 
+            return !Objects.equals(existingFileDigest, digest);
+        }
+
+    }
 
 }
