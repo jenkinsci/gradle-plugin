@@ -1,7 +1,5 @@
 package hudson.plugins.gradle.injection;
 
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -10,17 +8,10 @@ import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Saveable;
 import hudson.model.listeners.SaveableListener;
-import hudson.plugins.gradle.injection.extension.ExtensionClient;
 import jenkins.model.Jenkins;
 
-import java.io.BufferedOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -77,7 +68,7 @@ public class InjectionConfigChangeListener extends SaveableListener {
 
             try {
                 Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(
-                        Jenkins.get().getRootDir(), injectionConfig
+                        () -> Jenkins.get().getRootDir(), injectionConfig
                 );
 
                 for (Computer computer : computersSupplier.get()) {

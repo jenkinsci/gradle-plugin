@@ -48,7 +48,11 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
         boolean enabled = isInjectionEnabledForNode(config, node);
         try {
             if (enabled) {
-                inject(config, node, nodeRootPath, extensionsDigest);
+                if (!extensionsDigest.isEmpty()) {
+                    inject(config, node, nodeRootPath, extensionsDigest);
+                } else {
+                    LOGGER.log(Level.WARNING, "Extension digests are not present even though injection is enabled");
+                }
             } else {
                 cleanup(node, nodeRootPath);
             }

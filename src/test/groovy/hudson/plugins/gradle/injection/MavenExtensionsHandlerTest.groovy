@@ -15,6 +15,8 @@ class MavenExtensionsHandlerTest extends Specification {
     @Subject
     MavenExtensionsHandler mavenExtensionsHandler = new MavenExtensionsHandler()
 
+    ExtensionClient extensionClient = new ExtensionClient()
+
     def "only copies configuration extension if it doesn't exist"() {
         given:
         def folder = tempFolder.newFolder()
@@ -48,12 +50,12 @@ class MavenExtensionsHandlerTest extends Specification {
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
-                    ExtensionClient.INSTANCE.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("1.22.1", null), null, it)
+                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("1.22.1", null), null, it)
                 }
 
         cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()
                 .withCloseable {
-                    ExtensionClient.INSTANCE.downloadExtension(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), null, it)
+                    extensionClient.downloadExtension(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), null, it)
                 }
 
         when:
@@ -79,12 +81,12 @@ class MavenExtensionsHandlerTest extends Specification {
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
-                    ExtensionClient.INSTANCE.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("1.22.1", null), null, it)
+                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("1.22.1", null), null, it)
                 }
 
         cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()
                 .withCloseable {
-                    ExtensionClient.INSTANCE.downloadExtension(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), null, it)
+                    extensionClient.downloadExtension(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), null, it)
                 }
 
         when:

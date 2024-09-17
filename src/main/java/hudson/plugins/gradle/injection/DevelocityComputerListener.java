@@ -60,8 +60,8 @@ public class DevelocityComputerListener extends ComputerListener {
                 return;
             }
 
-            Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(
-                    Jenkins.get().getRootDir(), injectionConfig
+            Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.getExtensionDigests(
+                    () -> Jenkins.get().getRootDir(), injectionConfig
             );
 
             Node node = computer.getNode();
