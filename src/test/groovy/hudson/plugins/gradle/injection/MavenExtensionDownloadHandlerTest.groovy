@@ -13,7 +13,7 @@ class MavenExtensionDownloadHandlerTest extends Specification {
     @Subject
     private final MavenExtensionDownloadHandler mavenExtensionDownloadHandler = new MavenExtensionDownloadHandler()
 
-    def 'extensions are not redonwloaded if config has not changed'() {
+    def 'extensions are not redownloaded if config has not changed'() {
         given:
         def controllerFolder = tempFolder.newFolder()
 
