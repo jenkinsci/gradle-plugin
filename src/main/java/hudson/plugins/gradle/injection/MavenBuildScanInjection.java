@@ -73,12 +73,13 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
 
             List<FilePath> extensions = new ArrayList<>();
             FilePath controllerRootPath = Jenkins.get().getRootPath();
-            for (Map.Entry<MavenExtension, String> entry : extensionsDigest.entrySet()) {
-                extensions.add(extensionsHandler.copyExtensionToAgent(entry.getKey(), controllerRootPath, nodeRootPath, entry.getValue()));
-            }
 
+            MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(config.getMavenExtensionVersion());
+            extensions.add(extensionsHandler.copyExtensionToAgent(develocityMavenExtension, controllerRootPath, nodeRootPath, extensionsDigest.get(develocityMavenExtension)));
             if (InjectionUtil.isInvalid(InjectionConfig.checkRequiredVersion(config.getCcudExtensionVersion()))) {
                 extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);
+            } else {
+                extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, controllerRootPath, nodeRootPath, extensionsDigest.get(MavenExtension.CCUD)));
             }
 
             boolean isUnix = isUnix(node);

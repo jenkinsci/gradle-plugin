@@ -50,7 +50,9 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
             MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(injectionConfig.getMavenExtensionVersion());
 
             getExtensionDigest(cacheDir, develocityMavenExtension).ifPresent(it -> extensionDigests.put(develocityMavenExtension, it));
-            getExtensionDigest(cacheDir, MavenExtension.CCUD).ifPresent(it -> extensionDigests.put(MavenExtension.CCUD, it));
+            if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(injectionConfig.getCcudExtensionVersion()))) {
+                getExtensionDigest(cacheDir, MavenExtension.CCUD).ifPresent(it -> extensionDigests.put(MavenExtension.CCUD, it));
+            }
 
             return extensionDigests;
         }
