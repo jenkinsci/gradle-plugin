@@ -2,11 +2,13 @@ package hudson.plugins.gradle.injection;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import hudson.FilePath;
 import hudson.Util;
 import hudson.plugins.gradle.injection.extension.ExtensionClient;
 import jenkins.model.Jenkins;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -20,10 +22,10 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
 
     public static final String DOWNLOAD_CACHE_DIR = "jenkins-gradle-plugin/cache";
 
-    public Map<MavenExtension, String> ensureExtensionsDownloaded(InjectionConfig injectionConfig) throws IOException {
+    public Map<MavenExtension, String> ensureExtensionsDownloaded(File root, InjectionConfig injectionConfig) throws IOException {
         if (!isInjectionDisabledGlobally(injectionConfig)) {
             Map<MavenExtension, String> extensionsDigest = new HashMap<>();
-            Path parent = Jenkins.get().getRootDir().toPath().resolve(DOWNLOAD_CACHE_DIR);
+            Path parent = root.toPath().resolve(DOWNLOAD_CACHE_DIR);
 
             MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(injectionConfig.getMavenExtensionVersion());
 
@@ -84,6 +86,10 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
     }
 
     private static MavenExtension.RepositoryCredentials getRepositoryCredentials(String repositoryCredentialId) {
+        if (repositoryCredentialId == null) {
+            return null;
+        }
+
         List<StandardUsernamePasswordCredentials> allCredentials
                 = CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
 

@@ -76,7 +76,9 @@ public class InjectionConfigChangeListener extends SaveableListener {
             }
 
             try {
-                Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(injectionConfig);
+                Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(
+                        Jenkins.get().getRootDir(), injectionConfig
+                );
 
                 for (Computer computer : computersSupplier.get()) {
                     if (computer.isOnline()) {

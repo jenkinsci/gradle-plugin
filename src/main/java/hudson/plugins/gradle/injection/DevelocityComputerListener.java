@@ -7,6 +7,7 @@ import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerListener;
+import jenkins.model.Jenkins;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -59,7 +60,9 @@ public class DevelocityComputerListener extends ComputerListener {
                 return;
             }
 
-            Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(injectionConfig);
+            Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(
+                    Jenkins.get().getRootDir(), injectionConfig
+            );
 
             Node node = computer.getNode();
             EnvVars computerEnvVars = computer.getEnvironment();

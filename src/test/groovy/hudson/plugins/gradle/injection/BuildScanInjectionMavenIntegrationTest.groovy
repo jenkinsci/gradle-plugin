@@ -42,7 +42,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
     private static final String POM_XML = '<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>my-pom</artifactId><version>0.1-SNAPSHOT</version><packaging>pom</packaging><name>my-pom</name><description>my-pom</description></project>'
     private static final String INJECT_CCUD = '[DEBUG] Executing extension: CommonCustomUserDataDevelocityListener'
 
-    def 'does not copy configuration extension if it was not changed'() {
+    def 'does not copy #extension if it was not changed'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
         turnOnBuildInjectionAndRestart(slave)
@@ -51,7 +51,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         then:
         extensionDirectory.list().size() == 3
 
-        def originalExtension = extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }
+        def originalExtension = extensionDirectory.list().find { it.name == extension }
         originalExtension != null
         def originalExtensionLastModified = originalExtension.lastModified()
         originalExtensionLastModified > 0
@@ -66,13 +66,16 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         then:
         extensionDirectory.list().size() == 3
 
-        def updatedExtension = extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }
+        def updatedExtension = extensionDirectory.list().find { it.name == extension }
         updatedExtension != null
         updatedExtension.lastModified() == originalExtensionLastModified
         updatedExtension.digest() == originalExtensionDigest
+
+        where:
+        extension << [DEVELOCITY_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
     }
 
-    def 'copies a new version of configuration extension if it was changed'() {
+    def 'copies a new version of #extension if it was changed'() {
         when:
         def slave = createSlaveAndTurnOnInjection()
         turnOnBuildInjectionAndRestart(slave)
@@ -81,7 +84,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         then:
         extensionDirectory.list().size() == 3
 
-        def originalExtension = extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }
+        def originalExtension = extensionDirectory.list().find { it.name == extension }
         originalExtension != null
         def originalExtensionLastModified = originalExtension.lastModified()
         originalExtensionLastModified > 0
@@ -98,7 +101,7 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }?.lastModified() != originalExtensionLastModified
+        extensionDirectory.list().find { it.name == extension }?.lastModified() != originalExtensionLastModified
 
         when:
         restartSlave(slave)
@@ -106,10 +109,13 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
         extensionDirectory = slave.toComputer().node.rootPath.child(MavenExtensionsHandler.LIB_DIR_PATH)
 
         then:
-        def updatedGeExtension = extensionDirectory.list().find { it.name == MavenExtension.CONFIGURATION.getTargetJarName() }
+        def updatedGeExtension = extensionDirectory.list().find { it.name == extension }
         updatedGeExtension != null
         updatedGeExtension.lastModified() != originalExtensionLastModified
         updatedGeExtension.digest() == originalExtensionDigest
+
+        where:
+        extension << [DEVELOCITY_EXTENSION_JAR, CCUD_EXTENSION_JAR, CONFIGURATION_EXTENSION_JAR]
     }
 
     @Issue('https://issues.jenkins.io/browse/JENKINS-70663')
