@@ -1,6 +1,7 @@
 package hudson.plugins.gradle.injection
 
 import hudson.FilePath
+import hudson.plugins.gradle.injection.extension.ExtensionClient
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -13,6 +14,8 @@ class MavenExtensionsHandlerTest extends Specification {
 
     @Subject
     MavenExtensionsHandler mavenExtensionsHandler = new MavenExtensionsHandler()
+
+    ExtensionClient extensionClient = new ExtensionClient()
 
     def "only copies configuration extension if it doesn't exist"() {
         given:
@@ -37,19 +40,32 @@ class MavenExtensionsHandlerTest extends Specification {
         secondLastModified == firstLastModified
     }
 
-    def "downloads Develocity/CCUD extensions from the default repository"() {
+    def "copies Develocity/CCUD extensions when digest doesn't match"() {
         given:
-        def folder = tempFolder.newFolder()
-        def root = new FilePath(folder)
+        def controllerFolder = tempFolder.newFolder()
+        def agentFolder = tempFolder.newFolder()
+        def controllerRoot = new FilePath(controllerFolder)
+        def agentRoot = new FilePath(agentFolder)
+        def cacheDirectory = controllerRoot.child(MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR)
+
+        cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
+                .withCloseable {
+                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("1.22.1", null), null, it)
+                }
+
+        cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()
+                .withCloseable {
+                    extensionClient.downloadExtension(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), null, it)
+                }
 
         when:
-        def firstFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.DEVELOCITY, "1.22", root, null, null)
+        def firstFilePath = mavenExtensionsHandler.copyExtensionToAgent(MavenExtension.DEVELOCITY, controllerRoot, agentRoot, null)
 
         then:
         firstFilePath.exists()
 
         when:
-        def secondFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.CCUD, "2.0", root, null, null)
+        def secondFilePath = mavenExtensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, controllerRoot, agentRoot, null)
 
         then:
         secondFilePath.exists()
@@ -57,25 +73,42 @@ class MavenExtensionsHandlerTest extends Specification {
 
     def "removes all files"() {
         given:
-        def folder = tempFolder.newFolder()
-        def root = new FilePath(folder)
+        def controllerFolder = tempFolder.newFolder()
+        def agentFolder = tempFolder.newFolder()
+        def controllerRoot = new FilePath(controllerFolder)
+        def agentRoot = new FilePath(agentFolder)
+        def cacheDirectory = controllerRoot.child(MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR)
+
+        cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
+                .withCloseable {
+                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("1.22.1", null), null, it)
+                }
+
+        cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()
+                .withCloseable {
+                    extensionClient.downloadExtension(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), null, it)
+                }
 
         when:
-        def geExtensionFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.DEVELOCITY, "1.22", root, null, null)
-        def ccudExtensionFilePath = mavenExtensionsHandler.downloadExtensionToAgent(MavenExtension.CCUD, "2.0", root, null, null)
+        def firstFilePath = mavenExtensionsHandler.copyExtensionToAgent(MavenExtension.DEVELOCITY, controllerRoot, agentRoot, null)
 
         then:
-        geExtensionFilePath.exists()
-        ccudExtensionFilePath.exists()
-
-        geExtensionFilePath.getParent().remote == ccudExtensionFilePath.getParent().remote
+        firstFilePath.exists()
 
         when:
-        mavenExtensionsHandler.deleteAllExtensionsFromAgent(root)
+        def secondFilePath = mavenExtensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, controllerRoot, agentRoot, null)
 
         then:
-        !geExtensionFilePath.exists()
-        !ccudExtensionFilePath.exists()
+        secondFilePath.exists()
+
+        firstFilePath.getParent().remote == secondFilePath.getParent().remote
+
+        when:
+        mavenExtensionsHandler.deleteAllExtensionsFromAgent(agentRoot)
+
+        then:
+        !firstFilePath.exists()
+        !secondFilePath.exists()
     }
 
 }

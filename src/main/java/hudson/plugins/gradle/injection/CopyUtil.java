@@ -2,10 +2,14 @@ package hudson.plugins.gradle.injection;
 
 import hudson.FilePath;
 import hudson.Util;
+import jenkins.model.Jenkins;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public final class CopyUtil {
 
@@ -19,17 +23,13 @@ public final class CopyUtil {
         });
     }
 
+    public static void copyDownloadedResourceToNode(FilePath controllerRootPath, FilePath nodePath, String resourceName) throws IOException, InterruptedException {
+        nodePath.copyFrom(controllerRootPath.child(MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR).child(resourceName));
+    }
+
     public static String unsafeResourceDigest(String resourceName) {
         try {
             return doWithResource(resourceName, Util::getDigestOf);
-        } catch (IOException | InterruptedException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    public static String readResource(String resourceName) {
-        try {
-            return doWithResource(resourceName, IOUtils::toString);
         } catch (IOException | InterruptedException e) {
             throw new IllegalStateException(e);
         }

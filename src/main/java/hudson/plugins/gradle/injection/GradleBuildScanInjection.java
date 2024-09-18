@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 
 import static hudson.plugins.gradle.injection.CopyUtil.*;
 
-public class GradleBuildScanInjection implements BuildScanInjection, GradleInjectionAware {
+public class GradleBuildScanInjection implements GradleInjectionAware {
 
     private static final Logger LOGGER = Logger.getLogger(GradleBuildScanInjection.class.getName());
 
@@ -36,7 +36,6 @@ public class GradleBuildScanInjection implements BuildScanInjection, GradleInjec
 
     private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
 
-    @Override
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
         if (node == null) {
             return;
