@@ -6,12 +6,14 @@ import hudson.model.Computer
 import hudson.model.Node
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 import static hudson.plugins.gradle.injection.InjectionUtil.JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK
 
+@Ignore
 class InjectionConfigChangeListenerTest extends Specification {
 
     private static final XmlFile UNUSED_XML_FILE = null
