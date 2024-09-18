@@ -4,6 +4,8 @@ import hudson.EnvVars
 import hudson.model.Computer
 import hudson.model.Node
 import hudson.model.TaskListener
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -14,12 +16,17 @@ class DevelocityComputerListenerTest extends Specification {
 
     def globalEnvVars = new EnvVars([GLOBAL: "true"])
     def computer = Mock(Computer)
-    def injector = Mock(BuildScanInjection)
+    def gradleBuildScanInjection = Mock(GradleBuildScanInjection)
+    def mavenBuildScanInjection = Mock(MavenBuildScanInjection)
+    def mavenExtensionDownloadHandler = Mock(MavenExtensionDownloadHandler)
     def injectionConfig = Mock(InjectionConfig)
 
     @Subject
     def gradleEnterpriseComputerListener =
-        new DevelocityComputerListener(new DevelocityInjector(injector), { injectionConfig })
+        new DevelocityComputerListener(gradleBuildScanInjection, mavenBuildScanInjection, mavenExtensionDownloadHandler, { injectionConfig })
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder()
 
     @Unroll
     def "performs injection when computer gets online (isGlobalAutoInjectionCheckEnabled=#isGlobalAutoInjectionCheckEnabled, isGlobalInjectionEnabled=#isGlobalInjectionEnabled)"() {
@@ -34,12 +41,15 @@ class DevelocityComputerListenerTest extends Specification {
         def computerEnvVars = new EnvVars([COMPUTER: "ture"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
+        def root = tempFolder.newFolder()
+
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> { }
 
         when:
         gradleEnterpriseComputerListener.onOnline(computer, Mock(TaskListener))
 
         then:
-        (isInjectionExpected ? 1 : 0) * injector.inject(node, globalEnvVars, computerEnvVars)
+        (isInjectionExpected ? 1 : 0) * gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars)
 
         where:
         isGlobalAutoInjectionCheckEnabled | isGlobalInjectionEnabled || isInjectionExpected
@@ -58,8 +68,11 @@ class DevelocityComputerListenerTest extends Specification {
         def computerEnvVars = new EnvVars([COMPUTER: "ture"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
+        def root = tempFolder.newFolder()
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> { }
 
-        injector.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
+        gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
+        mavenBuildScanInjection.inject(node, [:])
 
         when:
         gradleEnterpriseComputerListener.onOnline(computer, Mock(TaskListener))

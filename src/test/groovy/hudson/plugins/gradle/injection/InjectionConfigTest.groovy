@@ -178,7 +178,6 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
 
         form.getInputByName("_.mavenExtensionVersion").setValueAttribute("1.22")
         form.getInputByName("_.ccudExtensionVersion").setValueAttribute("2.0")
-        form.getInputByName("_.mavenExtensionRepositoryUrl").setValueAttribute("https://localhost/repostiry")
 
         getAddButton(form, "Maven auto-injection enabled nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("maven1")
@@ -204,7 +203,6 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
 
             mavenExtensionVersion == "1.22"
             ccudExtensionVersion == "2.0"
-            mavenExtensionRepositoryUrl == "https://localhost/repostiry"
             mavenInjectionEnabledNodes*.label == ['maven1']
             mavenInjectionDisabledNodes*.label == ['maven2']
         }

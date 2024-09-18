@@ -15,11 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 public final class ExtensionClient {
 
-    public static final ExtensionClient INSTANCE = new ExtensionClient();
-
     private final OkHttpClient httpClient;
 
-    private ExtensionClient() {
+    public ExtensionClient() {
         this.httpClient = new OkHttpClient().newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
                 .build();

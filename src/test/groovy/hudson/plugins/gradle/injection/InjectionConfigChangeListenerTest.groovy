@@ -4,6 +4,8 @@ import hudson.EnvVars
 import hudson.XmlFile
 import hudson.model.Computer
 import hudson.model.Node
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -16,12 +18,17 @@ class InjectionConfigChangeListenerTest extends Specification {
 
     def globalEnvVars = new EnvVars([GLOBAL: "true"])
     def computer = Mock(Computer)
-    def injector = Mock(BuildScanInjection)
+    def gradleBuildScanInjection = Mock(GradleBuildScanInjection)
+    def mavenBuildScanInjection = Mock(MavenBuildScanInjection)
+    def mavenExtensionDownloadHandler = Mock(MavenExtensionDownloadHandler)
     def injectionConfig = Mock(InjectionConfig)
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder()
 
     @Subject
     def injectionConfigChangeListener =
-        new InjectionConfigChangeListener(new DevelocityInjector(injector), { globalEnvVars }, { [computer] })
+            new InjectionConfigChangeListener(gradleBuildScanInjection, mavenBuildScanInjection, mavenExtensionDownloadHandler, { globalEnvVars }, { [computer] })
 
     @Unroll
     def "performs injection when configuration changes (isGlobalAutoInjectionCheckEnabled=#isGlobalAutoInjectionCheckEnabled, isGlobalInjectionEnabled=#isGlobalInjectionEnabled, isComputerOffline=#isComputerOffline)"() {
@@ -36,12 +43,14 @@ class InjectionConfigChangeListenerTest extends Specification {
         def computerEnvVars = new EnvVars([COMPUTER: "ture"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
+        def root = tempFolder.newFolder()
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> {}
 
         when:
         injectionConfigChangeListener.onChange(injectionConfig, UNUSED_XML_FILE)
 
         then:
-        (isInjectionExpected ? 1 : 0) * injector.inject(node, globalEnvVars, computerEnvVars)
+        (isInjectionExpected ? 1 : 0) * gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars)
 
         where:
         isGlobalAutoInjectionCheckEnabled | isGlobalInjectionEnabled | isComputerOffline || isInjectionExpected
@@ -64,8 +73,11 @@ class InjectionConfigChangeListenerTest extends Specification {
         def computerEnvVars = new EnvVars([COMPUTER: "ture"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
+        def root = tempFolder.newFolder()
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> {}
 
-        injector.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
+        gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
+        mavenBuildScanInjection.inject(node, [:])
 
         when:
         injectionConfigChangeListener.onChange(injectionConfig, UNUSED_XML_FILE)
