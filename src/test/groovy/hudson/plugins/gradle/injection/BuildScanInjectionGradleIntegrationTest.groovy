@@ -30,7 +30,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Develocity: http://foo.com"
 
-    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.4', '7.6.4', '8.6']
+    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '5.6.4', '6.9.4', '7.6.4', '8.10.1']
 
     private static final EnvVars EMPTY_ENV = new EnvVars()
 

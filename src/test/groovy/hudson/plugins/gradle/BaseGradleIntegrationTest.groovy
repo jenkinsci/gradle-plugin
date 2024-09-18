@@ -72,7 +72,7 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
         if(Functions.isWindows()) {
             try {
                 println 'Killing Gradle processes'
-                def proc = '''WMIC PROCESS where "Name like 'java%%' AND CommandLine like '%%GradleDaemon%%'" Call Terminate"'''.execute()
+                def proc = '''WMIC PROCESS where "Name like 'java%%' AND CommandLine like '%%hudson.plugins.gradle.GradleInstallation%%'" Call Terminate"'''.execute()
                 proc.waitFor(30, TimeUnit.SECONDS)
                 println "output: ${proc.text}"
                 println "code: ${proc.exitValue()}"
