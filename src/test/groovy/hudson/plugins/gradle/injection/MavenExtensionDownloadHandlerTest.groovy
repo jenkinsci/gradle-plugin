@@ -2,11 +2,9 @@ package hudson.plugins.gradle.injection
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Ignore
 class MavenExtensionDownloadHandlerTest extends Specification {
 
     @Rule
