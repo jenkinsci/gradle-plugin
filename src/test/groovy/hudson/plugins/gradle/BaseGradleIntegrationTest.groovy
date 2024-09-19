@@ -69,7 +69,7 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
     @SuppressWarnings("CatchException")
     def cleanup() {
-        if(Functions.isWindows()) {
+        if(Functions.isWindows() && gradleInstallationRule.gradleVersion != '8.10.1') {
             try {
                 println 'Killing Gradle processes'
                 def proc = '''WMIC PROCESS where "Name like 'java%%' AND CommandLine like '%%hudson.plugins.gradle.GradleInstallation%%'" Call Terminate"'''.execute()
