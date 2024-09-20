@@ -64,4 +64,20 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
         CredentialsProvider.lookupStores(j.jenkins).iterator().next().addCredentials(Domain.global(), creds)
     }
 
+    @SuppressWarnings("CatchException")
+    def cleanup() {
+        if(Functions.isWindows()) {
+            try {
+                println 'Killing Gradle processes'
+                def proc = '''WMIC PROCESS where "Name like 'java%' AND CommandLine like '%hudson.plugins.gradle.GradleInstallation%'" Call Terminate"'''.execute()
+                proc.waitFor(30, TimeUnit.SECONDS)
+                println "output: ${proc.text}"
+                println "code: ${proc.exitValue()}"
+            } catch (Exception e) {
+                System.err.println('Failed killing Gradle daemons')
+                e.printStackTrace()
+            }
+        }
+    }
+
 }
