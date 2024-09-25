@@ -452,7 +452,7 @@ public class InjectionConfig extends GlobalConfiguration {
             return FormValidation.ok();
         }
 
-        List<StringCredentials> credentials = CredentialsProvider.lookupCredentialsInItem(StringCredentials.class, null, null);
+        List<StringCredentials> credentials = CredentialsProvider.lookupCredentials(StringCredentials.class, (Item) null, null, Collections.emptyList());
 
         String accessKeyFromCredentialId = credentials.stream()
                 .filter(it -> it.getId().equals(accessKeyId))

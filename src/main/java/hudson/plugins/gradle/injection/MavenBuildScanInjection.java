@@ -4,11 +4,13 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.EnvVars;
 import hudson.FilePath;
+import hudson.model.Item;
 import hudson.model.Node;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -127,7 +129,7 @@ public class MavenBuildScanInjection implements BuildScanInjection, MavenInjecti
 
     private static MavenExtension.RepositoryCredentials getRepositoryCredentials(String repositoryCredentialId) {
         List<StandardUsernamePasswordCredentials> allCredentials
-                = CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
+                = CredentialsProvider.lookupCredentials(StandardUsernamePasswordCredentials.class, (Item) null, null, Collections.emptyList());
 
         return allCredentials.stream()
                 .filter(it -> it.getId().equals(repositoryCredentialId))

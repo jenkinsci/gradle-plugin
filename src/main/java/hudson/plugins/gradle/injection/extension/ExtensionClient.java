@@ -9,7 +9,6 @@ import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nullable;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
