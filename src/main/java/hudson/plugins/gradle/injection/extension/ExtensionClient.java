@@ -5,8 +5,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.commons.io.IOUtils;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
@@ -35,10 +35,7 @@ public final class ExtensionClient {
             if (!response.isSuccessful() || responseBody == null) {
                 throw new IOException("Could not download the extension from " + url);
             }
-
-            try (BufferedInputStream bufferedInputStream = new BufferedInputStream(responseBody.byteStream())) {
-                bufferedInputStream.transferTo(outputStream);
-            }
+            IOUtils.copy(responseBody.byteStream(), outputStream);
         }
     }
 
