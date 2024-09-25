@@ -3,12 +3,16 @@ package hudson.plugins.gradle.injection;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.Util;
+import hudson.model.Item;
 import hudson.plugins.gradle.injection.extension.ExtensionClient;
+import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -63,7 +67,7 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
     private static Optional<String> getExtensionDigest(Path parent, MavenExtension extension) throws IOException {
         Path metadataFile = parent.resolve(extension.getDownloadMetadataFileName());
         if (Files.exists(metadataFile)) {
-            String[] metadata = Files.readString(metadataFile).split(",");
+            String[] metadata = new String(Files.readAllBytes(metadataFile), StandardCharsets.UTF_8).split(",");
 
             return Optional.of(metadata[1]);
         }
@@ -78,7 +82,7 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
                 : injectionConfig.getMavenExtensionVersion();
 
         if (Files.exists(metadataFile)) {
-            String[] metadata = Files.readString(metadataFile).split(",");
+            String[] metadata = new String(Files.readAllBytes(metadataFile), StandardCharsets.UTF_8).split(",");
             String extensionVersion = metadata[0];
             String extensionDigest = metadata[1];
 
@@ -113,7 +117,7 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
 
         String digest = Util.getDigestOf(jarFile.toFile());
 
-        Files.writeString(metadataFile, version + "," + digest);
+        Files.write(metadataFile, (version + "," + digest).getBytes(StandardCharsets.UTF_8));
 
         return digest;
     }
@@ -124,7 +128,7 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
         }
 
         List<StandardUsernamePasswordCredentials> allCredentials
-                = CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
+                = CredentialsProvider.lookupCredentials(StandardUsernamePasswordCredentials.class, (Item) null, null, Collections.emptyList());
 
         return allCredentials.stream()
                 .filter(it -> it.getId().equals(repositoryCredentialId))
