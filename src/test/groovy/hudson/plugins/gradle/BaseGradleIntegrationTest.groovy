@@ -3,6 +3,7 @@ package hudson.plugins.gradle
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
+import hudson.Functions
 import hudson.slaves.DumbSlave
 import hudson.util.Secret
 import org.jenkinsci.plugins.plaincredentials.StringCredentials
