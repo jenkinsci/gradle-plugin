@@ -24,9 +24,6 @@
 
 package hudson.plugins.gradle
 
-import com.gargoylesoftware.htmlunit.html.HtmlButton
-import com.gargoylesoftware.htmlunit.html.HtmlForm
-import com.gargoylesoftware.htmlunit.html.HtmlPage
 import com.google.common.base.Joiner
 import hudson.EnvVars
 import hudson.model.FreeStyleBuild
@@ -34,6 +31,9 @@ import hudson.model.FreeStyleProject
 import hudson.model.Result
 import hudson.tools.InstallSourceProperty
 import hudson.util.VersionNumber
+import org.htmlunit.html.HtmlButton
+import org.htmlunit.html.HtmlForm
+import org.htmlunit.html.HtmlPage
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule.WebClient
 import spock.lang.Unroll

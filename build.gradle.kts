@@ -69,12 +69,16 @@ jenkinsPlugin {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 
     registerFeature("optionalPlugin") {
         usingSourceSet(sourceSets["main"])
     }
+}
+
+tasks.compileJava {
+    options.release = 11
 }
 
 // see https://github.com/jenkinsci/gradle-jpi-plugin#customizing-further
@@ -123,7 +127,7 @@ dependencies {
 
     signature("org.codehaus.mojo.signature:java18:1.0@signature")
 
-    testImplementation("org.jenkins-ci.main:jenkins-test-harness")
+    testImplementation("org.jenkins-ci.main:jenkins-test-harness:2225.v04fa_3929c9b_5")
     testImplementation("org.jenkins-ci.main:jenkins-test-harness-tools:2.2")
     testImplementation("io.jenkins:configuration-as-code:1.4")
     testImplementation("org.jenkins-ci.plugins:timestamper")

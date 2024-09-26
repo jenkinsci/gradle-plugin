@@ -11,9 +11,9 @@ include("configuration-maven-extension")
 
 rootProject.name = "gradle-plugin"
 
-if (!JavaVersion.current().isJava11) {
-    throw GradleException("Build requires Java 11")
-}
+//if (!JavaVersion.current().isJava11) {
+//    throw GradleException("Build requires Java 11")
+//}
 
 val gradleExt = (gradle as ExtensionAware).extra
 

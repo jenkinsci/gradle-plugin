@@ -2,13 +2,13 @@ package hudson.plugins.gradle.injection
 
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.SystemCredentialsProvider
-import com.gargoylesoftware.htmlunit.html.HtmlButton
-import com.gargoylesoftware.htmlunit.html.HtmlForm
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.util.FormValidation
 import hudson.util.Secret
 import hudson.util.XStream2
+import org.htmlunit.html.HtmlButton
+import org.htmlunit.html.HtmlForm
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import spock.lang.Shared
 import spock.lang.Subject

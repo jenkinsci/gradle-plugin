@@ -1,6 +1,7 @@
 package hudson.plugins.gradle
 
 import hudson.model.FreeStyleProject
+import hudson.model.JDK
 import hudson.plugins.gradle.injection.MavenSnippets
 import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.tasks.BatchFile
@@ -13,16 +14,23 @@ import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.ExtractResourceSCM
 import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
+import spock.lang.Requires
 import spock.lang.Unroll
+
+import java.nio.file.Files
+import java.nio.file.Paths
 
 @Unroll
 @SuppressWarnings("GStringExpressionWithinString")
 class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
+    private static final String JDK8_SYS_PROP = 'jdk8.home'
 
+    @Requires(value = { hasJdk8() }, reason = "Gradle 3 and 4 require Java 8")
     def 'build scans for plugin version #buildScanVersion is discovered'() {
         given:
         gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        setJdk8()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(buildScriptBuilder(buildScanVersion))
         p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "${args} --no-daemon"))
@@ -251,10 +259,12 @@ stage('Final') {
         new URL(action.scanUrls.get(0))
     }
 
+    @Requires(value = { hasJdk8() }, reason = "Gradle 3 and 4 require Java 8")
     def 'build scan action is exposed via rest API'() {
         given:
         gradleInstallationRule.gradleVersion = '3.4'
         gradleInstallationRule.addInstallation()
+        setJdk8()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(buildScriptBuilder('1.8'))
         p.buildersList.add(new Gradle(tasks: 'hello', gradleName: '3.4', switches: '-Dscan --no-daemon'))
@@ -304,5 +314,14 @@ tasks.register("hello") { doLast { println("Hello") } }''')
 
     private static CreateFileBuilder settingsScriptBuilder(String gePluginVersion) {
         return new CreateFileBuilder('settings.gradle', "plugins { id 'com.gradle.enterprise' version '${gePluginVersion}' }")
+    }
+
+    private setJdk8() {
+        j.jenkins.setJDKs(Collections.singleton(new JDK('JDK8', System.getProperty(JDK8_SYS_PROP))))
+    }
+
+    private static hasJdk8() {
+        def jdk8SysProp = System.getProperty(JDK8_SYS_PROP)
+        return jdk8SysProp && Files.exists(Paths.get(jdk8SysProp))
     }
 }
