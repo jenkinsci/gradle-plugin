@@ -194,7 +194,10 @@ tasks.test {
     systemProperties(
         mapOf(
             "hudson.model.DownloadService.noSignatureCheck" to true,
-            "jenkins.test.timeout" to 300 // override default timeout
+            "jenkins.test.timeout" to 300, // override default timeout
+            "jdk8.home" to javaToolchains.compilerFor {
+                languageVersion = JavaLanguageVersion.of(8)
+            }.get().metadata.installationPath.toString()
         )
     )
     ignoreFailures = ciJenkinsBuild
