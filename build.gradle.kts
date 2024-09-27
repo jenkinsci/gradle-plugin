@@ -8,7 +8,6 @@ import java.util.zip.ZipFile
 
 plugins {
     id("org.jenkins-ci.jpi") version "0.50.0"
-    id("ru.vyarus.animalsniffer") version "1.7.1"
     id("com.github.spotbugs") version "6.0.15"
     id("codenarc")
     id("buildlogic.reproducible-archives")
@@ -125,8 +124,6 @@ dependencies {
 
     add(includedLibs.name, project(path = ":configuration-maven-extension", configuration = "mvnExtension"))
 
-    signature("org.codehaus.mojo.signature:java18:1.0@signature")
-
     testImplementation("org.jenkins-ci.main:jenkins-test-harness:2225.v04fa_3929c9b_5")
     testImplementation("org.jenkins-ci.main:jenkins-test-harness-tools:2.2")
     testImplementation("io.jenkins:configuration-as-code:1.4")
@@ -179,13 +176,6 @@ tasks.spotbugsTest {
 }
 
 val main: SourceSet by sourceSets.getting
-
-animalsniffer {
-    toolVersion = "1.18"
-    sourceSets = listOf(main)
-    // We need to exclude this dependency from animalsniffer since it contains an invalid class
-    excludeJars = listOf("icu4j-*")
-}
 
 val test: SourceSet by sourceSets.getting
 
