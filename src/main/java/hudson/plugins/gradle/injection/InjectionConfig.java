@@ -102,6 +102,9 @@ public class InjectionConfig extends GlobalConfiguration {
     // Legacy property that is not used anymore
     private transient String injectionVcsRepositoryPatterns;
     private VcsRepositoryFilter parsedVcsRepositoryFilter = VcsRepositoryFilter.EMPTY;
+    // Legacy properties, kept for reading old configurations
+    private transient boolean injectMavenExtension;
+    private transient boolean injectCcudExtension;
 
     public InjectionConfig() {
         load();
@@ -365,6 +368,24 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setCheckForBuildAgentErrors(boolean checkForBuildAgentErrors) {
         this.checkForBuildAgentErrors = checkForBuildAgentErrors;
+    }
+
+    public boolean isInjectCcudExtension() {
+        return injectCcudExtension;
+    }
+
+    @DataBoundSetter
+    public void setInjectCcudExtension(boolean injectCcudExtension) {
+        this.injectCcudExtension = injectCcudExtension;
+    }
+
+    public boolean isInjectMavenExtension() {
+        return injectMavenExtension;
+    }
+
+    @DataBoundSetter
+    public void setInjectMavenExtension(boolean injectMavenExtension) {
+        this.injectMavenExtension = injectMavenExtension;
     }
 
     /**
