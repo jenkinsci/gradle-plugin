@@ -1,0 +1,30 @@
+jenkins:
+unclassified:
+    injectionConfig:
+        allowUntrusted: true
+        ccudExtensionCustomCoordinates: "mycustom-ccud:ext"
+        ccudExtensionVersion: "2.0.1"
+        ccudPluginVersion: "2.0.2"
+        checkForBuildAgentErrors: true
+        enabled: true
+        enforceUrl: true
+        gradleCaptureTaskInputFiles: true
+        gradleInjectionDisabledNodes:
+            -   label: "non-gradle-node"
+        gradleInjectionEnabledNodes:
+            -   label: "gradle-node"
+        gradlePluginRepositoryUrl: "https://plugins.gradle.org"
+        gradlePluginVersion: "3.18.1"
+        injectMavenExtension: true
+        injectCcudExtension: true
+        mavenCaptureGoalInputFiles: true
+        mavenExtensionCustomCoordinates: "mycustom:ext"
+        mavenExtensionRepositoryUrl: "https://repo1.maven.org/maven2"
+        mavenExtensionVersion: "1.22.1"
+        mavenInjectionDisabledNodes:
+            -   label: "non-maven-node"
+        mavenInjectionEnabledNodes:
+            -   label: "maven-node"
+        server: "http://localhost:5086"
+        shortLivedTokenExpiry: 24
+        vcsRepositoryFilter: "+:myrepo"
