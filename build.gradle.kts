@@ -126,6 +126,7 @@ dependencies {
     testImplementation("org.jenkins-ci.main:jenkins-test-harness:2225.v04fa_3929c9b_5")
     testImplementation("org.jenkins-ci.main:jenkins-test-harness-tools:2.2")
     testImplementation("io.jenkins:configuration-as-code:1.4")
+    testImplementation("io.jenkins.configuration-as-code:test-harness:1.4")
     testImplementation("org.jenkins-ci.plugins:timestamper")
     testImplementation("org.jenkins-ci.plugins:pipeline-stage-step")
     testImplementation("org.jenkins-ci.plugins:pipeline-maven:3.10.0")
