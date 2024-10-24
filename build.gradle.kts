@@ -8,7 +8,7 @@ import java.util.zip.ZipFile
 
 plugins {
     id("org.jenkins-ci.jpi") version "0.51.0"
-    id("com.github.spotbugs") version "6.0.24"
+    id("com.github.spotbugs") version "6.0.25"
     id("codenarc")
     id("buildlogic.reproducible-archives")
 }
