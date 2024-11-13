@@ -16,9 +16,9 @@ plugins {
 group = "org.jenkins-ci.plugins"
 description = "This plugin adds Gradle support to Jenkins"
 
-val coreBaseVersion = "2.401"
+val coreBaseVersion = "2.440"
 val corePatchVersion = "3"
-val coreBomVersion = "2745.vc7b_fe4c876fa_"
+val coreBomVersion = "3387.v0f2773fa_3200"
 
 val gradleExt = (gradle as ExtensionAware).extra
 
