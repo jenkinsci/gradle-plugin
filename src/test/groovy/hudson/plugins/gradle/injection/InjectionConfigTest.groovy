@@ -334,7 +334,8 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
     }
 
     private static HtmlButton getAddButton(HtmlForm form, String label) {
-        def xpath = "//div[text() = '$label']/following-sibling::div[contains(@class, 'setting-main')]//span[contains(@class, 'repeatable-add')]//button[text() = 'Add']"
+        def xpath = "//div[text() = '$label']/following-sibling::div[contains(@class, 'setting-main')]//button[contains(@class, 'repeatable-add')]"
+
         return form.getFirstByXPath(xpath)
     }
 }
