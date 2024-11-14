@@ -40,8 +40,6 @@ dependencies {
     add(gradlePlugin.name, project(path = ":", configuration = "gradlePluginJpi"))
 }
 
-val currentJava = JavaVersion.current()
-
 val jenkinsVersions = listOf(
     JenkinsVersion.LATEST,
     JenkinsVersion.LATEST_LTS,
@@ -49,9 +47,6 @@ val jenkinsVersions = listOf(
 )
 
 jenkinsVersions
-    .filter { jenkinsVersion ->
-        jenkinsVersion.isDefault || currentJava.isCompatibleWith(jenkinsVersion.requiredJavaVersion)
-    }
     .forEach { jenkinsVersion ->
         val downloadJenkinsTask =
             tasks.register<Download>("downloadJenkins${jenkinsVersion.label}") {
@@ -154,7 +149,4 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
         } else {
             version.split("-").joinToString(separator = "") { it.capitalized() }
         }
-
-    val requiredJavaVersion: JavaVersion
-        get() = JavaVersion.toVersion(javaVersion.toString())
 }
