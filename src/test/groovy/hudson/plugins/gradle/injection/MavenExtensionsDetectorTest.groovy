@@ -30,7 +30,7 @@ class MavenExtensionsDetectorTest extends Specification {
         dir {
             '.mvn' {
                 'extensions.xml'(generateExtensionsXml(
-                    *(extensions.collect({ MavenCoordinates.parseCoordinates(it) }))))
+                        *(extensions.collect { MavenCoordinates.parseCoordinates(it) })))
             }
         }
 
@@ -68,9 +68,9 @@ class MavenExtensionsDetectorTest extends Specification {
         dir {
             '.mvn' {
                 'extensions.xml'(
-                    generateExtensionsXml(
-                        MavenCoordinates.parseCoordinates('my:ext:1.0'),
-                        MavenCoordinates.parseCoordinates('my:ext-ccud:1.0')))
+                        generateExtensionsXml(
+                                MavenCoordinates.parseCoordinates('my:ext:1.0'),
+                                MavenCoordinates.parseCoordinates('my:ext-ccud:1.0')))
             }
         }
 
