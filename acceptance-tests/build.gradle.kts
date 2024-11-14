@@ -12,7 +12,7 @@ val ciJenkinsBuild: Boolean by (gradle as ExtensionAware).extra
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
@@ -79,6 +79,10 @@ jenkinsVersions
                 // Do not run on Windows as written here: https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/EXTERNAL.md
                 !ciJenkinsBuild && !OperatingSystem.current().isWindows
             }
+
+            environment("JAVA_HOME", javaToolchains.launcherFor {
+                languageVersion.set(jenkinsVersion.javaVersion)
+            }.get().executablePath.toString())
 
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(jenkinsVersion.javaVersion)
