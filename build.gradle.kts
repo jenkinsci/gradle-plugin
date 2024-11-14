@@ -68,7 +68,7 @@ jenkinsPlugin {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 
     registerFeature("optionalPlugin") {
@@ -91,9 +91,6 @@ val includedLibs: Configuration by configurations.creating
 val gradlePluginJpi: Configuration by configurations.creating { isCanBeConsumed = true; isCanBeResolved = false }
 
 dependencies {
-    "codenarc"("org.codehaus.groovy:groovy-all:3.0.21")
-    "codenarc"("org.codenarc:CodeNarc:1.6.1")
-
     api(platform("io.jenkins.tools.bom:bom-${coreBaseVersion}.x:${coreBomVersion}"))
 
     implementation("org.jenkins-ci.plugins:jackson2-api")

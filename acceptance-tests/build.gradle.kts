@@ -12,7 +12,7 @@ val ciJenkinsBuild: Boolean by (gradle as ExtensionAware).extra
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
