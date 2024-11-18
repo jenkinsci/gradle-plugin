@@ -97,7 +97,7 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
 node {
    stage('Build') {
       // Run the maven build
-      def gradleHome = tool name: '5.5', type: 'gradle'
+      def gradleHome = tool name: '7.3.3', type: 'gradle'
       writeFile file: 'settings.gradle', text: ''
       writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
       if (isUnix()) {
@@ -125,7 +125,7 @@ node {
 
     def 'detects build scan in pipeline log using withGradle'() {
         given:
-        gradleInstallationRule.gradleVersion = '5.6.4'
+        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -174,7 +174,7 @@ node {
 
     def 'does not find build scans in pipeline logs when none have been published'() {
         given:
-        gradleInstallationRule.gradleVersion = '5.6.4'
+        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -206,7 +206,7 @@ node {
 
     def 'does not find build scans in pipeline logs when none have been published with withGradle'() {
         given:
-        gradleInstallationRule.gradleVersion = '5.6.4'
+        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
