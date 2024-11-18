@@ -91,13 +91,14 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'detects build scan in pipeline log'() {
         given:
+        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
 node {
    stage('Build') {
       // Run the maven build
-      def gradleHome = tool name: '7.3.3', type: 'gradle'
+      def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
       writeFile file: 'settings.gradle', text: ''
       writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
       if (isUnix()) {
