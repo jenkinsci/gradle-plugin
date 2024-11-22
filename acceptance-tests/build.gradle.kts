@@ -10,6 +10,14 @@ plugins {
 
 val ciJenkinsBuild: Boolean by (gradle as ExtensionAware).extra
 
+java {
+    // Only used for compilation. We don't rely on toolchain for running the tests,
+    // as Jenkins ATH doesn't allow to specify the JAVA_HOME.
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 group = "org.jenkins-ci.plugins"
 description = "Acceptance tests of Gradle plugin"
 
