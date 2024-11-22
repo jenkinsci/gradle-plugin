@@ -11,6 +11,8 @@ plugins {
 val ciJenkinsBuild: Boolean by (gradle as ExtensionAware).extra
 
 java {
+    // Only used for compilation. We don't rely on toolchain for running the tests,
+    // as Jenkins ATH doesn't allow to specify the JAVA_HOME.
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
     }
@@ -40,18 +42,13 @@ dependencies {
     add(gradlePlugin.name, project(path = ":", configuration = "gradlePluginJpi"))
 }
 
-val currentJava = JavaVersion.current()
-
 val jenkinsVersions = listOf(
     JenkinsVersion.LATEST,
     JenkinsVersion.LATEST_LTS,
-    JenkinsVersion.V2_401
+    JenkinsVersion.V2_440
 )
 
 jenkinsVersions
-    .filter { jenkinsVersion ->
-        jenkinsVersion.isDefault || currentJava.isCompatibleWith(jenkinsVersion.requiredJavaVersion)
-    }
     .forEach { jenkinsVersion ->
         val downloadJenkinsTask =
             tasks.register<Download>("downloadJenkins${jenkinsVersion.label}") {
@@ -85,10 +82,6 @@ jenkinsVersions
                 !ciJenkinsBuild && !OperatingSystem.current().isWindows
             }
 
-            javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(jenkinsVersion.javaVersion)
-            })
-
             systemProperties(
                 mapOf(
                     "jdk.xml.xpathExprOpLimit" to 150
@@ -107,26 +100,23 @@ jenkinsVersions
         }
     }
 
-data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVersion: JavaLanguageVersion) {
+data class JenkinsVersion(val version: String, val downloadUrl: URL) {
 
     companion object {
 
         private const val LATEST_VERSION = "latest"
         private const val LATEST_LTS_VERSION = "latest-lts"
-        private const val V2_401_VERSION = "2.401.3"
+        private const val V2_440_VERSION = "2.440.3"
 
         private const val MIRROR = "https://updates.jenkins.io"
 
         private val JENKINS_VERSION_PATTERN = "^\\d+([.]\\d+)*?\$".toRegex()
 
-        private val JAVA_11 = JavaLanguageVersion.of(11)
-        private val JAVA_17 = JavaLanguageVersion.of(17)
-
-        val LATEST = of(LATEST_VERSION, JAVA_17)
+        val LATEST = of(LATEST_VERSION)
         val LATEST_LTS = of(LATEST_LTS_VERSION)
-        val V2_401 = of(V2_401_VERSION)
+        val V2_440 = of(V2_440_VERSION)
 
-        private fun of(version: String, javaVersion: JavaLanguageVersion = JAVA_11): JenkinsVersion {
+        private fun of(version: String): JenkinsVersion {
             val downloadUrl =
                 when (version) {
                     LATEST_VERSION -> "${MIRROR}/current/latest/jenkins.war"
@@ -139,14 +129,14 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
                     }
                 }
 
-            return JenkinsVersion(version, URL(downloadUrl), javaVersion)
+            return JenkinsVersion(version, URL(downloadUrl))
         }
 
         private fun isJenkinsVersion(version: String) = JENKINS_VERSION_PATTERN.matches(version)
     }
 
     val isDefault: Boolean
-        get() = version == V2_401_VERSION
+        get() = version == V2_440_VERSION
 
     val label: String
         get() = if (isJenkinsVersion(version)) {
@@ -155,6 +145,4 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL, val javaVer
             version.split("-").joinToString(separator = "") { it.capitalized() }
         }
 
-    val requiredJavaVersion: JavaVersion
-        get() = JavaVersion.toVersion(javaVersion.toString())
 }

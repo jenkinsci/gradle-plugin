@@ -2,13 +2,13 @@ package hudson.plugins.gradle.injection
 
 import hudson.console.ConsoleNote
 import hudson.model.Actionable
+import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
-import spock.lang.Specification
 import spock.lang.Subject
 
 import java.nio.charset.StandardCharsets
 
-class DevelocityExceptionLogProcessorTest extends Specification {
+class DevelocityExceptionLogProcessorTest extends BaseJenkinsIntegrationTest {
 
     private static final String GRADLE_PLUGIN_ERROR = "Internal error in Gradle Enterprise Gradle plugin: com.acme.FooBar"
     private static final String MAVEN_EXTENSION_ERROR = "[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar"
