@@ -941,9 +941,9 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         then:
         def log = JenkinsRule.getLog(secondRun)
         assert quiet == !log.contains('Develocity plugins resolution: https://plugins.gradle.org/m2')
-        assert quiet == !log.contains('Applying com.gradle.develocity.agent.gradle.DevelocityPlugin via init script')
-        assert quiet == !log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false')
-        assert quiet == !log.contains('Applying com.gradle.CommonCustomUserDataGradlePlugin via init script')
+        assert quiet == !(log =~ /Applying com.gradle.develocity.agent.gradle.DevelocityPlugin with version (.*) via init script/)
+        assert quiet == !log.contains('Connection to Develocity: http://foo.com, allowUntrustedServer: false, captureFileFingerprints: true')
+        assert quiet == !(log =~ /Applying com.gradle.CommonCustomUserDataGradlePlugin with version (.*) via init script/)
 
         where:
         quiet << [true, false]
