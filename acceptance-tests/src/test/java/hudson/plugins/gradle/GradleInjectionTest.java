@@ -27,6 +27,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.jenkinsci.test.acceptance.Matchers.containsRegexp;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
 public class GradleInjectionTest extends AbstractAcceptanceTest {
@@ -352,7 +353,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         String output = build.getConsole();
 
         Matcher<String> appliedViaInitScriptMatcher =
-            containsString("Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin via init script");
+            containsRegexp("Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin with version (.*) via init script");
         assertThat(output, requireAppliedViaInitScript ? appliedViaInitScriptMatcher : not(appliedViaInitScriptMatcher));
         assertRequiredLogLines(output, requiredLogsLines);
         assertThat(output, containsString("Publishing build scan..." + System.lineSeparator() + mockGeServer.publicBuildScanId()));
