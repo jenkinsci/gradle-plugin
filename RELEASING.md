@@ -11,7 +11,7 @@ Jenkins plugin not using a release plugin.
 userName=yourUsername
 password=IHeartJenkins
 ```
-* Deploy: `./gradlew clean publish`
+* Deploy: `./gradlew clean publish --rerun-tasks`
 * Tag the source as it is: `git tag -s -a gradle-1.25 -m "Staging 1.25"`
 * Increment the version in _gradle.properties_ and append `-SNAPSHOT`: `echo "version=1.26-SNAPSHOT">gradle.properties`
 * Commit the updated version number: `git commit -S -am "Bumping to next rev"`
