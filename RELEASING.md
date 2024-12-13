@@ -5,7 +5,6 @@ Jenkins plugin not using a release plugin.
 * Make sure tests still run: `./gradlew test`
 * Run locally to perform sanity check: `./gradlew server`
 * Edit _gradle.properties_ to strip `-SNAPSHOT` from version: `vi gradle.properties`
-* Edit _README.adoc_ to add the new version to the [compatibility](https://github.com/jenkinsci/gradle-plugin#auto-injection-compatibility) section
 * Ensure everything is checked in: `git commit -S -am "Releasing 1.25"`
 * Ensure you have your Jenkins credentials in _~/.jenkins-ci.org_: `cat ~/.jenkins-ci.org`
 ```
