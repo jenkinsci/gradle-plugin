@@ -21,7 +21,7 @@ val mvnExtension: Configuration by configurations.creating { isCanBeConsumed = t
 
 dependencies {
     compileOnly("org.apache.maven:maven-core:3.8.7")
-    compileOnly("com.gradle:develocity-maven-extension:1.23")
+    compileOnly("com.gradle:develocity-maven-extension:1.23.1")
 }
 
 val jar by tasks.getting(Jar::class)
