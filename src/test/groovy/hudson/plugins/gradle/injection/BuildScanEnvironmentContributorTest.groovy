@@ -25,6 +25,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
     def 'does nothing if no access key'() {
         given:
         def config = InjectionConfig.get()
+        config.setEnabled(true)
         config.setAccessKeyCredentialId("")
         config.save()
 
@@ -38,7 +39,21 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
     def 'does nothing if no password'() {
         given:
         def config = InjectionConfig.get()
+        config.setEnabled(true)
         config.setGradlePluginRepositoryCredentialId("")
+        config.save()
+
+        when:
+        buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
+
+        then:
+        0 * run.addAction(_)
+    }
+
+    def 'does nothing if Develocity injection is disabled'() {
+        given:
+        def config = InjectionConfig.get()
+        config.setEnabled(false)
         config.save()
 
         when:
@@ -51,6 +66,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
     def 'adds empty action if access key is invalid'() {
         given:
         def config = InjectionConfig.get()
+        config.setEnabled(true)
         def accessKeyCredentialId = UUID.randomUUID().toString()
         config.setAccessKeyCredentialId(accessKeyCredentialId)
         config.save()
@@ -72,6 +88,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
     def 'adds action if access key is invalid but password is there'() {
         given:
         def config = InjectionConfig.get()
+        config.setEnabled(true)
         def accessKeyCredentialId = UUID.randomUUID().toString()
         def repositoryPasswordCredentialId = UUID.randomUUID().toString()
         config.setAccessKeyCredentialId(accessKeyCredentialId)
@@ -100,6 +117,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         def accessKey = "localhost=secret"
         def accessKeyCredentialId = UUID.randomUUID().toString()
         def config = InjectionConfig.get()
+        config.setEnabled(true)
         config.setServer('http://localhost')
         config.setAccessKeyCredentialId(accessKeyCredentialId)
         config.save()
@@ -130,6 +148,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         def accessKey = "localhost=secret;other=secret2"
         def accessKeyCredentialId = UUID.randomUUID().toString()
         def config = InjectionConfig.get()
+        config.setEnabled(true)
         config.setServer('http://localhost')
         config.setEnforceUrl(true)
         config.setAccessKeyCredentialId(accessKeyCredentialId)
@@ -160,6 +179,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         def accessKey = "localhost=secret;other=secret2"
         def accessKeyCredentialId = UUID.randomUUID().toString()
         def config = InjectionConfig.get()
+        config.setEnabled(true)
         config.setServer('http://localhost')
         config.setEnforceUrl(false)
         config.setAccessKeyCredentialId(accessKeyCredentialId)
@@ -188,6 +208,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         given:
         def passwordCredentialId = UUID.randomUUID().toString()
         def config = InjectionConfig.get()
+        config.setEnabled(true)
         config.setGradlePluginRepositoryCredentialId(passwordCredentialId)
         config.save()
 
@@ -214,6 +235,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         def accessKeyCredentialId = UUID.randomUUID().toString()
         def repositoryPasswordCredentialId = UUID.randomUUID().toString()
         def accessKey = "localhost=secret"
+        config.setEnabled(true)
         config.setAccessKeyCredentialId(accessKeyCredentialId)
         config.setGradlePluginRepositoryCredentialId(repositoryPasswordCredentialId)
         config.save()
