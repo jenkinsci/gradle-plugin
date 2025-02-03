@@ -43,6 +43,10 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
     @Override
     public void buildEnvironmentFor(@Nonnull Run run, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
+        if (InjectionConfig.get().isDisabled() || alreadyExecuted(run)) {
+            return;
+        }
+
         String accessKeyCredentialId = InjectionConfig.get().getAccessKeyCredentialId();
         String gradlePluginRepositoryCredentialId = InjectionConfig.get().getGradlePluginRepositoryCredentialId();
 
@@ -55,7 +59,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
                 .map(StandardUsernamePasswordCredentials::getPassword)
                 .orElse(null);
 
-        if ((secretKey == null && secretPassword == null) || alreadyExecuted(run)) {
+        if (secretKey == null && secretPassword == null) {
             return;
         }
         DevelocityLogger logger = new DevelocityLogger(listener);
