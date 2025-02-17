@@ -134,7 +134,7 @@ dependencies {
     testImplementation("org.spockframework:spock-junit4:2.3-groovy-2.5")
     testImplementation("net.bytebuddy:byte-buddy:1.17.0")
     testImplementation("org.objenesis:objenesis:3.4")
-    testImplementation(platform("io.netty:netty-bom:4.1.117.Final"))
+    testImplementation(platform("io.netty:netty-bom:4.1.118.Final"))
 
     testImplementation("io.ratpack:ratpack-groovy-test:1.9.0") {
         exclude(group = "com.google.guava", module = "guava")
