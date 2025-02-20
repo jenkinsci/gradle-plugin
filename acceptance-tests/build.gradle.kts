@@ -14,7 +14,7 @@ java {
     // Only used for compilation. We don't rely on toolchain for running the tests,
     // as Jenkins ATH doesn't allow to specify the JAVA_HOME.
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
@@ -32,9 +32,9 @@ val gradlePlugin: Configuration by configurations.creating { isCanBeConsumed = f
 
 dependencies {
     // same version as used by ATH
-    annotationProcessor("org.jenkins-ci:annotation-indexer:1.12")
+    annotationProcessor("org.jenkins-ci:annotation-indexer:1.18")
 
-    implementation("org.jenkins-ci:acceptance-test-harness:5740.vd30f30408987")
+    implementation("org.jenkins-ci:acceptance-test-harness:6133.v358d9a_47674f")
 
     testImplementation(platform("io.netty:netty-bom:4.1.118.Final"))
     testImplementation("io.ratpack:ratpack-test:2.0.0-rc-1")
@@ -45,7 +45,7 @@ dependencies {
 val jenkinsVersions = listOf(
     JenkinsVersion.LATEST,
     JenkinsVersion.LATEST_LTS,
-    JenkinsVersion.V2_440
+    JenkinsVersion.V2_479
 )
 
 jenkinsVersions
@@ -106,7 +106,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL) {
 
         private const val LATEST_VERSION = "latest"
         private const val LATEST_LTS_VERSION = "latest-lts"
-        private const val V2_440_VERSION = "2.440.3"
+        private const val V2_479_VERSION = "2.479.3"
 
         private const val MIRROR = "https://updates.jenkins.io"
 
@@ -114,7 +114,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL) {
 
         val LATEST = of(LATEST_VERSION)
         val LATEST_LTS = of(LATEST_LTS_VERSION)
-        val V2_440 = of(V2_440_VERSION)
+        val V2_479 = of(V2_479_VERSION)
 
         private fun of(version: String): JenkinsVersion {
             val downloadUrl =
@@ -136,7 +136,7 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL) {
     }
 
     val isDefault: Boolean
-        get() = version == V2_440_VERSION
+        get() = version == V2_479_VERSION
 
     val label: String
         get() = if (isJenkinsVersion(version)) {

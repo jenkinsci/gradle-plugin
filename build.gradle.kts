@@ -7,7 +7,7 @@ import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
 import java.util.zip.ZipFile
 
 plugins {
-    id("org.jenkins-ci.jpi") version "0.52.0"
+    id("org.jenkins-ci.jpi") version "0.53.1"
     id("com.github.spotbugs") version "6.1.5"
     id("codenarc")
     id("buildlogic.reproducible-archives")
@@ -16,9 +16,9 @@ plugins {
 group = "org.jenkins-ci.plugins"
 description = "This plugin adds Gradle support to Jenkins"
 
-val coreBaseVersion = "2.440"
+val coreBaseVersion = "2.479"
 val corePatchVersion = "3"
-val coreBomVersion = "3387.v0f2773fa_3200"
+val coreBomVersion = "3893.v213a_42768d35"
 
 val gradleExt = (gradle as ExtensionAware).extra
 
@@ -68,7 +68,7 @@ jenkinsPlugin {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 
     registerFeature("optionalPlugin") {
@@ -77,7 +77,7 @@ java {
 }
 
 tasks.compileJava {
-    options.release = 11
+    options.release = 17
 }
 
 // see https://github.com/jenkinsci/gradle-jpi-plugin#customizing-further
@@ -111,10 +111,7 @@ dependencies {
         exclude(group = "com.google.inject", module = "guice")
     }
 
-    // Higher versions fail in our tests with ClassNotFoundException during SCM initialization unless Jenkins is updated
-    "optionalPluginImplementation"("org.jenkins-ci.plugins:git:4.9.4") {
-        because("VCS repositories filtering is supported for Develocity auto-injection")
-    }
+    "optionalPluginImplementation"("org.jenkins-ci.plugins:git:5.7.0")
 
     implementation("commons-validator:commons-validator:1.9.0") {
         exclude(group = "commons-beanutils", module = "commons-beanutils")
@@ -123,13 +120,13 @@ dependencies {
 
     add(includedLibs.name, project(path = ":configuration-maven-extension", configuration = "mvnExtension"))
 
-    testImplementation("org.jenkins-ci.main:jenkins-test-harness:2225.v04fa_3929c9b_5")
+    testImplementation("org.jenkins-ci.main:jenkins-test-harness:2395.v8256a_2157798")
     testImplementation("org.jenkins-ci.main:jenkins-test-harness-tools:2.2")
-    testImplementation("io.jenkins:configuration-as-code:1.4")
-    testImplementation("io.jenkins.configuration-as-code:test-harness:1.4")
+    testImplementation("io.jenkins:configuration-as-code")
+    testImplementation("io.jenkins.configuration-as-code:test-harness")
     testImplementation("org.jenkins-ci.plugins:timestamper")
     testImplementation("org.jenkins-ci.plugins:pipeline-stage-step")
-    testImplementation("org.jenkins-ci.plugins:pipeline-maven:3.10.0")
+    testImplementation("org.jenkins-ci.plugins:pipeline-maven")
     testImplementation("org.spockframework:spock-core:2.3-groovy-2.5")
     testImplementation("org.spockframework:spock-junit4:2.3-groovy-2.5")
     testImplementation("net.bytebuddy:byte-buddy:1.17.1")
@@ -180,7 +177,7 @@ val main: SourceSet by sourceSets.getting
 val test: SourceSet by sourceSets.getting
 
 codenarc {
-    toolVersion = "1.5"
+    toolVersion = "1.6"
     sourceSets = listOf(test)
 }
 

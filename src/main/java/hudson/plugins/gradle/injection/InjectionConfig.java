@@ -14,6 +14,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
+import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.plugins.gradle.Messages;
 import hudson.security.ACL;
@@ -32,7 +33,7 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
@@ -406,7 +407,7 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject json) {
+    public boolean configure(StaplerRequest2 req, JSONObject json) {
         clearRepeatableProperties();
         req.bindJSON(this, json);
         save();
@@ -673,13 +674,18 @@ public class InjectionConfig extends GlobalConfiguration {
             save();
         }
         if (gradlePluginRepositoryUsername != null && gradlePluginRepositoryPassword != null && gradlePluginRepositoryCredentialId == null) {
-            StandardUsernamePasswordCredentials standardUsernameCredentials = new UsernamePasswordCredentialsImpl(
-                    CredentialsScope.GLOBAL,
-                    UUID.randomUUID().toString(),
-                    "Migrated Gradle Plugin Respoitory credentials",
-                    gradlePluginRepositoryUsername,
-                    gradlePluginRepositoryPassword.getPlainText()
-            );
+            StandardUsernamePasswordCredentials standardUsernameCredentials;
+            try {
+                standardUsernameCredentials = new UsernamePasswordCredentialsImpl(
+                        CredentialsScope.GLOBAL,
+                        UUID.randomUUID().toString(),
+                        "Migrated Gradle Plugin Respoitory credentials",
+                        gradlePluginRepositoryUsername,
+                        gradlePluginRepositoryPassword.getPlainText()
+                );
+            } catch (Descriptor.FormException e) {
+                throw new RuntimeException(e);
+            }
 
             SystemCredentialsProvider.getInstance().getCredentials().add(standardUsernameCredentials);
             SystemCredentialsProvider.getInstance().save();

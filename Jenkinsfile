@@ -1,1 +1,1 @@
-buildPluginWithGradle(jdkVersions: ['11'], timeout: 180)
+buildPluginWithGradle(jdkVersions: ['17'], timeout: 180)
