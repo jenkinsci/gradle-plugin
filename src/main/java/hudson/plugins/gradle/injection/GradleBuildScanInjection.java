@@ -77,6 +77,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
     private void inject(InjectionConfig config, Node node, String initScriptDirectory) {
         try {
             EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_INJECTION_ENABLED, "true");
+            EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_INJECTION_DEBUG, "true");
             injectInitScript(node.getChannel(), initScriptDirectory);
             injectEnvironmentVariables(config, node);
         } catch (IOException | InterruptedException e) {
@@ -97,7 +98,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
         EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_URL, config.getServer());
         EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_PLUGIN_VERSION, config.getGradlePluginVersion());
         EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_INIT_SCRIPT_NAME, GRADLE_INIT_FILE);
-        EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE, "Jenkins");
+        EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_INJECTION_CUSTOM_VALUE, "Jenkins");
 
         if (config.isAllowUntrusted()) {
             EnvUtil.setEnvVar(node, InitScriptVariables.DEVELOCITY_ALLOW_UNTRUSTED_SERVER, "true");
