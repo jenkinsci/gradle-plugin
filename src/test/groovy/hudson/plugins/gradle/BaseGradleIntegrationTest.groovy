@@ -50,7 +50,6 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
         withInjectionConfig {
             enabled = true
             gradlePluginVersion = DEVELOCITY_PLUGIN_VERSION
-            ccudPluginVersion = CCUD_PLUGIN_VERSION
             gradlePluginRepositoryUrl = repositoryAddress?.toString()
             gradleCaptureTaskInputFiles = captureTaskInputFiles
         }

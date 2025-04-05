@@ -996,7 +996,6 @@ task hello {
 
     private DumbSlave createSlave(boolean setGeUrl = true) {
         withInjectionConfig {
-            ccudPluginVersion = CCUD_PLUGIN_VERSION
             server = setGeUrl ? 'http://foo.com' : null
         }
 
