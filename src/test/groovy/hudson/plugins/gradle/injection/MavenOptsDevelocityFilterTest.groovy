@@ -3,7 +3,6 @@ package hudson.plugins.gradle.injection
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_URL
 import static hudson.plugins.gradle.injection.MavenInjectionAware.BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY
 import static hudson.plugins.gradle.injection.MavenInjectionAware.DEVELOCITY_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY
 import static hudson.plugins.gradle.injection.MavenInjectionAware.DEVELOCITY_UPLOAD_IN_BACKGROUND_PROPERTY_KEY
@@ -96,8 +95,8 @@ class MavenOptsDevelocityFilterTest extends Specification {
 
         where:
         mavenOpts                                                                 | extensionsAlreadyApplied                                | expected
-        "-Dmaven.ext.class.path=${DV_EXT_LIB} ${DV_SYS_PROPS}"                    | [MavenExtension.DEVELOCITY]                             | "${DEVELOCITY_URL.sysProp('https://scans.gradle.com')} -Dgradle.enterprise.url=https://scans.gradle.com"
-        "-Dmaven.ext.class.path=${DV_EXT_LIB}:${DV_CCUD_EXT_LIB} ${DV_SYS_PROPS}" | [MavenExtension.DEVELOCITY, MavenExtension.CCUD]        | "${DEVELOCITY_URL.sysProp('https://scans.gradle.com')} -Dgradle.enterprise.url=https://scans.gradle.com"
+        "-Dmaven.ext.class.path=${DV_EXT_LIB} ${DV_SYS_PROPS}"                    | [MavenExtension.DEVELOCITY]                             | "-Ddevelocity.url=https://scans.gradle.com -Dgradle.enterprise.url=https://scans.gradle.com"
+        "-Dmaven.ext.class.path=${DV_EXT_LIB}:${DV_CCUD_EXT_LIB} ${DV_SYS_PROPS}" | [MavenExtension.DEVELOCITY, MavenExtension.CCUD]        | "-Ddevelocity.url=https://scans.gradle.com -Dgradle.enterprise.url=https://scans.gradle.com"
     }
 
     def 'MAVEN_OPTS should be filtered on Windows'() {

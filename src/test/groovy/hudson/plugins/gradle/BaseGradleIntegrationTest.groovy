@@ -41,7 +41,7 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
     ) {
         withGlobalEnvVars {
             put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(slave, gradleVersion))
-            put('GRADLE_OPTS', '-Ddevelocity.build-scan.upload-in-background=false')
+            put('GRADLE_OPTS', '-Ddevelocity-injection.upload-in-background=false')
             if (globalAutoInjectionCheckEnabled) {
                 put("JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK", "true")
             }

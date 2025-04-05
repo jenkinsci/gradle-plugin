@@ -107,7 +107,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
             if (action instanceof DevelocityParametersAction) {
                 def parameters = action.getAllParameters()
                 parameters.size() == 1
-                paramEquals(parameters.first(), 'GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
+                paramEquals(parameters.first(), 'DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_PASSWORD', 'foo')
             }
         }
     }
@@ -222,7 +222,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
             if (action instanceof DevelocityParametersAction) {
                 def parameters = action.getAllParameters()
                 parameters.size() == 1
-                paramEquals(parameters.first(), 'GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
+                paramEquals(parameters.first(), 'DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_PASSWORD', 'foo')
             }
         }
     }
@@ -257,7 +257,7 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
                 parameters.size() == 3
                 paramEquals(parameters[0], 'GRADLE_ENTERPRISE_ACCESS_KEY', 'localhost=xyz')
                 paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', 'localhost=xyz')
-                paramEquals(parameters[2], 'GRADLE_PLUGIN_REPOSITORY_PASSWORD', 'foo')
+                paramEquals(parameters[2], 'DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_PASSWORD', 'foo')
             }
         }
     }
