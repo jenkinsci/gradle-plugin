@@ -936,6 +936,9 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         when:
         enableBuildInjection(agent, gradleVersion)
+        withInjectionConfig {
+            ccudPluginVersion = CCUD_PLUGIN_VERSION
+        }
         def secondRun = j.buildAndAssertSuccess(project)
 
         then:
@@ -996,7 +999,6 @@ task hello {
 
     private DumbSlave createSlave(boolean setGeUrl = true) {
         withInjectionConfig {
-            ccudPluginVersion = CCUD_PLUGIN_VERSION
             server = setGeUrl ? 'http://foo.com' : null
         }
 
