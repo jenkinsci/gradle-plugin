@@ -44,6 +44,7 @@
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
 
         <spotless.check.skip>false</spotless.check.skip>
+        <toolchain.jdk.version>[11,17)</toolchain.jdk.version>
     </properties>
 
     <dependencyManagement>
@@ -205,10 +206,34 @@
             <version>4.0.15</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.17.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.objenesis</groupId>
+            <artifactId>objenesis</artifactId>
+            <version>3.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>select-jdk-toolchain</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.gmavenplus</groupId>
                 <artifactId>gmavenplus-plugin</artifactId>
@@ -237,6 +262,7 @@
                         <include>**/*Test.java</include>
                         <include>**/*Spec.groovy</include>
                     </includes>
+                    <forkCount>4</forkCount>
                 </configuration>
             </plugin>
 
