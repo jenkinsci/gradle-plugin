@@ -7,7 +7,7 @@ import org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
 import java.util.zip.ZipFile
 
 plugins {
-    id("org.jenkins-ci.jpi") version "0.52.0"
+    id("org.jenkins-ci.jpi") version "0.53.1"
     id("com.github.spotbugs") version "6.1.7"
     id("codenarc")
     id("buildlogic.reproducible-archives")

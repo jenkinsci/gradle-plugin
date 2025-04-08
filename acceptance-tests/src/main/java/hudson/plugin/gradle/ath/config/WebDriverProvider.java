@@ -14,7 +14,7 @@ import org.openqa.selenium.UnsupportedCommandException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.events.EventFiringWebDriver;
+import org.openqa.selenium.support.events.EventFiringDecorator;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -72,8 +72,7 @@ class WebDriverProvider implements Provider<WebDriver> {
         if (oldSize.height < 1050 || oldSize.width < 1680) {
             d.manage().window().setSize(new Dimension(1680, 1050));
         }
-        final EventFiringWebDriver driver = new EventFiringWebDriver(d);
-        driver.register(new Scroller());
+        final WebDriver driver = new EventFiringDecorator(new Scroller(d)).decorate(d);
         try {
             driver.manage().timeouts().pageLoadTimeout(Duration.ofMillis(time.seconds(FallbackConfig.PAGE_LOAD_TIMEOUT)));
             driver.manage().timeouts().implicitlyWait(Duration.ofMillis(time.seconds(FallbackConfig.IMPLICIT_WAIT_TIMEOUT)));
