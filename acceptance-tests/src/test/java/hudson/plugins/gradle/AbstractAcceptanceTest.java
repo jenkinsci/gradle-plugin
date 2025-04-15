@@ -20,6 +20,7 @@ import org.jenkinsci.test.acceptance.slave.SlaveController;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.openqa.selenium.WebDriverException;
 import org.zeroturnaround.zip.ZipUtil;
 
 import javax.inject.Inject;
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
     protected static final URI PUBLIC_DEVELOCITY_SERVER = URI.create("https://scans.gradle.com");
-    
+
     private static final String DEVELOCITY_MAVEN_EXTENSION_VERSION = "1.22";
 
     @Rule
@@ -149,7 +150,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         String credentialDescription = "Develocity Access Key credential";
         stringCredentials.description.set(credentialDescription);
 
-        credentialsPage.create();
+        saveCredentials(credentialsPage);
 
         return credentialDescription;
     }
@@ -166,9 +167,17 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         String credentialDescription = "Gradle Plugin Repository Password credential";
         usernamePasswordCredentials.description.set(credentialDescription);
 
-        credentialsPage.create();
+        saveCredentials(credentialsPage);
 
         return credentialDescription;
+    }
+
+    private void saveCredentials(CredentialsPage credentialsPage) {
+        try {
+            credentialsPage.create();
+        } catch (WebDriverException e) {
+            // BUG in Jenkins ATH ?
+        }
     }
 
     protected final String copyResourceDirStep(Resource dir) {

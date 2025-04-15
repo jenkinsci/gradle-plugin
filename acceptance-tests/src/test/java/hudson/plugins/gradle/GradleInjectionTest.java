@@ -250,7 +250,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
     @Test
     public void skipInjectionIfPluginAlreadyApplied() {
         // given
-        String expectedAgentVersion = "3.10.3";
+        String expectedAgentVersion = "3.19.2";
 
         FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
 

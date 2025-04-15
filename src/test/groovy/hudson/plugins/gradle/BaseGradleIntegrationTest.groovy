@@ -67,8 +67,9 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
         CredentialsProvider.lookupStores(j.jenkins).iterator().next().addCredentials(Domain.global(), creds)
     }
 
+    @Override
     @SuppressWarnings("CatchException")
-    def cleanup() {
+    void cleanup() {
         if(Functions.isWindows()) {
             try {
                 println 'Killing Gradle processes'

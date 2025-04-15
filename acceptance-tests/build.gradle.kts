@@ -14,7 +14,7 @@ java {
     // Only used for compilation. We don't rely on toolchain for running the tests,
     // as Jenkins ATH doesn't allow to specify the JAVA_HOME.
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
@@ -32,12 +32,13 @@ val gradlePlugin: Configuration by configurations.creating { isCanBeConsumed = f
 
 dependencies {
     // same version as used by ATH
-    annotationProcessor("org.jenkins-ci:annotation-indexer:1.12")
+    annotationProcessor("org.jenkins-ci:annotation-indexer:1.18")
 
-    implementation("org.jenkins-ci:acceptance-test-harness:5740.vd30f30408987")
+    implementation("org.jenkins-ci:acceptance-test-harness:6169.v8b_0662286b_b_7")
 
     testImplementation(platform("io.netty:netty-bom:4.1.119.Final"))
     testImplementation("io.ratpack:ratpack-test:2.0.0-rc-1")
+    testCompileOnly("com.google.code.findbugs:jsr305:3.0.2")
 
     add(gradlePlugin.name, project(path = ":", configuration = "gradlePluginJpi"))
 }
@@ -104,32 +105,24 @@ data class JenkinsVersion(val version: String, val downloadUrl: URL) {
 
     companion object {
 
-        private const val LATEST_VERSION = "latest"
-        private const val LATEST_LTS_VERSION = "latest-lts"
+        private const val LATEST_VERSION = "2.504"
+        private const val LATEST_LTS_VERSION = "2.492.3"
         private const val V2_440_VERSION = "2.440.3"
 
         private const val MIRROR = "https://updates.jenkins.io"
 
         private val JENKINS_VERSION_PATTERN = "^\\d+([.]\\d+)*?\$".toRegex()
 
-        val LATEST = of(LATEST_VERSION)
-        val LATEST_LTS = of(LATEST_LTS_VERSION)
-        val V2_440 = of(V2_440_VERSION)
+        val LATEST = of("latest", LATEST_VERSION)
+        val LATEST_LTS = of("latestLts", LATEST_LTS_VERSION)
+        val V2_440 = of(V2_440_VERSION, V2_440_VERSION)
 
-        private fun of(version: String): JenkinsVersion {
-            val downloadUrl =
-                when (version) {
-                    LATEST_VERSION -> "${MIRROR}/current/latest/jenkins.war"
-                    LATEST_LTS_VERSION -> "${MIRROR}/stable/latest/jenkins.war"
-                    else -> {
-                        if (!isJenkinsVersion(version)) {
-                            throw GradleException("Unsupported Jenkins version '${version}'")
-                        }
-                        "https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${version}/jenkins-war-${version}.war"
-                    }
-                }
-
-            return JenkinsVersion(version, URL(downloadUrl))
+        private fun of(label: String, version: String): JenkinsVersion {
+            if (!isJenkinsVersion(version)) {
+                throw GradleException("Unsupported Jenkins version '${version}'")
+            }
+            val downloadUrl = "https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${version}/jenkins-war-${version}.war"
+            return JenkinsVersion(label, URL(downloadUrl))
         }
 
         private fun isJenkinsVersion(version: String) = JENKINS_VERSION_PATTERN.matches(version)
