@@ -1,7 +1,12 @@
 package hudson.plugins.gradle.injection.token
 
 import hudson.plugins.gradle.injection.DevelocityAccessCredentials
+import io.netty.handler.ssl.SslContext
+import io.netty.handler.ssl.SslContextBuilder
+import io.netty.handler.ssl.SslProvider
+import io.netty.handler.ssl.util.SelfSignedCertificate
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.server.ServerConfig
 import spock.lang.Specification
 
 class ShortLivedTokenClientTest extends Specification {
@@ -19,7 +24,7 @@ class ShortLivedTokenClientTest extends Specification {
         def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
-        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
+        def token = new ShortLivedTokenClient(false).get(mockDevelocity.address.toString(), key, null)
 
         then:
         token.get().key == 'some-token'
@@ -41,7 +46,7 @@ class ShortLivedTokenClientTest extends Specification {
         def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
-        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, 3)
+        def token = new ShortLivedTokenClient(false).get(mockDevelocity.address.toString(), key, 3)
 
         then:
         token.get().key == 'some-token'
@@ -61,7 +66,7 @@ class ShortLivedTokenClientTest extends Specification {
         def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
-        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
+        def token = new ShortLivedTokenClient(false).get(mockDevelocity.address.toString(), key, null)
 
         then:
         !token.isPresent()
@@ -82,7 +87,7 @@ class ShortLivedTokenClientTest extends Specification {
         def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
-        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
+        def token = new ShortLivedTokenClient(false).get(mockDevelocity.address.toString(), key, null)
 
         then:
         requestCounter == 3
@@ -94,7 +99,7 @@ class ShortLivedTokenClientTest extends Specification {
         def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
-        def token = new ShortLivedTokenClient().get('http://localhost:8888', key, null)
+        def token = new ShortLivedTokenClient(false).get('http://localhost:8888', key, null)
 
         then:
         !token.isPresent()
@@ -120,7 +125,34 @@ class ShortLivedTokenClientTest extends Specification {
         def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
-        def token = new ShortLivedTokenClient().get(mockDevelocity.address.toString(), key, null)
+        def token = new ShortLivedTokenClient(false).get(mockDevelocity.address.toString(), key, null)
+
+        then:
+        token.get().key == 'some-token'
+        token.get().hostname == mockDevelocity.address.host
+    }
+
+    def "get token for an untrusted server"() {
+        given:
+        def mockDevelocity = GroovyEmbeddedApp.of {
+            serverConfig(ServerConfig.builder().tap {
+                def cert = new SelfSignedCertificate('localhost')
+                def sslContext = SslContextBuilder.forServer(cert.certificate(), cert.privateKey())
+                        .sslProvider(SslProvider.JDK)
+                        .build() as SslContext
+                ssl(sslContext)
+            })
+            handlers {
+                post("api/auth/token") {
+                    response.status(200)
+                    response.send('some-token')
+                }
+            }
+        }
+        def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
+
+        when:
+        def token = new ShortLivedTokenClient(true).get(mockDevelocity.address.toString(), key, null)
 
         then:
         token.get().key == 'some-token'
