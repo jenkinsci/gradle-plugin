@@ -179,7 +179,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         // then
         build.shouldSucceed();
         assertBuildScanPublished(build);
-        build.action(EnvInjectAction.class).shouldContain("GRADLE_PLUGIN_REPOSITORY_PASSWORD", "[*******]");
+        build.action(EnvInjectAction.class).shouldContain("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_PASSWORD", "[*******]");
     }
 
     @Test
