@@ -1,0 +1,46 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        ":semanticCommitsDisabled",
+        "schedule:earlyMondays"
+    ],
+    "labels": [
+        "dependencies"
+    ],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "fileMatch": [
+                "acceptance-tests/build.gradle.kts"
+            ],
+            "matchStrings": [
+                "LATEST_VERSION = \"(?<currentValue>)\""
+            ],
+            "versioningTemplate": "semver-coerced",
+            "datasourceTemplate": "custom.jenkins-latest-lts"
+        },
+        {
+            "customType": "regex",
+            "fileMatch": [
+                "acceptance-tests/build.gradle.kts"
+            ],
+            "matchStrings": [
+                "LATEST_LTS_VERSION = \"(?<currentValue>)\""
+            ],
+            "versioningTemplate": "semver-coerced",
+            "datasourceTemplate": "custom.jenkins-latest"
+        }
+    ],
+    "customDatasources": {
+        "jenkins-latest-lts": {
+            "defaultRegistryUrlTemplate": "https://updates.jenkins.io/stable/latestCore.txt",
+            "format": "plain"
+        },
+        "jenkins-latest": {
+            "defaultRegistryUrlTemplate": "https://updates.jenkins.io/latestCore.txt",
+            "format": "plain"
+        }
+    },
+    "rebaseWhen": "conflicted"
+}
