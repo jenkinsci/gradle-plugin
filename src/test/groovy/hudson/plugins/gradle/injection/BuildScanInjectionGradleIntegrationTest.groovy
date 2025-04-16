@@ -205,7 +205,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         with(agentEnvVars(agent)) {
-            get("DEVELOCITY_PLUGIN_VERSION") == "3.12.6"
+            get("DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION") == "3.12.6"
         }
 
         when:
@@ -712,13 +712,13 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             verifyAll(getEnvVars()) {
-                get("DEVELOCITY_URL") == "http://localhost"
-                get("DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
-                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == null
-                get("DEVELOCITY_ENFORCE_URL") == null
-                get("GRADLE_PLUGIN_REPOSITORY_URL") == null
-                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == null
-                get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == 'true'
+                get("DEVELOCITY_INJECTION_URL") == "http://localhost"
+                get("DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
+                get("DEVELOCITY_INJECTION_ALLOW_UNTRUSTED_SERVER") == null
+                get("DEVELOCITY_INJECTION_ENFORCE_URL") == null
+                get("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_URL") == null
+                get("DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION") == null
+                get("DEVELOCITY_INJECTION_CAPTURE_FILE_FINGERPRINTS") == 'true'
             }
         }
 
@@ -736,13 +736,13 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             verifyAll(getEnvVars()) {
-                get("DEVELOCITY_URL") == null
-                get("DEVELOCITY_PLUGIN_VERSION") == null
-                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == null
-                get("DEVELOCITY_ENFORCE_URL") == null
-                get("GRADLE_PLUGIN_REPOSITORY_URL") == null
-                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == null
-                get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == null
+                get("DEVELOCITY_INJECTION_URL") == null
+                get("DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION") == null
+                get("DEVELOCITY_INJECTION_ALLOW_UNTRUSTED_SERVER") == null
+                get("DEVELOCITY_INJECTION_ENFORCE_URL") == null
+                get("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_URL") == null
+                get("DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION") == null
+                get("DEVELOCITY_INJECTION_CAPTURE_FILE_FINGERPRINTS") == null
             }
         }
     }
@@ -779,13 +779,13 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             verifyAll(getEnvVars()) {
-                get("DEVELOCITY_URL") == "http://localhost"
-                get("DEVELOCITY_ENFORCE_URL") == "true"
-                get("DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
-                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == "true"
-                get("GRADLE_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
-                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == "2.0"
-                get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == "true"
+                get("DEVELOCITY_INJECTION_URL") == "http://localhost"
+                get("DEVELOCITY_INJECTION_ENFORCE_URL") == "true"
+                get("DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION") == this.DEVELOCITY_PLUGIN_VERSION
+                get("DEVELOCITY_INJECTION_ALLOW_UNTRUSTED_SERVER") == "true"
+                get("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
+                get("DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION") == "2.0"
+                get("DEVELOCITY_INJECTION_CAPTURE_FILE_FINGERPRINTS") == "true"
             }
         }
 
@@ -807,13 +807,13 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         with(agent.getNodeProperty(EnvironmentVariablesNodeProperty.class)) {
             verifyAll(getEnvVars()) {
-                get("DEVELOCITY_URL") == null
-                get("DEVELOCITY_PLUGIN_VERSION") == null
-                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == null
-                get("GRADLE_PLUGIN_REPOSITORY_URL") == null
-                get("DEVELOCITY_CCUD_PLUGIN_VERSION") == null
-                get("DEVELOCITY_ALLOW_UNTRUSTED_SERVER") == null
-                get("DEVELOCITY_CAPTURE_FILE_FINGERPRINTS") == null
+                get("DEVELOCITY_INJECTION_URL") == null
+                get("DEVELOCITY_INJECTION_DEVELOCITY_PLUGIN_VERSION") == null
+                get("DEVELOCITY_INJECTION_ALLOW_UNTRUSTED_SERVER") == null
+                get("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_URL") == null
+                get("DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION") == null
+                get("DEVELOCITY_INJECTION_ALLOW_UNTRUSTED_SERVER") == null
+                get("DEVELOCITY_INJECTION_CAPTURE_FILE_FINGERPRINTS") == null
             }
         }
     }
@@ -936,6 +936,9 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         when:
         enableBuildInjection(agent, gradleVersion)
+        withInjectionConfig {
+            ccudPluginVersion = CCUD_PLUGIN_VERSION
+        }
         def secondRun = j.buildAndAssertSuccess(project)
 
         then:
@@ -996,7 +999,6 @@ task hello {
 
     private DumbSlave createSlave(boolean setGeUrl = true) {
         withInjectionConfig {
-            ccudPluginVersion = CCUD_PLUGIN_VERSION
             server = setGeUrl ? 'http://foo.com' : null
         }
 
