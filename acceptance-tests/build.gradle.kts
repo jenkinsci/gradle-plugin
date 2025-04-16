@@ -36,7 +36,7 @@ dependencies {
 
     implementation("org.jenkins-ci:acceptance-test-harness:6169.v8b_0662286b_b_7")
 
-    testImplementation(platform("io.netty:netty-bom:4.1.119.Final"))
+    testImplementation(platform("io.netty:netty-bom:4.2.0.Final"))
     testImplementation("io.ratpack:ratpack-test:2.0.0-rc-1")
     testCompileOnly("com.google.code.findbugs:jsr305:3.0.2")
 
