@@ -1,5 +1,4 @@
 import com.github.spotbugs.snom.SpotBugsTask
-import com.gradle.enterprise.gradleplugin.testretry.retry
 import org.jenkinsci.gradle.plugins.jpi.JpiLicense
 import org.jenkinsci.gradle.plugins.jpi.deployment.CreateVersionlessLookupTask
 import org.jenkinsci.gradle.plugins.jpi.localization.LocalizationTask
@@ -196,12 +195,14 @@ tasks.test {
     )
     ignoreFailures = ciJenkinsBuild
     maxParallelForks = findProperty("maxParallelForks") as Int? ?: 3
-    retry {
-        if (isCi) {
-            maxRetries.set(2)
-            maxFailures.set(5)
+    develocity {
+        testRetry {
+            if (isCi) {
+                maxRetries.set(2)
+                maxFailures.set(5)
+            }
+            failOnPassedAfterRetry.set(false)
         }
-        failOnPassedAfterRetry.set(false)
     }
     useJUnitPlatform()
 }
