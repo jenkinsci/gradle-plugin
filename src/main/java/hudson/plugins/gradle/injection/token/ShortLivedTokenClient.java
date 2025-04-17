@@ -10,7 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -24,10 +30,22 @@ public class ShortLivedTokenClient {
 
     private final OkHttpClient httpClient;
 
-    public ShortLivedTokenClient() {
-        this.httpClient = new OkHttpClient().newBuilder()
-                .callTimeout(10, TimeUnit.SECONDS)
-                .build();
+    public ShortLivedTokenClient(boolean allowUntrusted) {
+        OkHttpClient.Builder builder = new OkHttpClient().newBuilder().callTimeout(10, TimeUnit.SECONDS);
+        if (allowUntrusted) {
+            builder.hostnameVerifier((hostname, session) -> true);
+            try {
+                TrustManager[] allTrustingTrustManager = createAllTrustingTrustManager();
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, allTrustingTrustManager, null);
+
+                builder.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) allTrustingTrustManager[0]);
+            } catch (NoSuchAlgorithmException | KeyManagementException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        this.httpClient = builder.build();
     }
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
@@ -75,6 +93,25 @@ public class ShortLivedTokenClient {
         }
 
         return server + "/";
+    }
+
+    private static TrustManager[] createAllTrustingTrustManager() {
+        return new TrustManager[]{
+                new X509TrustManager() {
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[]{};
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                    }
+                }
+        };
     }
 
 }

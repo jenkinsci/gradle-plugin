@@ -34,7 +34,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
     private final ShortLivedTokenClient tokenClient;
 
     public BuildScanEnvironmentContributor() {
-        this.tokenClient = new ShortLivedTokenClient();
+        this.tokenClient = new ShortLivedTokenClient(InjectionConfig.get().isAllowUntrusted());
     }
 
     public BuildScanEnvironmentContributor(ShortLivedTokenClient tokenClient) {
