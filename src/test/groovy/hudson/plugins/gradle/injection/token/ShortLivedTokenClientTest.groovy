@@ -132,7 +132,7 @@ class ShortLivedTokenClientTest extends Specification {
         token.get().hostname == mockDevelocity.address.host
     }
 
-    def "get token for an untrusted server"() {
+    def "get token for an untrusted server - #allowUntrustedServer"(boolean allowUntrustedServer) {
         given:
         def mockDevelocity = GroovyEmbeddedApp.of {
             serverConfig(ServerConfig.builder().tap {
@@ -152,11 +152,20 @@ class ShortLivedTokenClientTest extends Specification {
         def key = DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz')
 
         when:
-        def token = new ShortLivedTokenClient(true).get(mockDevelocity.address.toString(), key, null)
+        def token = new ShortLivedTokenClient(allowUntrustedServer).get(mockDevelocity.address.toString(), key, null)
 
         then:
-        token.get().key == 'some-token'
-        token.get().hostname == mockDevelocity.address.host
+        if (allowUntrustedServer) {
+            assert token.get().key == 'some-token'
+            assert token.get().hostname == mockDevelocity.address.host
+        } else {
+            assert !token.isPresent()
+        }
+
+        mockDevelocity.server.stop()
+
+        where:
+        allowUntrustedServer << [true, false]
     }
 
 }
