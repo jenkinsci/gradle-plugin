@@ -1,5 +1,6 @@
 package hudson.plugins.gradle;
 
+import org.hamcrest.Matchers;
 import org.jenkinsci.test.acceptance.plugins.maven.MavenBuildStep;
 import org.jenkinsci.test.acceptance.plugins.maven.MavenInstallation;
 import org.jenkinsci.test.acceptance.po.Build;
@@ -48,7 +49,10 @@ public class MavenEnrichedScansTest extends AbstractAcceptanceTest {
         // then
         build.shouldSucceed();
         String output = build.getConsole();
-        assertThat(output, containsString("[INFO] Publishing build scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"));
+        assertThat(output, Matchers.anyOf(
+            containsString("[INFO] Publishing build scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"),
+            containsString("[INFO] Publishing Build Scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/")
+        ));
 
         // Build scans on public instance are not enriched
     }

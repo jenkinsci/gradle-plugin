@@ -33,26 +33,28 @@ class MavenSnippets {
 <extensions>
     <extension>
         <groupId>com.gradle</groupId>
-        <artifactId>gradle-enterprise-maven-extension</artifactId>
-        <version>1.20.1</version>
+        <artifactId>develocity-maven-extension</artifactId>
+        <version>2.0</version>
     </extension>
 </extensions>
 '''
     }
 
-    static String gradleEnterpriseConfiguration() {
-        '''<gradleEnterprise
+    static String develocityConfiguration() {
+        '''<develocity
     xmlns="https://www.gradle.com/gradle-enterprise-maven" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="https://www.gradle.com/gradle-enterprise-maven https://www.gradle.com/schema/gradle-enterprise-maven.xsd">
   <buildScan>
-    <publish>ALWAYS</publish>
+    <publishing>
+      <onlyIf>true</onlyIf>
+    </publishing>
     <backgroundBuildScanUpload>false</backgroundBuildScanUpload>
-    <termsOfService>
-      <url>https://gradle.com/terms-of-service</url>
+    <termsOfUse>
+      <url>https://gradle.com/help/legal-terms-of-use</url>
       <accept>true</accept>
-    </termsOfService>
+    </termsOfUse>
   </buildScan>
-</gradleEnterprise>
+</develocity>
 '''
     }
 

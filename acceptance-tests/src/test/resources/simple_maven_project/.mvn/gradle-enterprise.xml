@@ -1,8 +1,0 @@
-<gradleEnterprise>
-    <buildScan>
-        <termsOfService>
-            <url>https://gradle.com/terms-of-service</url>
-            <accept>true</accept>
-        </termsOfService>
-    </buildScan>
-</gradleEnterprise>

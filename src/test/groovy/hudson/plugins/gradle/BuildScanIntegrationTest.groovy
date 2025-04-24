@@ -246,7 +246,7 @@ stage('Final') {
         p.buildWrappersList.add(new BuildScanBuildWrapper())
         p.buildersList.add(new CreateFileBuilder('pom.xml', MavenSnippets.simplePom()))
         p.buildersList.add(new CreateFileBuilder('.mvn/extensions.xml', MavenSnippets.buildScanExtensions()))
-        p.buildersList.add(new CreateFileBuilder('.mvn/gradle-enterprise.xml', MavenSnippets.gradleEnterpriseConfiguration()))
+        p.buildersList.add(new CreateFileBuilder('.mvn/develocity.xml', MavenSnippets.develocityConfiguration()))
         def mavenInstallation = ToolInstallations.configureMaven35()
         p.buildersList.add(new Maven('package', mavenInstallation.name, null, '', '', false, null, null))
 

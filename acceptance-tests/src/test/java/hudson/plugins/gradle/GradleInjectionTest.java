@@ -206,7 +206,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
         assertThat(output, containsString("> Task :helloWorld"));
         assertThat(output, containsString("Hello, World!"));
 
-        assertThat(output, containsString("Publishing build scan..."));
+        assertThat(output, containsRegexp("Publishing (build scan|Build Scan)\\.\\.\\."));
         assertThat(output, not(containsString(mockGeServer.publicBuildScanId())));
         assertThat(output, containsString("Publishing failed."));
 
@@ -334,6 +334,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
 
         assertThat(output, not(containsString("Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin via init script")));
         assertRequiredLogLines(output, requiredLogsLines);
+        assertThat(output, not(containsString("Publishing Build Scan...")));
         assertThat(output, not(containsString("Publishing build scan...")));
     }
 
@@ -356,7 +357,7 @@ public class GradleInjectionTest extends AbstractAcceptanceTest {
             containsRegexp("Applying com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin with version (.*) via init script");
         assertThat(output, requireAppliedViaInitScript ? appliedViaInitScriptMatcher : not(appliedViaInitScriptMatcher));
         assertRequiredLogLines(output, requiredLogsLines);
-        assertThat(output, containsString("Publishing build scan..." + System.lineSeparator() + mockGeServer.publicBuildScanId()));
+        assertThat(output, containsRegexp("Publishing (Build Scan|build scan)\\.\\.\\." + System.lineSeparator() + mockGeServer.publicBuildScanId()));
     }
 
     private void assertRequiredLogLines(String output, String... requiredLogsLines) {

@@ -20,14 +20,14 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseMavenIntegrationTest {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = '1.22'
+            mavenExtensionVersion = '2.0'
             ccudExtensionVersion = '2.0'
         }
 
         def p = j.createFreeStyleProject()
         p.buildWrappersList.add(new BuildScanBuildWrapper())
         p.buildersList.add(new CreateFileBuilder('pom.xml', MavenSnippets.simplePom(MavenSnippets.httpsPluginRepositories())))
-        p.buildersList.add(new CreateFileBuilder('.mvn/gradle-enterprise.xml', MavenSnippets.gradleEnterpriseConfiguration()))
+        p.buildersList.add(new CreateFileBuilder('.mvn/develocity.xml', MavenSnippets.develocityConfiguration()))
         p.buildersList.add(new Maven('package', mavenVersion))
 
         def slave = createSlave('foo')

@@ -176,7 +176,7 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
         getAddButton(form, "Gradle auto-injection disabled nodes").click()
         form.getInputsByName("_.label").last().setValueAttribute("gradle2")
 
-        form.getInputByName("_.mavenExtensionVersion").setValueAttribute("1.22")
+        form.getInputByName("_.mavenExtensionVersion").setValueAttribute("2.0")
         form.getInputByName("_.ccudExtensionVersion").setValueAttribute("2.0")
 
         getAddButton(form, "Maven auto-injection enabled nodes").click()
@@ -201,7 +201,7 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
             gradleInjectionEnabledNodes*.label == ['gradle1']
             gradleInjectionDisabledNodes*.label == ['gradle2']
 
-            mavenExtensionVersion == "1.22"
+            mavenExtensionVersion == "2.0"
             ccudExtensionVersion == "2.0"
             mavenInjectionEnabledNodes*.label == ['maven1']
             mavenInjectionDisabledNodes*.label == ['maven2']
@@ -248,7 +248,7 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
       <label>gradle2</label>
     </hudson.plugins.gradle.injection.NodeLabelItem>
   </gradleInjectionDisabledNodes>
-  <mavenExtensionVersion>1.22</mavenExtensionVersion>
+  <mavenExtensionVersion>2.0</mavenExtensionVersion>
   <ccudExtensionVersion>2.0</ccudExtensionVersion>
   <mavenExtensionRepositoryUrl>https://localhost/repostiry</mavenExtensionRepositoryUrl>
   <mavenInjectionEnabledNodes>
@@ -295,7 +295,7 @@ class InjectionConfigTest extends BaseJenkinsIntegrationTest {
       <label>gradle2</label>
     </hudson.plugins.gradle.injection.NodeLabelItem>
   </gradleInjectionDisabledNodes>
-  <mavenExtensionVersion>1.22</mavenExtensionVersion>
+  <mavenExtensionVersion>2.0</mavenExtensionVersion>
   <ccudExtensionVersion>2.0</ccudExtensionVersion>
   <mavenExtensionRepositoryUrl>https://localhost/repostiry</mavenExtensionRepositoryUrl>
   <mavenInjectionEnabledNodes>
