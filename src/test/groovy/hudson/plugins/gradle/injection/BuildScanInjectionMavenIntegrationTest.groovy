@@ -30,6 +30,9 @@ import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRA
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH
 import static hudson.plugins.gradle.injection.MavenBuildScanInjection.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL
 import static hudson.plugins.gradle.injection.MavenSnippets.simplePom
+import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.anyOf
+import static org.hamcrest.Matchers.containsString
 
 @Unroll
 class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
@@ -476,7 +479,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            mavenExtensionVersion = '1.22'
+            mavenExtensionVersion = '2.0'
             checkForBuildAgentErrors = false
         }
         def secondRun = buildAndAssertFailure(p)
@@ -508,7 +511,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            mavenExtensionVersion = '1.22'
+            mavenExtensionVersion = '2.0'
             checkForBuildAgentErrors = true
         }
         def secondRun = buildAndAssertFailure(p)
@@ -604,7 +607,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            mavenExtensionVersion = '1.22'
+            mavenExtensionVersion = '2.0'
             ccudExtensionVersion = '2.0'
         }
 
@@ -810,7 +813,10 @@ node {
         then:
         assertNoDoubleApplication(build)
         if (isUrlEnforced) {
-            j.assertLogContains("Publishing build scan...", build)
+            assertThat(j.getLog(build), anyOf(
+                containsString('Publishing Build Scan...'),
+                containsString('Publishing build scan...')
+            ))
         } else {
             // Project has localhost:8080 configured
             j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise", build)
@@ -903,7 +909,10 @@ node {
         then:
         assertNoDoubleApplication(build)
         if (isUrlEnforced) {
-            j.assertLogContains("Publishing build scan...", build)
+            assertThat(j.getLog(build), anyOf(
+                containsString('Publishing Build Scan...'),
+                containsString('Publishing build scan...')
+            ))
         } else {
             // Project has localhost:8080 configured
             j.assertLogContains("[WARNING] No build scan will be published: Gradle Enterprise features were not enabled due to an unexpected error while contacting Gradle Enterprise", build)
@@ -1008,7 +1017,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = '1.22'
+            mavenExtensionVersion = '2.0'
         }
 
         createSlave('foo')
@@ -1060,7 +1069,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = '1.22'
+            mavenExtensionVersion = '2.0'
             ccudExtensionVersion = useCCUD ? '2.0' : ''
             mavenCaptureGoalInputFiles = captureGoalInputFiles
         }

@@ -21,7 +21,7 @@ class MavenExtensionDownloadHandlerTest extends Specification {
         with(originalConfig) {
             enabled >> true
             server >> 'https://scans.gradle.com'
-            mavenExtensionVersion >> '1.22.1'
+            mavenExtensionVersion >> '2.0'
             ccudExtensionVersion >> '2.0.1'
         }
 
@@ -81,7 +81,7 @@ class MavenExtensionDownloadHandlerTest extends Specification {
         with(updatedConfig) {
             enabled >> true
             server >> 'https://scans.gradle.com'
-            mavenExtensionVersion >> '1.22.1'
+            mavenExtensionVersion >> '2.0'
             ccudExtensionVersion >> '2.0.1'
         }
 

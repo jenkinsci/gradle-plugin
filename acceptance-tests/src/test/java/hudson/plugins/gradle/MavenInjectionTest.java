@@ -20,6 +20,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static org.jenkinsci.test.acceptance.Matchers.containsRegexp;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
 
 public class MavenInjectionTest extends AbstractAcceptanceTest {
@@ -162,11 +163,15 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
     private void assertBuildScanPublished(Build build) {
         String output = build.getConsole();
         assertThat(output, either(containsString("[INFO] 3 goals, 2 executed, 1 from cache")).or(containsString("[INFO] 3 goals, 3 executed")));
-        assertThat(output, containsString("[INFO] Publishing build scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"));
+        assertThat(output, either(
+            containsString("[INFO] Publishing build scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/")).or(
+            containsString("[INFO] Publishing Build Scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"))
+        );
     }
 
     private void assertBuildScanNotPublished(Build build) {
         String output = build.getConsole();
         assertThat(output, not(containsString("[INFO] Publishing build scan...")));
+        assertThat(output, not(containsString("[INFO] Publishing Build Scan...")));
     }
 }

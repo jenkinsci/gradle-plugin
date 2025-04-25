@@ -44,7 +44,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
     protected static final URI PUBLIC_DEVELOCITY_SERVER = URI.create("https://scans.gradle.com");
 
-    private static final String DEVELOCITY_MAVEN_EXTENSION_VERSION = "1.22";
+    private static final String DEVELOCITY_MAVEN_EXTENSION_VERSION = "2.0";
 
     @Rule
     public MockGeServer mockGeServer = new MockGeServer();
