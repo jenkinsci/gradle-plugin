@@ -50,19 +50,6 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         0 * run.addAction(_)
     }
 
-    def 'does nothing if Develocity injection is disabled'() {
-        given:
-        def config = InjectionConfig.get()
-        config.setEnabled(false)
-        config.save()
-
-        when:
-        buildScanEnvironmentContributor.buildEnvironmentFor(run, new EnvVars(), TaskListener.NULL)
-
-        then:
-        0 * run.addAction(_)
-    }
-
     def 'adds empty action if access key is invalid'() {
         given:
         def config = InjectionConfig.get()
@@ -112,12 +99,12 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         }
     }
 
-    def 'adds an action with the short lived token from one single access key'() {
+    def 'adds an action with the short lived token from a single access key if Develocity injection is #enabled'(boolean enabled) {
         given:
         def accessKey = "localhost=secret"
         def accessKeyCredentialId = UUID.randomUUID().toString()
         def config = InjectionConfig.get()
-        config.setEnabled(true)
+        config.setEnabled(enabled)
         config.setServer('http://localhost')
         config.setAccessKeyCredentialId(accessKeyCredentialId)
         config.save()
@@ -141,6 +128,9 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
                 paramEquals(parameters[1], 'DEVELOCITY_ACCESS_KEY', 'localhost=xyz')
             }
         }
+
+        where:
+        enabled << [true, false]
     }
 
     def 'adds an action with the short lived token with multiple keys and enforce url is true'() {
