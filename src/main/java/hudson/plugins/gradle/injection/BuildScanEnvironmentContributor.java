@@ -43,7 +43,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
     @Override
     public void buildEnvironmentFor(@Nonnull Run run, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
-        if (InjectionConfig.get().isDisabled() || alreadyExecuted(run)) {
+        if (alreadyExecuted(run)) {
             return;
         }
 
