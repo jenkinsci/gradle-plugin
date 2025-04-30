@@ -108,7 +108,7 @@ class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(new CreateFileBuilder("build/settings.gradle", ''))
+        p.buildersList.add(new CreateFileBuilder(settingsFile, settingsFileContent))
         p.buildersList.add(new CreateFileBuilder(buildFile, helloTask))
         p.buildersList.add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *: defaults))
         p.buildersList.add(new Gradle(
@@ -118,15 +118,15 @@ class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
         j.buildAndAssertSuccess(p)
 
         where:
-        buildFile                 | wrapperDir   | settings
-        'build/build.gradle'      | 'build'      | [rootBuildScriptDir: 'build', wrapperLocation: 'build']
-        'build/build.gradle'      | 'build'      | [rootBuildScriptDir: 'build', buildFile: 'build.gradle', wrapperLocation: 'build']
-        'build/build.gradle'      | 'build'      | [buildFile: 'build/build.gradle']
-        'build/some/build.gradle' | 'build'      | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle', wrapperLocation: 'build']
-        'build/some/build.gradle' | 'build/some' | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle']
-        'build/build.gradle'      | null         | [rootBuildScriptDir: 'build']
-        'build/build.gradle'      | null         | [rootBuildScriptDir: 'build', buildFile: 'build.gradle']
-        'build/build.gradle'      | null         | [buildFile: 'build/build.gradle']
+        buildFile                 | settingsFile                 | settingsFileContent | wrapperDir   | settings
+        'build/build.gradle'      | 'build/settings.gradle'      | ''                  | 'build'      | [rootBuildScriptDir: 'build', wrapperLocation: 'build']
+        'build/build.gradle'      | 'build/settings.gradle'      | ''                  | 'build'      | [rootBuildScriptDir: 'build', buildFile: 'build.gradle', wrapperLocation: 'build']
+        'build/build.gradle'      | 'build/settings.gradle'      | ''                  | 'build'      | [buildFile: 'build/build.gradle']
+        'build/some/build.gradle' | 'build/settings.gradle'      | "include('some')"   | 'build'      | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle', wrapperLocation: 'build']
+        'build/some/build.gradle' | 'build/some/settings.gradle' | ''                  | 'build/some' | [rootBuildScriptDir: 'build', buildFile: 'some/build.gradle']
+        'build/build.gradle'      | 'settings.gradle'            | "include('build')"  | null         | [rootBuildScriptDir: 'build']
+        'build/build.gradle'      | 'settings.gradle'            | "include('build')"  | null         | [rootBuildScriptDir: 'build', buildFile: 'build.gradle']
+        'build/build.gradle'      | 'settings.gradle'            | "include('build')"  | null         | [buildFile: 'build/build.gradle']
 
         description = "configuration with buildScriptDir '${settings.rootBuildScriptDir}', ${settings.buildFile ?: ''} and the wrapper " +
             "from ${settings.wrapperLocation ?: 'workspace root'}"

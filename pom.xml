@@ -47,6 +47,7 @@
         <toolchain.jdk.version>17</toolchain.jdk.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <maven.extension.version>1.0.0</maven.extension.version>
     </properties>
 
     <dependencyManagement>
@@ -150,6 +151,11 @@
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>matrix-project</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>timestamper</artifactId>
             <scope>test</scope>
         </dependency>
@@ -233,6 +239,31 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-extension-jar</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.gradle</groupId>
+                                    <artifactId>configuration-maven-extension</artifactId>
+                                    <version>${maven.extension.version}</version>
+                                    <type>jar</type>
+                                    <outputDirectory>${project.build.outputDirectory}/hudson/plugins/gradle/injection</outputDirectory>
+                                    <destFileName>configuration-maven-extension-${maven.extension.version}.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-toolchains-plugin</artifactId>
                 <version>3.2.0</version>
                 <executions>
@@ -271,7 +302,7 @@
                         <include>**/*Test.java</include>
                         <include>**/*Spec.groovy</include>
                     </includes>
-                    <forkCount>4</forkCount>
+                    <forkCount>2</forkCount>
                 </configuration>
             </plugin>
 

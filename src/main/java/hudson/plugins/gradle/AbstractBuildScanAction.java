@@ -108,7 +108,7 @@ public abstract class AbstractBuildScanAction implements Action {
      * Invoked by XStream when this object is read into memory.
      */
     @SuppressWarnings("unused")
-    private Object readResolve() {
+    protected Object readResolve() {
         if (scanUrl != null) {
             scanUrls = Collections.singletonList(scanUrl);
         }
