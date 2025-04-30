@@ -23,6 +23,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import spock.lang.Requires
 import spock.lang.Unroll
 
 @Unroll
@@ -30,7 +31,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Develocity: http://foo.com"
 
-    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '6.9.4', '7.6.4', '8.9']
+    private static final List<String> GRADLE_VERSIONS = ['7.6.4', '8.9']
 
     private static final EnvVars EMPTY_ENV = new EnvVars()
 
@@ -237,6 +238,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         }
     }
 
+    @Requires(value = { hasJdk11() }, reason = "Gradle 6.x requires Java 11")
     def 'uses custom plugin repository'() {
         given:
         // Gradle 7.x requires allowInsecureProtocol

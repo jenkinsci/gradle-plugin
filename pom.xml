@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.85</version>
+        <version>5.12</version>
         <relativePath />
     </parent>
 
@@ -40,11 +40,13 @@
         <changelist>-SNAPSHOT</changelist>
 
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
-        <jenkins.version>2.440.3</jenkins.version>
+        <jenkins.version>2.479.3</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
 
         <spotless.check.skip>false</spotless.check.skip>
-        <toolchain.jdk.version>[11,17)</toolchain.jdk.version>
+        <toolchain.jdk.version>17</toolchain.jdk.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
     <dependencyManagement>
@@ -52,8 +54,8 @@
             <dependency>
                 <!-- Pick up common dependencies for the selected LTS line: https://github.com/jenkinsci/bom#usage -->
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.440.x</artifactId>
-                <version>3193.v330d8248d39e</version>
+                <artifactId>bom-2.479.x</artifactId>
+                <version>4228.v0a_71308d905b_</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -160,13 +162,11 @@
         <dependency>
             <groupId>io.jenkins</groupId>
             <artifactId>configuration-as-code</artifactId>
-            <version>1.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.jenkins.configuration-as-code</groupId>
             <artifactId>test-harness</artifactId>
-            <version>1.40</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -203,7 +203,7 @@
         <dependency>
             <groupId>org.apache.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>4.0.15</version>
+            <version>4.0.26</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -221,6 +221,15 @@
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.14.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

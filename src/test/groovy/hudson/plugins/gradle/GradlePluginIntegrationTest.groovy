@@ -50,6 +50,7 @@ class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
+        p.buildersList.add(new CreateFileBuilder('settings.gradle', ''))
         p.buildersList.add(new CreateFileBuilder('build.gradle', "defaultTasks 'hello'\n${helloTask}"))
         p.buildersList.add(new Gradle(defaults))
 
@@ -64,6 +65,7 @@ class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
+        p.buildersList.add(new CreateFileBuilder('settings.gradle', ''))
         p.buildersList.add(new CreateFileBuilder('build.gradle', getHelloTask()))
         p.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
@@ -78,6 +80,7 @@ class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
+        p.buildersList.add(new CreateFileBuilder('build/settings.gradle', ''))
         p.buildersList.add(new CreateFileBuilder('build/build.gradle', helloTask))
         p.buildersList.add(new Gradle(tasks: 'hello', buildFile: 'build/build.gradle', *: defaults))
 
@@ -92,6 +95,7 @@ class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
+        p.buildersList.add(new CreateFileBuilder('settings.gradle', ''))
         p.buildersList.add(new CreateFileBuilder('build.gradle', helloTask))
         p.buildersList.add(new Gradle(tasks: 'wrapper', *: defaults))
         p.buildersList.add(new Gradle(useWrapper: true, tasks: 'hello', *: defaults))
@@ -104,6 +108,7 @@ class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
+        p.buildersList.add(new CreateFileBuilder("build/settings.gradle", ''))
         p.buildersList.add(new CreateFileBuilder(buildFile, helloTask))
         p.buildersList.add(new Gradle(tasks: 'wrapper', rootBuildScriptDir: wrapperDir, *: defaults))
         p.buildersList.add(new Gradle(
