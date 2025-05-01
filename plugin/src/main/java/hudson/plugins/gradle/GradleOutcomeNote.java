@@ -23,15 +23,14 @@
  */
 package hudson.plugins.gradle;
 
+import static hudson.plugins.gradle.TimestampPrefixDetector.TimestampPattern;
+
 import hudson.Extension;
 import hudson.MarkupText;
 import hudson.console.ConsoleAnnotationDescriptor;
 import hudson.console.ConsoleAnnotator;
 import hudson.console.ConsoleNote;
-
 import java.util.regex.Pattern;
-
-import static hudson.plugins.gradle.TimestampPrefixDetector.TimestampPattern;
 
 /**
  * Annotates the BUILD SUCCESSFUL/FAILED line of the Ant execution.
@@ -42,8 +41,7 @@ public class GradleOutcomeNote extends ConsoleNote {
 
     private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("^(?:" + TimestampPattern + ")?(BUILD \\S*)");
 
-    public GradleOutcomeNote() {
-    }
+    public GradleOutcomeNote() {}
 
     @Override
     public ConsoleAnnotator annotate(Object context, MarkupText text, int charPos) {
@@ -54,17 +52,22 @@ public class GradleOutcomeNote extends ConsoleNote {
         int timestampPrefix = TimestampPrefixDetector.detectTimestampPrefix(text.getText());
         String buildStatus = t.group(1);
         if (text.getText().contains("FAIL"))
-            text.addMarkup(timestampPrefix, timestampPrefix + buildStatus.length(),
-                    "<span class=gradle-outcome-failure>", "</span>");
+            text.addMarkup(
+                    timestampPrefix,
+                    timestampPrefix + buildStatus.length(),
+                    "<span class=gradle-outcome-failure>",
+                    "</span>");
         if (text.getText().contains("SUCCESS"))
-            text.addMarkup(timestampPrefix, timestampPrefix + buildStatus.length(),
-                    "<span class=gradle-outcome-success>", "</span>");
+            text.addMarkup(
+                    timestampPrefix,
+                    timestampPrefix + buildStatus.length(),
+                    "<span class=gradle-outcome-success>",
+                    "</span>");
         return null;
     }
 
     @Extension
-    public static final class DescriptorImpl extends
-            ConsoleAnnotationDescriptor {
+    public static final class DescriptorImpl extends ConsoleAnnotationDescriptor {
         public String getDisplayName() {
             return "Gradle build outcome";
         }

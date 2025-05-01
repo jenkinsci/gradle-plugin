@@ -4,6 +4,12 @@ import hudson.Extension;
 import hudson.model.Run;
 import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
 import hudson.plugins.gradle.enriched.ScanDetailService;
+import java.io.BufferedReader;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
@@ -11,17 +17,9 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
-import java.io.BufferedReader;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
 public class BuildScanPublisher extends Step {
     @DataBoundConstructor
-    public BuildScanPublisher() {
-    }
+    public BuildScanPublisher() {}
 
     @Override
     public StepExecution start(StepContext context) {
@@ -40,11 +38,10 @@ public class BuildScanPublisher extends Step {
             Run run = getContext().get(Run.class);
             ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
 
-            BuildScanLogScanner scanner = new BuildScanLogScanner(new DefaultBuildScanPublishedListener(run, scanDetailService));
-            try (
-                    BufferedReader logReader = new BufferedReader(run.getLogReader());
-                    Stream<String> lines = logReader.lines()
-            ) {
+            BuildScanLogScanner scanner =
+                    new BuildScanLogScanner(new DefaultBuildScanPublishedListener(run, scanDetailService));
+            try (BufferedReader logReader = new BufferedReader(run.getLogReader());
+                    Stream<String> lines = logReader.lines()) {
                 lines.forEach(scanner::scanLine);
             }
             BuildScanAction action = run.getAction(BuildScanAction.class);

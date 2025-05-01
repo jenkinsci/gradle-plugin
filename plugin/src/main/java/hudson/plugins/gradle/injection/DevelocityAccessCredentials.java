@@ -1,7 +1,6 @@
 package hudson.plugins.gradle.injection;
 
 import com.google.common.base.Strings;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -58,10 +57,10 @@ public class DevelocityAccessCredentials {
 
     public static DevelocityAccessCredentials parse(String rawAccessKey) {
         return new DevelocityAccessCredentials(Arrays.stream(rawAccessKey.split(KEY_DELIMITER))
-            .map(k -> k.split("="))
-            .filter(hostKey -> hostKey.length == 2)
-            .map(hostKey -> new HostnameAccessKey(hostKey[0], hostKey[1]))
-            .collect(Collectors.toList()));
+                .map(k -> k.split("="))
+                .filter(hostKey -> hostKey.length == 2)
+                .map(hostKey -> new HostnameAccessKey(hostKey[0], hostKey[1]))
+                .collect(Collectors.toList()));
     }
 
     public static boolean isValid(String value) {
@@ -97,6 +96,7 @@ public class DevelocityAccessCredentials {
     public static class HostnameAccessKey {
         private final String hostname;
         private final String key;
+
         private HostnameAccessKey(String hostname, String key) {
             this.hostname = hostname;
             this.key = key;
@@ -131,5 +131,4 @@ public class DevelocityAccessCredentials {
             return Objects.hash(hostname, key);
         }
     }
-
 }

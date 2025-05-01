@@ -131,5 +131,4 @@ public class EnrichedSummaryConfig extends GlobalConfiguration {
             return FormValidation.error("Delay between retries must be in [0,20].");
         }
     }
-
 }

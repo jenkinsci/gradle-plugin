@@ -7,12 +7,11 @@ import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerListener;
-import jenkins.model.Jenkins;
-
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.model.Jenkins;
 
 /**
  * Performs build scans auto-injection/cleanup when a {@link Computer} comes online.
@@ -34,8 +33,7 @@ public class DevelocityComputerListener extends ComputerListener {
                 new GradleBuildScanInjection(),
                 new MavenBuildScanInjection(),
                 new MavenExtensionDownloadHandler(),
-                new JenkinsInjectionConfig()
-        );
+                new JenkinsInjectionConfig());
     }
 
     @VisibleForTesting
@@ -43,8 +41,7 @@ public class DevelocityComputerListener extends ComputerListener {
             GradleBuildScanInjection gradleBuildScanInjection,
             MavenBuildScanInjection mavenBuildScanInjection,
             MavenExtensionDownloadHandler mavenExtensionDownloadHandler,
-            Supplier<InjectionConfig> injectionConfigSupplier
-    ) {
+            Supplier<InjectionConfig> injectionConfigSupplier) {
         this.gradleBuildScanInjection = gradleBuildScanInjection;
         this.mavenBuildScanInjection = mavenBuildScanInjection;
         this.mavenExtensionDownloadHandler = mavenExtensionDownloadHandler;
@@ -61,8 +58,7 @@ public class DevelocityComputerListener extends ComputerListener {
             }
 
             Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.getExtensionDigests(
-                    () -> Jenkins.get().getRootDir(), injectionConfig
-            );
+                    () -> Jenkins.get().getRootDir(), injectionConfig);
 
             Node node = computer.getNode();
             EnvVars computerEnvVars = computer.getEnvironment();
@@ -85,8 +81,7 @@ public class DevelocityComputerListener extends ComputerListener {
 
     private static final class JenkinsInjectionConfig implements Supplier<InjectionConfig> {
 
-        private JenkinsInjectionConfig() {
-        }
+        private JenkinsInjectionConfig() {}
 
         @Override
         public InjectionConfig get() {

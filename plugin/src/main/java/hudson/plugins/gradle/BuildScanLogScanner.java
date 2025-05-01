@@ -6,7 +6,8 @@ import java.util.regex.Pattern;
 
 public class BuildScanLogScanner {
 
-    private static final Pattern BUILD_SCAN_PATTERN = Pattern.compile("Publishing (Build Scan|build scan|build information)\\.\\.\\.");
+    private static final Pattern BUILD_SCAN_PATTERN =
+            Pattern.compile("Publishing (Build Scan|build scan|build information)\\.\\.\\.");
     private static final Pattern URL_PATTERN = Pattern.compile(".*(?:\\[INFO] )?(https?://.*/s/.*)");
     private static final int LINES_TO_SCAN = 1000;
 
@@ -29,7 +30,6 @@ public class BuildScanLogScanner {
         if (BUILD_SCAN_PATTERN.matcher(line).find()) {
             linesSinceBuildScanPublishingMessage = 0;
         }
-
     }
 
     private static void tryFindBuildScanUrl(String text, Consumer<String> action) {

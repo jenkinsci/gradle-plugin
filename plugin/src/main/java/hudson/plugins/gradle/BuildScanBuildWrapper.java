@@ -11,20 +11,24 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.tasks.Builder;
-import jenkins.tasks.SimpleBuildWrapper;
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.tasks.SimpleBuildWrapper;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 public class BuildScanBuildWrapper extends SimpleBuildWrapper {
 
     @DataBoundConstructor
-    public BuildScanBuildWrapper() {
-    }
+    public BuildScanBuildWrapper() {}
 
     @Override
-    public void setUp(Context context, Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) {
+    public void setUp(
+            Context context,
+            Run<?, ?> build,
+            FilePath workspace,
+            Launcher launcher,
+            TaskListener listener,
+            EnvVars initialEnvironment) {
         // do nothing
     }
 

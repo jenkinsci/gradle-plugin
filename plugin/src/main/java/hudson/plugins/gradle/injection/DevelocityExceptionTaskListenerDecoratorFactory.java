@@ -3,23 +3,23 @@ package hudson.plugins.gradle.injection;
 import hudson.Extension;
 import hudson.model.Queue;
 import hudson.model.Run;
-import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
 
 @SuppressWarnings("unused")
 @Extension
 public class DevelocityExceptionTaskListenerDecoratorFactory implements TaskListenerDecorator.Factory {
 
-    private static final Logger LOGGER = Logger.getLogger(DevelocityExceptionTaskListenerDecoratorFactory.class.getName());
+    private static final Logger LOGGER =
+            Logger.getLogger(DevelocityExceptionTaskListenerDecoratorFactory.class.getName());
 
     @Override
     @CheckForNull
@@ -62,5 +62,4 @@ public class DevelocityExceptionTaskListenerDecoratorFactory implements TaskList
         InjectionConfig injectionConfig = InjectionConfig.get();
         return injectionConfig.isEnabled() && injectionConfig.isCheckForBuildAgentErrors();
     }
-
 }

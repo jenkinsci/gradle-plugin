@@ -2,17 +2,6 @@ package hudson.plugins.gradle.injection.token;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.plugins.gradle.injection.DevelocityAccessCredentials;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -20,11 +9,21 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ShortLivedTokenClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortLivedTokenClient.class);
-    private static final RequestBody EMPTY_BODY = RequestBody.create(new byte[]{});
+    private static final RequestBody EMPTY_BODY = RequestBody.create(new byte[] {});
     private static final int MAX_RETRIES = 3;
     private static final Duration RETRY_INTERVAL = Duration.ofSeconds(1);
 
@@ -49,7 +48,8 @@ public class ShortLivedTokenClient {
     }
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    public Optional<DevelocityAccessCredentials.HostnameAccessKey> get(String server, DevelocityAccessCredentials.HostnameAccessKey accessKey, @Nullable Integer expiry) {
+    public Optional<DevelocityAccessCredentials.HostnameAccessKey> get(
+            String server, DevelocityAccessCredentials.HostnameAccessKey accessKey, @Nullable Integer expiry) {
         String url = normalize(server) + "api/auth/token";
         if (expiry != null) {
             url = url + "?expiresInHours=" + expiry;
@@ -67,7 +67,8 @@ public class ShortLivedTokenClient {
         while (tryCount < MAX_RETRIES) {
             try (Response response = httpClient.newCall(request).execute()) {
                 if (response.code() == 200 && response.body() != null) {
-                    return Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of(accessKey.getHostname(), response.body().string()));
+                    return Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of(
+                            accessKey.getHostname(), response.body().string()));
                 } else if (response.code() == 401) {
                     LOGGER.warn("Develocity short lived token request failed {} with status code 401", url);
                     return Optional.empty();
@@ -96,22 +97,19 @@ public class ShortLivedTokenClient {
     }
 
     private static TrustManager[] createAllTrustingTrustManager() {
-        return new TrustManager[]{
-                new X509TrustManager() {
-                    @Override
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[]{};
-                    }
-
-                    @Override
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                    }
-
-                    @Override
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                    }
+        return new TrustManager[] {
+            new X509TrustManager() {
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[] {};
                 }
+
+                @Override
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+            }
         };
     }
-
 }

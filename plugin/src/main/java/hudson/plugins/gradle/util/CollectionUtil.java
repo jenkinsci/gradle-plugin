@@ -1,17 +1,16 @@
 package hudson.plugins.gradle.util;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 
 public final class CollectionUtil {
 
-    private CollectionUtil() {
-    }
+    private CollectionUtil() {}
 
     public static <T> Stream<T> safeStream(Collection<T> col) {
         if (col == null) {

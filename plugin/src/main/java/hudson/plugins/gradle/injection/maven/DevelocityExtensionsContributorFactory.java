@@ -13,12 +13,11 @@ import hudson.plugins.gradle.injection.InjectionUtil;
 import hudson.plugins.gradle.injection.MavenInjectionAware;
 import hudson.util.LogTaskListener;
 import hudson.util.VersionNumber;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 @Extension(optional = true)
 public class DevelocityExtensionsContributorFactory extends PlexusModuleContributorFactory {
@@ -40,12 +39,14 @@ public class DevelocityExtensionsContributorFactory extends PlexusModuleContribu
             }
 
             EnvVars environment = build.getEnvironment(new LogTaskListener(LOGGER, Level.INFO));
-            String classpath = environment.get(MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH);
+            String classpath =
+                    environment.get(MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH);
             if (StringUtils.isBlank(classpath)) {
                 return EMPTY_CONTRIBUTOR;
             }
 
-            VersionNumber mavenPluginVersion = InjectionUtil.mavenPluginVersionNumber().orElse(null);
+            VersionNumber mavenPluginVersion =
+                    InjectionUtil.mavenPluginVersionNumber().orElse(null);
             if (mavenPluginVersion == null) {
                 LOGGER.log(Level.WARNING, "Unable to detect the version of the Maven Integration plugin");
                 return EMPTY_CONTRIBUTOR;
@@ -53,16 +54,13 @@ public class DevelocityExtensionsContributorFactory extends PlexusModuleContribu
 
             if (!InjectionUtil.isSupportedMavenPluginVersion(mavenPluginVersion)) {
                 LOGGER.log(
-                    Level.WARNING,
-                    "Detected Maven Integration plugin version {0}. For auto-injection of the Develocity Maven extension, version {1} or above is required. Please upgrade the version of the Maven Integration plugin",
-                    new VersionNumber[]{mavenPluginVersion, InjectionUtil.MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION}
-                );
+                        Level.WARNING,
+                        "Detected Maven Integration plugin version {0}. For auto-injection of the Develocity Maven extension, version {1} or above is required. Please upgrade the version of the Maven Integration plugin",
+                        new VersionNumber[] {mavenPluginVersion, InjectionUtil.MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION});
                 return EMPTY_CONTRIBUTOR;
             }
 
-            List<FilePath> jars =
-                classpathFiles(node, classpath)
-                    .stream()
+            List<FilePath> jars = classpathFiles(node, classpath).stream()
                     .map(node::createPath)
                     .filter(this::filePathExists)
                     .collect(Collectors.toList());
@@ -73,9 +71,9 @@ public class DevelocityExtensionsContributorFactory extends PlexusModuleContribu
             }
 
             LOGGER.log(
-                Level.FINE,
-                "Maven extensions to add: {0}",
-                jars.stream().map(FilePath::getRemote).collect(Collectors.joining(", ")));
+                    Level.FINE,
+                    "Maven extensions to add: {0}",
+                    jars.stream().map(FilePath::getRemote).collect(Collectors.joining(", ")));
 
             return PlexusModuleContributor.of(jars);
         } catch (Exception e) {
@@ -87,8 +85,7 @@ public class DevelocityExtensionsContributorFactory extends PlexusModuleContribu
 
     private static List<String> classpathFiles(Node node, String classpath) {
         Computer computer = node.toComputer();
-        Splitter classpathSplitter =
-            (computer == null || Boolean.TRUE.equals(computer.isUnix()))
+        Splitter classpathSplitter = (computer == null || Boolean.TRUE.equals(computer.isUnix()))
                 ? UNIX_CLASSPATH_SPLITTER
                 : WINDOWS_CLASSPATH_SPLITTER;
 

@@ -6,33 +6,22 @@ import hudson.model.Run;
 import hudson.plugins.gradle.AbstractGradleLogProcessor;
 import hudson.plugins.gradle.BuildAgentError;
 import hudson.plugins.gradle.BuildToolType;
-
-import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import javax.annotation.Nullable;
 
 public final class DevelocityExceptionLogProcessor extends AbstractGradleLogProcessor {
 
-    private static final DevelocityExceptionDetector[] DETECTORS =
-        {
-            new DevelocityExceptionDetector.ByPrefix(
-                BuildToolType.GRADLE,
-                "Internal error in Develocity Gradle plugin:"
-            ),
-            new DevelocityExceptionDetector.ByPrefix(
-                BuildToolType.MAVEN,
-                "[ERROR] Internal error in Develocity Maven extension:"
-            ),
-            new DevelocityExceptionDetector.ByPrefix(
-                BuildToolType.GRADLE,
-                "Internal error in Gradle Enterprise Gradle plugin:"
-            ),
-            new DevelocityExceptionDetector.ByPrefix(
-                BuildToolType.MAVEN,
-                "[ERROR] Internal error in Gradle Enterprise Maven extension:"
-            )
-        };
+    private static final DevelocityExceptionDetector[] DETECTORS = {
+        new DevelocityExceptionDetector.ByPrefix(BuildToolType.GRADLE, "Internal error in Develocity Gradle plugin:"),
+        new DevelocityExceptionDetector.ByPrefix(
+                BuildToolType.MAVEN, "[ERROR] Internal error in Develocity Maven extension:"),
+        new DevelocityExceptionDetector.ByPrefix(
+                BuildToolType.GRADLE, "Internal error in Gradle Enterprise Gradle plugin:"),
+        new DevelocityExceptionDetector.ByPrefix(
+                BuildToolType.MAVEN, "[ERROR] Internal error in Gradle Enterprise Maven extension:")
+    };
 
     private final BuildAgentErrorListener listener;
 

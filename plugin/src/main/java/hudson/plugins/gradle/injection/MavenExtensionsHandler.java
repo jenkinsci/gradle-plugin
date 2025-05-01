@@ -1,39 +1,40 @@
 package hudson.plugins.gradle.injection;
 
+import static hudson.plugins.gradle.injection.CopyUtil.copyDownloadedResourceToNode;
+import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
+import static hudson.plugins.gradle.injection.CopyUtil.unsafeResourceDigest;
+
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import hudson.FilePath;
-
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static hudson.plugins.gradle.injection.CopyUtil.copyDownloadedResourceToNode;
-import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
-import static hudson.plugins.gradle.injection.CopyUtil.unsafeResourceDigest;
-
 public final class MavenExtensionsHandler {
 
     static final String LIB_DIR_PATH = "jenkins-gradle-plugin/lib";
 
-    private final Map<MavenExtension, MavenExtensionFileHandler> fileHandlers =
-            Arrays.stream(MavenExtension.values())
-                    .map(MavenExtensionFileHandler::new)
-                    .collect(Collectors.toMap(h -> h.extension, Function.identity()));
+    private final Map<MavenExtension, MavenExtensionFileHandler> fileHandlers = Arrays.stream(MavenExtension.values())
+            .map(MavenExtensionFileHandler::new)
+            .collect(Collectors.toMap(h -> h.extension, Function.identity()));
 
-    public FilePath copyExtensionToAgent(MavenExtension extension, FilePath rootPath) throws IOException, InterruptedException {
+    public FilePath copyExtensionToAgent(MavenExtension extension, FilePath rootPath)
+            throws IOException, InterruptedException {
         return fileHandlers.get(extension).copyExtensionToAgent(rootPath);
     }
 
-    public FilePath copyExtensionToAgent(MavenExtension extension, FilePath controllerRootPath, FilePath rootPath, String digest) throws IOException, InterruptedException {
+    public FilePath copyExtensionToAgent(
+            MavenExtension extension, FilePath controllerRootPath, FilePath rootPath, String digest)
+            throws IOException, InterruptedException {
         return fileHandlers.get(extension).copyExtensionToAgent(controllerRootPath, rootPath, digest);
     }
 
-    public void deleteExtensionFromAgent(MavenExtension extension, FilePath rootPath) throws IOException, InterruptedException {
+    public void deleteExtensionFromAgent(MavenExtension extension, FilePath rootPath)
+            throws IOException, InterruptedException {
         fileHandlers.get(extension).deleteExtensionFromAgent(rootPath);
     }
 
@@ -48,8 +49,7 @@ public final class MavenExtensionsHandler {
 
         MavenExtensionFileHandler(MavenExtension extension) {
             this.extension = extension;
-            this.extensionDigest =
-                    Suppliers.memoize(() -> unsafeResourceDigest(extension.getEmbeddedJarName()));
+            this.extensionDigest = Suppliers.memoize(() -> unsafeResourceDigest(extension.getEmbeddedJarName()));
         }
 
         /**
@@ -69,7 +69,8 @@ public final class MavenExtensionsHandler {
          * Copies the extension to the agent, if it is not already present, and returns a path to the extension
          * on the agent. Uses passed digest to verify if the extension has changed.
          */
-        public FilePath copyExtensionToAgent(FilePath controllerRootPath, FilePath rootPath, String digest) throws IOException, InterruptedException {
+        public FilePath copyExtensionToAgent(FilePath controllerRootPath, FilePath rootPath, String digest)
+                throws IOException, InterruptedException {
             FilePath extensionLocation = getExtensionLocation(rootPath);
             if (extensionChanged(extensionLocation, digest)) {
                 copyDownloadedResourceToNode(controllerRootPath, extensionLocation, extension.getEmbeddedJarName());
@@ -101,7 +102,5 @@ public final class MavenExtensionsHandler {
 
             return !Objects.equals(existingFileDigest, digest);
         }
-
     }
-
 }

@@ -7,12 +7,11 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 public class BuildScanColumn extends FlowNodeViewColumn {
     @DataBoundConstructor
-    public BuildScanColumn() {
-    }
+    public BuildScanColumn() {}
 
     @Override
     public String getColumnCaption() {
-        return "";  // no caption needed because icon is clear enough
+        return ""; // no caption needed because icon is clear enough
     }
 
     @Extension

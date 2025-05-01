@@ -5,21 +5,19 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 public class WithGradle extends Step {
 
     @DataBoundConstructor
-    public WithGradle() {
-    }
+    public WithGradle() {}
 
     @Override
     public StepExecution start(StepContext context) {

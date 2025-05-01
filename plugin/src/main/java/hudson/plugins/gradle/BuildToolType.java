@@ -1,11 +1,9 @@
 package hudson.plugins.gradle;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Locale;
 
 public enum BuildToolType {
-
     @JsonProperty("gradle")
     GRADLE,
     @JsonProperty("maven")

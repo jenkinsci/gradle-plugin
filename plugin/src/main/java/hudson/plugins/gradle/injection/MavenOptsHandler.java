@@ -2,8 +2,6 @@ package hudson.plugins.gradle.injection;
 
 import com.google.common.collect.Sets;
 import hudson.model.Node;
-
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 final class MavenOptsHandler {
 
@@ -22,25 +21,18 @@ final class MavenOptsHandler {
     private final Set<String> requiredKeys;
 
     public MavenOptsHandler(SystemProperty.Key... keys) {
-        this.keys =
-            Arrays.stream(keys)
+        this.keys = Arrays.stream(keys)
                 .map(k -> k.name)
-                .collect(
-                    Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-        this.requiredKeys =
-            Arrays.stream(keys)
+                .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+        this.requiredKeys = Arrays.stream(keys)
                 .filter(k -> k.required)
                 .map(k -> k.name)
-                .collect(
-                    Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+                .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
     }
 
     String merge(Node node, List<SystemProperty> systemProperties) {
         String additionalProperties =
-            systemProperties
-                .stream()
-                .map(SystemProperty::asString)
-                .collect(Collectors.joining(SPACE));
+                systemProperties.stream().map(SystemProperty::asString).collect(Collectors.joining(SPACE));
 
         return filtered(getCurrentMavenOpts(node), Collections.emptySet())
                 .map(current -> String.join(SPACE, current, additionalProperties))
@@ -80,8 +72,7 @@ final class MavenOptsHandler {
     }
 
     private Optional<String> filtered(@Nullable String mavenOpts, Set<String> keepKeys) throws RuntimeException {
-        return Optional.ofNullable(mavenOpts)
-            .map(it -> filterMavenOpts(it, keepKeys));
+        return Optional.ofNullable(mavenOpts).map(it -> filterMavenOpts(it, keepKeys));
     }
 
     @Nullable
@@ -95,8 +86,7 @@ final class MavenOptsHandler {
      */
     @Nullable
     private String filterMavenOpts(String mavenOpts, Set<String> keepKeys) {
-        String filtered =
-            Arrays.stream(mavenOpts.split(SPACE))
+        String filtered = Arrays.stream(mavenOpts.split(SPACE))
                 .filter(systemProperty -> shouldBeKept(systemProperty, keepKeys))
                 .collect(Collectors.joining(SPACE));
 

@@ -6,20 +6,15 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.Run;
 import hudson.plugins.gradle.Gradle;
 import hudson.tasks.Builder;
-
-import javax.annotation.Nullable;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 public final class RunUtil {
 
-    private RunUtil() {
-    }
+    private RunUtil() {}
 
     public static <T extends Actionable, A extends Action> A getOrCreateAction(
-        T actionable,
-        Class<A> actionClass,
-        Supplier<A> actionFactory
-    ) {
+            T actionable, Class<A> actionClass, Supplier<A> actionFactory) {
         A action = actionable.getAction(actionClass);
 
         if (action == null) {
