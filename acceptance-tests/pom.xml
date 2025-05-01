@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.gradle</groupId>
+    <artifactId>gradle-plugin-acceptance-tests</artifactId>
+    <version>UNVERSIONED</version>
+    <packaging>jar</packaging>
+
+    <name>Gradle Plugin Acceptance Tests</name>
+    <properties>
+        <jenkins.version>2.479.3</jenkins.version>
+        <skipTests>true</skipTests>
+        <toolchain.jdk.version>17</toolchain.jdk.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci</groupId>
+            <artifactId>annotation-indexer</artifactId>
+            <version>1.18</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci</groupId>
+            <artifactId>acceptance-test-harness</artifactId>
+            <version>6169.v8b_0662286b_b_7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.18.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-bom</artifactId>
+            <version>4.2.0.Final</version>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.ratpack</groupId>
+            <artifactId>ratpack-test</artifactId>
+            <version>2.0.0-rc-1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+            <scope>test</scope>
+        </dependency>
+
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <reuseForks>false</reuseForks>
+                    <trimStackTrace>false</trimStackTrace>
+                    <environmentVariables>
+                        <JENKINS_VERSION>${jenkins.version}</JENKINS_VERSION>
+                        <BROWSER>chrome</BROWSER>
+                        <LOCAL_JARS>../plugin/target/gradle.hpi</LOCAL_JARS>
+                    </environmentVariables>
+                    <rerunFailingTestsCount>1</rerunFailingTestsCount>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                    <skipTests>${skipTests}</skipTests>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <profiles>
+        <profile>
+            <id>jenkinsLts</id>
+            <properties>
+                <jenkins.version>2.492.3</jenkins.version>
+                <skipTests>false</skipTests>
+            </properties>
+        </profile>
+        <profile>
+            <id>jenkinsMin</id>
+            <properties>
+                <jenkins.version>2.479.3</jenkins.version>
+                <skipTests>false</skipTests>
+            </properties>
+        </profile>
+        <profile>
+            <id>jenkinsLatest</id>
+            <properties>
+                <jenkins.version>2.508</jenkins.version>
+                <skipTests>false</skipTests>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>
