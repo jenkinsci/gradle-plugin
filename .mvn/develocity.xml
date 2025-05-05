@@ -1,5 +1,6 @@
 <develocity>
     <buildScan>
+        <backgroundBuildScanUpload>#{env['JENKINS_URL'] == null and env['TEAMCITY_VERSION'] == null}</backgroundBuildScanUpload>
         <termsOfUse>
             <url>https://gradle.com/help/legal-terms-of-use</url>
             <accept>true</accept>
