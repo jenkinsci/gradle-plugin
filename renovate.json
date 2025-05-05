@@ -12,10 +12,10 @@
         {
             "customType": "regex",
             "fileMatch": [
-                "acceptance-tests/build.gradle.kts"
+                "acceptance-tests/pom.xml"
             ],
             "matchStrings": [
-                "LATEST_VERSION = \"(?<currentValue>)\""
+                "<jenkins\\.version>(?<currentValue>.*)<\\/jenkins\\.version><!--RENOVATE-LTS-->"
             ],
             "versioningTemplate": "semver-coerced",
             "datasourceTemplate": "custom.jenkins-latest-lts"
@@ -23,10 +23,10 @@
         {
             "customType": "regex",
             "fileMatch": [
-                "acceptance-tests/build.gradle.kts"
+                "acceptance-tests/pom.xml"
             ],
             "matchStrings": [
-                "LATEST_LTS_VERSION = \"(?<currentValue>)\""
+                "<jenkins\\.version>(?<currentValue>.*)<\\/jenkins\\.version><!--RENOVATE-LATEST-->"
             ],
             "versioningTemplate": "semver-coerced",
             "datasourceTemplate": "custom.jenkins-latest"
