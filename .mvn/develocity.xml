@@ -1,0 +1,11 @@
+<develocity>
+    <buildScan>
+        <termsOfUse>
+            <url>https://gradle.com/help/legal-terms-of-use</url>
+            <accept>true</accept>
+        </termsOfUse>
+        <obfuscation>
+            <ipAddresses>#{{'0.0.0.0'}}</ipAddresses>
+        </obfuscation>
+    </buildScan>
+</develocity>
