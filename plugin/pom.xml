@@ -44,7 +44,6 @@
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
 
     <spotless.check.skip>false</spotless.check.skip>
-    <toolchain.jdk.version>17</toolchain.jdk.version>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <maven.extension.version>1.0.0</maven.extension.version>
@@ -211,13 +210,6 @@
       <version>3.4</version>
       <scope>test</scope>
     </dependency>
-    <!--        <dependency>-->
-    <!--            <groupId>io.jenkins.configuration-as-code</groupId>-->
-    <!--            <artifactId>test-harness</artifactId>-->
-    <!--            <version>1.4</version>-->
-    <!--            <scope>test</scope>-->
-    <!--        </dependency>-->
-
     <dependency>
       <groupId>org.spockframework</groupId>
       <artifactId>spock-core</artifactId>

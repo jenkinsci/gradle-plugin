@@ -11,7 +11,6 @@
     <properties>
         <jenkins.version>2.479.3</jenkins.version>
         <skipTests>true</skipTests>
-        <toolchain.jdk.version>17</toolchain.jdk.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
