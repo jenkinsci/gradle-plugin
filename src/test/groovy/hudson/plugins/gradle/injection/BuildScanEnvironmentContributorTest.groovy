@@ -10,6 +10,7 @@ import hudson.model.TaskListener
 import hudson.plugins.gradle.BaseJenkinsIntegrationTest
 import hudson.plugins.gradle.injection.BuildScanEnvironmentContributor.DevelocityParametersAction
 import hudson.plugins.gradle.injection.token.ShortLivedTokenClient
+import hudson.plugins.gradle.injection.token.ShortLivedTokenClientFactory
 import hudson.util.Secret
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import spock.lang.Subject
@@ -17,10 +18,10 @@ import spock.lang.Subject
 class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
 
     def run = Mock(Run)
-    def shortLivedTokenClient = Mock(ShortLivedTokenClient)
+    def shortLivedTokenClientFactory = Mock(ShortLivedTokenClientFactory)
 
     @Subject
-    def buildScanEnvironmentContributor = new BuildScanEnvironmentContributor(shortLivedTokenClient)
+    def buildScanEnvironmentContributor = new BuildScanEnvironmentContributor(shortLivedTokenClientFactory)
 
     def 'does nothing if no access key'() {
         given:
@@ -113,6 +114,8 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
 
         def key = DevelocityAccessCredentials.parse(accessKey).find('localhost').get()
 
+        ShortLivedTokenClient shortLivedTokenClient = Mock(ShortLivedTokenClient)
+        shortLivedTokenClientFactory.create(false) >> shortLivedTokenClient
         shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz'))
 
         when:
@@ -147,7 +150,8 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         createStringCredentials(accessKeyCredentialId, accessKey)
 
         def key = DevelocityAccessCredentials.parse(accessKey).find('localhost').get()
-
+        ShortLivedTokenClient shortLivedTokenClient = Mock(ShortLivedTokenClient)
+        shortLivedTokenClientFactory.create(false) >> shortLivedTokenClient
         shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz'))
 
         when:
@@ -176,7 +180,8 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         config.save()
 
         createStringCredentials(accessKeyCredentialId, accessKey)
-
+        ShortLivedTokenClient shortLivedTokenClient = Mock(ShortLivedTokenClient)
+        shortLivedTokenClientFactory.create(false) >> shortLivedTokenClient
         shortLivedTokenClient.get("https://localhost", DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'secret'), null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz'))
         shortLivedTokenClient.get("https://other", DevelocityAccessCredentials.HostnameAccessKey.of('other', 'secret2'), null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('other', 'abc'))
 
@@ -234,7 +239,8 @@ class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
         createUsernamePasswordCredentials(repositoryPasswordCredentialId, "john", "foo")
 
         def key = DevelocityAccessCredentials.parse(accessKey).find('localhost').get()
-
+        ShortLivedTokenClient shortLivedTokenClient = Mock(ShortLivedTokenClient)
+        shortLivedTokenClientFactory.create(false) >> shortLivedTokenClient
         shortLivedTokenClient.get(config.getServer(), key, null) >> Optional.of(DevelocityAccessCredentials.HostnameAccessKey.of('localhost', 'xyz'))
 
         when:
