@@ -40,7 +40,7 @@ dependencies {
     testImplementation("io.ratpack:ratpack-test:2.0.0-rc-1")
     testCompileOnly("com.google.code.findbugs:jsr305:3.0.2")
 
-    add(gradlePlugin.name, project(path = ":", configuration = "gradlePluginJpi"))
+    add(gradlePlugin.name, project(path = ":plugin", configuration = "gradlePluginJpi"))
 }
 
 val jenkinsVersions = listOf(

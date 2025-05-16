@@ -6,6 +6,7 @@ plugins {
 
 includeBuild("build-logic")
 
+include("plugin")
 include("acceptance-tests")
 include("configuration-maven-extension")
 
