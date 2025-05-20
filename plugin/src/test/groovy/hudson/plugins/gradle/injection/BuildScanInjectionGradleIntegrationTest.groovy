@@ -634,7 +634,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         j.assertLogContains("Connection to Develocity: ${mockDevelocity.address}", secondRun)
         j.assertLogContains("accessKey=localhost=some-token", secondRun)
         j.assertLogNotContains("accessKey=localhost=secret", secondRun)
-        j.assertLogContains("The response from ${mockDevelocity.address}scans/publish/gradle/${BaseGradleIntegrationTest.DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
+        j.assertLogContains("The response from ${mockDevelocity.address}scans/publish/gradle/${DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
         j.assertLogNotContains(INVALID_ACCESS_KEY_FORMAT_ERROR, secondRun)
 
     }
