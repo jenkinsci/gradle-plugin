@@ -12,6 +12,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.gradle.DevelocityLogger;
 import hudson.plugins.gradle.injection.token.ShortLivedTokenClient;
+import hudson.plugins.gradle.injection.token.ShortLivedTokenClientFactory;
 import hudson.util.Secret;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
@@ -30,14 +31,15 @@ import java.util.stream.Stream;
 @Extension
 public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
-    private final ShortLivedTokenClient tokenClient;
+    private final ShortLivedTokenClientFactory shortLivedTokenClientFactory;
 
     public BuildScanEnvironmentContributor() {
-        this.tokenClient = new ShortLivedTokenClient(InjectionConfig.get().isAllowUntrusted());
+        this.shortLivedTokenClientFactory = new ShortLivedTokenClientFactory();
     }
 
-    public BuildScanEnvironmentContributor(ShortLivedTokenClient tokenClient) {
-        this.tokenClient = tokenClient;
+    // required for testing
+    public BuildScanEnvironmentContributor(ShortLivedTokenClientFactory shortLivedTokenClientFactory) {
+        this.shortLivedTokenClientFactory = shortLivedTokenClientFactory;
     }
 
     @Override
@@ -81,6 +83,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
             return null;
         }
         String serverUrl = InjectionConfig.get().getServer();
+        ShortLivedTokenClient tokenClient = shortLivedTokenClientFactory.create(InjectionConfig.get().isAllowUntrusted());
 
         // If we know the URL or there's only one access key configured corresponding to the right URL
         if (InjectionConfig.get().isEnforceUrl() || allKeys.isSingleKey()) {
