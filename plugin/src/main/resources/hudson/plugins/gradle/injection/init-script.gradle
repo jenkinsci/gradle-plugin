@@ -1,4 +1,3 @@
-package hudson.plugins.gradle.injection
 /*
  * Initscript for injection of Develocity into Gradle builds.
  * Version: 2.0
