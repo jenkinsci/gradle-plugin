@@ -1,11 +1,11 @@
 package hudson.plugins.gradle;
 
-import static hudson.plugins.gradle.TimestampPrefixDetector.detectTimestampPrefix;
-import static hudson.plugins.gradle.TimestampPrefixDetector.trimTimestampPrefix;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+
+import static hudson.plugins.gradle.TimestampPrefixDetector.detectTimestampPrefix;
+import static hudson.plugins.gradle.TimestampPrefixDetector.trimTimestampPrefix;
 
 /**
  * @author ikikko
@@ -18,11 +18,10 @@ public final class GradleConsoleAnnotator extends AbstractGradleLogProcessor {
 
     private transient Integer timestampPrefix;
 
-    public GradleConsoleAnnotator(
-            OutputStream out,
-            Charset charset,
-            boolean annotateGradleOutput,
-            BuildScanPublishedListener buildScanListener) {
+    public GradleConsoleAnnotator(OutputStream out,
+                                  Charset charset,
+                                  boolean annotateGradleOutput,
+                                  BuildScanPublishedListener buildScanListener) {
         super(out, charset);
         this.annotateGradleOutput = annotateGradleOutput;
         this.buildScanLogScanner = new BuildScanLogScanner(buildScanListener);

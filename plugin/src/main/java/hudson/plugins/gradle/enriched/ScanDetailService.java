@@ -3,8 +3,6 @@ package hudson.plugins.gradle.enriched;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import hudson.util.Secret;
-import java.net.URI;
-import java.util.Optional;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -15,11 +13,14 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+import java.util.Optional;
+
 public class ScanDetailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScanDetailService.class);
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final static ObjectMapper MAPPER = new ObjectMapper();
 
     private static final String GRADLE_ENTERPRISE_PUBLIC_SERVER = "https://gradle.com";
     private static final String URL_CONTEXT_PATH_SCAN_ID = "/s/";
@@ -67,16 +68,13 @@ public class ScanDetailService {
             return null;
         }
 
-        try (CloseableHttpClient httpclient = httpClientFactory.buildHttpClient(
-                httpClientTimeoutInSeconds, httpClientMaxRetries, httpClientDelayBetweenRetriesInSeconds)) {
+        try (CloseableHttpClient httpclient = httpClientFactory.buildHttpClient(httpClientTimeoutInSeconds, httpClientMaxRetries, httpClientDelayBetweenRetriesInSeconds)) {
             HttpGet httpGetApiBuilds = buildGetRequest(baseApiUri);
 
             ScanDetail scanDetail = new ScanDetail(buildScanUrl);
             try (CloseableHttpResponse responseApiBuilds = httpclient.execute(httpGetApiBuilds)) {
                 if (responseApiBuilds.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                    LOGGER.warn(
-                            "Unable to fetch build scan data [{}]",
-                            responseApiBuilds.getStatusLine().getStatusCode());
+                    LOGGER.warn("Unable to fetch build scan data [{}]", responseApiBuilds.getStatusLine().getStatusCode());
                     return null;
                 }
 
@@ -85,17 +83,12 @@ public class ScanDetailService {
                     String apiBuildsResponse = EntityUtils.toString(httpEntityApiBuilds);
                     ObjectReader objectReader = MAPPER.readerForUpdating(scanDetail);
                     scanDetail = objectReader.readValue(apiBuildsResponse);
-                    String suffix = (scanDetail.getBuildToolType() != null)
-                            ? scanDetail.getBuildToolType().getAttributesUrlSuffix()
-                            : "unsupported";
+                    String suffix = (scanDetail.getBuildToolType() != null) ? scanDetail.getBuildToolType().getAttributesUrlSuffix() : "unsupported";
                     HttpGet httpGetBuildAttributes = buildGetRequest(baseApiUri + suffix);
 
-                    try (CloseableHttpResponse responseApiBuildAttributes =
-                            httpclient.execute(httpGetBuildAttributes)) {
+                    try (CloseableHttpResponse responseApiBuildAttributes = httpclient.execute(httpGetBuildAttributes)) {
                         if (responseApiBuildAttributes.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                            LOGGER.warn(
-                                    "Unable to fetch build scan data [{}]",
-                                    responseApiBuildAttributes.getStatusLine().getStatusCode());
+                            LOGGER.warn("Unable to fetch build scan data [{}]", responseApiBuildAttributes.getStatusLine().getStatusCode());
                             return null;
                         }
 
@@ -124,14 +117,11 @@ public class ScanDetailService {
         String scanId = buildScanUrl.substring(scanIdStartIndex + URL_CONTEXT_PATH_SCAN_ID.length());
 
         try {
-            URI baseApiUri = buildScanServer != null
-                    ? URI.create(buildScanServer)
+            URI baseApiUri = buildScanServer != null ?
+                    URI.create(buildScanServer)
                     : URI.create(buildScanUrl).resolve("/");
 
-            return baseApiUri
-                    .resolve(URL_CONTEXT_PATH_API_BUILDS)
-                    .resolve(scanId)
-                    .toASCIIString();
+            return baseApiUri.resolve(URL_CONTEXT_PATH_API_BUILDS).resolve(scanId).toASCIIString();
         } catch (IllegalArgumentException e) {
             LOGGER.warn("URL can't be parsed", e);
             return null;
@@ -145,4 +135,5 @@ public class ScanDetailService {
         }
         return httpGet;
     }
+
 }

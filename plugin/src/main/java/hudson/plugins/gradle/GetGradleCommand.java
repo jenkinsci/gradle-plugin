@@ -9,15 +9,16 @@ import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import hudson.tools.ToolPropertyDescriptor;
 import hudson.util.DescribableList;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /* Add a new command to the jenkins CLI, get-gradle.
  *
@@ -55,16 +56,16 @@ public class GetGradleCommand extends CLICommand {
      * Optional.  The name of the gradle installation. If name is not
      * provided, list all available installations.
      */
-    @Option(
-            name = "--name",
+    @Option(name = "--name",
             required = false,
-            usage =
-                    "[Optional] The name of the gradle installation.  If name is not provided, list all available installations.")
+            usage = "[Optional] The name of the gradle installation.  If name is not provided, list all available installations.")
     public String name = null;
 
     /* Print usage statement
      */
-    @Option(name = "--help", required = false, usage = "Print this usage statement")
+    @Option(name = "--help",
+            required = false,
+            usage = "Print this usage statement")
     public boolean help = false;
 
     // return values
@@ -83,9 +84,8 @@ public class GetGradleCommand extends CLICommand {
             return OK;
         }
 
-        GradleInstallation[] installations = Jenkins.getActiveInstance()
-                .getDescriptorByType(GradleInstallation.DescriptorImpl.class)
-                .getInstallations();
+        GradleInstallation[] installations =
+                Jenkins.getActiveInstance().getDescriptorByType(GradleInstallation.DescriptorImpl.class).getInstallations();
 
         Map<String, List<String>> map = new HashMap<String, List<String>>();
 

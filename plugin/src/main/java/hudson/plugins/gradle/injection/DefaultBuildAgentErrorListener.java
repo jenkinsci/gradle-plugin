@@ -16,6 +16,6 @@ public final class DefaultBuildAgentErrorListener implements BuildAgentErrorList
     @Override
     public void onBuildAgentError(BuildAgentError buildAgentError) {
         RunUtil.getOrCreateAction(actionable, BuildScanAction.class, BuildScanAction::new)
-                .addBuildAgentError(buildAgentError);
+            .addBuildAgentError(buildAgentError);
     }
 }

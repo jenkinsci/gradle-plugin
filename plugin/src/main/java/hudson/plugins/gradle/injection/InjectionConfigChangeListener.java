@@ -8,13 +8,14 @@ import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Saveable;
 import hudson.model.listeners.SaveableListener;
+import jenkins.model.Jenkins;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jenkins.model.Jenkins;
 
 /**
  * Performs build scans auto-injection/cleanup when the {@link InjectionConfig} changes.
@@ -36,7 +37,8 @@ public class InjectionConfigChangeListener extends SaveableListener {
                 new MavenBuildScanInjection(),
                 new MavenExtensionDownloadHandler(),
                 new JenkinsGlobalEnvVars(),
-                new JenkinsComputers());
+                new JenkinsComputers()
+        );
     }
 
     @VisibleForTesting
@@ -45,7 +47,8 @@ public class InjectionConfigChangeListener extends SaveableListener {
             MavenBuildScanInjection mavenBuildScanInjection,
             MavenExtensionDownloadHandler mavenExtensionDownloadHandler,
             Supplier<EnvVars> globalEnvVarsSupplier,
-            Supplier<Collection<Computer>> computersSupplier) {
+            Supplier<Collection<Computer>> computersSupplier
+    ) {
         this.gradleBuildScanInjection = gradleBuildScanInjection;
         this.mavenBuildScanInjection = mavenBuildScanInjection;
         this.mavenExtensionDownloadHandler = mavenExtensionDownloadHandler;
@@ -65,7 +68,8 @@ public class InjectionConfigChangeListener extends SaveableListener {
 
             try {
                 Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(
-                        () -> Jenkins.get().getRootDir(), injectionConfig);
+                        () -> Jenkins.get().getRootDir(), injectionConfig
+                );
 
                 for (Computer computer : computersSupplier.get()) {
                     if (computer.isOnline()) {
@@ -84,7 +88,8 @@ public class InjectionConfigChangeListener extends SaveableListener {
 
     private static final class JenkinsGlobalEnvVars implements Supplier<EnvVars> {
 
-        private JenkinsGlobalEnvVars() {}
+        private JenkinsGlobalEnvVars() {
+        }
 
         @Override
         public EnvVars get() {
@@ -94,7 +99,8 @@ public class InjectionConfigChangeListener extends SaveableListener {
 
     private static final class JenkinsComputers implements Supplier<Collection<Computer>> {
 
-        private JenkinsComputers() {}
+        private JenkinsComputers() {
+        }
 
         @Override
         public Collection<Computer> get() {

@@ -1,6 +1,7 @@
 package hudson.plugins.gradle;
 
 import hudson.model.TaskListener;
+
 import java.io.Serializable;
 
 abstract class AbstractLogger implements Serializable {

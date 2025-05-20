@@ -1,7 +1,5 @@
 package hudson.plugins.gradle.injection;
 
-import static hudson.plugins.gradle.injection.CopyUtil.*;
-
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.common.UsernameCredentials;
@@ -13,31 +11,30 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static hudson.plugins.gradle.injection.CopyUtil.*;
+
 public class GradleBuildScanInjection implements GradleInjectionAware {
 
     private static final Logger LOGGER = Logger.getLogger(GradleBuildScanInjection.class.getName());
 
-    private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME =
-            "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME";
-    private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME =
-            "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
+    private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME";
+    private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
     private static final String HOME = "HOME";
 
     @VisibleForTesting
     static final String RESOURCE_INIT_SCRIPT_GRADLE = "init-script.gradle";
-
     private static final String INIT_DIR = "init.d";
     private static final String GRADLE_DIR = ".gradle";
     private static final String GRADLE_INIT_FILE = "init-build-scan.gradle";
 
-    private final Supplier<String> initScriptDigest =
-            Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
+    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
 
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
         if (node == null) {
@@ -88,8 +85,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
         }
     }
 
-    private void injectInitScript(VirtualChannel channel, String initScriptDirectory)
-            throws IOException, InterruptedException {
+    private void injectInitScript(VirtualChannel channel, String initScriptDirectory) throws IOException, InterruptedException {
         FilePath gradleInitScriptFile = getInitScriptFile(channel, initScriptDirectory);
         if (initScriptChanged(gradleInitScriptFile)) {
             LOGGER.info("Injecting Gradle init script " + gradleInitScriptFile);
@@ -158,8 +154,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
         }
     }
 
-    private void removeInitScript(VirtualChannel channel, String initScriptDirectory)
-            throws IOException, InterruptedException {
+    private void removeInitScript(VirtualChannel channel, String initScriptDirectory) throws IOException, InterruptedException {
         FilePath gradleInitScriptFile = getInitScriptFile(channel, initScriptDirectory);
         if (gradleInitScriptFile.exists()) {
             LOGGER.info("Deleting Gradle init script " + gradleInitScriptFile.getRemote());
@@ -176,8 +171,8 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
     }
 
     private static String getRepositoryUsername(String gradlePluginRepositoryCredentialId) {
-        List<StandardUsernamePasswordCredentials> allCredentials =
-                CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
+        List<StandardUsernamePasswordCredentials> allCredentials
+                = CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
 
         return allCredentials.stream()
                 .filter(it -> it.getId().equals(gradlePluginRepositoryCredentialId))
@@ -189,4 +184,5 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
     private static String filePath(String... parts) {
         return String.join("/", parts);
     }
+
 }

@@ -4,10 +4,11 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import java.io.Serializable;
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.kohsuke.stapler.DataBoundConstructor;
+import java.io.Serializable;
 
 public class NodeLabelItem extends AbstractDescribableImpl<NodeLabelItem> implements Serializable {
 

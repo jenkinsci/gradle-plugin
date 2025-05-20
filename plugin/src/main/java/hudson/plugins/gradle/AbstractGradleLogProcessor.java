@@ -1,6 +1,7 @@
 package hudson.plugins.gradle;
 
 import hudson.console.LineTransformationOutputStream;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;

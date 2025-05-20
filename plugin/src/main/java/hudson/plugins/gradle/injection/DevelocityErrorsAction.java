@@ -11,6 +11,9 @@ import hudson.plugins.gradle.AbstractBuildScanAction;
 import hudson.plugins.gradle.BuildAgentError;
 import hudson.plugins.gradle.BuildToolType;
 import hudson.util.RunList;
+import jenkins.model.Jenkins;
+import org.kohsuke.stapler.StaplerProxy;
+
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -19,16 +22,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import jenkins.model.Jenkins;
-import org.kohsuke.stapler.StaplerProxy;
 
 @Extension
 public class DevelocityErrorsAction implements RootAction, StaplerProxy {
     @Override
     public String getIconFileName() {
-        return isVisible() && Jenkins.get().hasPermission(Jenkins.ADMINISTER)
-                ? "/plugin/gradle/images/svgs/gradle-build-scan.svg"
-                : null;
+        return isVisible() && Jenkins.get().hasPermission(Jenkins.ADMINISTER) ? "/plugin/gradle/images/svgs/gradle-build-scan.svg" : null;
     }
 
     @Override
@@ -49,12 +48,14 @@ public class DevelocityErrorsAction implements RootAction, StaplerProxy {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Iterator<GeErrorModel> getErrors() {
-        Stream<Run> stream = RunList.fromJobs((Iterable) Jenkins.get().allItems(Job.class)).completedOnly().stream();
+        Stream<Run> stream = RunList.fromJobs((Iterable) Jenkins.get().allItems(Job.class))
+            .completedOnly()
+            .stream();
         return stream.map(GeErrorModel::fromRun)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .limit(200)
-                .iterator();
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .limit(200)
+            .iterator();
     }
 
     private boolean isVisible() {
@@ -69,13 +70,12 @@ public class DevelocityErrorsAction implements RootAction, StaplerProxy {
         private final String buildUrl;
         private final Date start;
 
-        private GeErrorModel(
-                List<BuildToolIcon> buildToolIcons,
-                String project,
-                String buildStatusIconClassName,
-                String buildStatus,
-                String buildUrl,
-                Date start) {
+        private GeErrorModel(List<BuildToolIcon> buildToolIcons,
+                             String project,
+                             String buildStatusIconClassName,
+                             String buildStatus,
+                             String buildUrl,
+                             Date start) {
             this.buildToolIcons = buildToolIcons;
             this.project = project;
             this.buildStatusIconClassName = buildStatusIconClassName;
@@ -88,12 +88,12 @@ public class DevelocityErrorsAction implements RootAction, StaplerProxy {
             AbstractBuildScanAction action = r.getAction(AbstractBuildScanAction.class);
             if (action != null && action.hasErrors()) {
                 return Optional.of(new GeErrorModel(
-                        BuildToolIcon.buildToolIcons(action.getBuildAgentErrors()),
-                        r.getParent().getFullName(),
-                        r.getBuildStatusIconClassName(),
-                        Optional.ofNullable(r.getResult()).map(Result::toString).orElse(""),
-                        r.getUrl(),
-                        new Date(r.getStartTimeInMillis())));
+                    BuildToolIcon.buildToolIcons(action.getBuildAgentErrors()),
+                    r.getParent().getFullName(),
+                    r.getBuildStatusIconClassName(),
+                    Optional.ofNullable(r.getResult()).map(Result::toString).orElse(""),
+                    r.getUrl(),
+                    new Date(r.getStartTimeInMillis())));
             } else {
                 return Optional.empty();
             }
@@ -102,8 +102,9 @@ public class DevelocityErrorsAction implements RootAction, StaplerProxy {
         public static class BuildToolIcon {
 
             private static final Map<BuildToolType, BuildToolIcon> ICONS_FOR_BUILD_TOOLS = ImmutableMap.of(
-                    BuildToolType.GRADLE, new BuildToolIcon("Gradle", "gradle-build-scan.svg"),
-                    BuildToolType.MAVEN, new BuildToolIcon("Maven", "maven.svg"));
+                BuildToolType.GRADLE, new BuildToolIcon("Gradle", "gradle-build-scan.svg"),
+                BuildToolType.MAVEN, new BuildToolIcon("Maven", "maven.svg")
+            );
 
             private final String tooltip;
             private final String icon;
@@ -115,9 +116,9 @@ public class DevelocityErrorsAction implements RootAction, StaplerProxy {
 
             public static List<BuildToolIcon> buildToolIcons(List<BuildAgentError> buildAgentErrors) {
                 return buildAgentErrors.stream()
-                        .map(e -> ICONS_FOR_BUILD_TOOLS.get(e.getBuildToolType()))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
+                    .map(e -> ICONS_FOR_BUILD_TOOLS.get(e.getBuildToolType()))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             }
 
             public String getIcon() {

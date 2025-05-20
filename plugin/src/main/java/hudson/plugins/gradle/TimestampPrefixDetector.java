@@ -12,7 +12,8 @@ final class TimestampPrefixDetector {
         return line.substring(prefix);
     }
 
-    private TimestampPrefixDetector() {}
+    private TimestampPrefixDetector() {
+    }
 
     static int detectTimestampPrefix(String line) {
         Matcher matcher = TimestampPatternR.matcher(line);
@@ -21,4 +22,5 @@ final class TimestampPrefixDetector {
         }
         return 0;
     }
+
 }

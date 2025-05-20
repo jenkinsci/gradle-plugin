@@ -27,9 +27,7 @@ public final class MavenCoordinates implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MavenCoordinates that = (MavenCoordinates) o;
-        return Objects.equals(groupId, that.groupId)
-                && Objects.equals(artifactId, that.artifactId)
-                && Objects.equals(version, that.version);
+        return Objects.equals(groupId, that.groupId) && Objects.equals(artifactId, that.artifactId) && Objects.equals(version, that.version);
     }
 
     @Override
@@ -72,4 +70,5 @@ public final class MavenCoordinates implements Serializable {
     public String toString() {
         return String.format("%s:%s:%s", groupId, artifactId, version);
     }
+
 }

@@ -1,12 +1,5 @@
 package hudson.plugins.gradle.injection;
 
-import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_INJECTION_ENABLED;
-import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.isUnix;
-import static hudson.plugins.gradle.injection.MavenExtensionsDetector.detect;
-import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH;
-import static hudson.plugins.gradle.injection.MavenInjectionAware.MAVEN_OPTS_HANDLER;
-import static hudson.plugins.gradle.injection.MavenOptsHandler.MAVEN_OPTS;
-
 import com.google.common.base.Strings;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -17,13 +10,21 @@ import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.UserRemoteConfig;
 import hudson.scm.SCM;
 import hudson.scm.SCMRevisionState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static hudson.plugins.gradle.injection.InitScriptVariables.DEVELOCITY_INJECTION_ENABLED;
+import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.isUnix;
+import static hudson.plugins.gradle.injection.MavenExtensionsDetector.detect;
+import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH;
+import static hudson.plugins.gradle.injection.MavenInjectionAware.MAVEN_OPTS_HANDLER;
+import static hudson.plugins.gradle.injection.MavenOptsHandler.MAVEN_OPTS;
 
 @Extension
 public class GitScmListener extends SCMListener {
@@ -32,12 +33,13 @@ public class GitScmListener extends SCMListener {
 
     @Override
     public void onCheckout(
-            Run<?, ?> build,
-            SCM scm,
-            FilePath workspace,
-            TaskListener listener,
-            @CheckForNull File changelogFile,
-            @CheckForNull SCMRevisionState pollingBaseline) {
+        Run<?, ?> build,
+        SCM scm,
+        FilePath workspace,
+        TaskListener listener,
+        @CheckForNull File changelogFile,
+        @CheckForNull SCMRevisionState pollingBaseline
+    ) {
         try {
             InjectionConfig config = InjectionConfig.get();
 
@@ -59,7 +61,11 @@ public class GitScmListener extends SCMListener {
     }
 
     private static void disableAutoInjection(
-            Run<?, ?> build, FilePath workspace, InjectionConfig config, TaskListener listener) throws Exception {
+        Run<?, ?> build,
+        FilePath workspace,
+        InjectionConfig config,
+        TaskListener listener
+    ) throws Exception {
         Computer computer = workspace.toComputer();
         if (computer == null) {
             return;
@@ -82,7 +88,11 @@ public class GitScmListener extends SCMListener {
     }
 
     private static void disableMavenAutoInjectionIfAlreadyApplied(
-            Run<?, ?> build, FilePath workspace, InjectionConfig config, TaskListener listener) throws Exception {
+        Run<?, ?> build,
+        FilePath workspace,
+        InjectionConfig config,
+        TaskListener listener
+    ) throws Exception {
         Computer computer = workspace.toComputer();
         if (computer == null) {
             return;
@@ -94,9 +104,10 @@ public class GitScmListener extends SCMListener {
         if (currentMavenOpts != null) {
             Set<MavenExtension> knownExtensions = detect(config, workspace);
             if (!knownExtensions.isEmpty()) {
-                build.addAction(new MavenInjectionDisabledAction(
+                build.addAction(
+                    new MavenInjectionDisabledAction(
                         new MavenOptsDevelocityFilter(knownExtensions, isUnix(computer))
-                                .filter(currentMavenOpts, config.isEnforceUrl())));
+                            .filter(currentMavenOpts, config.isEnforceUrl())));
             }
         }
     }
@@ -119,10 +130,8 @@ public class GitScmListener extends SCMListener {
                     return true;
                 }
                 switch (config.matchesRepositoryFilter(url)) {
-                    case EXCLUDED:
-                        return false;
-                    case INCLUDED:
-                        return true;
+                    case EXCLUDED: return false;
+                    case INCLUDED: return true;
                 }
             }
         }
@@ -141,24 +150,24 @@ public class GitScmListener extends SCMListener {
     /**
      * Action that disables Gradle Plugin injection by setting a flag to be read by the init script.
      */
-    public static final class GradleInjectionDisabledAction extends InvisibleAction
-            implements EnvironmentContributingAction {
+    public static final class GradleInjectionDisabledAction extends InvisibleAction implements EnvironmentContributingAction {
 
         public static final GradleInjectionDisabledAction INSTANCE = new GradleInjectionDisabledAction();
 
-        private GradleInjectionDisabledAction() {}
+        private GradleInjectionDisabledAction() {
+        }
 
         @Override
         public void buildEnvironment(@Nonnull Run<?, ?> run, @Nonnull EnvVars envVars) {
             envVars.put(DEVELOCITY_INJECTION_ENABLED.getEnvVar(), "false");
         }
+
     }
 
     /**
      * Action that disables Maven Extension injection by modifying corresponding environment variables.
      */
-    public static final class MavenInjectionDisabledAction extends InvisibleAction
-            implements EnvironmentContributingAction {
+    public static final class MavenInjectionDisabledAction extends InvisibleAction implements EnvironmentContributingAction {
 
         private final String mavenOpts;
 
@@ -171,5 +180,7 @@ public class GitScmListener extends SCMListener {
             envVars.put(MAVEN_OPTS, mavenOpts);
             envVars.put(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, "");
         }
+
     }
+
 }

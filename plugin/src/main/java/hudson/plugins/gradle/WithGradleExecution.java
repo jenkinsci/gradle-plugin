@@ -4,15 +4,16 @@ import hudson.model.Run;
 import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
 import hudson.plugins.gradle.enriched.ScanDetailService;
 import hudson.plugins.gradle.util.RunUtil;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Collections;
-import java.util.List;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
 import org.jenkinsci.plugins.workflow.steps.BodyExecutionCallback;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Collections;
+import java.util.List;
 
 public class WithGradleExecution extends StepExecution {
 
@@ -25,11 +26,10 @@ public class WithGradleExecution extends StepExecution {
         GradleTaskListenerDecorator gradleTaskListenerDecorator = new GradleTaskListenerDecorator();
 
         getContext()
-                .newBodyInvoker()
-                .withContext(TaskListenerDecorator.merge(
-                        getContext().get(TaskListenerDecorator.class), gradleTaskListenerDecorator))
-                .withCallback(new BuildScanCallback(gradleTaskListenerDecorator, getContext()))
-                .start();
+            .newBodyInvoker()
+            .withContext(TaskListenerDecorator.merge(getContext().get(TaskListenerDecorator.class), gradleTaskListenerDecorator))
+            .withCallback(new BuildScanCallback(gradleTaskListenerDecorator, getContext()))
+            .start();
 
         return false;
     }
@@ -72,7 +72,7 @@ public class WithGradleExecution extends StepExecution {
                 ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
                 Run run = context.get(Run.class);
                 RunUtil.getOrCreateAction(run, BuildScanAction.class, BuildScanAction::new)
-                        .addScanUrls(buildScans, scanDetailService::getScanDetail);
+                    .addScanUrls(buildScans, scanDetailService::getScanDetail);
 
                 return buildScans;
             } catch (IOException e) {

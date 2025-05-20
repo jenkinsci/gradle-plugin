@@ -1,7 +1,8 @@
 package hudson.plugins.gradle;
 
-import java.util.Objects;
 import org.kohsuke.stapler.export.ExportedBean;
+
+import java.util.Objects;
 
 @ExportedBean
 public final class BuildAgentError {

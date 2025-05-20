@@ -4,6 +4,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.Util;
 import hudson.plugins.gradle.injection.extension.ExtensionClient;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -23,23 +24,16 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
 
     private final ExtensionClient extensionClient = new ExtensionClient();
 
-    public Map<MavenExtension, String> ensureExtensionsDownloaded(Supplier<File> root, InjectionConfig injectionConfig)
-            throws IOException {
+    public Map<MavenExtension, String> ensureExtensionsDownloaded(Supplier<File> root, InjectionConfig injectionConfig) throws IOException {
         if (!isInjectionDisabledGlobally(injectionConfig)) {
             Map<MavenExtension, String> extensionsDigest = new HashMap<>();
             Path cacheDir = root.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
 
-            MavenExtension develocityMavenExtension =
-                    MavenExtension.getDevelocityMavenExtension(injectionConfig.getMavenExtensionVersion());
+            MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(injectionConfig.getMavenExtensionVersion());
 
-            extensionsDigest.put(
-                    develocityMavenExtension,
-                    getOrDownloadExtensionDigest(injectionConfig, cacheDir, develocityMavenExtension));
-            if (InjectionUtil.isValid(
-                    InjectionConfig.checkRequiredVersion(injectionConfig.getCcudExtensionVersion()))) {
-                extensionsDigest.put(
-                        MavenExtension.CCUD,
-                        getOrDownloadExtensionDigest(injectionConfig, cacheDir, MavenExtension.CCUD));
+            extensionsDigest.put(develocityMavenExtension, getOrDownloadExtensionDigest(injectionConfig, cacheDir, develocityMavenExtension));
+            if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(injectionConfig.getCcudExtensionVersion()))) {
+                extensionsDigest.put(MavenExtension.CCUD, getOrDownloadExtensionDigest(injectionConfig, cacheDir, MavenExtension.CCUD));
             }
 
             return extensionsDigest;
@@ -48,21 +42,16 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
         return Collections.emptyMap();
     }
 
-    public Map<MavenExtension, String> getExtensionDigests(Supplier<File> rootDir, InjectionConfig injectionConfig)
-            throws IOException {
+    public Map<MavenExtension, String> getExtensionDigests(Supplier<File> rootDir, InjectionConfig injectionConfig) throws IOException {
         if (!isInjectionDisabledGlobally(injectionConfig)) {
             Map<MavenExtension, String> extensionDigests = new HashMap<>();
             Path cacheDir = rootDir.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
 
-            MavenExtension develocityMavenExtension =
-                    MavenExtension.getDevelocityMavenExtension(injectionConfig.getMavenExtensionVersion());
+            MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(injectionConfig.getMavenExtensionVersion());
 
-            getExtensionDigest(cacheDir, develocityMavenExtension)
-                    .ifPresent(it -> extensionDigests.put(develocityMavenExtension, it));
-            if (InjectionUtil.isValid(
-                    InjectionConfig.checkRequiredVersion(injectionConfig.getCcudExtensionVersion()))) {
-                getExtensionDigest(cacheDir, MavenExtension.CCUD)
-                        .ifPresent(it -> extensionDigests.put(MavenExtension.CCUD, it));
+            getExtensionDigest(cacheDir, develocityMavenExtension).ifPresent(it -> extensionDigests.put(develocityMavenExtension, it));
+            if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(injectionConfig.getCcudExtensionVersion()))) {
+                getExtensionDigest(cacheDir, MavenExtension.CCUD).ifPresent(it -> extensionDigests.put(MavenExtension.CCUD, it));
             }
 
             return extensionDigests;
@@ -82,8 +71,7 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
         return Optional.empty();
     }
 
-    private String getOrDownloadExtensionDigest(InjectionConfig injectionConfig, Path parent, MavenExtension extension)
-            throws IOException {
+    private String getOrDownloadExtensionDigest(InjectionConfig injectionConfig, Path parent, MavenExtension extension) throws IOException {
         Path metadataFile = parent.resolve(extension.getDownloadMetadataFileName());
         String version = extension == MavenExtension.CCUD
                 ? injectionConfig.getCcudExtensionVersion()
@@ -105,15 +93,19 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
     }
 
     private String downloadExtension(
-            InjectionConfig injectionConfig, Path parent, MavenExtension extension, Path metadataFile, String version)
-            throws IOException {
+            InjectionConfig injectionConfig,
+            Path parent,
+            MavenExtension extension,
+            Path metadataFile,
+            String version
+    ) throws IOException {
         Files.createDirectories(parent);
 
         Path jarFile = parent.resolve(extension.getEmbeddedJarName());
 
         String downloadUrl = extension.createDownloadUrl(version, injectionConfig.getMavenExtensionRepositoryUrl());
-        MavenExtension.RepositoryCredentials repositoryCredentials =
-                getRepositoryCredentials(injectionConfig.getMavenExtensionRepositoryCredentialId());
+        MavenExtension.RepositoryCredentials repositoryCredentials
+                = getRepositoryCredentials(injectionConfig.getMavenExtensionRepositoryCredentialId());
 
         try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(jarFile))) {
             extensionClient.downloadExtension(downloadUrl, repositoryCredentials, outputStream);
@@ -131,14 +123,13 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
             return null;
         }
 
-        List<StandardUsernamePasswordCredentials> allCredentials =
-                CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
+        List<StandardUsernamePasswordCredentials> allCredentials
+                = CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
 
         return allCredentials.stream()
                 .filter(it -> it.getId().equals(repositoryCredentialId))
                 .findFirst()
-                .map(it -> new MavenExtension.RepositoryCredentials(
-                        it.getUsername(), it.getPassword().getPlainText()))
+                .map(it -> new MavenExtension.RepositoryCredentials(it.getUsername(), it.getPassword().getPlainText()))
                 .orElse(null);
     }
 }

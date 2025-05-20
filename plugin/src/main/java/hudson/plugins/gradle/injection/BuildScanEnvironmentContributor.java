@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.EnvironmentContributor;
@@ -13,6 +14,10 @@ import hudson.model.TaskListener;
 import hudson.plugins.gradle.DevelocityLogger;
 import hudson.plugins.gradle.injection.token.ShortLivedTokenClient;
 import hudson.util.Secret;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -22,9 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 @Extension
 public class BuildScanEnvironmentContributor extends EnvironmentContributor {
@@ -67,6 +69,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
         run.addAction(DevelocityParametersAction.of(logger, shortLivedToken, secretPassword));
     }
 
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private @Nullable Secret getShortLivedToken(Secret secretKey, DevelocityLogger logger) {
         if (secretKey == null) {
             return null;
@@ -99,16 +102,12 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
         // We're not sure exactly which DV URL will be effectively used so as best effort:
         // let's translate all access keys to short-lived tokens
         List<DevelocityAccessCredentials.HostnameAccessKey> shortLivedTokens = allKeys.stream()
-                .map(k -> tokenClient.get(
-                        "https://" + k.getHostname(), k, InjectionConfig.get().getShortLivedTokenExpiry()))
+                .map(k -> tokenClient.get("https://" + k.getHostname(), k, InjectionConfig.get().getShortLivedTokenExpiry()))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
 
-        return shortLivedTokens.isEmpty()
-                ? null
-                : Secret.fromString(
-                        DevelocityAccessCredentials.of(shortLivedTokens).getRaw());
+        return shortLivedTokens.isEmpty() ? null : Secret.fromString(DevelocityAccessCredentials.of(shortLivedTokens).getRaw());
     }
 
     private String getHostnameFromServerUrl(String serverUrl) {
@@ -127,8 +126,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
         private static final String GRADLE_ENTERPRISE_ACCESS_KEY = "GRADLE_ENTERPRISE_ACCESS_KEY";
         private static final String DEVELOCITY_ACCESS_KEY = "DEVELOCITY_ACCESS_KEY";
-        private static final String GRADLE_PLUGIN_REPOSITORY_PASSWORD =
-                InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_PASSWORD.getEnvVar();
+        private static final String GRADLE_PLUGIN_REPOSITORY_PASSWORD = InitScriptVariables.GRADLE_PLUGIN_REPOSITORY_PASSWORD.getEnvVar();
 
         private static final DevelocityParametersAction EMPTY = new DevelocityParametersAction();
 
@@ -144,8 +142,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
             return EMPTY;
         }
 
-        private static DevelocityParametersAction of(
-                DevelocityLogger logger, @Nullable Secret shortLivedToken, @Nullable Secret repoPassword) {
+        private static DevelocityParametersAction of(DevelocityLogger logger, @Nullable Secret shortLivedToken, @Nullable Secret repoPassword) {
             List<ParameterValue> values = new ArrayList<>();
             if (shortLivedToken != null) {
                 values.add(new PasswordParameterValue(GRADLE_ENTERPRISE_ACCESS_KEY, shortLivedToken.getPlainText()));
@@ -159,8 +156,8 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
             }
             return new DevelocityParametersAction(
                     values,
-                    Stream.of(GRADLE_ENTERPRISE_ACCESS_KEY, DEVELOCITY_ACCESS_KEY, GRADLE_PLUGIN_REPOSITORY_PASSWORD)
-                            .collect(Collectors.toSet()));
+                    Stream.of(GRADLE_ENTERPRISE_ACCESS_KEY, DEVELOCITY_ACCESS_KEY, GRADLE_PLUGIN_REPOSITORY_PASSWORD).collect(Collectors.toSet())
+            );
         }
     }
 }

@@ -8,7 +8,8 @@ public final class DevelocityVersionValidator implements Validator<String> {
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?(-[-\\w]+)?$");
 
-    private DevelocityVersionValidator() {}
+    private DevelocityVersionValidator() {
+    }
 
     public static DevelocityVersionValidator getInstance() {
         return INSTANCE;

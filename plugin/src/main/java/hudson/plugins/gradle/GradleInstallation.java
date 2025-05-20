@@ -14,15 +14,16 @@ import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
+import jenkins.model.Jenkins;
+import jenkins.security.MasterToSlaveCallable;
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
-import jenkins.model.Jenkins;
-import jenkins.security.MasterToSlaveCallable;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author Gregory Boissinot
@@ -70,14 +71,11 @@ public class GradleInstallation extends ToolInstallation
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
         return launcher.getChannel().call(new GetExeFile(gradleHome));
     }
-
     private static final class GetExeFile extends MasterToSlaveCallable<String, IOException> {
         private final String gradleHome;
-
         GetExeFile(String gradleHome) {
             this.gradleHome = gradleHome;
         }
-
         @Override
         public String call() throws IOException {
             String execName = (Functions.isWindows()) ? WINDOWS_GRADLE_COMMAND : UNIX_GRADLE_COMMAND;
@@ -91,20 +89,18 @@ public class GradleInstallation extends ToolInstallation
     }
 
     public GradleInstallation forEnvironment(EnvVars environment) {
-        return new GradleInstallation(
-                getName(), environment.expand(gradleHome), getProperties().toList());
+        return new GradleInstallation(getName(), environment.expand(gradleHome), getProperties().toList());
     }
 
     public GradleInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
-        return new GradleInstallation(
-                getName(), translateFor(node, log), getProperties().toList());
+        return new GradleInstallation(getName(), translateFor(node, log), getProperties().toList());
     }
 
-    @Extension
-    @Symbol("gradle")
+    @Extension @Symbol("gradle")
     public static class DescriptorImpl extends ToolDescriptor<GradleInstallation> {
 
-        public DescriptorImpl() {}
+        public DescriptorImpl() {
+        }
 
         @Override
         public String getDisplayName() {

@@ -2,26 +2,29 @@ package hudson.plugins.gradle.injection;
 
 import hudson.FilePath;
 import hudson.Util;
+import jenkins.model.Jenkins;
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public final class CopyUtil {
 
-    private CopyUtil() {}
+    private CopyUtil() {
+    }
 
-    public static void copyResourceToNode(FilePath nodePath, String resourceName)
-            throws IOException, InterruptedException {
+    public static void copyResourceToNode(FilePath nodePath, String resourceName) throws IOException, InterruptedException {
         doWithResource(resourceName, is -> {
             nodePath.copyFrom(is);
             return null;
         });
     }
 
-    public static void copyDownloadedResourceToNode(FilePath controllerRootPath, FilePath nodePath, String resourceName)
-            throws IOException, InterruptedException {
-        nodePath.copyFrom(controllerRootPath
-                .child(MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR)
-                .child(resourceName));
+    public static void copyDownloadedResourceToNode(FilePath controllerRootPath, FilePath nodePath, String resourceName) throws IOException, InterruptedException {
+        nodePath.copyFrom(controllerRootPath.child(MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR).child(resourceName));
     }
 
     public static String unsafeResourceDigest(String resourceName) {
@@ -32,8 +35,7 @@ public final class CopyUtil {
         }
     }
 
-    private static <T> T doWithResource(String resourceName, CheckedFunction<InputStream, T> action)
-            throws IOException, InterruptedException {
+    private static <T> T doWithResource(String resourceName, CheckedFunction<InputStream, T> action) throws IOException, InterruptedException {
         try (InputStream is = CopyUtil.class.getResourceAsStream("/hudson/plugins/gradle/injection/" + resourceName)) {
             if (is == null) {
                 throw new IllegalStateException("Could not find resource: " + resourceName);

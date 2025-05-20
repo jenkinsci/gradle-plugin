@@ -1,24 +1,24 @@
 package hudson.plugins.gradle.injection.extension;
 
 import hudson.plugins.gradle.injection.MavenExtension;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
+import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
+
 public final class ExtensionClient {
 
     private final OkHttpClient httpClient;
 
     public ExtensionClient() {
-        this.httpClient = new OkHttpClient()
-                .newBuilder()
+        this.httpClient = new OkHttpClient().newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
                 .build();
     }
@@ -26,12 +26,11 @@ public final class ExtensionClient {
     public void downloadExtension(
             String downloadUrl,
             @Nullable MavenExtension.RepositoryCredentials repositoryCredentials,
-            OutputStream outputStream)
-            throws IOException {
+            OutputStream outputStream
+    ) throws IOException {
         Request.Builder requestBuilder = new Request.Builder().url(downloadUrl);
         if (repositoryCredentials != null) {
-            String basicCredentials =
-                    Credentials.basic(repositoryCredentials.username(), repositoryCredentials.password());
+            String basicCredentials = Credentials.basic(repositoryCredentials.username(), repositoryCredentials.password());
             requestBuilder.addHeader("Authorization", basicCredentials);
         }
 
@@ -46,4 +45,5 @@ public final class ExtensionClient {
             }
         }
     }
+
 }

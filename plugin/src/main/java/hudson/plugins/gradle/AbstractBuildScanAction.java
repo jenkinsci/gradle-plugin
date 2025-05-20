@@ -5,6 +5,9 @@ import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.plugins.gradle.enriched.ScanDetail;
 import hudson.plugins.gradle.util.CollectionUtil;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,8 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean
 public abstract class AbstractBuildScanAction implements Action {
