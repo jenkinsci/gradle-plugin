@@ -679,7 +679,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         then:
         j.assertLogContains(MSG_INIT_SCRIPT_APPLIED, secondRun)
-        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/${BaseGradleIntegrationTest.DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
+        j.assertLogContains("The response from http://foo.com/scans/publish/gradle/${DEVELOCITY_PLUGIN_VERSION}/token was not from Develocity.", secondRun)
 
         and:
         StringUtils.countMatches(JenkinsRule.getLog(secondRun), INVALID_ACCESS_KEY_FORMAT_ERROR) == 1
@@ -702,7 +702,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         withInjectionConfig {
             enabled = true
             server = "http://localhost"
-            gradlePluginVersion = BaseGradleIntegrationTest.DEVELOCITY_PLUGIN_VERSION
+            gradlePluginVersion = DEVELOCITY_PLUGIN_VERSION
         }
 
         restartSlave(agent)
@@ -766,8 +766,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
             server = 'http://localhost'
             allowUntrusted = true
             enforceUrl = true
-            gradlePluginVersion = BaseGradleIntegrationTest.DEVELOCITY_PLUGIN_VERSION
-            ccudPluginVersion = BaseGradleIntegrationTest.CCUD_PLUGIN_VERSION
+            gradlePluginVersion = DEVELOCITY_PLUGIN_VERSION
+            ccudPluginVersion = CCUD_PLUGIN_VERSION
             gradlePluginRepositoryUrl = 'http://localhost/repository'
             gradleCaptureTaskInputFiles = true
         }
@@ -937,7 +937,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         when:
         enableBuildInjection(agent, gradleVersion)
         withInjectionConfig {
-            ccudPluginVersion = BaseGradleIntegrationTest.CCUD_PLUGIN_VERSION
+            ccudPluginVersion = CCUD_PLUGIN_VERSION
         }
         def secondRun = j.buildAndAssertSuccess(project)
 
