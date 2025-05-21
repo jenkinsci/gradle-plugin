@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.plaincredentials.StringCredentials
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import org.junit.Rule
 import org.junit.rules.RuleChain
+import org.jvnet.hudson.test.CreateFileBuilder
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -106,4 +107,7 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
         return jdk8SysProp && Files.exists(Paths.get(jdk8SysProp))
     }
 
+    protected static CreateFileBuilder settingsFile() {
+        new CreateFileBuilder('settings.gradle', '')
+    }
 }

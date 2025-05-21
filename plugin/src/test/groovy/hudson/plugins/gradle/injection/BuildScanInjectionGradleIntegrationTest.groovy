@@ -999,10 +999,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         gradleVersion << GRADLE_VERSIONS
     }
 
-    private static CreateFileBuilder settingsFile() {
-        new CreateFileBuilder('settings.gradle', '')
-    }
-
     private static CreateFileBuilder helloTask(String action = "println 'Hello!'") {
         return new CreateFileBuilder('build.gradle', """
 task hello {
