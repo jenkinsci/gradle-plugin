@@ -302,7 +302,7 @@
             <include>**/*Test.java</include>
             <include>**/*Spec.groovy</include>
           </includes>
-          <forkCount>2</forkCount>
+          <reuseForks>false</reuseForks>
         </configuration>
       </plugin>
 
