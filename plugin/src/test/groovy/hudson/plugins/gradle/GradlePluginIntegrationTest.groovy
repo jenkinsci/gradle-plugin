@@ -160,6 +160,7 @@ class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
+        p.buildersList.add(new CreateFileBuilder('settings.gradle', ''))
         p.buildersList.add(new CreateFileBuilder('build.gradle', '''
             task printParameter {
                 doLast {

@@ -24,6 +24,7 @@ class PropertyPassingIntegrationTest extends BaseGradleIntegrationTest {
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
         addParameter(p, 'PARAM')
+        p.buildersList.add(new CreateFileBuilder('settings.gradle', ''))
         createBuildScript(p, """
             task printParam {
                 doLast {
@@ -71,6 +72,7 @@ class PropertyPassingIntegrationTest extends BaseGradleIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
+        p.buildersList.add(new CreateFileBuilder('settings.gradle', ''))
         createBuildScript(p, """
             task printParam {
                 doLast {
@@ -94,6 +96,7 @@ class PropertyPassingIntegrationTest extends BaseGradleIntegrationTest {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
+        p.buildersList.add(new CreateFileBuilder('settings.gradle', ''))
         createBuildScript(p, """
             task printParam {
                 doLast {
