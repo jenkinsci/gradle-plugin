@@ -24,8 +24,9 @@
     </licenses>
     <developers>
         <developer>
-            <id>wolfs</id>
-            <name>Stefan Wolf</name>
+            <name>The Gradle team</name>
+            <organization>Gradle Inc.</organization>
+            <organizationUrl>https://gradle.com</organizationUrl>
         </developer>
     </developers>
     <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false" child.scm.url.inherit.append.path="false">
