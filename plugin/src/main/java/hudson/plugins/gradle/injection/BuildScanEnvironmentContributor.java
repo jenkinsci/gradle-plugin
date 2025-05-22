@@ -2,7 +2,6 @@ package hudson.plugins.gradle.injection;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.EnvironmentContributor;
@@ -71,7 +70,6 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
         run.addAction(DevelocityParametersAction.of(logger, shortLivedToken, secretPassword));
     }
 
-    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private @Nullable Secret getShortLivedToken(Secret secretKey, DevelocityLogger logger) {
         if (secretKey == null) {
             return null;

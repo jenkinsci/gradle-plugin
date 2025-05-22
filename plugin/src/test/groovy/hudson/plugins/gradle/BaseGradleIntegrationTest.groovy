@@ -4,13 +4,17 @@ import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
 import hudson.Functions
+import hudson.model.JDK
 import hudson.slaves.DumbSlave
 import hudson.util.Secret
 import org.jenkinsci.plugins.plaincredentials.StringCredentials
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import org.junit.Rule
 import org.junit.rules.RuleChain
+import org.jvnet.hudson.test.CreateFileBuilder
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 /**
@@ -21,6 +25,8 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
     public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
     static final String DEVELOCITY_PLUGIN_VERSION = '3.17.1'
     static final String CCUD_PLUGIN_VERSION = '2.0'
+    private static final String JDK11_SYS_PROP = 'jdk11.home'
+    private static final String JDK8_SYS_PROP = 'jdk8.home'
 
     @Rule
     public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(j).around(gradleInstallationRule)
@@ -68,7 +74,7 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
     @Override
     @SuppressWarnings("CatchException")
-    void cleanup() {
+    def cleanup() {
         if(Functions.isWindows()) {
             try {
                 println 'Killing Gradle processes'
@@ -83,4 +89,25 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
+    protected setJdk8() {
+        j.jenkins.setJDKs(Collections.singleton(new JDK('JDK11', System.getProperty(JDK8_SYS_PROP))))
+    }
+
+    protected static hasJdk8() {
+        def jdk8SysProp = System.getProperty(JDK8_SYS_PROP)
+        return jdk8SysProp && Files.exists(Paths.get(jdk8SysProp))
+    }
+
+    protected setJdk11() {
+        j.jenkins.setJDKs(Collections.singleton(new JDK('JDK11', System.getProperty(JDK11_SYS_PROP))))
+    }
+
+    protected static hasJdk11() {
+        def jdk8SysProp = System.getProperty(JDK11_SYS_PROP)
+        return jdk8SysProp && Files.exists(Paths.get(jdk8SysProp))
+    }
+
+    protected static CreateFileBuilder settingsFile() {
+        new CreateFileBuilder('settings.gradle', '')
+    }
 }

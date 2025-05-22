@@ -651,7 +651,7 @@ public class InjectionConfig extends GlobalConfiguration {
      * Invoked by XStream when this object is read into memory.
      */
     @SuppressWarnings("unused")
-    protected Object readResolve() throws IOException {
+    protected Object readResolve() throws IOException, FormException {
         if (injectionVcsRepositoryPatterns != null) {
             String filters = migrateLegacyRepositoryFilters(injectionVcsRepositoryPatterns);
             parsedVcsRepositoryFilter = VcsRepositoryFilter.of(filters);

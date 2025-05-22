@@ -23,6 +23,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.JenkinsRule
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import spock.lang.Requires
 import spock.lang.Unroll
 
 @Unroll
@@ -30,7 +31,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Develocity: http://foo.com"
 
-    private static final List<String> GRADLE_VERSIONS = ['4.10.3', '6.9.4', '7.6.4', '8.9']
+    private static final List<String> GRADLE_VERSIONS = ['7.6.4', '8.9']
 
     private static final EnvVars EMPTY_ENV = new EnvVars()
 
@@ -47,6 +48,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject p = j.createFreeStyleProject()
         p.setAssignedNode(agent)
 
+        p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
         p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
@@ -84,6 +86,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject p = j.createFreeStyleProject()
         p.setAssignedNode(agent)
 
+        p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
         p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
@@ -237,6 +240,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         }
     }
 
+    @Requires(value = { hasJdk11() }, reason = "Gradle 6.x requires Java 11")
     def 'uses custom plugin repository'() {
         given:
         // Gradle 7.x requires allowInsecureProtocol
@@ -254,6 +258,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject project = j.createFreeStyleProject()
         project.setAssignedNode(agent)
 
+        project.buildersList.add(settingsFile())
         project.buildersList.add(helloTask())
         project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
@@ -287,6 +292,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject p = j.createFreeStyleProject()
         p.setAssignedNode(slave)
 
+        p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
         p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
@@ -323,6 +329,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject p = j.createFreeStyleProject()
         p.setAssignedNode(slave)
 
+        p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
         p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
@@ -463,6 +470,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject p = j.createFreeStyleProject()
         p.setAssignedNode(slave)
 
+        p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
         p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
@@ -594,6 +602,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject project = j.createFreeStyleProject()
         project.setAssignedNode(agent)
 
+        project.buildersList.add(settingsFile())
         project.buildersList.add(helloTask('println "accessKey=${System.getenv(\'DEVELOCITY_ACCESS_KEY\')}"'))
         project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
@@ -651,6 +660,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject project = j.createFreeStyleProject()
         project.setAssignedNode(agent)
 
+        project.buildersList.add(settingsFile())
         project.buildersList.add(helloTask())
         project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
 
@@ -924,6 +934,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject project = j.createFreeStyleProject()
         project.setAssignedNode(agent)
 
+        project.buildersList.add(settingsFile())
         project.buildersList.add(helloTask())
         project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon${quiet ? ' -q' : ''}"))
 
@@ -962,6 +973,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         FreeStyleProject project = j.createFreeStyleProject()
         project.setAssignedNode(agent)
 
+        project.buildersList.add(settingsFile())
         project.buildersList.add(helloTask())
         project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion))
 

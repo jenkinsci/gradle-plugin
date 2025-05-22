@@ -1,7 +1,6 @@
 package hudson.plugins.gradle.injection;
 
 import com.google.common.collect.ImmutableList;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Util;
 
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Immutable instance is already created in the constructor")
 final class VcsRepositoryFilter {
 
     public static final VcsRepositoryFilter EMPTY = new VcsRepositoryFilter("", Collections.emptyList(), Collections.emptyList());

@@ -1,7 +1,6 @@
 package hudson.plugins.gradle
 
 import hudson.model.FreeStyleProject
-import hudson.model.JDK
 import hudson.plugins.gradle.injection.MavenSnippets
 import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.tasks.BatchFile
@@ -17,14 +16,9 @@ import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Requires
 import spock.lang.Unroll
 
-import java.nio.file.Files
-import java.nio.file.Paths
-
 @Unroll
 @SuppressWarnings("GStringExpressionWithinString")
 class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
-    private static final String JDK8_SYS_PROP = 'jdk8.home'
-
     @Requires(value = { hasJdk8() }, reason = "Gradle 3 and 4 require Java 8")
     def 'build scans for plugin version #buildScanVersion is discovered'() {
         given:
@@ -53,10 +47,11 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'build scans are discovered when timestamper is used'() {
         given:
-        gradleInstallationRule.gradleVersion = '5.6'
+        gradleInstallationRule.gradleVersion = '8.14'
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(buildScriptKtsBuilder())
+        p.buildersList.add(settingsScriptBuilder())
+        p.buildersList.add(buildScriptBuilder())
         p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleInstallationRule.gradleVersion, switches: '--scan --no-daemon'))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
@@ -75,8 +70,8 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
         FreeStyleProject p = j.createFreeStyleProject()
         p.setScm(new ExtractResourceSCM(this.class.getResource('/gradle/wrapper.zip')))
         p.buildWrappersList.add(new BuildScanBuildWrapper())
-        p.buildersList.add(buildScriptBuilder('3.1.1'))
-        p.buildersList.add(settingsScriptBuilder('3.1.1'))
+        p.buildersList.add(buildScriptBuilder())
+        p.buildersList.add(settingsScriptBuilder())
         p.buildersList.add(SystemUtils.IS_OS_UNIX ? new Shell('./gradlew --scan hello') : new BatchFile('gradlew.bat --scan hello'))
 
         when:
@@ -260,15 +255,14 @@ stage('Final') {
         new URL(action.scanUrls.get(0))
     }
 
-    @Requires(value = { hasJdk8() }, reason = "Gradle 3 and 4 require Java 8")
     def 'build scan action is exposed via rest API'() {
         given:
-        gradleInstallationRule.gradleVersion = '3.4'
+        gradleInstallationRule.gradleVersion = '8.6'
         gradleInstallationRule.addInstallation()
-        setJdk8()
         FreeStyleProject p = j.createFreeStyleProject()
-        p.buildersList.add(buildScriptBuilder('1.8'))
-        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: '3.4', switches: '-Dscan --no-daemon'))
+        p.buildersList.add(settingsScriptBuilder())
+        p.buildersList.add(buildScriptBuilder())
+        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: '8.6', switches: '-Dscan --no-daemon'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -282,47 +276,29 @@ stage('Final') {
         new URL(scanUrls.get(0))
     }
 
-    private static CreateFileBuilder buildScriptBuilder(String buildScanVersion) {
-        def plugins =
-            buildScanVersion.startsWith('1') || buildScanVersion.startsWith('2')
-                ? "plugins { id 'com.gradle.build-scan' version '${buildScanVersion}' }"
-                : ''
-        return new CreateFileBuilder('build.gradle', """
-${plugins}
-
-buildScan {
-    ${buildScanVersion.startsWith('1') ? 'licenseAgreementUrl' : 'termsOfServiceUrl'} = 'https://gradle.com/terms-of-service'
-    ${buildScanVersion.startsWith('1') ? 'licenseAgree' : 'termsOfServiceAgree'} = 'yes'
-}
-
-task hello { doLast { println 'Hello' } }""")
+    private static CreateFileBuilder buildScriptBuilder(String buildScanVersion = '4.0.1') {
+        if (buildScanVersion.startsWith('4')) {
+            return new CreateFileBuilder('build.gradle', """
+            develocity {
+                buildScan {
+                    termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+                    termsOfUseAgree = "yes"
+                }
+                task hello { doLast { println 'Hello' } }
+            }""")
+        } else {
+            new CreateFileBuilder('build.gradle', """
+            buildScan {
+                termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+                termsOfServiceAgree = 'yes'
+            }
+            task hello { doLast { println 'Hello' } }""")
+        }
     }
 
-    private static CreateFileBuilder buildScriptKtsBuilder() {
-        return new CreateFileBuilder('build.gradle.kts', '''
-plugins {
-    `build-scan`
-}
-
-buildScan {
-    termsOfServiceUrl = "https://gradle.com/terms-of-service"
-    termsOfServiceAgree = "yes"
-}
-
-tasks.register("hello") { doLast { println("Hello") } }''')
-    }
-
-    private static CreateFileBuilder settingsScriptBuilder(String gePluginVersion) {
-        return new CreateFileBuilder('settings.gradle', "plugins { id 'com.gradle.enterprise' version '${gePluginVersion}' }")
-    }
-
-    private setJdk8() {
-        j.jenkins.setJDKs(Collections.singleton(new JDK('JDK8', System.getProperty(JDK8_SYS_PROP))))
-    }
-
-    private static hasJdk8() {
-        def jdk8SysProp = System.getProperty(JDK8_SYS_PROP)
-        return jdk8SysProp && Files.exists(Paths.get(jdk8SysProp))
+    private static CreateFileBuilder settingsScriptBuilder(String pluginVersion = '4.0.1') {
+        return pluginVersion.startsWith('4') ? new CreateFileBuilder('settings.gradle', "plugins { id 'com.gradle.develocity' version '${pluginVersion}' }") :
+            new CreateFileBuilder('settings.gradle', "plugins { id 'com.gradle.entreprise' version '${pluginVersion}' }")
     }
 
 }

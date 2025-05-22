@@ -26,7 +26,7 @@ public class GradleAcceptanceTestsModule extends AbstractModule implements Exten
     protected void configure() {
         bind(String.class)
             .annotatedWith(Names.named("WORKSPACE"))
-            .toInstance(new File(System.getProperty("user.dir"), "build").getPath());
+            .toInstance(new File(System.getProperty("user.dir"), "target").getPath());
 
         bindInterceptor(
             Matchers.subclassesOf(UpdateCenterMetadataProvider.class),

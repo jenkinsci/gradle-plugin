@@ -18,6 +18,12 @@
     </Match>
 
     <Match>
+        <Class name="hudson.plugins.gradle.enriched.ScanDetail"/>
+        <Method name="getTasks"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
         <Class name="hudson.plugins.gradle.BuildScanFlowAction"/>
         <Field name="target"/>
         <Bug pattern="EI_EXPOSE_REP2"/>

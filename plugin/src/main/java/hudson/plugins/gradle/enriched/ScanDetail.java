@@ -42,7 +42,6 @@ public class ScanDetail {
         return buildToolVersion;
     }
 
-    @SuppressFBWarnings(value = "EI_EXPOSE_REP")
     public List<String> getTasks() {
         return tasks;
     }
