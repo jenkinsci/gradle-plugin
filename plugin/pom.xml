@@ -46,6 +46,7 @@
         <jenkins.version>2.479.3</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
 
+        <skipIntegTests>false</skipIntegTests>
         <spotless.check.skip>true</spotless.check.skip>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -307,6 +308,8 @@
                         <include>**/*Spec.groovy</include>
                     </includes>
                     <reuseForks>false</reuseForks>
+                    <forkCount>2</forkCount>
+                    <skipTests>${skipIntegTests}</skipTests>
                 </configuration>
             </plugin>
 
