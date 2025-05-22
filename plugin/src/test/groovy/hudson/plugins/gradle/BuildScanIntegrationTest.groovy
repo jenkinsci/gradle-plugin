@@ -1,7 +1,6 @@
 package hudson.plugins.gradle
 
 import hudson.model.FreeStyleProject
-import hudson.model.JDK
 import hudson.plugins.gradle.injection.MavenSnippets
 import hudson.plugins.timestamper.TimestamperBuildWrapper
 import hudson.tasks.BatchFile
@@ -16,9 +15,6 @@ import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.ToolInstallations
 import spock.lang.Requires
 import spock.lang.Unroll
-
-import java.nio.file.Files
-import java.nio.file.Paths
 
 @Unroll
 @SuppressWarnings("GStringExpressionWithinString")
