@@ -1,4 +1,4 @@
-:imagesdir: images
+:imagesdir: plugin/images
 :thumbnail: width=80%,align="center"
 
 = Jenkins Gradle Plugin
