@@ -4,12 +4,14 @@
 
     <f:radioBlock inline="true" name="useWrapper" checked="${!instance.useWrapper}" value="false" title="${%Invoke Gradle}">
         <f:entry title="${%Gradle Version}" field="gradleName">
-            <select class="setting-input" name="gradleName">
-                <option>(Default)</option>
-                <j:forEach var="inst" items="${descriptor.installations}">
-                    <f:option selected="${inst.name==instance.gradle.name}">${inst.name}</f:option>
-                </j:forEach>
-            </select>
+            <div class="jenkins-select">
+                <select class="jenkins-select__input" name="gradleName">
+                    <option>(Default)</option>
+                    <j:forEach var="inst" items="${descriptor.installations}">
+                        <f:option selected="${inst.name==instance.gradle.name}">${inst.name}</f:option>
+                    </j:forEach>
+                </select>
+            </div>
         </f:entry>
     </f:radioBlock>
     <f:radioBlock inline="true" name="useWrapper" checked="${instance.useWrapper}" value="true" title="${%Use Gradle Wrapper}">
