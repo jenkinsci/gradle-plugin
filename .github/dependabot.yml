@@ -1,9 +1,0 @@
-version: 2
-updates:
-  - package-ecosystem: "gradle"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    ignore:
-      - dependency-name: "org.jenkins-ci.main:jenkins-core"
-      - dependency-name: "org.apache.maven:maven-core"
