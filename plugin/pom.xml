@@ -12,7 +12,7 @@
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>gradle</artifactId>
-    <version>${revision}${changelist}</version>
+    <version>${revision}.${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>Gradle Plugin</name>
@@ -39,8 +39,8 @@
     </scm>
 
     <properties>
-        <revision>2.15</revision>
-        <changelist>-SNAPSHOT</changelist>
+        <revision>2.16</revision>
+        <changelist>999999-SNAPSHOT</changelist>
 
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
         <jenkins.version>2.479.3</jenkins.version>

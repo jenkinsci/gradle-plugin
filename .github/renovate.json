@@ -2,8 +2,7 @@
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
         "config:recommended",
-        ":semanticCommitsDisabled",
-        "schedule:earlyMondays"
+        ":semanticCommitsDisabled"
     ],
     "labels": [
         "dependencies"
@@ -17,6 +16,7 @@
             "matchStrings": [
                 "<jenkins\\.version>(?<currentValue>.*)<\\/jenkins\\.version><!--RENOVATE-LTS-->"
             ],
+            "depNameTemplate": "jenkins-core-lts",
             "versioningTemplate": "semver-coerced",
             "datasourceTemplate": "custom.jenkins-latest-lts"
         },
@@ -28,6 +28,7 @@
             "matchStrings": [
                 "<jenkins\\.version>(?<currentValue>.*)<\\/jenkins\\.version><!--RENOVATE-LATEST-->"
             ],
+            "depNameTemplate": "jenkins-core-latest",
             "versioningTemplate": "semver-coerced",
             "datasourceTemplate": "custom.jenkins-latest"
         }
