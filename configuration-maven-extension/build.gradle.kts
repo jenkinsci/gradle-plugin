@@ -20,7 +20,7 @@ repositories {
 val mvnExtension: Configuration by configurations.creating { isCanBeConsumed = true; isCanBeResolved = false }
 
 dependencies {
-    compileOnly("org.apache.maven:maven-core:3.8.7")
+    compileOnly("org.apache.maven:maven-core:3.9.10")
     compileOnly("com.gradle:develocity-maven-extension:2.0.1")
 }
 
