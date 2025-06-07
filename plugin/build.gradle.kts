@@ -179,7 +179,7 @@ val main: SourceSet by sourceSets.getting
 val test: SourceSet by sourceSets.getting
 
 codenarc {
-    toolVersion = "1.5"
+    toolVersion = "1.6.1"
     sourceSets = listOf(test)
 }
 
