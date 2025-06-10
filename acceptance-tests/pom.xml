@@ -103,7 +103,7 @@
         <profile>
             <id>jenkinsLts</id>
             <properties>
-                <jenkins.version>2.492.3</jenkins.version><!--RENOVATE-LTS-->
+                <jenkins.version>2.504.2</jenkins.version><!--RENOVATE-LTS-->
                 <skipTests>false</skipTests>
             </properties>
         </profile>
