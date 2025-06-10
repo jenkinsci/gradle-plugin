@@ -7,6 +7,12 @@
     "labels": [
         "dependencies"
     ],
+    "gradle": {
+        "enabled": false
+    },
+    "gradle-wrapper": {
+        "enabled": false
+    },
     "customManagers": [
         {
             "customType": "regex",
