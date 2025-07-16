@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.jenkins-ci</groupId>
             <artifactId>acceptance-test-harness</artifactId>
-            <version>6277.vb_5b_2154b_6691</version>
+            <version>6294.v8837063f315d</version>
         </dependency>
 
         <dependency>
