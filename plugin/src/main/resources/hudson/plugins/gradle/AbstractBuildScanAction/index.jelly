@@ -14,7 +14,7 @@
                 <ul>
                     <j:forEach items="${it.scanUrls}" var="scanUrl">
                         <li>
-                            <a href="${scanUrl}">${scanUrl}</a>
+                            <a href="${scanUrl}" class="build-scan-link">${scanUrl}</a>
                         </li>
                     </j:forEach>
                 </ul>

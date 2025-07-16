@@ -1,6 +1,11 @@
 {
     "list": [
         {
+            "id": "8.14.2",
+            "name": "Gradle 8.14.2",
+            "url": "https://services.gradle.org/distributions/gradle-8.14.2-bin.zip"
+        },
+        {
             "id": "7.5.1",
             "name": "Gradle 7.5.1",
             "url": "https://services.gradle.org/distributions/gradle-7.5.1-bin.zip"

@@ -24,8 +24,11 @@ import org.openqa.selenium.WebDriverException;
 import org.zeroturnaround.zip.ZipUtil;
 
 import javax.inject.Inject;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -38,6 +41,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.GZIPOutputStream;
 
 @WithPlugins("gradle")
 public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
@@ -203,6 +207,27 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
             if (tmp != null) {
                 tmp.delete();
             }
+        }
+    }
+
+    public String copyResourceStep(Resource res, String filename) {
+        return String.format("sh '''%s'''%n", copyResourceShell(res, filename));
+    }
+
+    protected String copyResourceShell(Resource resource, String fileName) {
+        try (InputStream in = resource.asInputStream()) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+            try (OutputStream gz = new GZIPOutputStream(out)) {
+                IOUtils.copy(in, gz);
+            }
+
+            // fileName can include path portion like foo/bar/zot
+            return String.format(
+                "(mkdir -p %1$s || true) && rm -r %1$s && base64 --decode << ENDOFFILE | gunzip > %1$s \n%2$s\nENDOFFILE",
+                fileName, new String(Base64.encodeBase64Chunked(out.toByteArray())));
+        } catch (IOException e) {
+            throw new AssertionError(e);
         }
     }
 
