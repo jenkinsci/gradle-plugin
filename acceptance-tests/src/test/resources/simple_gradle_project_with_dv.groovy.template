@@ -1,0 +1,15 @@
+node {
+    stage('prepare_build') {
+        ${copy_resource_step}
+    }
+    stage('copy_dv_settings') {
+        ${copy_dv_settings_step}
+    }
+    stage('build_project') {
+        withEnv(["PATH+GRADLE=$${tool '${gradle_version}'}/bin"]) {
+            withGradle {
+                sh 'gradle ${gradle_arguments}'
+            }
+        }
+    }
+}

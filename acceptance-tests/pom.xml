@@ -73,7 +73,7 @@
                     <environmentVariables>
                         <JENKINS_VERSION>${jenkins.version}</JENKINS_VERSION>
                         <BROWSER>chrome</BROWSER>
-                        <LOCAL_JARS>../plugin/target/gradle.hpi</LOCAL_JARS>
+                        <LOCAL_JARS>${session.executionRootDirectory}/plugin/target/gradle.hpi</LOCAL_JARS>
                     </environmentVariables>
                     <argLine>-Djdk.xml.xpathExprOpLimit=0</argLine>
                     <rerunFailingTestsCount>1</rerunFailingTestsCount>

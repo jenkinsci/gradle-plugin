@@ -27,7 +27,7 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core">
   <td>
     <j:forEach var="a" items="${node.allActions}">
-      <j:if test="${a.urlName == 'buildScan'}"> <!-- easier in Jelly than calling getAction(LogAction.class) -->
+      <j:if test="${a.urlName == 'buildScans'}"> <!-- easier in Jelly than calling getAction(LogAction.class) -->
         <a href="${rootURL}/${node.url}${a.urlName}/">
           <img src="${resURL}/plugin/gradle/images/svgs/gradle-build-scan.svg" alt="Build Scan" class="icon32x32"/>
         </a>
