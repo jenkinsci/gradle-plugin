@@ -46,11 +46,6 @@ public class DevelocityErrorsAction implements RootAction, StaplerProxy {
         return isVisible() ? this : null;
     }
 
-    // TODO: once upgrading to Jenkins 2.519 and above, we can show again this action in the sidebar
-//    boolean isPrimaryAction() {
-//        return true;
-//    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Iterator<GeErrorModel> getErrors() {
         Stream<Run> stream = RunList.fromJobs((Iterable) Jenkins.get().allItems(Job.class))

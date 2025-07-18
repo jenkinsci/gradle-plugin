@@ -35,7 +35,7 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
     @Test
     public void checkForGradleEnterpriseErrors() {
         assumeTrue(
-            "The UX is different for now in Jenkins 2.519 and above, see https://issues.jenkins.io/browse/JENKINS-75727?focusedId=455604&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-455604",
+            "The UX is different for now in Jenkins 2.519: the action shows up in a new hamburger menu",
             jenkins.getVersion().isOlderThan(new VersionNumber("2.519"))
         );
         // given
