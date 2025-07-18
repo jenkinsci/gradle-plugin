@@ -1,5 +1,6 @@
 package hudson.plugins.gradle;
 
+import hudson.util.VersionNumber;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleInstallation;
 import org.jenkinsci.test.acceptance.plugins.gradle.GradleStep;
 import org.jenkinsci.test.acceptance.po.Action;
@@ -8,6 +9,7 @@ import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.ContainerPageObject;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 import org.jenkinsci.test.acceptance.po.Jenkins;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -16,6 +18,7 @@ import org.openqa.selenium.WebElement;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.jenkinsci.test.acceptance.Matchers.containsString;
+import static org.junit.Assume.assumeTrue;
 
 public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
 
@@ -31,6 +34,10 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
 
     @Test
     public void checkForGradleEnterpriseErrors() {
+        assumeTrue(
+            "The UX is different for now in Jenkins 2.519: the action shows up in a new hamburger menu",
+            jenkins.getVersion().isOlderThan(new VersionNumber("2.519"))
+        );
         // given
         setCheckForGradleEnterpriseErrors();
         FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class);
