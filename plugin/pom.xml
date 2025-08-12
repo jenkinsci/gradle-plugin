@@ -68,13 +68,18 @@
                 <artifactId>guava</artifactId>
                 <version>33.4.8-jre</version>
             </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>1.11.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
-            <version>1.9.0</version>
+            <version>1.10.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
