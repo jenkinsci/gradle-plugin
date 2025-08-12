@@ -68,6 +68,11 @@
                 <artifactId>guava</artifactId>
                 <version>33.4.8-jre</version>
             </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>1.11.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
