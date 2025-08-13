@@ -20,7 +20,7 @@ class BuildScanInjectionMavenCrossVersionTest extends BaseMavenIntegrationTest {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = '2.0'
+            mavenExtensionVersion = '2.1'
             ccudExtensionVersion = '2.0'
         }
 

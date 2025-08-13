@@ -103,6 +103,7 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
         assertThat(output, containsString("Internal error in Gradle Enterprise Gradle plugin"));
         assertThat(output, not(containsString("Publishing build scan...")));
         assertThat(output, not(containsString("Publishing Build Scan...")));
+        assertThat(output, not(containsString("Publishing Build Scan to Develocity...")));
     }
 
 }

@@ -20,7 +20,7 @@ unclassified:
         mavenCaptureGoalInputFiles: true
         mavenExtensionCustomCoordinates: "mycustom:ext"
         mavenExtensionRepositoryUrl: "https://repo1.maven.org/maven2"
-        mavenExtensionVersion: "2.0"
+        mavenExtensionVersion: "2.1"
         mavenInjectionDisabledNodes:
             -   label: "non-maven-node"
         mavenInjectionEnabledNodes:

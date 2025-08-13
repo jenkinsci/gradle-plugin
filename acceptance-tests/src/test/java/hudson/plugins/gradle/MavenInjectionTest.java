@@ -165,7 +165,8 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
         assertThat(output, either(containsString("[INFO] 3 goals, 2 executed, 1 from cache")).or(containsString("[INFO] 3 goals, 3 executed")));
         assertThat(output, either(
             containsString("[INFO] Publishing build scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/")).or(
-            containsString("[INFO] Publishing Build Scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"))
+            containsString("[INFO] Publishing Build Scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/")).or(
+            containsString("[INFO] Publishing Build Scan to Develocity..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"))
         );
     }
 
@@ -173,5 +174,6 @@ public class MavenInjectionTest extends AbstractAcceptanceTest {
         String output = build.getConsole();
         assertThat(output, not(containsString("[INFO] Publishing build scan...")));
         assertThat(output, not(containsString("[INFO] Publishing Build Scan...")));
+        assertThat(output, not(containsString("[INFO] Publishing Build Scan to Develocity...")));
     }
 }
