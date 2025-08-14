@@ -50,7 +50,7 @@ class MavenExtensionsHandlerTest extends Specification {
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
-                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("2.0", null), null, it)
+                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("2.1", null), null, it)
                 }
 
         cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()
@@ -81,7 +81,7 @@ class MavenExtensionsHandlerTest extends Specification {
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
-                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("2.0", null), null, it)
+                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("2.1", null), null, it)
                 }
 
         cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()

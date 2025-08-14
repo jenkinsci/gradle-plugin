@@ -36,7 +36,7 @@ class InjectionConfigWithCasCTest extends AbstractIntegrationTest {
             it.mavenCaptureGoalInputFiles == true
             it.mavenExtensionCustomCoordinates == "mycustom:ext"
             it.mavenExtensionRepositoryUrl == "https://repo1.maven.org/maven2"
-            it.mavenExtensionVersion == "2.0"
+            it.mavenExtensionVersion == "2.1"
             it.mavenInjectionDisabledNodes*.label == ["non-maven-node"]
             it.mavenInjectionEnabledNodes*.label == ["maven-node"]
             it.server == "http://localhost:5086"

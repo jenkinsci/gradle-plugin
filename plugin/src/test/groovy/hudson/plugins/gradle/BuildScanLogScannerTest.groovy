@@ -24,6 +24,7 @@ class BuildScanLogScannerTest extends Specification {
         'One build scan URL'                   | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"])                                             || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
         'One build scan URL with old term'     | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 10, 'build information')                    || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
         'One build scan URL with new term'     | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 10, 'Build Scan')                           || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
+        'One build scan URL with newest term'  | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 10, 'Build Scan to Develocity')             || ["https://scans.gradle.com/s/bzb4vn64kx3bc"]
         'Two build scan URLs'                  | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]) || ["https://scans.gradle.com/s/bzb4vn64kx3bc", "https://scans.gradle.com/s/asc9wm73ly1do"]
         'Non build scan URL'                   | logWithBuildScans(["https://scans.gradle.com/bzb4vn64kx3bc"])                                               || []
         'Too many lines before build scan URL' | logWithBuildScans(["https://scans.gradle.com/s/bzb4vn64kx3bc"], 1010)                                       || []
