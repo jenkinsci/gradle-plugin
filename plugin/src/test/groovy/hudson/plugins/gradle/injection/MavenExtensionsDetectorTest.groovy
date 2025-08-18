@@ -21,7 +21,7 @@ class MavenExtensionsDetectorTest extends Specification {
     def 'detect DV and CCUD extension'() {
         given:
         with(injectionConfig) {
-            mavenExtensionVersion >> '2.0'
+            mavenExtensionVersion >> '2.1'
             mavenExtensionCustomCoordinates >> customCoordinates
             ccudExtensionCustomCoordinates >> ccudCustomCoordinates
         }
@@ -84,7 +84,7 @@ class MavenExtensionsDetectorTest extends Specification {
     def 'do not detect DV and CCUD extension when extensions file is not present'() {
         given:
         with(injectionConfig) {
-            mavenExtensionVersion >> '2.0'
+            mavenExtensionVersion >> '2.1'
         }
         def workspace = tempFolder.newFolder('workspace')
 

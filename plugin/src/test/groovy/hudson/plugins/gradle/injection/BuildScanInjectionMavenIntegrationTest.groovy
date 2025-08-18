@@ -309,12 +309,12 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
             accessKeyCredentialId = credentialId
         }
         SystemCredentialsProvider.getInstance().getCredentials().add(
-                new StringCredentialsImpl(
-                        CredentialsScope.GLOBAL,
-                        credentialId,
-                        "Develocity Access Key",
-                        Secret.fromString("localhost=secret")
-                ))
+            new StringCredentialsImpl(
+                CredentialsScope.GLOBAL,
+                credentialId,
+                "Develocity Access Key",
+                Secret.fromString("localhost=secret")
+            ))
         SystemCredentialsProvider.getInstance().save()
 
         def pipelineJob = j.createProject(WorkflowJob)
@@ -360,12 +360,12 @@ node {
             accessKeyCredentialId = credentialId
         }
         SystemCredentialsProvider.getInstance().getCredentials().add(
-                new StringCredentialsImpl(
-                        CredentialsScope.GLOBAL,
-                        credentialId,
-                        "Develocity Access Key",
-                        Secret.fromString("secret")
-                ))
+            new StringCredentialsImpl(
+                CredentialsScope.GLOBAL,
+                credentialId,
+                "Develocity Access Key",
+                Secret.fromString("secret")
+            ))
         SystemCredentialsProvider.getInstance().save()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition(simplePipeline(mavenInstallationName), false))
@@ -479,7 +479,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            mavenExtensionVersion = '2.0'
+            mavenExtensionVersion = '2.1'
             checkForBuildAgentErrors = false
         }
         def secondRun = buildAndAssertFailure(p)
@@ -511,7 +511,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            mavenExtensionVersion = '2.0'
+            mavenExtensionVersion = '2.1'
             checkForBuildAgentErrors = true
         }
         def secondRun = buildAndAssertFailure(p)
@@ -607,7 +607,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = "https://scans.gradle.com"
-            mavenExtensionVersion = '2.0'
+            mavenExtensionVersion = '2.1'
             ccudExtensionVersion = '2.0'
         }
 
@@ -815,6 +815,7 @@ node {
         if (isUrlEnforced) {
             assertThat(j.getLog(build), anyOf(
                 containsString('Publishing Build Scan...'),
+                containsString('Publishing Build Scan to Develocity...'),
                 containsString('Publishing build scan...')
             ))
         } else {
@@ -911,6 +912,7 @@ node {
         if (isUrlEnforced) {
             assertThat(j.getLog(build), anyOf(
                 containsString('Publishing Build Scan...'),
+                containsString('Publishing Build Scan to Develocity...'),
                 containsString('Publishing build scan...')
             ))
         } else {
@@ -1017,7 +1019,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = '2.0'
+            mavenExtensionVersion = '2.1'
         }
 
         createSlave('foo')
@@ -1046,7 +1048,7 @@ node {
     }
 
     private static boolean hasBuildScanPublicationAttempt(String log) {
-        (log =~ /The build scan was not published due to a configuration problem/).find()
+        (log =~ /The Build Scan was not published due to a configuration problem/).find()
     }
 
     private void assertNoDoubleApplication(Run build) {
@@ -1069,7 +1071,7 @@ node {
         withInjectionConfig {
             enabled = true
             server = 'https://scans.gradle.com'
-            mavenExtensionVersion = '2.0'
+            mavenExtensionVersion = '2.1'
             ccudExtensionVersion = useCCUD ? '2.0' : ''
             mavenCaptureGoalInputFiles = captureGoalInputFiles
         }

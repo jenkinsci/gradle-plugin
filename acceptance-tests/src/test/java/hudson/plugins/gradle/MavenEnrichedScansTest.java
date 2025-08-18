@@ -51,7 +51,8 @@ public class MavenEnrichedScansTest extends AbstractAcceptanceTest {
         String output = build.getConsole();
         assertThat(output, Matchers.anyOf(
             containsString("[INFO] Publishing build scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"),
-            containsString("[INFO] Publishing Build Scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/")
+            containsString("[INFO] Publishing Build Scan..." + System.lineSeparator() + "[INFO] https://gradle.com/s/"),
+            containsString("[INFO] Publishing Build Scan to Develocity..." + System.lineSeparator() + "[INFO] https://gradle.com/s/")
         ));
 
         // Build scans on public instance are not enriched
