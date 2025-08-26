@@ -10,7 +10,6 @@
         <relativePath/>
     </parent>
 
-    <groupId>io.jenkins.plugins</groupId>
     <artifactId>gradle</artifactId>
     <version>${revision}.${changelist}</version>
     <packaging>hpi</packaging>
