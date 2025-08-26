@@ -4,7 +4,7 @@
 
     <groupId>com.gradle</groupId>
     <artifactId>gradle-plugin-acceptance-tests</artifactId>
-    <version>UNVERSIONED</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
     <name>Gradle Plugin Acceptance Tests</name>
