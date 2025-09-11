@@ -7,7 +7,7 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Subject
 
-class MavenExtensionsHandlerTest extends Specification {
+class MavenExtensionsHandlerIntegrationTest extends Specification {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder()

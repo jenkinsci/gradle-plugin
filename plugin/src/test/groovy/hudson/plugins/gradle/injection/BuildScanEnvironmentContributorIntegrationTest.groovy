@@ -15,7 +15,7 @@ import hudson.util.Secret
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import spock.lang.Subject
 
-class BuildScanEnvironmentContributorTest extends BaseJenkinsIntegrationTest {
+class BuildScanEnvironmentContributorIntegrationTest extends BaseJenkinsIntegrationTest {
 
     def run = Mock(Run)
     def shortLivedTokenClientFactory = Mock(ShortLivedTokenClientFactory)

@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets
 
 @Unroll
 @Subject(InjectionConfig.class)
-class InjectionConfigTest extends BaseJenkinsIntegrationTest {
+class InjectionConfigIntegrationTest extends BaseJenkinsIntegrationTest {
 
     @Shared
     FilenameFilter injectionConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.injection.InjectionConfig.xml" }

@@ -4,11 +4,11 @@ import hudson.tools.InstallSourceProperty
 import io.jenkins.plugins.casc.ConfigurationAsCode
 import org.yaml.snakeyaml.Yaml
 
-class ConfigurationAsCodeTest extends BaseGradleIntegrationTest {
+class ConfigurationAsCodeIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'import configuration'() {
         given:
-        def configurationUrl = getClass().getResource(getClass().getSimpleName() + '/configuration-as-code.yml').toString()
+        def configurationUrl = ConfigurationAsCodeIntegrationTest.class.getResource(getClass().getSimpleName() + '/configuration-as-code.yml').toString()
 
         when:
         ConfigurationAsCode.get().configure(configurationUrl)

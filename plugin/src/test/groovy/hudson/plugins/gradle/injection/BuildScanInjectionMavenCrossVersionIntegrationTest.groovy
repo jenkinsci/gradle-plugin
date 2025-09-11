@@ -8,7 +8,7 @@ import org.jvnet.hudson.test.CreateFileBuilder
 import spock.lang.Unroll
 
 @Unroll
-class BuildScanInjectionMavenCrossVersionTest extends BaseMavenIntegrationTest {
+class BuildScanInjectionMavenCrossVersionIntegrationTest extends BaseMavenIntegrationTest {
 
     private static final String MINIMUM_SUPPORTED_MAVEN_VERSION = '3.3.1'
 
