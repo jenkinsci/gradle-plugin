@@ -5,9 +5,8 @@
 
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>plugin</artifactId>
-        <version>5.26</version>
-        <relativePath/>
+        <artifactId>gradle-pom</artifactId>
+        <version>1.0</version>
     </parent>
 
     <artifactId>gradle</artifactId>
@@ -38,18 +37,17 @@
     </scm>
 
     <properties>
-        <revision>2.17</revision>
-        <changelist>999999-SNAPSHOT</changelist>
-
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
         <jenkins.version>2.479.3</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
 
-        <skipIntegTests>false</skipIntegTests>
         <spotless.check.skip>true</spotless.check.skip>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <maven.extension.version>1.0.0</maven.extension.version>
+
+        <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
+        <hpi.bundledArtifacts>commons-beanutils,commons-collections,commons-digester,commons-validator,configuration-maven-extension,develocity-maven-extension</hpi.bundledArtifacts>
     </properties>
 
     <dependencyManagement>
@@ -61,16 +59,6 @@
                 <version>5054.v620b_5d2b_d5e6</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>33.4.8-jre</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-beanutils</groupId>
-                <artifactId>commons-beanutils</artifactId>
-                <version>1.11.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -237,18 +225,7 @@
         </dependency>
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+
 
     <build>
         <pluginManagement>
@@ -270,7 +247,7 @@
                         <goals>
                             <goal>copy</goal>
                         </goals>
-                        <phase>process-resources</phase>
+                        <phase>prepare-package</phase>
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
@@ -310,16 +287,40 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
                 <configuration>
                     <includes>
                         <include>**/*Spec.java</include>
                         <include>**/*Test.java</include>
                         <include>**/*Spec.groovy</include>
                     </includes>
+                    <excludes>
+                        <exclude>**/*IntegrationTest.java</exclude>
+                    </excludes>
                     <reuseForks>false</reuseForks>
                     <forkCount>2</forkCount>
-                    <skipTests>${skipIntegTests}</skipTests>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <id>integration-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/*IntegrationTest.java</include>
+                            </includes>
+                            <reuseForks>false</reuseForks>
+                            <forkCount>2</forkCount>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
         </plugins>
