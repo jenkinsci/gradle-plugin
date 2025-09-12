@@ -247,7 +247,7 @@
                         <goals>
                             <goal>copy</goal>
                         </goals>
-                        <phase>pre-integration-test</phase>
+                        <phase>prepare-package</phase>
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
