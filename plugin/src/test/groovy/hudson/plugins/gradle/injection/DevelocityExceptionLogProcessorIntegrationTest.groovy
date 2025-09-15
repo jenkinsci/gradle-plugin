@@ -8,7 +8,7 @@ import spock.lang.Subject
 
 import java.nio.charset.StandardCharsets
 
-class DevelocityExceptionLogProcessorTest extends BaseJenkinsIntegrationTest {
+class DevelocityExceptionLogProcessorIntegrationTest extends BaseJenkinsIntegrationTest {
 
     private static final String GRADLE_PLUGIN_ERROR = "Internal error in Gradle Enterprise Gradle plugin: com.acme.FooBar"
     private static final String MAVEN_EXTENSION_ERROR = "[ERROR] Internal error in Gradle Enterprise Maven extension: com.acme.FooBar"

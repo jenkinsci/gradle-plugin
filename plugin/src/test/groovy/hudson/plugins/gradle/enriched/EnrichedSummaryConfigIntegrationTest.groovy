@@ -8,7 +8,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 @Subject(EnrichedSummaryConfig.class)
-class EnrichedSummaryConfigTest extends BaseJenkinsIntegrationTest {
+class EnrichedSummaryConfigIntegrationTest extends BaseJenkinsIntegrationTest {
 
     @Shared
     FilenameFilter enrichedSummaryConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.enriched.EnrichedSummaryConfig.xml" }

@@ -11,7 +11,7 @@ import spock.lang.Unroll
 
 @Unroll
 @Subject(InjectionConfig.class)
-class InjectionConfigWithCasCTest extends AbstractIntegrationTest {
+class InjectionConfigWithCasCIntegrationTest extends AbstractIntegrationTest {
     @Rule
     public final RuleChain rules = RuleChain.outerRule(noSpaceInTmpDirs).around(new JenkinsConfiguredWithCodeRule())
 
