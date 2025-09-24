@@ -47,7 +47,6 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'build scans are discovered when timestamper is used'() {
         given:
-        gradleInstallationRule.gradleVersion = '8.14'
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(settingsScriptBuilder())
@@ -72,7 +71,7 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
         p.buildWrappersList.add(new BuildScanBuildWrapper())
         p.buildersList.add(buildScriptBuilder())
         p.buildersList.add(settingsScriptBuilder())
-        p.buildersList.add(SystemUtils.IS_OS_UNIX ? new Shell('./gradlew --scan hello') : new BatchFile('gradlew.bat --scan hello'))
+        p.buildersList.add(SystemUtils.IS_OS_UNIX ? new Shell('./gradlew --scan --no-daemon hello') : new BatchFile('gradlew.bat --scan --no-daemon hello'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -86,7 +85,6 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'detects build scan in pipeline log'() {
         given:
-        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -97,9 +95,9 @@ node {
       writeFile file: 'settings.gradle', text: ''
       writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
       if (isUnix()) {
-         sh "'\${gradleHome}/bin/gradle' help --scan"
+         sh "'\${gradleHome}/bin/gradle' help --scan --no-daemon"
       } else {
-         bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+         bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan --no-daemon/)
       }
    }
    stage('Final') {
@@ -121,20 +119,11 @@ node {
 
     def 'detects build scan in pipeline log using withGradle'() {
         given:
-        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
     def scans = []
     stage('Build') {
-      node {
-        def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
-        if (isUnix()) {
-          sh "'\${gradleHome}/bin/gradle' --stop"
-        } else {
-          bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
-        }
-      }
       def stepToExecuteInParallel = {
         node {
           // Run the maven build
@@ -143,9 +132,9 @@ node {
             writeFile file: 'settings.gradle', text: ''
             writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
             if (isUnix()) {
-              sh "'\${gradleHome}/bin/gradle' help --scan"
+              sh "'\${gradleHome}/bin/gradle' help --scan --no-daemon"
             } else {
-              bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+              bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan --no-daemon/)
             }
           })
         }
@@ -170,7 +159,6 @@ node {
 
     def 'does not find build scans in pipeline logs when none have been published'() {
         given:
-        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -179,11 +167,9 @@ node {
       def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
       writeFile file: 'settings.gradle', text: ''
       if (isUnix()) {
-         sh "'\${gradleHome}/bin/gradle' --stop"
-         sh "'\${gradleHome}/bin/gradle' help --no-scan"
+         sh "'\${gradleHome}/bin/gradle' help --no-scan --no-daemon"
       } else {
-         bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
-         bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan/)
+         bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan --no-daemon/)
       }
    }
    stage('Final') {
@@ -202,7 +188,6 @@ node {
 
     def 'does not find build scans in pipeline logs when none have been published with withGradle'() {
         given:
-        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -214,11 +199,9 @@ stage('Build') {
     writeFile file: 'settings.gradle', text: ''
     scans.addAll(withGradle {
       if (isUnix()) {
-        sh "'\${gradleHome}/bin/gradle' --stop"
-        sh "'\${gradleHome}/bin/gradle' help --no-scan"
+        sh "'\${gradleHome}/bin/gradle' help --no-scan --no-daemon"
       } else {
-        bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
-        bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan/)
+        bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan --no-daemon/)
       }
     })
   }
@@ -257,12 +240,11 @@ stage('Final') {
 
     def 'build scan action is exposed via rest API'() {
         given:
-        gradleInstallationRule.gradleVersion = '8.6'
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(settingsScriptBuilder())
         p.buildersList.add(buildScriptBuilder())
-        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: '8.6', switches: '-Dscan --no-daemon'))
+        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: "${gradleInstallationRule.gradleVersion}", switches: '-Dscan --no-daemon'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
