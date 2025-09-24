@@ -47,7 +47,6 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'build scans are discovered when timestamper is used'() {
         given:
-        gradleInstallationRule.gradleVersion = '8.14'
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(settingsScriptBuilder())
@@ -86,7 +85,6 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
 
     def 'detects build scan in pipeline log'() {
         given:
-        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -121,7 +119,6 @@ node {
 
     def 'detects build scan in pipeline log using withGradle'() {
         given:
-        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -170,7 +167,6 @@ node {
 
     def 'does not find build scans in pipeline logs when none have been published'() {
         given:
-        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -202,7 +198,6 @@ node {
 
     def 'does not find build scans in pipeline logs when none have been published with withGradle'() {
         given:
-        gradleInstallationRule.gradleVersion = '7.3.3'
         gradleInstallationRule.addInstallation()
         def pipelineJob = j.createProject(WorkflowJob)
         pipelineJob.setDefinition(new CpsFlowDefinition("""
@@ -257,7 +252,6 @@ stage('Final') {
 
     def 'build scan action is exposed via rest API'() {
         given:
-        gradleInstallationRule.gradleVersion = '8.6'
         gradleInstallationRule.addInstallation()
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(settingsScriptBuilder())
