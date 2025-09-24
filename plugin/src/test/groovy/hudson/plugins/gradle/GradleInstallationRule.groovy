@@ -59,10 +59,11 @@ class GradleInstallationRule extends TestWatcher {
         if(Functions.isWindows()) {
             try {
                 println 'Killing Gradle processes'
-                def proc = """powershell.exe -NoProfile -Command Stop-Process -Id (Get-Process java | Where-Object { \$_.CommandLine -like "*GradleDaemon*" -and \$_.CommandLine -like "*${gradleVersion}*" }).Id -Force""".execute()
+                def proc = """powershell.exe -NoProfile -Command Stop-Process -Id (Get-Process java | Where-Object { \$_.CommandLine -like "*GradleDaemon*" }).Id -Force""".execute()
                 proc.waitFor(30, TimeUnit.SECONDS)
-                println "output: ${proc.text}"
                 println "code: ${proc.exitValue()}"
+                println "stdout output: ${proc.in.text}"
+                println "stderr output: ${proc.err.text}"
             } catch (Exception e) {
                 System.err.println('Failed killing Gradle daemons')
                 e.printStackTrace()

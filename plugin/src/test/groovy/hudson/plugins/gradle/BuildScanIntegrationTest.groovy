@@ -256,7 +256,7 @@ stage('Final') {
         FreeStyleProject p = j.createFreeStyleProject()
         p.buildersList.add(settingsScriptBuilder())
         p.buildersList.add(buildScriptBuilder())
-        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: '8.6', switches: '-Dscan --no-daemon'))
+        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: "${gradleInstallationRule.gradleVersion}", switches: '-Dscan --no-daemon'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
