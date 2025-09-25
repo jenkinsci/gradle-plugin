@@ -3,7 +3,6 @@ package hudson.plugins.gradle
 import com.cloudbees.plugins.credentials.CredentialsProvider
 import com.cloudbees.plugins.credentials.CredentialsScope
 import com.cloudbees.plugins.credentials.domains.Domain
-import hudson.Functions
 import hudson.model.JDK
 import hudson.slaves.DumbSlave
 import hudson.util.Secret
@@ -12,6 +11,7 @@ import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.CreateFileBuilder
+import spock.lang.Tag
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Base class for tests that need a Jenkins instance and Gradle tool.
  */
+@Tag('sequential')
 abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
     public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
