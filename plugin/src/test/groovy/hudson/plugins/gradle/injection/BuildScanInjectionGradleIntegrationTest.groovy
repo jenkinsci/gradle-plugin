@@ -851,6 +851,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
     def 'vcs repository pattern injection for pipeline remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
         given:
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave slave = createSlave()
 
@@ -861,7 +862,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
       node('foo') {
         withGradle {
           git branch: 'main', url: 'https://github.com/c00ler/simple-gradle-project'
-          def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
+          def gradleHome = tool name: '${gradleVersion}', type: 'gradle'
           if (isUnix()) {
             sh "'\${gradleHome}/bin/gradle' help --no-daemon --console=plain"
           } else {
