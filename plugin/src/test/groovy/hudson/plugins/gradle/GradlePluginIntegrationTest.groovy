@@ -203,7 +203,7 @@ class GradlePluginIntegrationTest extends BaseGradleIntegrationTest {
     }
 
     private Gradle configuredGradle() {
-        new Gradle(switches: 'switches', tasks: 'tasks', rootBuildScriptDir: 'buildScriptDir',
+        new Gradle(switches: '--no-daemon', tasks: 'tasks', rootBuildScriptDir: 'buildScriptDir',
             buildFile: 'buildFile.gradle', gradleName: gradleInstallationRule.gradleVersion,
             useWrapper: true, makeExecutable: true, wrapperLocation: 'path/to/wrapper',
             useWorkspaceAsHome: true, passAllAsProjectProperties: true, passAllAsSystemProperties: true,
