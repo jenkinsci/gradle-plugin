@@ -71,7 +71,7 @@ class BuildScanIntegrationTest extends BaseGradleIntegrationTest {
         p.buildWrappersList.add(new BuildScanBuildWrapper())
         p.buildersList.add(buildScriptBuilder())
         p.buildersList.add(settingsScriptBuilder())
-        p.buildersList.add(SystemUtils.IS_OS_UNIX ? new Shell('./gradlew --scan hello') : new BatchFile('gradlew.bat --scan hello'))
+        p.buildersList.add(SystemUtils.IS_OS_UNIX ? new Shell('./gradlew --scan --no-daemon hello') : new BatchFile('gradlew.bat --scan --no-daemon hello'))
 
         when:
         def build = j.buildAndAssertSuccess(p)
@@ -95,9 +95,9 @@ node {
       writeFile file: 'settings.gradle', text: ''
       writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
       if (isUnix()) {
-         sh "'\${gradleHome}/bin/gradle' help --scan"
+         sh "'\${gradleHome}/bin/gradle' help --scan --no-daemon"
       } else {
-         bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+         bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan --no-daemon/)
       }
    }
    stage('Final') {
@@ -124,14 +124,6 @@ node {
         pipelineJob.setDefinition(new CpsFlowDefinition("""
     def scans = []
     stage('Build') {
-      node {
-        def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
-        if (isUnix()) {
-          sh "'\${gradleHome}/bin/gradle' --stop"
-        } else {
-          bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
-        }
-      }
       def stepToExecuteInParallel = {
         node {
           // Run the maven build
@@ -140,9 +132,9 @@ node {
             writeFile file: 'settings.gradle', text: ''
             writeFile file: 'build.gradle', text: "buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }"
             if (isUnix()) {
-              sh "'\${gradleHome}/bin/gradle' help --scan"
+              sh "'\${gradleHome}/bin/gradle' help --scan --no-daemon"
             } else {
-              bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan/)
+              bat(/"\${gradleHome}\\bin\\gradle.bat" help --scan --no-daemon/)
             }
           })
         }
@@ -175,11 +167,9 @@ node {
       def gradleHome = tool name: '${gradleInstallationRule.gradleVersion}', type: 'gradle'
       writeFile file: 'settings.gradle', text: ''
       if (isUnix()) {
-         sh "'\${gradleHome}/bin/gradle' --stop"
-         sh "'\${gradleHome}/bin/gradle' help --no-scan"
+         sh "'\${gradleHome}/bin/gradle' help --no-scan --no-daemon"
       } else {
-         bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
-         bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan/)
+         bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan --no-daemon/)
       }
    }
    stage('Final') {
@@ -209,11 +199,9 @@ stage('Build') {
     writeFile file: 'settings.gradle', text: ''
     scans.addAll(withGradle {
       if (isUnix()) {
-        sh "'\${gradleHome}/bin/gradle' --stop"
-        sh "'\${gradleHome}/bin/gradle' help --no-scan"
+        sh "'\${gradleHome}/bin/gradle' help --no-scan --no-daemon"
       } else {
-        bat(/"\${gradleHome}\\bin\\gradle.bat" --stop/)
-        bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan/)
+        bat(/"\${gradleHome}\\bin\\gradle.bat" help --no-scan --no-daemon/)
       }
     })
   }
