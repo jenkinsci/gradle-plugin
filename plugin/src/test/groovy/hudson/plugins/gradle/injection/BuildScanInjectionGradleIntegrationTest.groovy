@@ -38,10 +38,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
     def "does not capture build agent errors if checking for errors is disabled"() {
         given:
         System.setProperty(TimestampNote.systemProperty, 'true')
-        def gradleVersion = '8.6'
-
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave agent = createSlave()
 
@@ -50,7 +48,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
-        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true hello', *: defaults))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
@@ -76,10 +74,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
     def "captures build agent errors if checking for errors is enabled"() {
         given:
         System.setProperty(TimestampNote.systemProperty, 'true')
-        def gradleVersion = '8.6'
-
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave agent = createSlave()
 
@@ -88,7 +84,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
-        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.buildersList.add(new Gradle(tasks: '-Dcom.gradle.scan.trigger-synthetic-error=true -Ddevelocity.scan.trigger-synthetic-error=true hello', *: defaults))
         p.getBuildWrappersList().add(new TimestamperBuildWrapper())
 
         when:
@@ -118,9 +114,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "captures build agent errors in pipeline build if checking for errors is enabled"() {
         given:
-        def gradleVersion = '8.6'
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave agent = createSlave()
 
@@ -153,9 +148,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         def secret = 'confidential'
         registerCredentials('my-creds', secret)
 
-        def gradleVersion = '8.6'
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave agent = createSlave()
         def pipelineJob = GradleSnippets.pipelineJobWithCredentials(j)
@@ -182,12 +176,10 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def 'skips injection if the agent is offline'() {
         given:
-        def gradleVersion = '8.6'
-
         def agent = createSlave("test")
 
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         withGlobalEnvVars {
             put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(agent, gradleVersion))
@@ -260,7 +252,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         project.buildersList.add(settingsFile())
         project.buildersList.add(helloTask())
-        project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        project.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         when:
         // first build to download Gradle
@@ -294,7 +286,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
-        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         when:
         // first build to download Gradle
@@ -331,7 +323,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
-        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         when:
         // first build to download Gradle
@@ -472,7 +464,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         p.buildersList.add(settingsFile())
         p.buildersList.add(helloTask())
-        p.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         expect:
         !initScript.exists()
@@ -527,10 +519,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "doesn't copy init script if already exists"() {
         given:
-        def gradleVersion = '8.6'
-
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave agent = createSlave()
 
@@ -555,10 +545,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "copies init script if it was changed"() {
         given:
-        def gradleVersion = '8.6'
-
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave agent = createSlave()
 
@@ -592,10 +580,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
     @SuppressWarnings("GStringExpressionWithinString")
     def "short lived token is injected into the build"() {
         given:
-        def gradleVersion = '8.6'
-
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave agent = createSlave()
 
@@ -604,7 +590,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         project.buildersList.add(settingsFile())
         project.buildersList.add(helloTask('println "accessKey=${System.getenv(\'DEVELOCITY_ACCESS_KEY\')}"'))
-        project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        project.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         def mockDevelocity = GroovyEmbeddedApp.of {
             handlers {
@@ -650,10 +636,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "invalid access key is not injected into the build"() {
         given:
-        def gradleVersion = '8.6'
-
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave agent = createSlave()
 
@@ -662,7 +646,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         project.buildersList.add(settingsFile())
         project.buildersList.add(helloTask())
-        project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion, switches: "--no-daemon"))
+        project.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         when:
         // first build to download Gradle
@@ -697,12 +681,10 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "sets all mandatory environment variables"() {
         given:
-        def gradleVersion = '8.6'
-
         def agent = createSlave("test")
 
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         withGlobalEnvVars {
             put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(agent, gradleVersion))
@@ -759,12 +741,10 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "sets all optional environment variables"() {
         given:
-        def gradleVersion = '8.6'
-
         def agent = createSlave("test")
 
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         withGlobalEnvVars {
             put("JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME", getGradleHome(agent, gradleVersion))
@@ -830,9 +810,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def 'vcs repository pattern injection for freestyle remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
         given:
-        def gradleVersion = '8.6'
-        gradleInstallationRule.gradleVersion = '8.6'
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave slave = createSlave()
 
@@ -840,7 +819,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
         p.setScm(new GitSCM(GitSCM.createRepoList("https://github.com/c00ler/simple-gradle-project", null), [new BranchSpec('main')], null, null, null))
         p.setAssignedNode(slave)
 
-        p.buildersList.add(new Gradle(tasks: 'clean', gradleName: gradleVersion, switches: "--no-daemon"))
+        p.buildersList.add(new Gradle(tasks: 'clean', *: defaults))
 
         when:
         // first build to download Gradle
@@ -871,8 +850,6 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def 'vcs repository pattern injection for pipeline remote project - #filter #shouldApplyAutoInjection'(String filter, boolean shouldApplyAutoInjection) {
         given:
-        def gradleVersion = '8.6'
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
 
         DumbSlave slave = createSlave()
@@ -925,9 +902,8 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
     def "logs injection messages with default Gradle log level"(boolean quiet) {
         given:
-        def gradleVersion = '8.1.1'
-        gradleInstallationRule.gradleVersion = gradleVersion
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
         DumbSlave agent = createSlave()
 
@@ -975,7 +951,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
 
         project.buildersList.add(settingsFile())
         project.buildersList.add(helloTask())
-        project.buildersList.add(new Gradle(tasks: 'hello', gradleName: gradleVersion))
+        project.buildersList.add(new Gradle(tasks: 'hello', *: defaults))
 
         when:
         // first build to download Gradle
