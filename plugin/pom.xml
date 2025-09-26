@@ -320,7 +320,7 @@
                                 sequential
                             </groups>
                             <reuseForks>false</reuseForks>
-                            <forkCount>1C</forkCount>
+                            <forkCount>1</forkCount>
                         </configuration>
                     </execution>
                     <execution>
