@@ -125,7 +125,7 @@
         <profile>
             <id>jenkinsLatest</id>
             <properties>
-                <jenkins.version>2.529</jenkins.version><!--RENOVATE-LATEST-->
+                <jenkins.version>2.530</jenkins.version><!--RENOVATE-LATEST-->
                 <skipTests>false</skipTests>
             </properties>
         </profile>
