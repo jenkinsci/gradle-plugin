@@ -1,5 +1,6 @@
 package hudson.plugins.gradle
 
+
 import hudson.model.DownloadService
 import hudson.tools.InstallSourceProperty
 import hudson.util.FormValidation
@@ -16,7 +17,7 @@ class GradleInstallationRule extends TestWatcher {
     String gradleVersion
     private final JenkinsRule j
 
-    GradleInstallationRule(String gradleVersion = '7.3', JenkinsRule j) {
+    GradleInstallationRule(String gradleVersion = '8.14.3', JenkinsRule j) {
         this.gradleVersion = gradleVersion
         this.j = j
     }

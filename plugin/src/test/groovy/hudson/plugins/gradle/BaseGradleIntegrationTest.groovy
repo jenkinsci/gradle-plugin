@@ -12,6 +12,7 @@ import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.jvnet.hudson.test.CreateFileBuilder
+import spock.lang.Tag
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Base class for tests that need a Jenkins instance and Gradle tool.
  */
+@Tag('sequential')
 abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
     public final GradleInstallationRule gradleInstallationRule = new GradleInstallationRule(j)
@@ -72,22 +74,6 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
         CredentialsProvider.lookupStores(j.jenkins).iterator().next().addCredentials(Domain.global(), creds)
     }
 
-    @Override
-    @SuppressWarnings("CatchException")
-    def cleanup() {
-        if(Functions.isWindows()) {
-            try {
-                println 'Killing Gradle processes'
-                def proc = '''WMIC PROCESS where "Name like 'java%' AND CommandLine like '%hudson.plugins.gradle.GradleInstallation%'" Call Terminate"'''.execute()
-                proc.waitFor(30, TimeUnit.SECONDS)
-                println "output: ${proc.text}"
-                println "code: ${proc.exitValue()}"
-            } catch (Exception e) {
-                System.err.println('Failed killing Gradle daemons')
-                e.printStackTrace()
-            }
-        }
-    }
 
     protected setJdk8() {
         j.jenkins.setJDKs(Collections.singleton(new JDK('JDK11', System.getProperty(JDK8_SYS_PROP))))
@@ -109,5 +95,42 @@ abstract class BaseGradleIntegrationTest extends AbstractIntegrationTest {
 
     protected static CreateFileBuilder settingsFile() {
         new CreateFileBuilder('settings.gradle', '')
+    }
+
+    def cleanup() {
+        killGradleDaemons()
+    }
+
+    def killGradleDaemons() {
+        if (Functions.isWindows()) {
+            try {
+                println 'Killing Gradle processes'
+                Files.write(
+                    Paths.get('kill-gradle-processes.ps1'),
+                    '''
+                      $procs = Get-CimInstance Win32_Process -Filter "Name='java.exe' AND CommandLine LIKE '%GradleDaemon%'"
+                      if ($procs) {
+                          foreach ($p in $procs) {
+                              $res = Invoke-CimMethod -InputObject $p -MethodName Terminate
+                              Write-Output ("Terminated {0} -> ReturnValue {1}" -f $p.ProcessId, $res.ReturnValue)
+                          }
+                      } else {
+                          Write-Output "No GradleDaemon java processes found."
+                      }
+                      exit 0
+                    '''.stripIndent().trim().getBytes()
+                )
+                def proc =
+                    ['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'kill-gradle-processes.ps1']
+                        .execute()
+                proc.waitFor(30, TimeUnit.SECONDS)
+                println "code: ${proc.exitValue()}"
+                println "stdout output: ${proc.in.text}"
+                println "stderr output: ${proc.err.text}"
+            } catch (Exception e) {
+                System.err.println('Failed killing Gradle daemons')
+                e.printStackTrace()
+            }
+        }
     }
 }
