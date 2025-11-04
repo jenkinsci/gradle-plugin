@@ -38,7 +38,7 @@
 
     <properties>
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
-        <jenkins.version>2.479.3</jenkins.version>
+        <jenkins.version>2.504.3</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
 
         <spotless.check.skip>true</spotless.check.skip>

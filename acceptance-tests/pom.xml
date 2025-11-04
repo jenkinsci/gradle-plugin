@@ -118,7 +118,7 @@
         <profile>
             <id>jenkinsMin</id>
             <properties>
-                <jenkins.version>2.479.3</jenkins.version>
+                <jenkins.version>2.504.3</jenkins.version>
                 <skipTests>false</skipTests>
             </properties>
         </profile>
