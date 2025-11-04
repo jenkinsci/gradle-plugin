@@ -66,11 +66,11 @@ public class GradleEnterpriseErrorsTest extends AbstractAcceptanceTest {
             .hasRowForBuild(build);
     }
 
-    @ActionPageObject("develocity")
+    @ActionPageObject(relativePath = "develocity")
     public static class GeErrorPage extends Action {
 
-        public GeErrorPage(ContainerPageObject parent, String relative) {
-            super(parent, relative);
+        public GeErrorPage(ContainerPageObject parent, String relative, String linkText) {
+            super(parent, relative, linkText);
         }
 
         @Override
