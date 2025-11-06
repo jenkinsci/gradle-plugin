@@ -9,7 +9,7 @@
 
     <name>Gradle Plugin Acceptance Tests</name>
     <properties>
-        <jenkins.version>2.479.3</jenkins.version>
+        <jenkins.version>2.504.3</jenkins.version>
         <skipTests>true</skipTests>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
