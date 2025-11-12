@@ -34,6 +34,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
     private final ShortLivedTokenClientFactory shortLivedTokenClientFactory;
 
+    @SuppressWarnings("unused")
     public BuildScanEnvironmentContributor() {
         this(new ShortLivedTokenClientFactory());
     }

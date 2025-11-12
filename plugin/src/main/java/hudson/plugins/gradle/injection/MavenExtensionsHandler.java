@@ -5,7 +5,6 @@ import com.google.common.base.Suppliers;
 import hudson.FilePath;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;

@@ -29,6 +29,7 @@ public class DevelocityComputerListener extends ComputerListener {
     private final MavenExtensionDownloadHandler mavenExtensionDownloadHandler;
     private final Supplier<InjectionConfig> injectionConfigSupplier;
 
+    @SuppressWarnings("unused")
     public DevelocityComputerListener() {
         this(
                 new GradleBuildScanInjection(),

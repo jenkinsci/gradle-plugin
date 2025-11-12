@@ -31,6 +31,7 @@ public class InjectionConfigChangeListener extends SaveableListener {
     private final Supplier<EnvVars> globalEnvVarsSupplier;
     private final Supplier<Collection<Computer>> computersSupplier;
 
+    @SuppressWarnings("unused")
     public InjectionConfigChangeListener() {
         this(
                 new GradleBuildScanInjection(),

@@ -26,6 +26,7 @@ import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEP
 import static hudson.plugins.gradle.injection.MavenInjectionAware.MAVEN_OPTS_HANDLER;
 import static hudson.plugins.gradle.injection.MavenOptsHandler.MAVEN_OPTS;
 
+@SuppressWarnings("unused")
 @Extension
 public class GitScmListener extends SCMListener {
 
