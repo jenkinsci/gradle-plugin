@@ -25,39 +25,39 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
     private final ExtensionClient extensionClient = new ExtensionClient();
 
     public Map<MavenExtension, String> ensureExtensionsDownloaded(Supplier<File> root, InjectionConfig injectionConfig) throws IOException {
-        if (!isInjectionDisabledGlobally(injectionConfig)) {
-            Map<MavenExtension, String> extensionsDigest = new HashMap<>();
-            Path cacheDir = root.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
-
-            MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(injectionConfig.getMavenExtensionVersion());
-
-            extensionsDigest.put(develocityMavenExtension, getOrDownloadExtensionDigest(injectionConfig, cacheDir, develocityMavenExtension));
-            if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(injectionConfig.getCcudExtensionVersion()))) {
-                extensionsDigest.put(MavenExtension.CCUD, getOrDownloadExtensionDigest(injectionConfig, cacheDir, MavenExtension.CCUD));
-            }
-
-            return extensionsDigest;
+        if (isInjectionDisabledGlobally(injectionConfig)) {
+            return Collections.emptyMap();
         }
 
-        return Collections.emptyMap();
+        Map<MavenExtension, String> extensionsDigest = new HashMap<>();
+        Path cacheDir = root.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
+
+        MavenExtension develocityMavenExtension = MavenExtension.forVersion(injectionConfig.getMavenExtensionVersion());
+
+        extensionsDigest.put(develocityMavenExtension, getOrDownloadExtensionDigest(injectionConfig, cacheDir, develocityMavenExtension));
+        if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(injectionConfig.getCcudExtensionVersion()))) {
+            extensionsDigest.put(MavenExtension.CCUD, getOrDownloadExtensionDigest(injectionConfig, cacheDir, MavenExtension.CCUD));
+        }
+
+        return extensionsDigest;
     }
 
     public Map<MavenExtension, String> getExtensionDigests(Supplier<File> rootDir, InjectionConfig injectionConfig) throws IOException {
-        if (!isInjectionDisabledGlobally(injectionConfig)) {
-            Map<MavenExtension, String> extensionDigests = new HashMap<>();
-            Path cacheDir = rootDir.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
-
-            MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(injectionConfig.getMavenExtensionVersion());
-
-            getExtensionDigest(cacheDir, develocityMavenExtension).ifPresent(it -> extensionDigests.put(develocityMavenExtension, it));
-            if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(injectionConfig.getCcudExtensionVersion()))) {
-                getExtensionDigest(cacheDir, MavenExtension.CCUD).ifPresent(it -> extensionDigests.put(MavenExtension.CCUD, it));
-            }
-
-            return extensionDigests;
+        if (isInjectionDisabledGlobally(injectionConfig)) {
+            return Collections.emptyMap();
         }
 
-        return Collections.emptyMap();
+        Map<MavenExtension, String> extensionDigests = new HashMap<>();
+        Path cacheDir = rootDir.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
+
+        MavenExtension develocityMavenExtension = MavenExtension.forVersion(injectionConfig.getMavenExtensionVersion());
+
+        getExtensionDigest(cacheDir, develocityMavenExtension).ifPresent(it -> extensionDigests.put(develocityMavenExtension, it));
+        if (InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(injectionConfig.getCcudExtensionVersion()))) {
+            getExtensionDigest(cacheDir, MavenExtension.CCUD).ifPresent(it -> extensionDigests.put(MavenExtension.CCUD, it));
+        }
+
+        return extensionDigests;
     }
 
     private static Optional<String> getExtensionDigest(Path parent, MavenExtension extension) throws IOException {
@@ -84,12 +84,10 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
 
             if (!extensionVersion.equals(version)) {
                 return downloadExtension(injectionConfig, parent, extension, metadataFile, version);
-            } else {
-                return extensionDigest;
             }
-        } else {
-            return downloadExtension(injectionConfig, parent, extension, metadataFile, version);
+            return extensionDigest;
         }
+        return downloadExtension(injectionConfig, parent, extension, metadataFile, version);
     }
 
     private String downloadExtension(

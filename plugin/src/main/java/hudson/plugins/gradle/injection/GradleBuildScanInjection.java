@@ -18,8 +18,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static hudson.plugins.gradle.injection.CopyUtil.*;
-
 public class GradleBuildScanInjection implements GradleInjectionAware {
 
     private static final Logger LOGGER = Logger.getLogger(GradleBuildScanInjection.class.getName());
@@ -34,7 +32,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
     private static final String GRADLE_DIR = ".gradle";
     private static final String GRADLE_INIT_FILE = "init-build-scan.gradle";
 
-    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
+    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> CopyUtil.unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
 
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
         if (node == null) {
@@ -90,7 +88,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
         if (initScriptChanged(gradleInitScriptFile)) {
             LOGGER.info("Injecting Gradle init script " + gradleInitScriptFile);
 
-            copyResourceToNode(gradleInitScriptFile, RESOURCE_INIT_SCRIPT_GRADLE);
+            CopyUtil.copyResourceToNode(gradleInitScriptFile, RESOURCE_INIT_SCRIPT_GRADLE);
         }
     }
 
@@ -184,5 +182,4 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
     private static String filePath(String... parts) {
         return String.join("/", parts);
     }
-
 }

@@ -45,7 +45,7 @@ public enum MavenExtension {
         return downloadMetadataFileName;
     }
 
-    public static MavenExtension getDevelocityMavenExtension(String version) {
+    public static MavenExtension forVersion(String version) {
         return version.compareTo(LAST_GRADLE_ENTERPRISE_VERSION) > 0 ? DEVELOCITY : GRADLE_ENTERPRISE;
     }
 

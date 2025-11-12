@@ -1,13 +1,8 @@
 package hudson.plugins.gradle.injection;
 
-import hudson.model.Node;
-import hudson.plugins.gradle.util.CollectionUtil;
+import java.util.List;
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-public interface MavenInjectionAware {
+public interface MavenInjectionAware extends InjectionAware {
 
     String JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH = "JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH";
     // Use different variables so Gradle and Maven injections can work independently on the same node
@@ -37,32 +32,18 @@ public interface MavenInjectionAware {
             DEVELOCITY_CAPTURE_FILE_FINGERPRINTS_PROPERTY_KEY
     );
 
-    default boolean isInjectionDisabledGlobally(InjectionConfig config) {
-        return config.isDisabled() ||
-                InjectionUtil.isAnyInvalid(
-                        InjectionConfig.checkRequiredUrl(config.getServer()),
-                        InjectionConfig.checkRequiredVersion(config.getMavenExtensionVersion())
-                );
+    @Override
+    default String getAgentVersion(InjectionConfig config) {
+        return config.getMavenExtensionVersion();
     }
 
-    default boolean isInjectionEnabledForNode(InjectionConfig config, Node node) {
-        if (isInjectionDisabledGlobally(config)) {
-            return false;
-        }
-
-        Set<String> disabledNodes =
-                CollectionUtil.safeStream(config.getMavenInjectionDisabledNodes())
-                        .map(NodeLabelItem::getLabel)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
-
-        Set<String> enabledNodes =
-                CollectionUtil.safeStream(config.getMavenInjectionEnabledNodes())
-                        .map(NodeLabelItem::getLabel)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
-
-        return InjectionUtil.isInjectionEnabledForNode(node::getAssignedLabels, disabledNodes, enabledNodes);
+    @Override
+    default List<NodeLabelItem> getAgentInjectionDisabledNodes(InjectionConfig config) {
+        return config.getMavenInjectionDisabledNodes();
     }
 
+    @Override
+    default List<NodeLabelItem> getAgentInjectionEnabledNodes(InjectionConfig config) {
+        return config.getMavenInjectionEnabledNodes();
+    }
 }

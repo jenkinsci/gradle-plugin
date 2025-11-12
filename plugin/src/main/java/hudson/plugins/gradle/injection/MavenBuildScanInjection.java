@@ -4,7 +4,6 @@ import hudson.FilePath;
 import hudson.model.Node;
 import jenkins.model.Jenkins;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,9 +12,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.constructExtClasspath;
-import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.isUnix;
 
 public class MavenBuildScanInjection implements MavenInjectionAware {
 
@@ -74,7 +70,7 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
             List<FilePath> extensions = new ArrayList<>();
             FilePath controllerRootPath = Jenkins.get().getRootPath();
 
-            MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(config.getMavenExtensionVersion());
+            MavenExtension develocityMavenExtension = MavenExtension.forVersion(config.getMavenExtensionVersion());
             extensions.add(extensionsHandler.copyExtensionToAgent(develocityMavenExtension, controllerRootPath, nodeRootPath, extensionsDigest.get(develocityMavenExtension)));
             if (InjectionUtil.isInvalid(InjectionConfig.checkRequiredVersion(config.getCcudExtensionVersion()))) {
                 extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);
@@ -82,10 +78,10 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
                 extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, controllerRootPath, nodeRootPath, extensionsDigest.get(MavenExtension.CCUD)));
             }
 
-            boolean isUnix = isUnix(node);
+            boolean isUnix = MavenExtClasspathUtils.isUnix(node);
 
             List<SystemProperty> systemProperties = new ArrayList<>();
-            systemProperties.add(new SystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, constructExtClasspath(extensions, isUnix)));
+            systemProperties.add(new SystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, MavenExtClasspathUtils.constructExtClasspath(extensions, isUnix)));
             systemProperties.add(new SystemProperty(DEVELOCITY_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
             systemProperties.add(new SystemProperty(BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
 
@@ -105,7 +101,7 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
             // Configuration needed to support https://plugins.jenkins.io/maven-plugin/
             extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CONFIGURATION, nodeRootPath));
 
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, constructExtClasspath(extensions, isUnix));
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, MavenExtClasspathUtils.constructExtClasspath(extensions, isUnix));
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL, config.getServer());
             if (config.isAllowUntrusted()) {
                 EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER, "true");
@@ -127,5 +123,4 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
             throw new IllegalStateException(e);
         }
     }
-
 }
