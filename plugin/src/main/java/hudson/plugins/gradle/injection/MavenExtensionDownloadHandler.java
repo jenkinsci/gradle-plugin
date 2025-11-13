@@ -9,6 +9,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -103,7 +104,7 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
 
         Path jarFile = parent.resolve(extension.getEmbeddedJarName());
 
-        String downloadUrl = extension.createDownloadUrl(version, injectionConfig.getMavenExtensionRepositoryUrl());
+        URI downloadUrl = extension.createDownloadUrl(version, injectionConfig.getMavenExtensionRepositoryUrl());
         MavenExtension.RepositoryCredentials repositoryCredentials
                 = getRepositoryCredentials(injectionConfig.getMavenExtensionRepositoryCredentialId());
 
