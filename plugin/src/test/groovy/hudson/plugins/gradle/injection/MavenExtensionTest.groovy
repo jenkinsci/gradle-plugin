@@ -4,7 +4,7 @@ import spock.lang.Specification
 
 class MavenExtensionTest extends Specification {
 
-    def "createDownloadUrl allows to override the repository URL"() {
+    def "createDownloadUrl allow to override the repository URL"() {
         expect:
         MavenExtension.DEVELOCITY.createDownloadUrl('2.1', repositoryUrl) == URI.create("${expectedRepositoryUrl}/com/gradle/develocity-maven-extension/2.1/develocity-maven-extension-2.1.jar")
 
