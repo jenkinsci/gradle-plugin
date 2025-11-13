@@ -3,7 +3,8 @@ package hudson.plugins.gradle.injection;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.Util;
-import hudson.plugins.gradle.injection.extension.ExtensionClient;
+import hudson.plugins.gradle.injection.download.AgentDownloadClient;
+import hudson.plugins.gradle.injection.download.RequestAuthenticator;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
@@ -24,7 +25,7 @@ import static hudson.plugins.gradle.injection.InjectionUtil.DOWNLOAD_CACHE_DIR;
 
 public class MavenExtensionDownloadHandler implements MavenInjectionAware {
 
-    private final ExtensionClient extensionClient = new ExtensionClient();
+    private final AgentDownloadClient downloadClient = new AgentDownloadClient();
 
     public Map<MavenExtension, String> ensureExtensionsDownloaded(Supplier<File> root, InjectionConfig injectionConfig) throws IOException {
         if (isInjectionDisabledGlobally(injectionConfig)) {
@@ -97,11 +98,10 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
         Path jarFile = parent.resolve(extension.getEmbeddedJarName());
 
         URI downloadUrl = extension.createDownloadUrl(version, injectionConfig.getMavenExtensionRepositoryUrl());
-        RepositoryCredentials repositoryCredentials =
-                getRepositoryCredentials(injectionConfig.getMavenExtensionRepositoryCredentialId());
+        RequestAuthenticator authenticator = createRequestAuthenticator(injectionConfig.getMavenExtensionRepositoryCredentialId());
 
         try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(jarFile))) {
-            extensionClient.downloadExtension(downloadUrl, repositoryCredentials, outputStream);
+            downloadClient.download(downloadUrl, authenticator, outputStream);
         }
 
         String digest = Util.getDigestOf(jarFile.toFile());
@@ -111,19 +111,18 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
         return digest;
     }
 
-    @Nullable
-    private static RepositoryCredentials getRepositoryCredentials(@Nullable String repositoryCredentialId) {
+    private static RequestAuthenticator createRequestAuthenticator(@Nullable String repositoryCredentialId) {
         if (repositoryCredentialId == null) {
-            return null;
+            return RequestAuthenticator.NONE;
         }
 
         List<StandardUsernamePasswordCredentials> allCredentials =
                 CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
 
         return allCredentials.stream()
-                .filter(it -> it.getId().equals(repositoryCredentialId))
+                .filter(c -> c.getId().equals(repositoryCredentialId))
                 .findFirst()
-                .map(it -> new RepositoryCredentials(it.getUsername(), it.getPassword().getPlainText()))
-                .orElse(null);
+                .map(c -> RequestAuthenticator.basic(c.getUsername(), c.getPassword().getPlainText()))
+                .orElse(RequestAuthenticator.NONE);
     }
 }
