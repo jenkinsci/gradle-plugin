@@ -13,6 +13,9 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.constructExtClasspath;
+import static hudson.plugins.gradle.injection.MavenExtClasspathUtils.isUnix;
+
 public class MavenBuildScanInjection implements MavenInjectionAware {
 
     private static final Logger LOGGER = Logger.getLogger(MavenBuildScanInjection.class.getName());
@@ -78,10 +81,10 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
                 extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CCUD, controllerRootPath, nodeRootPath, extensionsDigest.get(MavenExtension.CCUD)));
             }
 
-            boolean isUnix = MavenExtClasspathUtils.isUnix(node);
+            boolean isUnix = isUnix(node);
 
             List<SystemProperty> systemProperties = new ArrayList<>();
-            systemProperties.add(new SystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, MavenExtClasspathUtils.constructExtClasspath(extensions, isUnix)));
+            systemProperties.add(new SystemProperty(MAVEN_EXT_CLASS_PATH_PROPERTY_KEY, constructExtClasspath(extensions, isUnix)));
             systemProperties.add(new SystemProperty(DEVELOCITY_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
             systemProperties.add(new SystemProperty(BUILD_SCAN_UPLOAD_IN_BACKGROUND_PROPERTY_KEY, "false"));
 
@@ -101,7 +104,7 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
             // Configuration needed to support https://plugins.jenkins.io/maven-plugin/
             extensions.add(extensionsHandler.copyExtensionToAgent(MavenExtension.CONFIGURATION, nodeRootPath));
 
-            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, MavenExtClasspathUtils.constructExtClasspath(extensions, isUnix));
+            EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, constructExtClasspath(extensions, isUnix));
             EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_SERVER_URL, config.getServer());
             if (config.isAllowUntrusted()) {
                 EnvUtil.setEnvVar(node, JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_ALLOW_UNTRUSTED_SERVER, "true");

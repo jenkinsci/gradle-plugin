@@ -18,6 +18,9 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
+import static hudson.plugins.gradle.injection.CopyUtil.unsafeResourceDigest;
+
 public class GradleBuildScanInjection implements GradleInjectionAware {
 
     private static final Logger LOGGER = Logger.getLogger(GradleBuildScanInjection.class.getName());
@@ -32,7 +35,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
     private static final String GRADLE_DIR = ".gradle";
     private static final String GRADLE_INIT_FILE = "init-build-scan.gradle";
 
-    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> CopyUtil.unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
+    private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
 
     public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
         if (node == null) {
@@ -62,14 +65,16 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
 
         if (gradleHomeOverride != null) {
             return filePath(gradleHomeOverride, INIT_DIR);
-        } else if (homeOverride != null) {
-            return filePath(homeOverride, GRADLE_DIR, INIT_DIR);
-        } else {
-            String home = EnvUtil.getEnv(envComputer, HOME);
-            Preconditions.checkState(home != null, "HOME is not set");
-
-            return filePath(home, GRADLE_DIR, INIT_DIR);
         }
+
+        if (homeOverride != null) {
+            return filePath(homeOverride, GRADLE_DIR, INIT_DIR);
+        }
+
+        String home = EnvUtil.getEnv(envComputer, HOME);
+        Preconditions.checkState(home != null, "HOME is not set");
+
+        return filePath(home, GRADLE_DIR, INIT_DIR);
     }
 
     private void inject(InjectionConfig config, Node node, String initScriptDirectory) {
@@ -88,7 +93,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
         if (initScriptChanged(gradleInitScriptFile)) {
             LOGGER.info("Injecting Gradle init script " + gradleInitScriptFile);
 
-            CopyUtil.copyResourceToNode(gradleInitScriptFile, RESOURCE_INIT_SCRIPT_GRADLE);
+            copyResourceToNode(gradleInitScriptFile, RESOURCE_INIT_SCRIPT_GRADLE);
         }
     }
 
