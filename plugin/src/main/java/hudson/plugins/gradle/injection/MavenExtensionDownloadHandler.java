@@ -105,7 +105,7 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
         }
 
         String digest = Util.getDigestOf(jarFile.toFile());
-        var metadata = new ArtifactMetadata(version, digest);
+        ArtifactMetadata metadata = new ArtifactMetadata(version, digest);
         metadata.writeToFile(metadataFile);
 
         return digest;

@@ -4,6 +4,7 @@ import hudson.FilePath;
 import hudson.model.Node;
 import jenkins.model.Jenkins;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +34,7 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
 
-    public void inject(Node node, Map<MavenExtension, String> extensionsDigest) {
+    public void inject(@Nullable Node node, Map<MavenExtension, String> extensionsDigest) {
         if (node == null) {
             return;
         }

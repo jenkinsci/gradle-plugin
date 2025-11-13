@@ -4,6 +4,8 @@ import hudson.EnvVars
 import hudson.XmlFile
 import hudson.model.Computer
 import hudson.model.Node
+import hudson.plugins.gradle.injection.npm.NpmAgentDownloadHandler
+import hudson.plugins.gradle.injection.npm.NpmBuildScanInjection
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -21,6 +23,8 @@ class InjectionConfigChangeListenerTest extends Specification {
     def gradleBuildScanInjection = Mock(GradleBuildScanInjection)
     def mavenBuildScanInjection = Mock(MavenBuildScanInjection)
     def mavenExtensionDownloadHandler = Mock(MavenExtensionDownloadHandler)
+    def npmBuildScanInjection = Mock(NpmBuildScanInjection)
+    def npmAgentDownloadHandler = Mock(NpmAgentDownloadHandler)
     def injectionConfig = Mock(InjectionConfig)
 
     @Rule
@@ -28,7 +32,15 @@ class InjectionConfigChangeListenerTest extends Specification {
 
     @Subject
     def injectionConfigChangeListener =
-            new InjectionConfigChangeListener(gradleBuildScanInjection, mavenBuildScanInjection, mavenExtensionDownloadHandler, { globalEnvVars }, { [computer] })
+            new InjectionConfigChangeListener(
+                    gradleBuildScanInjection,
+                    mavenBuildScanInjection,
+                    mavenExtensionDownloadHandler,
+                    npmBuildScanInjection,
+                    npmAgentDownloadHandler,
+                    { globalEnvVars },
+                    { [computer] }
+            )
 
     @Unroll
     def "performs injection when configuration changes (isGlobalAutoInjectionCheckEnabled=#isGlobalAutoInjectionCheckEnabled, isGlobalInjectionEnabled=#isGlobalInjectionEnabled, isComputerOffline=#isComputerOffline)"() {

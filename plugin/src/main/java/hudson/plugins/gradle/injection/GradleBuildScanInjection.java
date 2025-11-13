@@ -12,6 +12,7 @@ import hudson.FilePath;
 import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +38,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
 
     private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
 
-    public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
+    public void inject(@Nullable Node node, EnvVars envGlobal, EnvVars envComputer) {
         if (node == null) {
             return;
         }
