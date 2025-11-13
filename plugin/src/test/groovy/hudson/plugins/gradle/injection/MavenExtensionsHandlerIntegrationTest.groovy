@@ -46,7 +46,7 @@ class MavenExtensionsHandlerIntegrationTest extends Specification {
         def agentFolder = tempFolder.newFolder()
         def controllerRoot = new FilePath(controllerFolder)
         def agentRoot = new FilePath(agentFolder)
-        def cacheDirectory = controllerRoot.child(MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR)
+        def cacheDirectory = controllerRoot.child(InjectionUtil.DOWNLOAD_CACHE_DIR)
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
@@ -77,7 +77,7 @@ class MavenExtensionsHandlerIntegrationTest extends Specification {
         def agentFolder = tempFolder.newFolder()
         def controllerRoot = new FilePath(controllerFolder)
         def agentRoot = new FilePath(agentFolder)
-        def cacheDirectory = controllerRoot.child(MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR)
+        def cacheDirectory = controllerRoot.child(InjectionUtil.DOWNLOAD_CACHE_DIR)
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
