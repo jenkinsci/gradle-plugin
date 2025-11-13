@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 public final class ExtensionClient {
@@ -24,11 +25,11 @@ public final class ExtensionClient {
     }
 
     public void downloadExtension(
-            String downloadUrl,
+            URI downloadUrl,
             @Nullable RepositoryCredentials repositoryCredentials,
             OutputStream outputStream
     ) throws IOException {
-        Request.Builder requestBuilder = new Request.Builder().url(downloadUrl);
+        Request.Builder requestBuilder = new Request.Builder().url(downloadUrl.toURL());
         if (repositoryCredentials != null) {
             String basicCredentials = Credentials.basic(repositoryCredentials.username(), repositoryCredentials.password());
             requestBuilder.addHeader("Authorization", basicCredentials);
