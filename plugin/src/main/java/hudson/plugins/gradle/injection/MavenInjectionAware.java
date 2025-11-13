@@ -1,5 +1,6 @@
 package hudson.plugins.gradle.injection;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface MavenInjectionAware extends InjectionAware {
@@ -32,16 +33,19 @@ public interface MavenInjectionAware extends InjectionAware {
             DEVELOCITY_CAPTURE_FILE_FINGERPRINTS_PROPERTY_KEY
     );
 
+    @Nullable
     @Override
     default String getAgentVersion(InjectionConfig config) {
         return config.getMavenExtensionVersion();
     }
 
+    @Nullable
     @Override
     default List<NodeLabelItem> getAgentInjectionDisabledNodes(InjectionConfig config) {
         return config.getMavenInjectionDisabledNodes();
     }
 
+    @Nullable
     @Override
     default List<NodeLabelItem> getAgentInjectionEnabledNodes(InjectionConfig config) {
         return config.getMavenInjectionEnabledNodes();

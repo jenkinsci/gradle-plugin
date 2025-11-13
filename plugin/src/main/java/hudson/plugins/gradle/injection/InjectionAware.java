@@ -3,6 +3,7 @@ package hudson.plugins.gradle.injection;
 import hudson.model.Node;
 import hudson.plugins.gradle.util.CollectionUtil;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -10,10 +11,13 @@ import java.util.stream.Collectors;
 
 public interface InjectionAware {
 
+    @Nullable
     String getAgentVersion(InjectionConfig config);
 
+    @Nullable
     List<NodeLabelItem> getAgentInjectionDisabledNodes(InjectionConfig config);
 
+    @Nullable
     List<NodeLabelItem> getAgentInjectionEnabledNodes(InjectionConfig config);
 
     default boolean isInjectionDisabledGlobally(InjectionConfig config) {

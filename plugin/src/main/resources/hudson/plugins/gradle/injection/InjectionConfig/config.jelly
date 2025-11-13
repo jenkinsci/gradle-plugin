@@ -147,6 +147,32 @@
                 </f:entry>
             </f:section>
 
+            <f:section title="${%npm settings}">
+                <f:entry title="${%Develocity npm agent version}" field="npmAgentVersion">
+                    <f:textbox checkMethod="post"/>
+                </f:entry>
+                <f:entry title="${%npm auto-injection enabled nodes}"
+                         help="/plugin/gradle/help-npmInjectionEnabledNodes.html">
+                    <f:repeatableProperty field="npmInjectionEnabledNodes">
+                        <f:entry title="">
+                            <div align="right">
+                                <f:repeatableDeleteButton/>
+                            </div>
+                        </f:entry>
+                    </f:repeatableProperty>
+                </f:entry>
+                <f:entry title="${%npm auto-injection disabled nodes}"
+                         help="/plugin/gradle/help-npmInjectionDisabledNodes.html">
+                    <f:repeatableProperty field="npmInjectionDisabledNodes">
+                        <f:entry title="">
+                            <div align="right">
+                                <f:repeatableDeleteButton/>
+                            </div>
+                        </f:entry>
+                    </f:repeatableProperty>
+                </f:entry>
+            </f:section>
+
         </f:optionalBlock>
     </f:section>
 </j:jelly>

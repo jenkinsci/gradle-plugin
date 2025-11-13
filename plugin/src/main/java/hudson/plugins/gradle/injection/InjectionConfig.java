@@ -36,7 +36,9 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -95,6 +97,10 @@ public class InjectionConfig extends GlobalConfiguration {
     private ImmutableList<NodeLabelItem> mavenInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> mavenInjectionDisabledNodes;
     private Boolean mavenCaptureGoalInputFiles;
+
+    private String npmAgentVersion;
+    private ImmutableList<NodeLabelItem> npmInjectionEnabledNodes;
+    private ImmutableList<NodeLabelItem> npmInjectionDisabledNodes;
 
     private boolean enforceUrl;
     private boolean checkForBuildAgentErrors;
@@ -234,8 +240,7 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setGradleInjectionEnabledNodes(List<NodeLabelItem> gradleInjectionEnabledNodes) {
-        this.gradleInjectionEnabledNodes =
-                gradleInjectionEnabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionEnabledNodes);
+        this.gradleInjectionEnabledNodes = safeImmutableListCopy(gradleInjectionEnabledNodes);
     }
 
     @CheckForNull
@@ -245,8 +250,7 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setGradleInjectionDisabledNodes(List<NodeLabelItem> gradleInjectionDisabledNodes) {
-        this.gradleInjectionDisabledNodes =
-                gradleInjectionDisabledNodes == null ? null : ImmutableList.copyOf(gradleInjectionDisabledNodes);
+        this.gradleInjectionDisabledNodes = safeImmutableListCopy(gradleInjectionDisabledNodes);
     }
 
     public Boolean isGradleCaptureTaskInputFiles() {
@@ -323,8 +327,7 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setMavenInjectionEnabledNodes(List<NodeLabelItem> mavenInjectionEnabledNodes) {
-        this.mavenInjectionEnabledNodes =
-                mavenInjectionEnabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionEnabledNodes);
+        this.mavenInjectionEnabledNodes = safeImmutableListCopy(mavenInjectionEnabledNodes);
     }
 
     @CheckForNull
@@ -334,8 +337,7 @@ public class InjectionConfig extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setMavenInjectionDisabledNodes(List<NodeLabelItem> mavenInjectionDisabledNodes) {
-        this.mavenInjectionDisabledNodes =
-                mavenInjectionDisabledNodes == null ? null : ImmutableList.copyOf(mavenInjectionDisabledNodes);
+        this.mavenInjectionDisabledNodes = safeImmutableListCopy(mavenInjectionDisabledNodes);
     }
 
     public Boolean isMavenCaptureGoalInputFiles() {
@@ -345,6 +347,35 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setMavenCaptureGoalInputFiles(Boolean mavenCaptureGoalInputFiles) {
         this.mavenCaptureGoalInputFiles = mavenCaptureGoalInputFiles;
+    }
+
+    public String getNpmAgentVersion() {
+        return npmAgentVersion;
+    }
+
+    @DataBoundSetter
+    public void setNpmAgentVersion(String npmAgentVersion) {
+        this.npmAgentVersion = Util.fixEmptyAndTrim(npmAgentVersion);
+    }
+
+    @CheckForNull
+    public List<NodeLabelItem> getNpmInjectionEnabledNodes() {
+        return npmInjectionEnabledNodes;
+    }
+
+    @DataBoundSetter
+    public void setNpmInjectionEnabledNodes(List<NodeLabelItem> npmInjectionEnabledNodes) {
+        this.npmInjectionEnabledNodes = safeImmutableListCopy(npmInjectionEnabledNodes);
+    }
+
+    @CheckForNull
+    public List<NodeLabelItem> getNpmInjectionDisabledNodes() {
+        return npmInjectionDisabledNodes;
+    }
+
+    @DataBoundSetter
+    public void setNpmInjectionDisabledNodes(List<NodeLabelItem> npmInjectionDisabledNodes) {
+        this.npmInjectionDisabledNodes = safeImmutableListCopy(npmInjectionDisabledNodes);
     }
 
     @DataBoundSetter
@@ -419,6 +450,9 @@ public class InjectionConfig extends GlobalConfiguration {
 
         setMavenInjectionEnabledNodes(null);
         setMavenInjectionDisabledNodes(null);
+
+        setNpmInjectionEnabledNodes(null);
+        setNpmInjectionDisabledNodes(null);
     }
 
     @Restricted(NoExternalUse.class)
@@ -558,6 +592,16 @@ public class InjectionConfig extends GlobalConfiguration {
         return checkVersion(value);
     }
 
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckNpmAgentVersion(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating npm agent version requires 'Administer' permission");
+        }
+
+        return checkVersion(value);
+    }
+
     @SuppressWarnings("called by Jelly")
     @POST
     public ListBoxModel doFillGradlePluginRepositoryCredentialIdItems(@AncestorInPath Item project) {
@@ -676,7 +720,7 @@ public class InjectionConfig extends GlobalConfiguration {
             StandardUsernamePasswordCredentials standardUsernameCredentials = new UsernamePasswordCredentialsImpl(
                     CredentialsScope.GLOBAL,
                     UUID.randomUUID().toString(),
-                    "Migrated Gradle Plugin Respoitory credentials",
+                    "Migrated Gradle Plugin Repository credentials",
                     gradlePluginRepositoryUsername,
                     gradlePluginRepositoryPassword.getPlainText()
             );
@@ -708,4 +752,7 @@ public class InjectionConfig extends GlobalConfiguration {
         return jenkins == null || !jenkins.hasPermission(Jenkins.ADMINISTER);
     }
 
+    private static <T extends Serializable> ImmutableList<T> safeImmutableListCopy(@Nullable List<T> list) {
+        return list == null ? null : ImmutableList.copyOf(list);
+    }
 }
