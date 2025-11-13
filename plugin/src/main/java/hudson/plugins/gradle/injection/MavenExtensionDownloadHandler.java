@@ -5,6 +5,7 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import hudson.Util;
 import hudson.plugins.gradle.injection.extension.ExtensionClient;
 
+import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +19,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class MavenExtensionDownloadHandler implements MavenInjectionAware {
+import static hudson.plugins.gradle.injection.InjectionUtil.DOWNLOAD_CACHE_DIR;
 
-    public static final String DOWNLOAD_CACHE_DIR = "jenkins-gradle-plugin/cache";
+public class MavenExtensionDownloadHandler implements MavenInjectionAware {
 
     private final ExtensionClient extensionClient = new ExtensionClient();
 
@@ -62,13 +63,9 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
 
     private static Optional<String> getExtensionDigest(Path parent, MavenExtension extension) throws IOException {
         Path metadataFile = parent.resolve(extension.getDownloadMetadataFileName());
-        if (Files.exists(metadataFile)) {
-            String[] metadata = Files.readString(metadataFile).split(",");
-
-            return Optional.of(metadata[1]);
-        }
-
-        return Optional.empty();
+        return ArtifactMetadata.readFromFile(metadataFile)
+                .map(ArtifactMetadata::digest)
+                .map(ArtifactDigest::digest);
     }
 
     private String getOrDownloadExtensionDigest(InjectionConfig injectionConfig, Path parent, MavenExtension extension) throws IOException {
@@ -77,17 +74,14 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
                 ? injectionConfig.getCcudExtensionVersion()
                 : injectionConfig.getMavenExtensionVersion();
 
-        if (Files.exists(metadataFile)) {
-            String[] metadata = Files.readString(metadataFile).split(",");
-            String extensionVersion = metadata[0];
-            String extensionDigest = metadata[1];
+        var cachedDigest = ArtifactMetadata.readFromFile(metadataFile)
+                .filter(m -> m.isForVersion(version))
+                .map(ArtifactMetadata::digest)
+                .orElse(null);
 
-            if (!extensionVersion.equals(version)) {
-                return downloadExtension(injectionConfig, parent, extension, metadataFile, version);
-            }
-            return extensionDigest;
-        }
-        return downloadExtension(injectionConfig, parent, extension, metadataFile, version);
+        return cachedDigest != null
+                ? cachedDigest.digest()
+                : downloadExtension(injectionConfig, parent, extension, metadataFile, version);
     }
 
     private String downloadExtension(
@@ -102,32 +96,33 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
         Path jarFile = parent.resolve(extension.getEmbeddedJarName());
 
         String downloadUrl = extension.createDownloadUrl(version, injectionConfig.getMavenExtensionRepositoryUrl());
-        MavenExtension.RepositoryCredentials repositoryCredentials
-                = getRepositoryCredentials(injectionConfig.getMavenExtensionRepositoryCredentialId());
+        RepositoryCredentials repositoryCredentials =
+                getRepositoryCredentials(injectionConfig.getMavenExtensionRepositoryCredentialId());
 
         try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(jarFile))) {
             extensionClient.downloadExtension(downloadUrl, repositoryCredentials, outputStream);
         }
 
         String digest = Util.getDigestOf(jarFile.toFile());
-
-        Files.writeString(metadataFile, version + "," + digest);
+        var metadata = new ArtifactMetadata(version, digest);
+        metadata.writeToFile(metadataFile);
 
         return digest;
     }
 
-    private static MavenExtension.RepositoryCredentials getRepositoryCredentials(String repositoryCredentialId) {
+    @Nullable
+    private static RepositoryCredentials getRepositoryCredentials(@Nullable String repositoryCredentialId) {
         if (repositoryCredentialId == null) {
             return null;
         }
 
-        List<StandardUsernamePasswordCredentials> allCredentials
-                = CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
+        List<StandardUsernamePasswordCredentials> allCredentials =
+                CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class, null, null);
 
         return allCredentials.stream()
                 .filter(it -> it.getId().equals(repositoryCredentialId))
                 .findFirst()
-                .map(it -> new MavenExtension.RepositoryCredentials(it.getUsername(), it.getPassword().getPlainText()))
+                .map(it -> new RepositoryCredentials(it.getUsername(), it.getPassword().getPlainText()))
                 .orElse(null);
     }
 }

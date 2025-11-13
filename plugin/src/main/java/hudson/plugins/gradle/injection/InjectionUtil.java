@@ -19,8 +19,8 @@ public final class InjectionUtil {
 
     private static final String MAVEN_PLUGIN_SHORT_NAME = "maven-plugin";
 
+    public static final String DOWNLOAD_CACHE_DIR = "jenkins-gradle-plugin/cache";
     public static final VersionNumber MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION = new VersionNumber("3.20");
-
     public static final String JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK = "JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK";
 
     private InjectionUtil() {
@@ -36,13 +36,13 @@ public final class InjectionUtil {
 
     public static Optional<PluginWrapper> maybeGetPlugin(String pluginShortName) {
         return Optional.ofNullable(Jenkins.getInstanceOrNull())
-            .map(Jenkins::getPluginManager)
-            .map(pm -> pm.getPlugin(pluginShortName));
+                .map(Jenkins::getPluginManager)
+                .map(pm -> pm.getPlugin(pluginShortName));
     }
 
     public static boolean isSupportedMavenPluginVersion(@Nullable VersionNumber mavenPluginVersion) {
         return mavenPluginVersion != null
-            && !mavenPluginVersion.isOlderThan(MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION);
+                && !mavenPluginVersion.isOlderThan(MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION);
     }
 
     public static boolean isInvalid(FormValidation validation) {
@@ -61,9 +61,9 @@ public final class InjectionUtil {
                                                     Set<String> disabledNodes,
                                                     Set<String> enabledNodes) {
         Set<String> labels =
-            CollectionUtil.safeStream(assignedLabels.get())
-                .map(LabelAtom::getName)
-                .collect(Collectors.toSet());
+                CollectionUtil.safeStream(assignedLabels.get())
+                        .map(LabelAtom::getName)
+                        .collect(Collectors.toSet());
 
         return isNotDisabled(labels, disabledNodes) && isEnabled(labels, enabledNodes);
     }

@@ -1,6 +1,6 @@
 package hudson.plugins.gradle.injection.extension;
 
-import hudson.plugins.gradle.injection.MavenExtension;
+import hudson.plugins.gradle.injection.RepositoryCredentials;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -25,7 +25,7 @@ public final class ExtensionClient {
 
     public void downloadExtension(
             String downloadUrl,
-            @Nullable MavenExtension.RepositoryCredentials repositoryCredentials,
+            @Nullable RepositoryCredentials repositoryCredentials,
             OutputStream outputStream
     ) throws IOException {
         Request.Builder requestBuilder = new Request.Builder().url(downloadUrl);

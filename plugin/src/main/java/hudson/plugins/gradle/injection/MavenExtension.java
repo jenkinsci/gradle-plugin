@@ -56,25 +56,4 @@ public enum MavenExtension {
 
         return String.format(repositoryUrl, this.getName(), version, this.getName(), version);
     }
-
-    public static final class RepositoryCredentials {
-
-        private final String username;
-        private final String password;
-
-        public RepositoryCredentials(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
-
-        public String username() {
-            return username;
-        }
-
-        public String password() {
-            return password;
-        }
-
-    }
-
 }
