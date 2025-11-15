@@ -48,7 +48,7 @@ public enum MavenExtension {
         return downloadMetadataFileName;
     }
 
-    public static MavenExtension getDevelocityMavenExtension(String version) {
+    public static MavenExtension forVersion(String version) {
         return version.compareTo(LAST_GRADLE_ENTERPRISE_VERSION) > 0 ? DEVELOCITY : GRADLE_ENTERPRISE;
     }
 
@@ -63,25 +63,4 @@ public enum MavenExtension {
         }
         return Util.removeTrailingSlash(repositoryUrl);
     }
-
-    public static final class RepositoryCredentials {
-
-        private final String username;
-        private final String password;
-
-        public RepositoryCredentials(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
-
-        public String username() {
-            return username;
-        }
-
-        public String password() {
-            return password;
-        }
-
-    }
-
 }

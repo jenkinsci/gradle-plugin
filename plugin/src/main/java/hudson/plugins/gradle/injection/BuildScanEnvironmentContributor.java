@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.EnvironmentContributor;
@@ -33,12 +34,13 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
     private final ShortLivedTokenClientFactory shortLivedTokenClientFactory;
 
+    @SuppressWarnings("unused")
     public BuildScanEnvironmentContributor() {
-        this.shortLivedTokenClientFactory = new ShortLivedTokenClientFactory();
+        this(new ShortLivedTokenClientFactory());
     }
 
-    // required for testing
-    public BuildScanEnvironmentContributor(ShortLivedTokenClientFactory shortLivedTokenClientFactory) {
+    @VisibleForTesting
+    BuildScanEnvironmentContributor(ShortLivedTokenClientFactory shortLivedTokenClientFactory) {
         this.shortLivedTokenClientFactory = shortLivedTokenClientFactory;
     }
 
@@ -67,10 +69,11 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
 
         Secret shortLivedToken = getShortLivedToken(secretKey, logger);
 
-        run.addAction(DevelocityParametersAction.of(logger, shortLivedToken, secretPassword));
+        run.addAction(DevelocityParametersAction.of(shortLivedToken, secretPassword));
     }
 
-    private @Nullable Secret getShortLivedToken(Secret secretKey, DevelocityLogger logger) {
+    @Nullable
+    private Secret getShortLivedToken(Secret secretKey, DevelocityLogger logger) {
         if (secretKey == null) {
             return null;
         }
@@ -143,7 +146,7 @@ public class BuildScanEnvironmentContributor extends EnvironmentContributor {
             return EMPTY;
         }
 
-        private static DevelocityParametersAction of(DevelocityLogger logger, @Nullable Secret shortLivedToken, @Nullable Secret repoPassword) {
+        private static DevelocityParametersAction of(@Nullable Secret shortLivedToken, @Nullable Secret repoPassword) {
             List<ParameterValue> values = new ArrayList<>();
             if (shortLivedToken != null) {
                 values.add(new PasswordParameterValue(GRADLE_ENTERPRISE_ACCESS_KEY, shortLivedToken.getPlainText()));

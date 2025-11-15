@@ -12,13 +12,16 @@ import hudson.FilePath;
 import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static hudson.plugins.gradle.injection.CopyUtil.*;
+import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
+import static hudson.plugins.gradle.injection.CopyUtil.unsafeResourceDigest;
+import static hudson.plugins.gradle.injection.InjectionUtil.HOME;
 
 public class GradleBuildScanInjection implements GradleInjectionAware {
 
@@ -26,7 +29,6 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
 
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME";
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
-    private static final String HOME = "HOME";
 
     @VisibleForTesting
     static final String RESOURCE_INIT_SCRIPT_GRADLE = "init-script.gradle";
@@ -36,7 +38,7 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
 
     private final Supplier<String> initScriptDigest = Suppliers.memoize(() -> unsafeResourceDigest(RESOURCE_INIT_SCRIPT_GRADLE));
 
-    public void inject(Node node, EnvVars envGlobal, EnvVars envComputer) {
+    public void inject(@Nullable Node node, EnvVars envGlobal, EnvVars envComputer) {
         if (node == null) {
             return;
         }
@@ -64,14 +66,16 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
 
         if (gradleHomeOverride != null) {
             return filePath(gradleHomeOverride, INIT_DIR);
-        } else if (homeOverride != null) {
-            return filePath(homeOverride, GRADLE_DIR, INIT_DIR);
-        } else {
-            String home = EnvUtil.getEnv(envComputer, HOME);
-            Preconditions.checkState(home != null, "HOME is not set");
-
-            return filePath(home, GRADLE_DIR, INIT_DIR);
         }
+
+        if (homeOverride != null) {
+            return filePath(homeOverride, GRADLE_DIR, INIT_DIR);
+        }
+
+        String home = EnvUtil.getEnv(envComputer, HOME);
+        Preconditions.checkState(home != null, "HOME is not set");
+
+        return filePath(home, GRADLE_DIR, INIT_DIR);
     }
 
     private void inject(InjectionConfig config, Node node, String initScriptDirectory) {
@@ -184,5 +188,4 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
     private static String filePath(String... parts) {
         return String.join("/", parts);
     }
-
 }

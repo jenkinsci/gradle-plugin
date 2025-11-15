@@ -4,6 +4,8 @@ import hudson.EnvVars
 import hudson.model.Computer
 import hudson.model.Node
 import hudson.model.TaskListener
+import hudson.plugins.gradle.injection.npm.NpmAgentDownloadHandler
+import hudson.plugins.gradle.injection.npm.NpmBuildScanInjection
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -19,11 +21,20 @@ class DevelocityComputerListenerTest extends Specification {
     def gradleBuildScanInjection = Mock(GradleBuildScanInjection)
     def mavenBuildScanInjection = Mock(MavenBuildScanInjection)
     def mavenExtensionDownloadHandler = Mock(MavenExtensionDownloadHandler)
+    def npmBuildScanInjection = Mock(NpmBuildScanInjection)
+    def npmAgentDownloadHandler = Mock(NpmAgentDownloadHandler)
     def injectionConfig = Mock(InjectionConfig)
 
     @Subject
     def gradleEnterpriseComputerListener =
-        new DevelocityComputerListener(gradleBuildScanInjection, mavenBuildScanInjection, mavenExtensionDownloadHandler, { injectionConfig })
+            new DevelocityComputerListener(
+                    gradleBuildScanInjection,
+                    mavenBuildScanInjection,
+                    mavenExtensionDownloadHandler,
+                    npmBuildScanInjection,
+                    npmAgentDownloadHandler,
+                    { injectionConfig }
+            )
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder()
@@ -43,7 +54,7 @@ class DevelocityComputerListenerTest extends Specification {
         computer.getEnvironment() >> computerEnvVars
         def root = tempFolder.newFolder()
 
-        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> { }
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> {}
 
         when:
         gradleEnterpriseComputerListener.onOnline(computer, Mock(TaskListener))
@@ -69,7 +80,7 @@ class DevelocityComputerListenerTest extends Specification {
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
         def root = tempFolder.newFolder()
-        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> { }
+        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> {}
 
         gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
         mavenBuildScanInjection.inject(node, [:])

@@ -23,8 +23,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 @Extension
 public class DevelocityErrorsAction implements RootAction, StaplerProxy {
+
     @Override
     public String getIconFileName() {
         return isVisible() && Jenkins.get().hasPermission(Jenkins.ADMINISTER) ? "/plugin/gradle/images/svgs/gradle-build-scan.svg" : null;
