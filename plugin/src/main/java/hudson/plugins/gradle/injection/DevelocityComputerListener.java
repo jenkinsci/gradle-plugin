@@ -6,9 +6,12 @@ import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.TaskListener;
+import hudson.plugins.gradle.injection.npm.NpmAgentDownloadHandler;
+import hudson.plugins.gradle.injection.npm.NpmBuildScanInjection;
 import hudson.slaves.ComputerListener;
 import jenkins.model.Jenkins;
 
+import java.io.File;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -27,6 +30,8 @@ public class DevelocityComputerListener extends ComputerListener {
     private final GradleBuildScanInjection gradleBuildScanInjection;
     private final MavenBuildScanInjection mavenBuildScanInjection;
     private final MavenExtensionDownloadHandler mavenExtensionDownloadHandler;
+    private final NpmBuildScanInjection npmBuildScanInjection;
+    private final NpmAgentDownloadHandler npmAgentDownloadHandler;
     private final Supplier<InjectionConfig> injectionConfigSupplier;
 
     @SuppressWarnings("unused")
@@ -35,6 +40,8 @@ public class DevelocityComputerListener extends ComputerListener {
                 new GradleBuildScanInjection(),
                 new MavenBuildScanInjection(),
                 new MavenExtensionDownloadHandler(),
+                new NpmBuildScanInjection(),
+                new NpmAgentDownloadHandler(),
                 new JenkinsInjectionConfig()
         );
     }
@@ -44,11 +51,15 @@ public class DevelocityComputerListener extends ComputerListener {
             GradleBuildScanInjection gradleBuildScanInjection,
             MavenBuildScanInjection mavenBuildScanInjection,
             MavenExtensionDownloadHandler mavenExtensionDownloadHandler,
+            NpmBuildScanInjection npmBuildScanInjection,
+            NpmAgentDownloadHandler npmAgentDownloadHandler,
             Supplier<InjectionConfig> injectionConfigSupplier
     ) {
         this.gradleBuildScanInjection = gradleBuildScanInjection;
         this.mavenBuildScanInjection = mavenBuildScanInjection;
         this.mavenExtensionDownloadHandler = mavenExtensionDownloadHandler;
+        this.npmBuildScanInjection = npmBuildScanInjection;
+        this.npmAgentDownloadHandler = npmAgentDownloadHandler;
         this.injectionConfigSupplier = injectionConfigSupplier;
     }
 
@@ -61,15 +72,20 @@ public class DevelocityComputerListener extends ComputerListener {
                 return;
             }
 
-            Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.getExtensionDigests(
-                    () -> Jenkins.get().getRootDir(), injectionConfig
-            );
+            Supplier<File> root = () -> Jenkins.get().getRootDir();
+            // When the agent becomes online, all artifacts must be already downloaded on the controller.
+            Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.getExtensionDigests(root, injectionConfig);
+            ArtifactDigest npmAgentDigest =
+                    npmBuildScanInjection
+                            .ifInjectionEnabledGlobally(injectionConfig, () -> npmAgentDownloadHandler.getDownloadedNpmAgentDigest(root))
+                            .orElse(null);
 
             Node node = computer.getNode();
             EnvVars computerEnvVars = computer.getEnvironment();
 
             gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars);
             mavenBuildScanInjection.inject(node, extensionsDigest);
+            npmBuildScanInjection.inject(node, npmAgentDigest, computerEnvVars);
         } catch (Throwable t) {
             /*
              * We should catch everything because this is not handled by {@link hudson.slaves.SlaveComputer#setChannel(Channel, OutputStream, Channel.Listener)}

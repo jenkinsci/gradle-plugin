@@ -80,11 +80,13 @@ public class InjectionConfigChangeListener extends SaveableListener {
 
             try {
                 Supplier<File> root = () -> Jenkins.get().getRootDir();
+                // This code runs on the controller, and we need to download artifacts
+                // before injecting them on agents.
                 Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(root, injectionConfig);
                 ArtifactDigest npmAgentDigest =
-                        npmBuildScanInjection.isInjectionDisabledGlobally(injectionConfig)
-                                ? null
-                                : npmAgentDownloadHandler.downloadNpmAgent(root, injectionConfig);
+                        npmBuildScanInjection
+                                .ifInjectionEnabledGlobally(injectionConfig, () -> npmAgentDownloadHandler.downloadNpmAgent(root, injectionConfig))
+                                .orElse(null);
 
                 for (Computer computer : computersSupplier.get()) {
                     if (computer.isOnline()) {

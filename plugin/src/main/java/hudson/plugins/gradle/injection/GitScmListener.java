@@ -4,7 +4,11 @@ import com.google.common.base.Strings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.model.*;
+import hudson.model.Computer;
+import hudson.model.EnvironmentContributingAction;
+import hudson.model.InvisibleAction;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.model.listeners.SCMListener;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.UserRemoteConfig;
@@ -25,6 +29,7 @@ import static hudson.plugins.gradle.injection.MavenExtensionsDetector.detect;
 import static hudson.plugins.gradle.injection.MavenInjectionAware.JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH;
 import static hudson.plugins.gradle.injection.MavenInjectionAware.MAVEN_OPTS_HANDLER;
 import static hudson.plugins.gradle.injection.MavenOptsHandler.MAVEN_OPTS;
+import static hudson.plugins.gradle.injection.npm.NpmBuildScanInjection.DEVELOCITY_INTERNAL_DISABLE_AGENT;
 
 @SuppressWarnings("unused")
 @Extension
@@ -34,12 +39,12 @@ public class GitScmListener extends SCMListener {
 
     @Override
     public void onCheckout(
-        Run<?, ?> build,
-        SCM scm,
-        FilePath workspace,
-        TaskListener listener,
-        @CheckForNull File changelogFile,
-        @CheckForNull SCMRevisionState pollingBaseline
+            Run<?, ?> build,
+            SCM scm,
+            FilePath workspace,
+            TaskListener listener,
+            @CheckForNull File changelogFile,
+            @CheckForNull SCMRevisionState pollingBaseline
     ) {
         try {
             InjectionConfig config = InjectionConfig.get();
@@ -56,16 +61,20 @@ public class GitScmListener extends SCMListener {
 
             // Check .mvn/extensions.xml for already applied Develocity extension for maven injection only
             disableMavenAutoInjectionIfAlreadyApplied(build, workspace, config, listener);
+
+            // TODO: Figure out how to detect if npm injection is already configured for the project.
+            // If the project already has npm Develocity agent configured,
+            // we should set DEVELOCITY_URL depending on the config.isEnforceUrl() flag.
         } catch (Exception e) {
             LOGGER.error("Error occurred when processing onCheckout notification", e);
         }
     }
 
     private static void disableAutoInjection(
-        Run<?, ?> build,
-        FilePath workspace,
-        InjectionConfig config,
-        TaskListener listener
+            Run<?, ?> build,
+            FilePath workspace,
+            InjectionConfig config,
+            TaskListener listener
     ) throws Exception {
         Computer computer = workspace.toComputer();
         if (computer == null) {
@@ -74,11 +83,11 @@ public class GitScmListener extends SCMListener {
 
         EnvVars envVars = computer.buildEnvironment(listener);
 
-        if (shouldDisableGradleInjection(config)) {
+        if (InjectionStatus.GRADLE.isEnabled(config)) {
             build.addAction(GradleInjectionDisabledAction.INSTANCE);
         }
 
-        if (shouldDisableMavenInjection(config)) {
+        if (InjectionStatus.MAVEN.isEnabled(config)) {
             String currentMavenOpts = envVars.get(MavenOptsHandler.MAVEN_OPTS);
             if (currentMavenOpts != null) {
                 String mavenOpts = Strings.nullToEmpty(MAVEN_OPTS_HANDLER.removeIfNeeded(currentMavenOpts));
@@ -86,13 +95,17 @@ public class GitScmListener extends SCMListener {
                 build.addAction(new MavenInjectionDisabledAction(mavenOpts));
             }
         }
+
+        if (InjectionStatus.NPM.isEnabled(config)) {
+            build.addAction(NpmInjectionDisabledAction.INSTANCE);
+        }
     }
 
     private static void disableMavenAutoInjectionIfAlreadyApplied(
-        Run<?, ?> build,
-        FilePath workspace,
-        InjectionConfig config,
-        TaskListener listener
+            Run<?, ?> build,
+            FilePath workspace,
+            InjectionConfig config,
+            TaskListener listener
     ) throws Exception {
         Computer computer = workspace.toComputer();
         if (computer == null) {
@@ -105,10 +118,9 @@ public class GitScmListener extends SCMListener {
         if (currentMavenOpts != null) {
             Set<MavenExtension> knownExtensions = detect(config, workspace);
             if (!knownExtensions.isEmpty()) {
-                build.addAction(
-                    new MavenInjectionDisabledAction(
-                        new MavenOptsDevelocityFilter(knownExtensions, isUnix(computer))
-                            .filter(currentMavenOpts, config.isEnforceUrl())));
+                MavenOptsDevelocityFilter mavenOptsFilter = new MavenOptsDevelocityFilter(knownExtensions, isUnix(computer));
+                String filteredMavenOpts = mavenOptsFilter.filter(currentMavenOpts, config.isEnforceUrl());
+                build.addAction(new MavenInjectionDisabledAction(filteredMavenOpts));
             }
         }
     }
@@ -131,8 +143,10 @@ public class GitScmListener extends SCMListener {
                     return true;
                 }
                 switch (config.matchesRepositoryFilter(url)) {
-                    case EXCLUDED: return false;
-                    case INCLUDED: return true;
+                    case EXCLUDED:
+                        return false;
+                    case INCLUDED:
+                        return true;
                 }
             }
         }
@@ -140,12 +154,31 @@ public class GitScmListener extends SCMListener {
         return false;
     }
 
-    private static boolean shouldDisableGradleInjection(InjectionConfig config) {
-        return InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(config.getGradlePluginVersion()));
-    }
+    private enum InjectionStatus {
+        GRADLE {
+            @Override
+            String getAgentVersion(InjectionConfig config) {
+                return config.getGradlePluginVersion();
+            }
+        },
+        MAVEN {
+            @Override
+            String getAgentVersion(InjectionConfig config) {
+                return config.getMavenExtensionVersion();
+            }
+        },
+        NPM {
+            @Override
+            String getAgentVersion(InjectionConfig config) {
+                return config.getNpmAgentVersion();
+            }
+        };
 
-    private static boolean shouldDisableMavenInjection(InjectionConfig config) {
-        return InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(config.getMavenExtensionVersion()));
+        public boolean isEnabled(InjectionConfig config) {
+            return InjectionUtil.isValid(InjectionConfig.checkRequiredVersion(getAgentVersion(config)));
+        }
+
+        abstract String getAgentVersion(InjectionConfig config);
     }
 
     /**
@@ -162,7 +195,6 @@ public class GitScmListener extends SCMListener {
         public void buildEnvironment(@Nonnull Run<?, ?> run, @Nonnull EnvVars envVars) {
             envVars.put(DEVELOCITY_INJECTION_ENABLED.getEnvVar(), "false");
         }
-
     }
 
     /**
@@ -181,7 +213,18 @@ public class GitScmListener extends SCMListener {
             envVars.put(MAVEN_OPTS, mavenOpts);
             envVars.put(JENKINSGRADLEPLUGIN_MAVEN_PLUGIN_CONFIG_EXT_CLASSPATH, "");
         }
-
     }
 
+    public static final class NpmInjectionDisabledAction extends InvisibleAction implements EnvironmentContributingAction {
+
+        public static final NpmInjectionDisabledAction INSTANCE = new NpmInjectionDisabledAction();
+
+        private NpmInjectionDisabledAction() {
+        }
+
+        @Override
+        public void buildEnvironment(@Nonnull Run<?, ?> run, @Nonnull EnvVars envVars) {
+            envVars.put(DEVELOCITY_INTERNAL_DISABLE_AGENT, "true");
+        }
+    }
 }

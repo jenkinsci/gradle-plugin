@@ -147,7 +147,7 @@
                 </f:entry>
             </f:section>
 
-            <f:section title="${%npm settings}">
+            <f:section title="${%npm settings [Beta]}">
                 <f:entry title="${%Develocity npm agent version}" field="npmAgentVersion">
                     <f:textbox checkMethod="post"/>
                 </f:entry>

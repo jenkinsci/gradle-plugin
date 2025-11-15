@@ -69,7 +69,7 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
 
             String server = config.getServer();
 
-            LOGGER.info("Injecting Maven extensions " + nodeRootPath);
+            LOGGER.log(Level.INFO, "Injecting Maven extensions {0}", nodeRootPath);
 
             List<FilePath> extensions = new ArrayList<>();
             FilePath controllerRootPath = Jenkins.get().getRootPath();

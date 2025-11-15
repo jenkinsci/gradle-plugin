@@ -21,8 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static hudson.plugins.gradle.injection.InjectionUtil.DOWNLOAD_CACHE_DIR;
-
 public class MavenExtensionDownloadHandler implements MavenInjectionAware {
 
     private final AgentDownloadClient downloadClient = new AgentDownloadClient();
@@ -33,7 +31,7 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
         }
 
         Map<MavenExtension, String> extensionsDigest = new HashMap<>();
-        Path cacheDir = root.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
+        Path cacheDir = InjectionUtil.getDownloadCacheDir(root);
 
         MavenExtension develocityMavenExtension = MavenExtension.forVersion(injectionConfig.getMavenExtensionVersion());
 
@@ -45,13 +43,13 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
         return extensionsDigest;
     }
 
-    public Map<MavenExtension, String> getExtensionDigests(Supplier<File> rootDir, InjectionConfig injectionConfig) throws IOException {
+    public Map<MavenExtension, String> getExtensionDigests(Supplier<File> root, InjectionConfig injectionConfig) throws IOException {
         if (isInjectionDisabledGlobally(injectionConfig)) {
             return Collections.emptyMap();
         }
 
         Map<MavenExtension, String> extensionDigests = new HashMap<>();
-        Path cacheDir = rootDir.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
+        Path cacheDir = InjectionUtil.getDownloadCacheDir(root);
 
         MavenExtension develocityMavenExtension = MavenExtension.forVersion(injectionConfig.getMavenExtensionVersion());
 
@@ -76,7 +74,7 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
                 ? injectionConfig.getCcudExtensionVersion()
                 : injectionConfig.getMavenExtensionVersion();
 
-        var cachedDigest = ArtifactMetadata.readFromFile(metadataFile)
+        ArtifactDigest cachedDigest = ArtifactMetadata.readFromFile(metadataFile)
                 .filter(m -> m.isForVersion(version))
                 .map(ArtifactMetadata::digest)
                 .orElse(null);
@@ -104,9 +102,9 @@ public class MavenExtensionDownloadHandler implements MavenInjectionAware {
             downloadClient.download(downloadUrl, authenticator, outputStream);
         }
 
+        // TODO: Consider downloading the checksum file from the repository and verifying the download against it
         String digest = Util.getDigestOf(jarFile.toFile());
-        ArtifactMetadata metadata = new ArtifactMetadata(version, digest);
-        metadata.writeToFile(metadataFile);
+        new ArtifactMetadata(version, digest).writeToFile(metadataFile);
 
         return digest;
     }

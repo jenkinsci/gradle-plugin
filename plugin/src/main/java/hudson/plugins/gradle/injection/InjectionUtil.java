@@ -9,6 +9,8 @@ import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
@@ -19,11 +21,16 @@ public final class InjectionUtil {
 
     private static final String MAVEN_PLUGIN_SHORT_NAME = "maven-plugin";
 
+    public static final String HOME = "HOME";
     public static final String DOWNLOAD_CACHE_DIR = "jenkins-gradle-plugin/cache";
     public static final VersionNumber MINIMUM_SUPPORTED_MAVEN_PLUGIN_VERSION = new VersionNumber("3.20");
     public static final String JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK = "JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK";
 
     private InjectionUtil() {
+    }
+
+    public static Path getDownloadCacheDir(Supplier<File> rootDir) {
+        return rootDir.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
     }
 
     public static boolean globalAutoInjectionCheckEnabled(EnvVars envVars) {

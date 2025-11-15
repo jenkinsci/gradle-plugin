@@ -1,6 +1,7 @@
 package hudson.plugins.gradle.injection;
 
-public enum InitScriptVariables {
+public enum InitScriptVariables implements EnvVar {
+
     DEVELOCITY_INJECTION_CUSTOM_VALUE("develocity-injection.custom-value"),
     DEVELOCITY_INIT_SCRIPT_NAME("develocity-injection.init-script-name"),
     DEVELOCITY_INJECTION_ENABLED("develocity-injection.enabled"),
@@ -24,7 +25,8 @@ public enum InitScriptVariables {
         this.templateName = templateName;
     }
 
-    String getEnvVar() {
+    @Override
+    public String getEnvVar() {
         return templateName.toUpperCase().replace('.', '_').replace('-', '_');
     }
 }

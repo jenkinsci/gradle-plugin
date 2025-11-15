@@ -6,7 +6,9 @@ import hudson.plugins.gradle.util.CollectionUtil;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 public interface InjectionAware {
@@ -19,6 +21,13 @@ public interface InjectionAware {
 
     @Nullable
     List<NodeLabelItem> getAgentInjectionEnabledNodes(InjectionConfig config);
+
+    default <T> Optional<T> ifInjectionEnabledGlobally(InjectionConfig config, Callable<T> action) throws Exception {
+        if (isInjectionDisabledGlobally(config)) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(action.call());
+    }
 
     default boolean isInjectionDisabledGlobally(InjectionConfig config) {
         return config.isDisabled() ||

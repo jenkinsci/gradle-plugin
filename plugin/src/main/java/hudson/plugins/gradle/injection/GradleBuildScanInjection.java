@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 
 import static hudson.plugins.gradle.injection.CopyUtil.copyResourceToNode;
 import static hudson.plugins.gradle.injection.CopyUtil.unsafeResourceDigest;
+import static hudson.plugins.gradle.injection.InjectionUtil.HOME;
 
 public class GradleBuildScanInjection implements GradleInjectionAware {
 
@@ -28,7 +29,6 @@ public class GradleBuildScanInjection implements GradleInjectionAware {
 
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_GRADLE_HOME";
     private static final String JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME = "JENKINSGRADLEPLUGIN_BUILD_SCAN_OVERRIDE_HOME";
-    private static final String HOME = "HOME";
 
     @VisibleForTesting
     static final String RESOURCE_INIT_SCRIPT_GRADLE = "init-script.gradle";

@@ -4,6 +4,7 @@ import hudson.Util;
 import hudson.plugins.gradle.injection.ArtifactDigest;
 import hudson.plugins.gradle.injection.ArtifactMetadata;
 import hudson.plugins.gradle.injection.InjectionConfig;
+import hudson.plugins.gradle.injection.InjectionUtil;
 import hudson.plugins.gradle.injection.download.AgentDownloadClient;
 import hudson.plugins.gradle.injection.download.RequestAuthenticator;
 
@@ -16,20 +17,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
-import static hudson.plugins.gradle.injection.InjectionUtil.DOWNLOAD_CACHE_DIR;
-
 public class NpmAgentDownloadHandler {
 
     private static final String FILENAME = "develocity-npm-agent";
     private static final String METADATA_FILENAME = FILENAME + ".meta";
-    private static final String AGENT_FILENAME = FILENAME + ".tgz";
+    private static final String DEFAULT_REGISTRY_URL = "https://registry.npmjs.org";
+
+    public static final String AGENT_FILENAME = FILENAME + ".tgz";
 
     private final AgentDownloadClient downloadClient = new AgentDownloadClient();
 
     public ArtifactDigest downloadNpmAgent(Supplier<File> root, InjectionConfig injectionConfig) throws IOException {
         String npmAgentVersion = injectionConfig.getNpmAgentVersion();
 
-        Path cacheDir = root.get().toPath().resolve(DOWNLOAD_CACHE_DIR);
+        Path cacheDir = InjectionUtil.getDownloadCacheDir(root);
         Path metadataFile = cacheDir.resolve(METADATA_FILENAME);
 
         ArtifactDigest cachedDigest = ArtifactMetadata.readFromFile(metadataFile)
@@ -45,15 +46,28 @@ public class NpmAgentDownloadHandler {
         Files.createDirectories(cacheDir);
         Path agentFile = cacheDir.resolve(AGENT_FILENAME);
 
-        URI downloadUrl = URI.create("https://registry.npmjs.org/@gradle-tech/develocity-agent/-/develocity-agent-%s.tgz".formatted(npmAgentVersion));
+        URI downloadUrl = createDownloadUrl(npmAgentVersion);
         try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(agentFile))) {
             downloadClient.download(downloadUrl, RequestAuthenticator.NONE, outputStream);
         }
 
+        // TODO: Consider downloading the checksum file from the repository and verifying the download against it
         ArtifactDigest digest = new ArtifactDigest(Util.getDigestOf(agentFile.toFile()));
-        ArtifactMetadata metadata = new ArtifactMetadata(npmAgentVersion, digest);
-        metadata.writeToFile(metadataFile);
+        new ArtifactMetadata(npmAgentVersion, digest).writeToFile(metadataFile);
 
         return digest;
+    }
+
+    public ArtifactDigest getDownloadedNpmAgentDigest(Supplier<File> root) throws IOException {
+        Path metadataFile = InjectionUtil.getDownloadCacheDir(root).resolve(METADATA_FILENAME);
+        return ArtifactMetadata.readFromFile(metadataFile)
+                .map(ArtifactMetadata::digest)
+                .orElse(null);
+    }
+
+    private static URI createDownloadUrl(String npmAgentVersion) {
+        return URI.create(
+                "%s/@gradle-tech/develocity-agent/-/develocity-agent-%s.tgz".formatted(DEFAULT_REGISTRY_URL, npmAgentVersion)
+        );
     }
 }

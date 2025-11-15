@@ -16,7 +16,7 @@ public final class AgentDownloadClient {
     private final OkHttpClient httpClient;
 
     public AgentDownloadClient() {
-        this.httpClient = new OkHttpClient().newBuilder()
+        httpClient = new OkHttpClient().newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
                 .build();
     }
