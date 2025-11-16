@@ -12,6 +12,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.util.concurrent.Callable
+
 import static hudson.plugins.gradle.injection.InjectionUtil.JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK
 
 class DevelocityComputerListenerTest extends Specification {
@@ -49,18 +51,21 @@ class DevelocityComputerListenerTest extends Specification {
         injectionConfig.disabled >> !isGlobalInjectionEnabled
 
         def node = Mock(Node)
-        def computerEnvVars = new EnvVars([COMPUTER: "ture"])
+        def computerEnvVars = new EnvVars([COMPUTER: "true"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
         def root = tempFolder.newFolder()
 
-        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> {}
+        mavenExtensionDownloadHandler.getExtensionDigests({ root }, injectionConfig) >> [:]
+        npmBuildScanInjection.ifInjectionEnabledGlobally(injectionConfig, _ as Callable<ArtifactDigest>) >> Optional.empty()
 
         when:
         gradleEnterpriseComputerListener.onOnline(computer, Mock(TaskListener))
 
         then:
         (isInjectionExpected ? 1 : 0) * gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars)
+        (isInjectionExpected ? 1 : 0) * mavenBuildScanInjection.inject(node, [:])
+        (isInjectionExpected ? 1 : 0) * npmBuildScanInjection.inject(node, null, computerEnvVars)
 
         where:
         isGlobalAutoInjectionCheckEnabled | isGlobalInjectionEnabled || isInjectionExpected
@@ -76,19 +81,23 @@ class DevelocityComputerListenerTest extends Specification {
         computer.name >> "testComputer"
 
         def node = Mock(Node)
-        def computerEnvVars = new EnvVars([COMPUTER: "ture"])
+        def computerEnvVars = new EnvVars([COMPUTER: "true"])
         computer.getNode() >> node
         computer.getEnvironment() >> computerEnvVars
         def root = tempFolder.newFolder()
-        mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ root }, injectionConfig) >> {}
+        mavenExtensionDownloadHandler.getExtensionDigests({ root }, injectionConfig) >> [:]
+        npmBuildScanInjection.ifInjectionEnabledGlobally(injectionConfig, _ as Callable<ArtifactDigest>) >> Optional.empty()
 
         gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars) >> { throw new ExpectedException() }
-        mavenBuildScanInjection.inject(node, [:])
 
         when:
         gradleEnterpriseComputerListener.onOnline(computer, Mock(TaskListener))
 
         then:
         noExceptionThrown()
+
+        and: "other injections are not performed"
+        0 * mavenBuildScanInjection.inject(node, [:])
+        0 * npmBuildScanInjection.inject(node, null, computerEnvVars)
     }
 }
