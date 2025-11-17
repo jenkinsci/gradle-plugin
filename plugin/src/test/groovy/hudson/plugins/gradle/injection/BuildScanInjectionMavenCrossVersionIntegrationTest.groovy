@@ -5,6 +5,7 @@ import hudson.plugins.gradle.BuildScanAction
 import hudson.plugins.gradle.BuildScanBuildWrapper
 import hudson.tasks.Maven
 import org.jvnet.hudson.test.CreateFileBuilder
+import org.jvnet.hudson.test.recipes.WithTimeout
 import spock.lang.Unroll
 
 @Unroll
@@ -12,6 +13,7 @@ class BuildScanInjectionMavenCrossVersionIntegrationTest extends BaseMavenIntegr
 
     private static final String MINIMUM_SUPPORTED_MAVEN_VERSION = '3.3.1'
 
+    @WithTimeout(300) // 5 minutes
     def 'build scan is discovered from Maven build - #mavenVersion'(String mavenVersion) {
         given:
         mavenInstallationRule.mavenVersion = mavenVersion
