@@ -75,7 +75,6 @@ class WebDriverProvider implements Provider<WebDriver> {
         final WebDriver driver = new EventFiringDecorator(new Scroller(d)).decorate(d);
         try {
             driver.manage().timeouts().pageLoadTimeout(Duration.ofMillis(time.seconds(FallbackConfig.PAGE_LOAD_TIMEOUT)));
-            driver.manage().timeouts().implicitlyWait(Duration.ofMillis(time.seconds(FallbackConfig.IMPLICIT_WAIT_TIMEOUT)));
         } catch (UnsupportedCommandException e) {
             // sauce labs RemoteWebDriver doesn't support this
             LOGGER.info(d + " doesn't support page load timeout");

@@ -59,4 +59,34 @@ class BuildScanInjectionMavenCrossVersionIntegrationTest extends BaseMavenIntegr
             '3.9.9'
         ]
     }
+
+    def setup() {
+        Thread.start {
+            try {
+                sleep(60 * 1000)
+                if (j.jenkins == null) return
+
+                println "\n========================================"
+                println "   BACKGROUND MONITOR: 60s ELAPSED"
+                println "   Attempting Thread Dump of 'slave0'"
+                println "========================================\n"
+
+                def computer = j.jenkins.getComputer("slave0")
+
+                if (computer) {
+                    computer.getThreadDump().each { name, stack ->
+                        println "Thread: $name"
+                        println "$stack"
+                        println "---------------------------------"
+                    }
+                } else {
+                    println "❌ Could not find agent 'slave0'. It might be offline or not created yet."
+                }
+
+            } catch (Exception e) {
+                println "Background monitor stopped: ${e.message}"
+            }
+        }
+    }
+
 }
