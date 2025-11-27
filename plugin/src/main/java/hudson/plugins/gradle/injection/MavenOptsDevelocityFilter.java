@@ -22,7 +22,8 @@ public class MavenOptsDevelocityFilter {
         GRADLE_ENTERPRISE_URL_PROPERTY_KEY,
         DEVELOCITY_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
         DEVELOCITY_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
-        DEVELOCITY_URL_PROPERTY_KEY
+        DEVELOCITY_URL_PROPERTY_KEY,
+        DEVELOCITY_CUSTOM_VALUE_KEY
     );
     private final Set<MavenExtension> knownExtensionsAlreadyApplied;
     private final boolean isUnix;

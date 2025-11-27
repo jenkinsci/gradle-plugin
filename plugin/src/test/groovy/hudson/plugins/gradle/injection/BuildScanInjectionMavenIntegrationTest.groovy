@@ -180,6 +180,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
             with(it.next()) {
                 it == '-Dgradle.scan.captureGoalInputFiles=true'
             }
+            with(it.next()) {
+                it == '-Dscan.value.CIAutoInjection=Jenkins'
+            }
             !it.hasNext()
         }
 
@@ -232,6 +235,9 @@ class BuildScanInjectionMavenIntegrationTest extends BaseMavenIntegrationTest {
             }
             with(it.next()) {
                 it == '-Dgradle.scan.captureGoalInputFiles=true'
+            }
+            with(it.next()) {
+                it == '-Dscan.value.CIAutoInjection=Jenkins'
             }
             !it.hasNext()
         }
@@ -862,8 +868,10 @@ node {
         assertNoDoubleApplication(build)
         if (shouldInjectDv) {
             j.assertLogContains(TOU_MSG, build)
+            j.assertLogContains('-Dscan.value.CIAutoInjection=Jenkins', build)
         } else {
             j.assertLogNotContains(TOU_MSG, build)
+            j.assertLogNotContains('-Dscan.value.CIAutoInjection=Jenkins', build)
         }
         if (shouldInjectCcud) {
             j.assertLogContains(INJECT_CCUD, build)

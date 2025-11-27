@@ -99,6 +99,7 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
             String captureFileFingerprints = Optional.ofNullable(config.isMavenCaptureGoalInputFiles()).map(b -> Boolean.toString(b)).orElse("true");
             systemProperties.add(new SystemProperty(DEVELOCITY_CAPTURE_FILE_FINGERPRINTS_PROPERTY_KEY, captureFileFingerprints));
             systemProperties.add(new SystemProperty(GRADLE_ENTERPRISE_CAPTURE_GOAL_INPUT_FILES_PROPERTY_KEY, captureFileFingerprints));
+            systemProperties.add(new SystemProperty(DEVELOCITY_CUSTOM_VALUE_KEY, "Jenkins"));
 
             EnvUtil.setEnvVar(node, MavenOptsHandler.MAVEN_OPTS, MAVEN_OPTS_HANDLER.merge(node, systemProperties));
 
