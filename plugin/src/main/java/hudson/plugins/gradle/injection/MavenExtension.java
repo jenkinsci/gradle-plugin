@@ -52,6 +52,10 @@ public enum MavenExtension {
         return version.compareTo(LAST_GRADLE_ENTERPRISE_VERSION) > 0 ? DEVELOCITY : GRADLE_ENTERPRISE;
     }
 
+    public URI createDownloadUrl(String version) {
+        return createDownloadUrl(version, null);
+    }
+
     public URI createDownloadUrl(String version, @Nullable String repositoryUrl) {
         String extensionUrlTemplate = getNormalizedRepositoryUrl(repositoryUrl) + EXTENSION_REPOSITORY_PATH;
         return URI.create(String.format(extensionUrlTemplate, this.getName(), version, this.getName(), version));

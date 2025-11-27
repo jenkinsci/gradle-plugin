@@ -21,6 +21,10 @@ public final class AgentDownloadClient {
                 .build();
     }
 
+    public void download(URI downloadUrl, OutputStream outputStream) throws IOException {
+        download(downloadUrl, RequestAuthenticator.NONE, outputStream);
+    }
+
     public void download(URI downloadUrl, RequestAuthenticator authenticator, OutputStream outputStream) throws IOException {
         Request.Builder requestBuilder = new Request.Builder().url(downloadUrl.toURL());
         authenticator.authenticate(requestBuilder);

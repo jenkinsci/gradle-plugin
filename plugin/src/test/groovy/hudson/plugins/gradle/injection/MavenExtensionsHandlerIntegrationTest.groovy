@@ -2,7 +2,6 @@ package hudson.plugins.gradle.injection
 
 import hudson.FilePath
 import hudson.plugins.gradle.injection.download.AgentDownloadClient
-import hudson.plugins.gradle.injection.download.RequestAuthenticator
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -51,12 +50,12 @@ class MavenExtensionsHandlerIntegrationTest extends Specification {
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
-                    downloadClient.download(MavenExtension.DEVELOCITY.createDownloadUrl("2.1", null), RequestAuthenticator.NONE, it)
+                    downloadClient.download(MavenExtension.DEVELOCITY.createDownloadUrl("2.1"), it)
                 }
 
         cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()
                 .withCloseable {
-                    downloadClient.download(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), RequestAuthenticator.NONE, it)
+                    downloadClient.download(MavenExtension.CCUD.createDownloadUrl("2.0.1"), it)
                 }
 
         when:
@@ -82,12 +81,12 @@ class MavenExtensionsHandlerIntegrationTest extends Specification {
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
-                    downloadClient.download(MavenExtension.DEVELOCITY.createDownloadUrl("2.1", null), RequestAuthenticator.NONE, it)
+                    downloadClient.download(MavenExtension.DEVELOCITY.createDownloadUrl("2.1"), it)
                 }
 
         cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()
                 .withCloseable {
-                    downloadClient.download(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), RequestAuthenticator.NONE, it)
+                    downloadClient.download(MavenExtension.CCUD.createDownloadUrl("2.0.1"), it)
                 }
 
         when:

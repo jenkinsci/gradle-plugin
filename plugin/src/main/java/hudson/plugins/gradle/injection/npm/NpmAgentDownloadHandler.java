@@ -6,7 +6,6 @@ import hudson.plugins.gradle.injection.ArtifactMetadata;
 import hudson.plugins.gradle.injection.InjectionConfig;
 import hudson.plugins.gradle.injection.InjectionUtil;
 import hudson.plugins.gradle.injection.download.AgentDownloadClient;
-import hudson.plugins.gradle.injection.download.RequestAuthenticator;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -48,7 +47,7 @@ public class NpmAgentDownloadHandler {
 
         URI downloadUrl = createDownloadUrl(npmAgentVersion);
         try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(agentFile))) {
-            downloadClient.download(downloadUrl, RequestAuthenticator.NONE, outputStream);
+            downloadClient.download(downloadUrl, outputStream);
         }
 
         // TODO: Consider downloading the checksum file from the repository and verifying the download against it
