@@ -151,6 +151,9 @@
                 <f:entry title="${%Develocity npm agent version}" field="npmAgentVersion">
                     <f:textbox checkMethod="post"/>
                 </f:entry>
+                <f:entry title="${%npm agent registry url}" field="npmAgentRegistryUrl">
+                    <f:textbox checkMethod="post"/>
+                </f:entry>
                 <f:entry title="${%npm auto-injection enabled nodes}"
                          help="/plugin/gradle/help-npmInjectionEnabledNodes.html">
                     <f:repeatableProperty field="npmInjectionEnabledNodes">

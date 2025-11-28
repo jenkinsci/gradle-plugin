@@ -2,6 +2,7 @@ package hudson.plugins.gradle.injection;
 
 import hudson.EnvVars;
 import hudson.PluginWrapper;
+import hudson.Util;
 import hudson.model.labels.LabelAtom;
 import hudson.plugins.gradle.util.CollectionUtil;
 import hudson.util.FormValidation;
@@ -27,6 +28,13 @@ public final class InjectionUtil {
     public static final String JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK = "JENKINSGRADLEPLUGIN_GLOBAL_AUTO_INJECTION_CHECK";
 
     private InjectionUtil() {
+    }
+
+    public static String getNormalizedUrl(@Nullable String url, String defaultUrl) {
+        if (url == null || InjectionUtil.isInvalid(InjectionConfig.checkUrl(url))) {
+            return defaultUrl;
+        }
+        return Util.removeTrailingSlash(url);
     }
 
     public static Path getDownloadCacheDir(Supplier<File> rootDir) {

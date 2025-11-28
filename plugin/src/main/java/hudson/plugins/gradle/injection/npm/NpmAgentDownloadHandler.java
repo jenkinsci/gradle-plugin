@@ -7,6 +7,7 @@ import hudson.plugins.gradle.injection.InjectionConfig;
 import hudson.plugins.gradle.injection.InjectionUtil;
 import hudson.plugins.gradle.injection.download.AgentDownloadClient;
 
+import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +46,7 @@ public class NpmAgentDownloadHandler {
         Files.createDirectories(cacheDir);
         Path agentFile = cacheDir.resolve(AGENT_FILENAME);
 
-        URI downloadUrl = createDownloadUrl(npmAgentVersion);
+        URI downloadUrl = createDownloadUrl(npmAgentVersion, injectionConfig.getNpmAgentRegistryUrl());
         try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(agentFile))) {
             downloadClient.download(downloadUrl, outputStream);
         }
@@ -64,9 +65,10 @@ public class NpmAgentDownloadHandler {
                 .orElse(null);
     }
 
-    private static URI createDownloadUrl(String npmAgentVersion) {
+    private static URI createDownloadUrl(String npmAgentVersion, @Nullable String registryUrl) {
+        String normalizedRegistryUrl = InjectionUtil.getNormalizedUrl(registryUrl, DEFAULT_REGISTRY_URL);
         return URI.create(
-                "%s/@gradle-tech/develocity-agent/-/develocity-agent-%s.tgz".formatted(DEFAULT_REGISTRY_URL, npmAgentVersion)
+                "%s/@gradle-tech/develocity-agent/-/develocity-agent-%s.tgz".formatted(normalizedRegistryUrl, npmAgentVersion)
         );
     }
 }

@@ -99,6 +99,7 @@ public class InjectionConfig extends GlobalConfiguration {
     private Boolean mavenCaptureGoalInputFiles;
 
     private String npmAgentVersion;
+    private String npmAgentRegistryUrl;
     private ImmutableList<NodeLabelItem> npmInjectionEnabledNodes;
     private ImmutableList<NodeLabelItem> npmInjectionDisabledNodes;
 
@@ -359,6 +360,16 @@ public class InjectionConfig extends GlobalConfiguration {
     }
 
     @CheckForNull
+    public String getNpmAgentRegistryUrl() {
+        return npmAgentRegistryUrl;
+    }
+
+    @DataBoundSetter
+    public void setNpmAgentRegistryUrl(String npmAgentRegistryUrl) {
+        this.npmAgentRegistryUrl = Util.fixEmptyAndTrim(npmAgentRegistryUrl);
+    }
+
+    @CheckForNull
     public List<NodeLabelItem> getNpmInjectionEnabledNodes() {
         return npmInjectionEnabledNodes;
     }
@@ -600,6 +611,16 @@ public class InjectionConfig extends GlobalConfiguration {
         }
 
         return checkVersion(value);
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckNpmAgentRegistryUrl(@QueryParameter String value) {
+        if (doesNotHaveAdministerPermission()) {
+            return FormValidation.error("Validating npm agent registry URL requires 'Administer' permission");
+        }
+
+        return checkUrl(value);
     }
 
     @SuppressWarnings("called by Jelly")

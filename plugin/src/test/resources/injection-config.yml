@@ -25,6 +25,12 @@ unclassified:
             -   label: "non-maven-node"
         mavenInjectionEnabledNodes:
             -   label: "maven-node"
+        npmAgentVersion: "3.0.0"
+        npmAgentRegistryUrl: "https://registry.npmjs.org"
+        npmInjectionDisabledNodes:
+            - label: "non-npm-node"
+        npmInjectionEnabledNodes:
+            - label: "npm-node"
         server: "http://localhost:5086"
         shortLivedTokenExpiry: 24
         vcsRepositoryFilter: "+:myrepo"
