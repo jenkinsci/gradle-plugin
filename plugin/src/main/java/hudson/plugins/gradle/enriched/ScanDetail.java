@@ -2,11 +2,13 @@ package hudson.plugins.gradle.enriched;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.plugins.gradle.BuildToolType;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @ExportedBean
@@ -15,7 +17,7 @@ public class ScanDetail {
 
     private final String url;
 
-    @JsonAlias({"rootProjectName", "topLevelProjectName"})
+    @JsonAlias({"rootProjectName", "topLevelProjectName", "packageName"})
     private String projectName;
     @SuppressFBWarnings(value = "UWF_UNWRITTEN_FIELD")
     private BuildToolType buildToolType;
@@ -25,6 +27,18 @@ public class ScanDetail {
     private List<String> tasks;
     @SuppressFBWarnings(value = "UWF_UNWRITTEN_FIELD")
     private boolean hasFailed;
+
+    // Converts NpmCommand object into a list of tasks
+    @JsonSetter("command")
+    private void setCommand(Map<String, Object> npmCommand) {
+        if (npmCommand == null) {
+            return;
+        }
+        Object command = npmCommand.get("command");
+        if (command != null && (tasks == null || tasks.isEmpty())) {
+            tasks = List.of(command.toString());
+        }
+    }
 
     ScanDetail(String url) {
         this.url = url;
@@ -59,7 +73,12 @@ public class ScanDetail {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ScanDetail that = (ScanDetail) o;
-        return hasFailed == that.hasFailed && Objects.equals(url, that.url) && Objects.equals(projectName, that.projectName) && buildToolType == that.buildToolType && Objects.equals(buildToolVersion, that.buildToolVersion) && Objects.equals(tasks, that.tasks);
+        return hasFailed == that.hasFailed
+                && Objects.equals(url, that.url)
+                && Objects.equals(projectName, that.projectName)
+                && buildToolType == that.buildToolType
+                && Objects.equals(buildToolVersion, that.buildToolVersion)
+                && Objects.equals(tasks, that.tasks);
     }
 
     @Override
