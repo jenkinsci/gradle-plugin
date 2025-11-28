@@ -9,7 +9,9 @@ public enum BuildToolType {
     @JsonProperty("gradle")
     GRADLE,
     @JsonProperty("maven")
-    MAVEN;
+    MAVEN,
+    @JsonProperty("npm")
+    NPM;
 
     public String getAttributesUrlSuffix() {
         return String.format("/%s-attributes", name().toLowerCase(Locale.ROOT));
