@@ -62,10 +62,6 @@ public final class MavenCoordinates implements Serializable {
         return artifactId;
     }
 
-    String version() {
-        return version;
-    }
-
     @Override
     public String toString() {
         return String.format("%s:%s:%s", groupId, artifactId, version);

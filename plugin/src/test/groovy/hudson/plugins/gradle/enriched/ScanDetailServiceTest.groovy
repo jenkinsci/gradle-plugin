@@ -55,7 +55,7 @@ class ScanDetailServiceTest extends Specification {
         def httpClient = Stub(CloseableHttpClient)
         def response = Stub(CloseableHttpResponse)
         response.getStatusLine() >> new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_FORBIDDEN, "")
-        httpClientFactory.buildHttpClient(_,_,_) >> httpClient
+        httpClientFactory.buildHttpClient(_, _, _) >> httpClient
         httpClient.execute(_) >> response
 
         when:
@@ -66,7 +66,7 @@ class ScanDetailServiceTest extends Specification {
     }
 
     @Unroll
-    def 'Get scan detail with HTTP error on second request'(String buildToolType) {
+    def 'Get scan detail with HTTP error on second request'(String buildTool) {
         given:
         def scanDetailService = new ScanDetailService(getTestConfig())
         def httpClientFactory = Stub(HttpClientFactory)
@@ -77,13 +77,13 @@ class ScanDetailServiceTest extends Specification {
         response1.getEntity() >> new StringEntity(
                 """
                     {
-                        "buildToolType": "${buildToolType}",
+                        "buildToolType": "${buildTool}",
                         "buildToolVersion": "7.5.1"   
                     }
                 """.stripIndent())
         def response2 = Stub(CloseableHttpResponse)
         response2.getStatusLine() >> new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_INTERNAL_SERVER_ERROR, "")
-        httpClientFactory.buildHttpClient(_,_,_) >> httpClient
+        httpClientFactory.buildHttpClient(_, _, _) >> httpClient
         httpClient.execute(_) >>> [response1, response2]
 
         when:
@@ -93,7 +93,7 @@ class ScanDetailServiceTest extends Specification {
         scanDetail == Optional.empty()
 
         where:
-        buildToolType << ["gradle", "maven"]
+        buildTool << ["gradle", "maven", "npm"]
     }
 
     @Unroll
@@ -108,14 +108,14 @@ class ScanDetailServiceTest extends Specification {
         response1.getEntity() >> new StringEntity(
                 """
                     {
-                        "buildToolType": "${buildToolType}",
+                        "buildToolType": "${buildTool}",
                         "buildToolVersion": "7.5.1"   
                     }
                 """.stripIndent())
         def response2 = Stub(CloseableHttpResponse)
         response2.getStatusLine() >> new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "")
         response2.getEntity() >> new StringEntity("{This is not valid JSON}")
-        httpClientFactory.buildHttpClient(_,_,_) >> httpClient
+        httpClientFactory.buildHttpClient(_, _, _) >> httpClient
         httpClient.execute(_) >>> [response1, response2]
 
         when:
@@ -125,7 +125,7 @@ class ScanDetailServiceTest extends Specification {
         scanDetail == Optional.empty()
 
         where:
-        buildToolType << ["gradle", "maven"]
+        buildTool << ["gradle", "maven", "npm"]
     }
 
     @Unroll
@@ -140,37 +140,39 @@ class ScanDetailServiceTest extends Specification {
         response1.getEntity() >> new StringEntity(
                 """
                     {
-                        "buildToolType": "${buildToolType}",
+                        "buildToolType": "${buildTool}",
                         "buildToolVersion": "7.5.1"   
                     }
                 """.stripIndent())
         def response2 = Stub(CloseableHttpResponse)
         response2.getStatusLine() >> new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "")
         response2.getEntity() >> new StringEntity(httpResponseBody)
-        httpClientFactory.buildHttpClient(_,_,_) >> httpClient
+        httpClientFactory.buildHttpClient(_, _, _) >> httpClient
         httpClient.execute(_) >>> [response1, response2]
-        httpClientFactory.buildHttpClient(_,_,_) >> httpClient
+        httpClientFactory.buildHttpClient(_, _, _) >> httpClient
 
         when:
         def scanDetailResult = scanDetailService.getScanDetail("https://foo.bar/s/scanId")
 
         then:
-        def scanDetail = scanDetailResult.get()
-        scanDetail.url == "https://foo.bar/s/scanId"
-        scanDetail.buildToolType.toString() == buildToolType.toUpperCase()
-        scanDetail.buildToolVersion == "7.5.1"
-        scanDetail.projectName == "project"
-        scanDetail.tasks == [ "clean", "build" ]
-        !scanDetail.hasFailed
+        with(scanDetailResult.get()) {
+            url == "https://foo.bar/s/scanId"
+            buildToolType.toString() == buildTool.toUpperCase()
+            buildToolVersion == "7.5.1"
+            projectName == "project"
+            tasks == expectedTasks
+            !hasFailed
+        }
 
         where:
-        buildToolType | httpResponseBody
-        "gradle"      | '{"foo":"bar","rootProjectName":"project","requestedTasks":["clean","build"],"hasFailed":false}'
-        "maven"       | '{"foo":"bar","topLevelProjectName":"project","requestedGoals":["clean","build"],"hasFailed":false}'
+        buildTool | httpResponseBody                                                                                                       | expectedTasks
+        "gradle"  | '{"foo":"bar","rootProjectName":"project","requestedTasks":["clean","build"],"hasFailed":false}'                       | ["clean", "build"]
+        "maven"   | '{"foo":"bar","topLevelProjectName":"project","requestedGoals":["clean","build"],"hasFailed":false}'                   | ["clean", "build"]
+        "npm"     | '{"foo":"bar","packageName":"project","command":{"command":"install","arguments":["arg1", "arg2"]},"hasFailed":false}' | ["install"]
     }
 
     @Unroll
-    def 'Get scan detail'(String buildToolType, String httpResponseBody) {
+    def 'Get scan detail'(String buildTool, String httpResponseBody) {
         given:
         def scanDetailService = new ScanDetailService(getTestConfig())
         def httpClientFactory = Stub(HttpClientFactory)
@@ -181,7 +183,7 @@ class ScanDetailServiceTest extends Specification {
         response1.getEntity() >> new StringEntity(
                 """
                     {
-                        "buildToolType": "${buildToolType}",
+                        "buildToolType": "${buildTool}",
                         "buildToolVersion": "7.5.1"   
                     }
                 """.stripIndent())
@@ -189,24 +191,25 @@ class ScanDetailServiceTest extends Specification {
         response2.getStatusLine() >> new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "")
         response2.getEntity() >> new StringEntity(httpResponseBody)
         httpClient.execute(_) >>> [response1, response2]
-        httpClientFactory.buildHttpClient(_,_,_) >> httpClient
+        httpClientFactory.buildHttpClient(_, _, _) >> httpClient
 
         when:
         def scanDetailResult = scanDetailService.getScanDetail("https://foo.bar/s/scanId")
 
         then:
-        def scanDetail = scanDetailResult.get()
-        scanDetail.url == "https://foo.bar/s/scanId"
-        scanDetail.buildToolType.toString() == buildToolType.toUpperCase()
-        scanDetail.buildToolVersion == "7.5.1"
-        scanDetail.projectName == "project"
-        scanDetail.tasks == [ "clean", "build" ]
-        !scanDetail.hasFailed
+        with(scanDetailResult.get()) {
+            url == "https://foo.bar/s/scanId"
+            buildToolType.toString() == buildTool.toUpperCase()
+            buildToolVersion == "7.5.1"
+            projectName == "project"
+            tasks == expectedTasks
+            !hasFailed
+        }
 
         where:
-        buildToolType | httpResponseBody
-        "gradle"      | '{"foo":"bar","rootProjectName":"project","requestedTasks":["clean","build"],"hasFailed":false}'
-        "maven"       | '{"topLevelProjectName":"project","requestedGoals":["clean","build"],"hasFailed":false}'
+        buildTool | httpResponseBody                                                                                           | expectedTasks
+        "gradle"  | '{"rootProjectName":"project","requestedTasks":["clean","build"],"hasFailed":false}'                       | ["clean", "build"]
+        "maven"   | '{"topLevelProjectName":"project","requestedGoals":["clean","build"],"hasFailed":false}'                   | ["clean", "build"]
+        "npm"     | '{"packageName":"project","command":{"command":"install","arguments":["arg1", "arg2"]},"hasFailed":false}' | ["install"]
     }
-
 }

@@ -8,8 +8,11 @@ import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Saveable;
 import hudson.model.listeners.SaveableListener;
+import hudson.plugins.gradle.injection.npm.NpmAgentDownloadHandler;
+import hudson.plugins.gradle.injection.npm.NpmBuildScanInjection;
 import jenkins.model.Jenkins;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -28,14 +31,19 @@ public class InjectionConfigChangeListener extends SaveableListener {
     private final GradleBuildScanInjection gradleBuildScanInjection;
     private final MavenBuildScanInjection mavenBuildScanInjection;
     private final MavenExtensionDownloadHandler mavenExtensionDownloadHandler;
+    private final NpmBuildScanInjection npmBuildScanInjection;
+    private final NpmAgentDownloadHandler npmAgentDownloadHandler;
     private final Supplier<EnvVars> globalEnvVarsSupplier;
     private final Supplier<Collection<Computer>> computersSupplier;
 
+    @SuppressWarnings("unused")
     public InjectionConfigChangeListener() {
         this(
                 new GradleBuildScanInjection(),
                 new MavenBuildScanInjection(),
                 new MavenExtensionDownloadHandler(),
+                new NpmBuildScanInjection(),
+                new NpmAgentDownloadHandler(),
                 new JenkinsGlobalEnvVars(),
                 new JenkinsComputers()
         );
@@ -46,12 +54,16 @@ public class InjectionConfigChangeListener extends SaveableListener {
             GradleBuildScanInjection gradleBuildScanInjection,
             MavenBuildScanInjection mavenBuildScanInjection,
             MavenExtensionDownloadHandler mavenExtensionDownloadHandler,
+            NpmBuildScanInjection npmBuildScanInjection,
+            NpmAgentDownloadHandler npmAgentDownloadHandler,
             Supplier<EnvVars> globalEnvVarsSupplier,
             Supplier<Collection<Computer>> computersSupplier
     ) {
         this.gradleBuildScanInjection = gradleBuildScanInjection;
         this.mavenBuildScanInjection = mavenBuildScanInjection;
         this.mavenExtensionDownloadHandler = mavenExtensionDownloadHandler;
+        this.npmBuildScanInjection = npmBuildScanInjection;
+        this.npmAgentDownloadHandler = npmAgentDownloadHandler;
         this.globalEnvVarsSupplier = globalEnvVarsSupplier;
         this.computersSupplier = computersSupplier;
     }
@@ -67,9 +79,14 @@ public class InjectionConfigChangeListener extends SaveableListener {
             }
 
             try {
-                Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(
-                        () -> Jenkins.get().getRootDir(), injectionConfig
-                );
+                Supplier<File> root = () -> Jenkins.get().getRootDir();
+                // This code runs on the controller, and we need to download artifacts
+                // before injecting them on agents.
+                Map<MavenExtension, String> extensionsDigest = mavenExtensionDownloadHandler.ensureExtensionsDownloaded(root, injectionConfig);
+                ArtifactDigest npmAgentDigest =
+                        npmBuildScanInjection
+                                .ifInjectionEnabledGlobally(injectionConfig, () -> npmAgentDownloadHandler.downloadNpmAgent(root, injectionConfig))
+                                .orElse(null);
 
                 for (Computer computer : computersSupplier.get()) {
                     if (computer.isOnline()) {
@@ -78,6 +95,7 @@ public class InjectionConfigChangeListener extends SaveableListener {
 
                         gradleBuildScanInjection.inject(node, globalEnvVars, computerEnvVars);
                         mavenBuildScanInjection.inject(node, extensionsDigest);
+                        npmBuildScanInjection.inject(node, npmAgentDigest, computerEnvVars);
                     }
                 }
             } catch (Exception e) {
