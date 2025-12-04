@@ -667,7 +667,9 @@ public class InjectionConfig extends GlobalConfiguration {
 
     private static FormValidation validateMavenCoordinates(String value) {
         String coord = Util.fixEmptyAndTrim(value);
-        return coord == null || MavenCoordinates.isValid(coord) ? FormValidation.ok() : FormValidation.error(Messages.InjectionConfig_InvalidMavenExtensionCustomCoordinates());
+        return coord == null || MavenCoordinates.isValid(coord)
+                ? FormValidation.ok()
+                : FormValidation.error(Messages.InjectionConfig_InvalidMavenExtensionCustomCoordinates());
     }
 
     public static FormValidation checkRequiredUrl(String value) {

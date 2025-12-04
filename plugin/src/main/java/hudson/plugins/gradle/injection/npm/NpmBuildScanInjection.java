@@ -27,6 +27,9 @@ public class NpmBuildScanInjection implements NpmInjectionAware {
 
     public static final String DEVELOCITY_INTERNAL_DISABLE_AGENT = "DEVELOCITY_INTERNAL_DISABLE_AGENT";
 
+    private static final String NODE_LIBRARIES_DIR = ".node_libraries";
+    private static final String GRADLE_TECH_SCOPE = "@gradle-tech";
+
     private enum NpmAgentConfig implements EnvVar {
         DEVELOCITY_URL,
         DEVELOCITY_ALLOW_UNTRUSTED_SERVER,
@@ -95,7 +98,7 @@ public class NpmBuildScanInjection implements NpmInjectionAware {
     }
 
     private void installNpmAgent(FilePath controllerRootPath, FilePath userHome, ArtifactDigest npmAgentDigest, InjectionConfig config) throws IOException, InterruptedException {
-        FilePath scopePath = userHome.child(".node_modules").child("@gradle-tech");
+        FilePath scopePath = userHome.child(NODE_LIBRARIES_DIR).child(GRADLE_TECH_SCOPE);
         FilePath agentPath = scopePath.child("develocity-agent");
         // ~/.node_libraries/@gradle-tech/develocity-agent/version.meta
         FilePath versionMeta = agentPath.child("version.meta");
@@ -135,7 +138,7 @@ public class NpmBuildScanInjection implements NpmInjectionAware {
 
     private void cleanup(Node node, FilePath userHome) {
         try {
-            FilePath scopePath = userHome.child(".node_modules").child("@gradle-tech");
+            FilePath scopePath = userHome.child(NODE_LIBRARIES_DIR).child(GRADLE_TECH_SCOPE);
             scopePath.deleteRecursive();
 
             EnvUtil.removeEnvVars(node, NpmAgentConfig.values());
