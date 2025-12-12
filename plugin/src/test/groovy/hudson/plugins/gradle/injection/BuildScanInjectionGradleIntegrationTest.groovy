@@ -775,6 +775,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("DEVELOCITY_INJECTION_PLUGIN_REPOSITORY_URL") == "http://localhost/repository"
                 get("DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION") == "2.0"
                 get("DEVELOCITY_INJECTION_CAPTURE_FILE_FINGERPRINTS") == "true"
+                get("DEVELOCITY_INJECTION_CUSTOM_VALUE") == "Jenkins"
             }
         }
 
@@ -803,6 +804,7 @@ class BuildScanInjectionGradleIntegrationTest extends BaseGradleIntegrationTest 
                 get("DEVELOCITY_INJECTION_CCUD_PLUGIN_VERSION") == null
                 get("DEVELOCITY_INJECTION_ALLOW_UNTRUSTED_SERVER") == null
                 get("DEVELOCITY_INJECTION_CAPTURE_FILE_FINGERPRINTS") == null
+                get("DEVELOCITY_INJECTION_CUSTOM_VALUE") == null
             }
         }
     }
