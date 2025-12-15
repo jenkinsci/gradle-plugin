@@ -24,6 +24,7 @@ public interface MavenInjectionAware {
     SystemProperty.Key DEVELOCITY_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY = SystemProperty.Key.optional("develocity.allowUntrustedServer");
     SystemProperty.Key GRADLE_ENTERPRISE_CAPTURE_GOAL_INPUT_FILES_PROPERTY_KEY = SystemProperty.Key.optional("gradle.scan.captureGoalInputFiles");
     SystemProperty.Key DEVELOCITY_CAPTURE_FILE_FINGERPRINTS_PROPERTY_KEY = SystemProperty.Key.optional("develocity.scan.captureFileFingerprints");
+    SystemProperty.Key DEVELOCITY_CUSTOM_VALUE_KEY = SystemProperty.Key.optional("scan.value.CIAutoInjection");
 
     MavenOptsHandler MAVEN_OPTS_HANDLER = new MavenOptsHandler(
             MAVEN_EXT_CLASS_PATH_PROPERTY_KEY,
@@ -34,7 +35,8 @@ public interface MavenInjectionAware {
             DEVELOCITY_ALLOW_UNTRUSTED_SERVER_PROPERTY_KEY,
             DEVELOCITY_UPLOAD_IN_BACKGROUND_PROPERTY_KEY,
             DEVELOCITY_URL_PROPERTY_KEY,
-            DEVELOCITY_CAPTURE_FILE_FINGERPRINTS_PROPERTY_KEY
+            DEVELOCITY_CAPTURE_FILE_FINGERPRINTS_PROPERTY_KEY,
+            DEVELOCITY_CUSTOM_VALUE_KEY
     );
 
     default boolean isInjectionDisabledGlobally(InjectionConfig config) {
