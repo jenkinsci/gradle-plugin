@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>gradle-pom</artifactId>
-    <version>1.0</version>
+    <version>${revision}.${changelist}</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -25,19 +25,6 @@
         <module>configuration-maven-extension</module>
         <module>acceptance-tests</module>
     </modules>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.4</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
     <dependencyManagement>
         <dependencies>
