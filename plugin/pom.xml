@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>gradle-pom</artifactId>
-        <version>1.0</version>
+        <version>${revision}.${changelist}</version>
     </parent>
 
     <artifactId>gradle</artifactId>
@@ -44,7 +44,6 @@
         <spotless.check.skip>true</spotless.check.skip>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <maven.extension.version>1.0.0</maven.extension.version>
 
         <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
         <hpi.bundledArtifacts>commons-beanutils,commons-collections,commons-digester,commons-validator,configuration-maven-extension,develocity-maven-extension</hpi.bundledArtifacts>
@@ -127,7 +126,7 @@
         <dependency>
             <groupId>com.gradle</groupId>
             <artifactId>configuration-maven-extension</artifactId>
-            <version>${maven.extension.version}</version>
+            <version>${revision}.${changelist}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -253,11 +252,11 @@
                                 <artifactItem>
                                     <groupId>com.gradle</groupId>
                                     <artifactId>configuration-maven-extension</artifactId>
-                                    <version>${maven.extension.version}</version>
+                                    <version>${revision}.${changelist}</version>
                                     <type>jar</type>
                                     <outputDirectory>${project.build.outputDirectory}/hudson/plugins/gradle/injection
                                     </outputDirectory>
-                                    <destFileName>configuration-maven-extension-${maven.extension.version}.jar
+                                    <destFileName>configuration-maven-extension.jar
                                     </destFileName>
                                 </artifactItem>
                             </artifactItems>

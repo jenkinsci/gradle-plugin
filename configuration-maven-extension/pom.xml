@@ -4,13 +4,13 @@
 
     <groupId>com.gradle</groupId>
     <artifactId>configuration-maven-extension</artifactId>
-    <version>1.0.0</version>
+    <version>${revision}.${changelist}</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>gradle-pom</artifactId>
-        <version>1.0</version>
+        <version>${revision}.${changelist}</version>
     </parent>
 
     <name>Configuration Maven extension</name>

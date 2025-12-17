@@ -33,7 +33,7 @@ public enum MavenExtension {
 
     // Only used for CONFIGURATION extension as the embedded JAR contains the version
     public String getEmbeddedJarName() {
-        return this == CONFIGURATION ? name + "-1.0.0" + JAR_EXTENSION : name + JAR_EXTENSION;
+        return name + JAR_EXTENSION;
     }
 
     public MavenCoordinates getCoordinates() {
