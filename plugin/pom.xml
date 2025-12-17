@@ -46,7 +46,7 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
-        <hpi.bundledArtifacts>commons-beanutils,commons-collections,commons-digester,commons-validator,configuration-maven-extension,develocity-maven-extension</hpi.bundledArtifacts>
+        <hpi.bundledArtifacts>commons-beanutils,commons-collections,commons-digester,commons-validator,develocity-maven-extension,gradle-configuration-maven-extension</hpi.bundledArtifacts>
     </properties>
 
     <dependencyManagement>
@@ -124,8 +124,8 @@
             <artifactId>workflow-step-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gradle</groupId>
-            <artifactId>configuration-maven-extension</artifactId>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>gradle-configuration-maven-extension</artifactId>
             <version>${revision}.${changelist}</version>
             <scope>runtime</scope>
         </dependency>
@@ -250,14 +250,13 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.gradle</groupId>
-                                    <artifactId>configuration-maven-extension</artifactId>
+                                    <groupId>org.jenkins-ci.plugins</groupId>
+                                    <artifactId>gradle-configuration-maven-extension</artifactId>
                                     <version>${revision}.${changelist}</version>
                                     <type>jar</type>
                                     <outputDirectory>${project.build.outputDirectory}/hudson/plugins/gradle/injection
                                     </outputDirectory>
-                                    <destFileName>configuration-maven-extension.jar
-                                    </destFileName>
+                                    <destFileName>gradle-configuration-maven-extension.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
