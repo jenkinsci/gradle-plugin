@@ -16,7 +16,7 @@
     <name>Gradle Plugin parent pom</name>
 
     <properties>
-        <revision>2.17</revision>
+        <revision>2.18</revision>
         <changelist>999999-SNAPSHOT</changelist>
     </properties>
 

@@ -10,7 +10,7 @@ public enum MavenExtension {
     DEVELOCITY("develocity-maven-extension", "develocity_metadata", new MavenCoordinates("com.gradle", "develocity-maven-extension")),
     GRADLE_ENTERPRISE("gradle-enterprise-maven-extension", "develocity_metadata", new MavenCoordinates("com.gradle", "gradle-enterprise-maven-extension")),
     CCUD("common-custom-user-data-maven-extension", "ccud_metadata", new MavenCoordinates("com.gradle", "common-custom-user-data-maven-extension")),
-    CONFIGURATION("configuration-maven-extension", "configuration_metadata", new MavenCoordinates("com.gradle", "configuration-maven-extension"));
+    CONFIGURATION("gradle-configuration-maven-extension", "configuration_metadata", new MavenCoordinates("org.jenkins-ci.plugins", "gradle-configuration-maven-extension"));
 
     private static final String EXTENSION_REPOSITORY_PATH = "/com/gradle/%s/%s/%s-%s.jar";
     private static final String DEFAULT_REPOSITORY_URL = "https://repo1.maven.org/maven2";
