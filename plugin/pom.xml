@@ -46,7 +46,7 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
-        <hpi.bundledArtifacts>commons-beanutils,commons-collections,commons-digester,commons-validator,develocity-maven-extension,gradle-configuration-maven-extension</hpi.bundledArtifacts>
+        <hpi.bundledArtifacts>commons-beanutils,commons-collections,commons-digester,commons-validator,gradle-configuration-maven-extension</hpi.bundledArtifacts>
     </properties>
 
     <dependencyManagement>
