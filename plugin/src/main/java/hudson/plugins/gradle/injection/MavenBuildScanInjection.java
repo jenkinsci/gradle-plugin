@@ -4,7 +4,7 @@ import hudson.FilePath;
 import hudson.model.Node;
 import jenkins.model.Jenkins;
 
-import java.io.File;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +34,7 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
 
     private final MavenExtensionsHandler extensionsHandler = new MavenExtensionsHandler();
 
-    public void inject(Node node, Map<MavenExtension, String> extensionsDigest) {
+    public void inject(@Nullable Node node, Map<MavenExtension, String> extensionsDigest) {
         if (node == null) {
             return;
         }
@@ -69,12 +69,12 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
 
             String server = config.getServer();
 
-            LOGGER.info("Injecting Maven extensions " + nodeRootPath);
+            LOGGER.log(Level.INFO, "Injecting Maven extensions {0}", nodeRootPath);
 
             List<FilePath> extensions = new ArrayList<>();
             FilePath controllerRootPath = Jenkins.get().getRootPath();
 
-            MavenExtension develocityMavenExtension = MavenExtension.getDevelocityMavenExtension(config.getMavenExtensionVersion());
+            MavenExtension develocityMavenExtension = MavenExtension.forVersion(config.getMavenExtensionVersion());
             extensions.add(extensionsHandler.copyExtensionToAgent(develocityMavenExtension, controllerRootPath, nodeRootPath, extensionsDigest.get(develocityMavenExtension)));
             if (InjectionUtil.isInvalid(InjectionConfig.checkRequiredVersion(config.getCcudExtensionVersion()))) {
                 extensionsHandler.deleteExtensionFromAgent(MavenExtension.CCUD, nodeRootPath);
@@ -128,5 +128,4 @@ public class MavenBuildScanInjection implements MavenInjectionAware {
             throw new IllegalStateException(e);
         }
     }
-
 }
