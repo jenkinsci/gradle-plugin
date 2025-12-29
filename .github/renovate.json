@@ -1,11 +1,7 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
-        "config:recommended",
-        ":semanticCommitsDisabled"
-    ],
-    "labels": [
-        "dependencies"
+        "github>jenkinsci/renovate-config"
     ],
     "gradle": {
         "enabled": false
@@ -48,6 +44,5 @@
             "defaultRegistryUrlTemplate": "https://updates.jenkins.io/latestCore.txt",
             "format": "plain"
         }
-    },
-    "rebaseWhen": "conflicted"
+    }
 }
