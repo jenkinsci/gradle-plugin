@@ -12,8 +12,8 @@
     "customManagers": [
         {
             "customType": "regex",
-            "fileMatch": [
-                "acceptance-tests/pom.xml"
+            "managerFilePatterns": [
+                "/acceptance-tests/pom.xml/"
             ],
             "matchStrings": [
                 "<jenkins\\.version>(?<currentValue>.*)<\\/jenkins\\.version><!--RENOVATE-LTS-->"
@@ -24,8 +24,8 @@
         },
         {
             "customType": "regex",
-            "fileMatch": [
-                "acceptance-tests/pom.xml"
+            "managerFilePatterns": [
+                "/acceptance-tests/pom.xml/"
             ],
             "matchStrings": [
                 "<jenkins\\.version>(?<currentValue>.*)<\\/jenkins\\.version><!--RENOVATE-LATEST-->"
