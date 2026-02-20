@@ -88,7 +88,7 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         String credentialDescription = createDevelocityAccessKeyCredential(server);
 
         // wait for the credential creation redirect to finish
-        elasticSleep(2000);
+        elasticSleep(1000);
 
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansInjection();
