@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.jenkins-ci</groupId>
             <artifactId>acceptance-test-harness</artifactId>
-            <version>6433.v4d9263664552</version>
+            <version>6578.vcd7330d974d1</version>
         </dependency>
 
         <dependency>
@@ -111,7 +111,7 @@
         <profile>
             <id>jenkinsLts</id>
             <properties>
-                <jenkins.version>2.528.3</jenkins.version><!--RENOVATE-LTS-->
+                <jenkins.version>2.541.2</jenkins.version><!--RENOVATE-LTS-->
                 <skipTests>false</skipTests>
             </properties>
         </profile>
@@ -125,7 +125,7 @@
         <profile>
             <id>jenkinsLatest</id>
             <properties>
-                <jenkins.version>2.542</jenkins.version><!--RENOVATE-LATEST-->
+                <jenkins.version>2.544</jenkins.version><!--RENOVATE-LATEST-->
                 <skipTests>false</skipTests>
             </properties>
         </profile>

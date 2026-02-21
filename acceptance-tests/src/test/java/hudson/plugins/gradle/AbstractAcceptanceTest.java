@@ -87,6 +87,9 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
     protected final void enableBuildScansForGradle(URI server, String agentVersion) {
         String credentialDescription = createDevelocityAccessKeyCredential(server);
 
+        // wait for the credential creation redirect to finish
+        elasticSleep(1000);
+
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansInjection();
             settings.setDevelocityServerUrl(server);
@@ -130,6 +133,9 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
 
     protected final void setGradlePluginRepositoryPassword(String password) {
         String credentialDescription = createGradlePluginRepositoryPasswordCredential(password);
+
+        // wait for the credential creation redirect to finish
+        elasticSleep(1000);
 
         updateBuildScansInjectionSettings(settings -> settings.setGradlePluginRepositoryCredentialId(credentialDescription));
     }
