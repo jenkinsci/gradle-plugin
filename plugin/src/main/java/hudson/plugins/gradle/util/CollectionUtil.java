@@ -13,7 +13,7 @@ public final class CollectionUtil {
     private CollectionUtil() {
     }
 
-    public static <T> Stream<T> safeStream(Collection<T> col) {
+    public static <T> Stream<T> safeStream(@Nullable Collection<T> col) {
         if (col == null) {
             return Stream.empty();
         }

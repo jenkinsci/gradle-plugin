@@ -1,7 +1,7 @@
 package hudson.plugins.gradle.injection
 
 import hudson.FilePath
-import hudson.plugins.gradle.injection.extension.ExtensionClient
+import hudson.plugins.gradle.injection.download.AgentDownloadClient
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -15,7 +15,7 @@ class MavenExtensionsHandlerIntegrationTest extends Specification {
     @Subject
     MavenExtensionsHandler mavenExtensionsHandler = new MavenExtensionsHandler()
 
-    ExtensionClient extensionClient = new ExtensionClient()
+    AgentDownloadClient downloadClient = new AgentDownloadClient()
 
     def "only copies configuration extension if it doesn't exist"() {
         given:
@@ -46,16 +46,16 @@ class MavenExtensionsHandlerIntegrationTest extends Specification {
         def agentFolder = tempFolder.newFolder()
         def controllerRoot = new FilePath(controllerFolder)
         def agentRoot = new FilePath(agentFolder)
-        def cacheDirectory = controllerRoot.child(MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR)
+        def cacheDirectory = controllerRoot.child(InjectionUtil.DOWNLOAD_CACHE_DIR)
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
-                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("2.1", null), null, it)
+                    downloadClient.download(MavenExtension.DEVELOCITY.createDownloadUrl("2.1"), it)
                 }
 
         cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()
                 .withCloseable {
-                    extensionClient.downloadExtension(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), null, it)
+                    downloadClient.download(MavenExtension.CCUD.createDownloadUrl("2.0.1"), it)
                 }
 
         when:
@@ -77,16 +77,16 @@ class MavenExtensionsHandlerIntegrationTest extends Specification {
         def agentFolder = tempFolder.newFolder()
         def controllerRoot = new FilePath(controllerFolder)
         def agentRoot = new FilePath(agentFolder)
-        def cacheDirectory = controllerRoot.child(MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR)
+        def cacheDirectory = controllerRoot.child(InjectionUtil.DOWNLOAD_CACHE_DIR)
 
         cacheDirectory.child(MavenExtension.DEVELOCITY.getEmbeddedJarName()).write()
                 .withCloseable {
-                    extensionClient.downloadExtension(MavenExtension.DEVELOCITY.createDownloadUrl("2.1", null), null, it)
+                    downloadClient.download(MavenExtension.DEVELOCITY.createDownloadUrl("2.1"), it)
                 }
 
         cacheDirectory.child(MavenExtension.CCUD.getEmbeddedJarName()).write()
                 .withCloseable {
-                    extensionClient.downloadExtension(MavenExtension.CCUD.createDownloadUrl("2.0.1", null), null, it)
+                    downloadClient.download(MavenExtension.CCUD.createDownloadUrl("2.0.1"), it)
                 }
 
         when:

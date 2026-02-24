@@ -36,16 +36,16 @@ class MavenExtensionDownloadHandlerTest extends Specification {
         originalDevelocityDigest != null && originalCcudDigest != null
 
         when:
-        def originalDevelocityLastModified = new File(controllerFolder, MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR + "/" + MavenExtension.DEVELOCITY.getEmbeddedJarName()).lastModified()
-        def originalCcudLastModified = new File(controllerFolder, MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR + "/" + MavenExtension.CCUD.getEmbeddedJarName()).lastModified()
+        def originalDevelocityLastModified = new File(controllerFolder, InjectionUtil.DOWNLOAD_CACHE_DIR + "/" + MavenExtension.DEVELOCITY.getEmbeddedJarName()).lastModified()
+        def originalCcudLastModified = new File(controllerFolder, InjectionUtil.DOWNLOAD_CACHE_DIR + "/" + MavenExtension.CCUD.getEmbeddedJarName()).lastModified()
 
         def sameExtensions = mavenExtensionDownloadHandler.ensureExtensionsDownloaded({ controllerFolder }, originalConfig)
 
         then:
         sameExtensions.size() == 2
 
-        def sameDevelocityLastModified = new File(controllerFolder, MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR + "/" + MavenExtension.DEVELOCITY.getEmbeddedJarName()).lastModified()
-        def sameCcudLastModified = new File(controllerFolder, MavenExtensionDownloadHandler.DOWNLOAD_CACHE_DIR + "/" + MavenExtension.CCUD.getEmbeddedJarName()).lastModified()
+        def sameDevelocityLastModified = new File(controllerFolder, InjectionUtil.DOWNLOAD_CACHE_DIR + "/" + MavenExtension.DEVELOCITY.getEmbeddedJarName()).lastModified()
+        def sameCcudLastModified = new File(controllerFolder, InjectionUtil.DOWNLOAD_CACHE_DIR + "/" + MavenExtension.CCUD.getEmbeddedJarName()).lastModified()
 
         def sameDevelocityDigest = sameExtensions.get(MavenExtension.DEVELOCITY)
         def sameCcudDigest = sameExtensions.get(MavenExtension.CCUD)

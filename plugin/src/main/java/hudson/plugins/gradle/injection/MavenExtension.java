@@ -1,7 +1,5 @@
 package hudson.plugins.gradle.injection;
 
-import hudson.Util;
-
 import javax.annotation.Nullable;
 import java.net.URI;
 
@@ -12,7 +10,6 @@ public enum MavenExtension {
     CCUD("common-custom-user-data-maven-extension", "ccud_metadata", new MavenCoordinates("com.gradle", "common-custom-user-data-maven-extension")),
     CONFIGURATION("gradle-configuration-maven-extension", "configuration_metadata", new MavenCoordinates("org.jenkins-ci.plugins", "gradle-configuration-maven-extension"));
 
-    private static final String EXTENSION_REPOSITORY_PATH = "/com/gradle/%s/%s/%s-%s.jar";
     private static final String DEFAULT_REPOSITORY_URL = "https://repo1.maven.org/maven2";
     private static final String JAR_EXTENSION = ".jar";
     private static final String LAST_GRADLE_ENTERPRISE_VERSION = "1.20.1";
@@ -48,40 +45,18 @@ public enum MavenExtension {
         return downloadMetadataFileName;
     }
 
-    public static MavenExtension getDevelocityMavenExtension(String version) {
+    public static MavenExtension forVersion(String version) {
         return version.compareTo(LAST_GRADLE_ENTERPRISE_VERSION) > 0 ? DEVELOCITY : GRADLE_ENTERPRISE;
     }
 
+    public URI createDownloadUrl(String version) {
+        return createDownloadUrl(version, null);
+    }
+
     public URI createDownloadUrl(String version, @Nullable String repositoryUrl) {
-        String extensionUrlTemplate = getNormalizedRepositoryUrl(repositoryUrl) + EXTENSION_REPOSITORY_PATH;
-        return URI.create(String.format(extensionUrlTemplate, this.getName(), version, this.getName(), version));
+        String normalizedRepositoryUrl = InjectionUtil.getNormalizedUrl(repositoryUrl, DEFAULT_REPOSITORY_URL);
+        return URI.create(
+                "%1$s/com/gradle/%2$s/%3$s/%2$s-%3$s.jar".formatted(normalizedRepositoryUrl, getName(), version)
+        );
     }
-
-    private String getNormalizedRepositoryUrl(@Nullable String repositoryUrl) {
-        if (repositoryUrl == null || InjectionUtil.isInvalid(InjectionConfig.checkUrl(repositoryUrl))) {
-            return DEFAULT_REPOSITORY_URL;
-        }
-        return Util.removeTrailingSlash(repositoryUrl);
-    }
-
-    public static final class RepositoryCredentials {
-
-        private final String username;
-        private final String password;
-
-        public RepositoryCredentials(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
-
-        public String username() {
-            return username;
-        }
-
-        public String password() {
-            return password;
-        }
-
-    }
-
 }
