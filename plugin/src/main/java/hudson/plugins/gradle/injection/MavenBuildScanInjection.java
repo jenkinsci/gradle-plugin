@@ -4,7 +4,6 @@ import hudson.FilePath;
 import hudson.model.Node;
 import jenkins.model.Jenkins;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

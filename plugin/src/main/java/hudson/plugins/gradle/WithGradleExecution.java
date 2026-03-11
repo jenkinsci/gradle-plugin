@@ -14,8 +14,12 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class WithGradleExecution extends StepExecution {
+
+    private static final Logger LOGGER = Logger.getLogger(WithGradleExecution.class.getName());
 
     WithGradleExecution(StepContext context) {
         super(context);
@@ -59,7 +63,12 @@ public class WithGradleExecution extends StepExecution {
             try {
                 List<String> buildScans = this.buildScans.getBuildScans();
                 if (buildScans.isEmpty()) {
+                    LOGGER.log(Level.FINE, "No build scans found");
                     return Collections.emptyList();
+                }
+
+                if (LOGGER.isLoggable(Level.FINE)) {
+                    LOGGER.log(Level.FINE, "Found {0} build scan(s): {1}", new Object[]{buildScans.size(), buildScans});
                 }
 
                 FlowNode flowNode = context.get(FlowNode.class);
