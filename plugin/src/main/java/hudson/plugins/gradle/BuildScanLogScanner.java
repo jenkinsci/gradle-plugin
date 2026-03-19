@@ -18,7 +18,7 @@ public class BuildScanLogScanner {
         this.listener = listener;
     }
 
-    void scanLine(String line) {
+    public void scanLine(String line) {
         if (linesSinceBuildScanPublishingMessage < LINES_TO_SCAN) {
             linesSinceBuildScanPublishingMessage++;
             tryFindBuildScanUrl(line, url -> {

@@ -162,6 +162,7 @@ class InjectionConfigIntegrationTest extends BaseJenkinsIntegrationTest {
         def form = page.getFormByName("config")
 
         when:
+        form.getInputByName("_.globalBuildScanDetection").click()
         form.getInputByName("_.enabled").click()
         form.getInputByName("_.server").setValueAttribute("https://localhost")
         form.getInputByName("_.allowUntrusted").click()
@@ -190,6 +191,7 @@ class InjectionConfigIntegrationTest extends BaseJenkinsIntegrationTest {
         def files = j.jenkins.root.listFiles(injectionConfigXmlFilter)
         files.length == 1
         with(fromXml(files.first().text)) {
+            globalBuildScanDetection
             enabled
             server == "https://localhost"
             allowUntrusted
@@ -310,6 +312,7 @@ class InjectionConfigIntegrationTest extends BaseJenkinsIntegrationTest {
   </mavenInjectionDisabledNodes>
   <enforceUrl>false</enforceUrl>
   <checkForBuildAgentErrors>false</checkForBuildAgentErrors>
+  <globalBuildScanDetection>false</globalBuildScanDetection>
   <parsedVcsRepositoryFilter>
     <vcsRepositoryFilter>+:foo
 -:bar</vcsRepositoryFilter>

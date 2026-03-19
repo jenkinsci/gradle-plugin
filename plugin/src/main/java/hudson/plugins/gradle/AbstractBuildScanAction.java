@@ -49,8 +49,10 @@ public abstract class AbstractBuildScanAction implements Action {
 
     public void addScanUrls(Collection<String> scanUrls, Function<String, Optional<ScanDetail>> scanDetailsFactory) {
         for (String scanUrl : scanUrls) {
-            addScanUrl(scanUrl);
-            scanDetailsFactory.apply(scanUrl).ifPresent(this::addScanDetail);
+            if (!this.scanUrls.contains(scanUrl)) {
+                this.scanUrls.add(scanUrl);
+                scanDetailsFactory.apply(scanUrl).ifPresent(this::addScanDetail);
+            }
         }
     }
 

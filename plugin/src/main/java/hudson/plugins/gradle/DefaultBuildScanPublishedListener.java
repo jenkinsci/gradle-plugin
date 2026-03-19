@@ -11,7 +11,7 @@ public class DefaultBuildScanPublishedListener implements BuildScanPublishedList
     private final Actionable target;
     private final ScanDetailService scanDetailService;
 
-    DefaultBuildScanPublishedListener(Actionable target, ScanDetailService scanDetailService) {
+    public DefaultBuildScanPublishedListener(Actionable target, ScanDetailService scanDetailService) {
         this.target = target;
         this.scanDetailService = scanDetailService;
     }

@@ -25,6 +25,7 @@ class InjectionConfigWithCasCIntegrationTest extends AbstractIntegrationTest {
             it.ccudPluginVersion == "2.0.2"
             it.checkForBuildAgentErrors == true
             it.enabled == true
+            it.globalBuildScanDetection == true
             it.enforceUrl == true
             it.gradleCaptureTaskInputFiles == true
             it.gradleInjectionDisabledNodes*.label == ["non-gradle-node"]
