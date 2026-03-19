@@ -32,7 +32,7 @@ public final class BuildScanDetectionLogProcessor extends AbstractGradleLogProce
 
     @Override
     protected void processLogLine(String line) {
-        line = ConsoleNote.removeNotes(line);
+        line = trimEOL(ConsoleNote.removeNotes(line));
         scanner.scanLine(line);
     }
 }
