@@ -1,5 +1,6 @@
 package hudson.plugins.gradle;
 
+import hudson.plugins.gradle.injection.InjectionConfig;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
 
 import javax.annotation.Nonnull;
@@ -19,11 +20,15 @@ public class GradleTaskListenerDecorator extends TaskListenerDecorator implement
     @Nonnull
     @Override
     public OutputStream decorate(@Nonnull OutputStream logger) {
+        // Skip build scan detection in withGradle when global detection handles it
+        BuildScanPublishedListener listener = InjectionConfig.get().isGlobalBuildScanDetection()
+            ? null
+            : buildScanListener;
         return new GradleConsoleAnnotator(
             logger,
             StandardCharsets.UTF_8,
             true,
-            buildScanListener
+            listener
         );
     }
 

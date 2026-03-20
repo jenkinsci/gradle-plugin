@@ -4,6 +4,7 @@ import hudson.console.ConsoleLogFilter;
 import hudson.model.Run;
 import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
 import hudson.plugins.gradle.enriched.ScanDetailService;
+import hudson.plugins.gradle.injection.InjectionConfig;
 import hudson.plugins.gradle.util.RunUtil;
 
 import java.io.OutputStream;
@@ -13,8 +14,12 @@ public class GradleConsoleLogFilter extends ConsoleLogFilter implements Serializ
 
     @Override
     public OutputStream decorateLogger(Run build, OutputStream logger) {
-        ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
-        DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, scanDetailService);
+        // Skip build scan detection when global detection handles it
+        BuildScanPublishedListener buildScanListener = null;
+        if (!InjectionConfig.get().isGlobalBuildScanDetection()) {
+            ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
+            buildScanListener = new DefaultBuildScanPublishedListener(build, scanDetailService);
+        }
 
         return new GradleConsoleAnnotator(
             logger,

@@ -4,6 +4,7 @@ import hudson.Extension;
 import hudson.model.Run;
 import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
 import hudson.plugins.gradle.enriched.ScanDetailService;
+import hudson.plugins.gradle.injection.InjectionConfig;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
@@ -38,15 +39,20 @@ public class BuildScanPublisher extends Step {
         @Override
         protected List<String> run() throws Exception {
             Run run = getContext().get(Run.class);
-            ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
 
-            BuildScanLogScanner scanner = new BuildScanLogScanner(new DefaultBuildScanPublishedListener(run, scanDetailService));
-            try (
+            // Skip log re-scan when global detection already captured Build Scan links in real time
+            if (!InjectionConfig.get().isGlobalBuildScanDetection()) {
+                ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
+
+                BuildScanLogScanner scanner = new BuildScanLogScanner(new DefaultBuildScanPublishedListener(run, scanDetailService));
+                try (
                     BufferedReader logReader = new BufferedReader(run.getLogReader());
                     Stream<String> lines = logReader.lines()
-            ) {
-                lines.forEach(scanner::scanLine);
+                ) {
+                    lines.forEach(scanner::scanLine);
+                }
             }
+
             BuildScanAction action = run.getAction(BuildScanAction.class);
             if (action != null) {
                 return action.getScanUrls();

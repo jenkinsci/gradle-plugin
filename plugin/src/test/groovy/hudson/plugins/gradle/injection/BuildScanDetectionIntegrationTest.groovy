@@ -1,6 +1,7 @@
 package hudson.plugins.gradle.injection
 
 import hudson.model.FreeStyleProject
+import hudson.plugins.gradle.AbstractIntegrationTest
 import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
 import hudson.tasks.Shell
@@ -13,6 +14,38 @@ import spock.lang.Requires
 
 @SuppressWarnings("GStringExpressionWithinString")
 class BuildScanDetectionIntegrationTest extends BaseGradleIntegrationTest {
+
+    @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
+    def 'withGradle does not double-parse when global detection is enabled'() {
+        given:
+        withInjectionConfig {
+            globalBuildScanDetection = true
+        }
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+node {
+    def scans = withGradle {
+        sh '''echo "Publishing build scan..."
+echo "https://scans.gradle.com/s/test123"'''
+    }
+    echo "WITHGRADLE_SCAN_COUNT=\${scans.size()}"
+}
+""", false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        def log = JenkinsRule.getLog(build)
+        println log
+        // Global detection should capture the scan
+        def action = build.getAction(BuildScanAction)
+        action != null
+        action.scanUrls.size() == 1
+        action.scanUrls.get(0) == 'https://scans.gradle.com/s/test123'
+        // withGradle should NOT have detected scans (global handles it)
+        log.contains('WITHGRADLE_SCAN_COUNT=0')
+    }
 
     @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
     def 'build scan is detected in freestyle build via global detection'() {
