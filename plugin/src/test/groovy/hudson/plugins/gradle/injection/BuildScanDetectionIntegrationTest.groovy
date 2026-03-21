@@ -1,6 +1,7 @@
 package hudson.plugins.gradle.injection
 
 import hudson.model.FreeStyleProject
+import hudson.plugins.gradle.AbstractIntegrationTest
 import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
 import hudson.tasks.Shell
@@ -13,6 +14,50 @@ import spock.lang.Requires
 
 @SuppressWarnings("GStringExpressionWithinString")
 class BuildScanDetectionIntegrationTest extends BaseGradleIntegrationTest {
+
+    @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
+    def 'build scans from parallel and nested pipeline steps are all detected'() {
+        given:
+        withEnrichedSummaryConfig {
+            globalBuildScanDetection = true
+        }
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+node {
+    stage('Parallel Builds') {
+        parallel(
+            first: {
+                sh '''echo "Publishing build scan..."
+echo "https://scans.gradle.com/s/parallel1"'''
+            },
+            second: {
+                sh '''echo "Publishing build scan..."
+echo "https://scans.gradle.com/s/parallel2"'''
+                stage('Nested') {
+                    sh '''echo "Publishing build scan..."
+echo "https://scans.gradle.com/s/nested1"'''
+                }
+            }
+        )
+    }
+}
+""", false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        println JenkinsRule.getLog(build)
+        def action = build.getAction(BuildScanAction)
+        action != null
+        action.scanUrls.size() == 3
+        action.scanUrls.containsAll([
+            'https://scans.gradle.com/s/parallel1',
+            'https://scans.gradle.com/s/parallel2',
+            'https://scans.gradle.com/s/nested1'
+        ])
+    }
+
 
     @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
     def 'withGradle does not double-parse when global detection is enabled'() {
