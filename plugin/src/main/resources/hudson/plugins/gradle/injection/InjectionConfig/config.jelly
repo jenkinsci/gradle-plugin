@@ -12,9 +12,6 @@
        <f:entry title="${%Develocity short-lived access tokens expiry}" field="shortLivedTokenExpiry">
            <f:textbox checkMethod="post"/>
        </f:entry>
-        <f:entry field="globalBuildScanDetection">
-            <f:checkbox title="${%Detect Build Scan links in all build logs}"/>
-        </f:entry>
         <f:optionalBlock field="enabled" title="${%Enable auto-injection}" inline="true">
 
             <j:if test="${instance.showLegacyConfigurationWarning}">

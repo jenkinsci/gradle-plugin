@@ -1,7 +1,6 @@
 package hudson.plugins.gradle.injection
 
 import hudson.model.FreeStyleProject
-import hudson.plugins.gradle.AbstractIntegrationTest
 import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
 import hudson.tasks.Shell
@@ -18,7 +17,7 @@ class BuildScanDetectionIntegrationTest extends BaseGradleIntegrationTest {
     @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
     def 'withGradle does not double-parse when global detection is enabled'() {
         given:
-        withInjectionConfig {
+        withEnrichedSummaryConfig {
             globalBuildScanDetection = true
         }
         def pipelineJob = j.createProject(WorkflowJob)
@@ -50,7 +49,7 @@ echo "https://scans.gradle.com/s/test123"'''
     @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
     def 'build scan is detected in freestyle build via global detection'() {
         given:
-        withInjectionConfig {
+        withEnrichedSummaryConfig {
             globalBuildScanDetection = true
         }
         FreeStyleProject p = j.createFreeStyleProject()
@@ -79,7 +78,7 @@ echo "https://scans.gradle.com/s/test123"'''
     @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
     def 'build scan is detected in pipeline build via global detection'() {
         given:
-        withInjectionConfig {
+        withEnrichedSummaryConfig {
             globalBuildScanDetection = true
         }
         gradleInstallationRule.addInstallation()

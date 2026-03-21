@@ -7,7 +7,6 @@ unclassified:
         ccudPluginVersion: "2.0.2"
         checkForBuildAgentErrors: true
         enabled: true
-        globalBuildScanDetection: true
         enforceUrl: true
         gradleCaptureTaskInputFiles: true
         gradleInjectionDisabledNodes:

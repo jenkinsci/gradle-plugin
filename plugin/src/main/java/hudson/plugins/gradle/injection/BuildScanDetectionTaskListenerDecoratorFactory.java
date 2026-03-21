@@ -3,6 +3,7 @@ package hudson.plugins.gradle.injection;
 import hudson.Extension;
 import hudson.model.Queue;
 import hudson.model.Run;
+import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
 import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
@@ -24,7 +25,7 @@ public class BuildScanDetectionTaskListenerDecoratorFactory implements TaskListe
     @Override
     @CheckForNull
     public TaskListenerDecorator of(@Nonnull FlowExecutionOwner owner) {
-        if (!InjectionConfig.get().isGlobalBuildScanDetection()) {
+        if (!EnrichedSummaryConfig.get().isGlobalBuildScanDetection()) {
             return null;
         }
         try {

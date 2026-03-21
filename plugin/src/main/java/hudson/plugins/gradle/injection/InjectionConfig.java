@@ -98,7 +98,6 @@ public class InjectionConfig extends GlobalConfiguration {
 
     private boolean enforceUrl;
     private boolean checkForBuildAgentErrors;
-    private boolean globalBuildScanDetection;
 
     // Legacy property that is not used anymore
     private transient String injectionVcsRepositoryPatterns;
@@ -369,15 +368,6 @@ public class InjectionConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setCheckForBuildAgentErrors(boolean checkForBuildAgentErrors) {
         this.checkForBuildAgentErrors = checkForBuildAgentErrors;
-    }
-
-    public boolean isGlobalBuildScanDetection() {
-        return globalBuildScanDetection;
-    }
-
-    @DataBoundSetter
-    public void setGlobalBuildScanDetection(boolean globalBuildScanDetection) {
-        this.globalBuildScanDetection = globalBuildScanDetection;
     }
 
     public boolean isInjectCcudExtension() {
