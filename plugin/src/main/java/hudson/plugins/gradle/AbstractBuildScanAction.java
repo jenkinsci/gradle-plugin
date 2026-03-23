@@ -47,7 +47,7 @@ public abstract class AbstractBuildScanAction implements Action {
         buildAgentErrors.add(buildAgentError);
     }
 
-    public void addScanUrls(Collection<String> scanUrls, Function<String, Optional<ScanDetail>> scanDetailsFactory) {
+    public synchronized void addScanUrls(Collection<String> scanUrls, Function<String, Optional<ScanDetail>> scanDetailsFactory) {
         for (String scanUrl : scanUrls) {
             if (!this.scanUrls.contains(scanUrl)) {
                 this.scanUrls.add(scanUrl);
@@ -56,13 +56,13 @@ public abstract class AbstractBuildScanAction implements Action {
         }
     }
 
-    public void addScanUrl(String scanUrl) {
+    public synchronized void addScanUrl(String scanUrl) {
         if (!scanUrls.contains(scanUrl)) {
             scanUrls.add(scanUrl);
         }
     }
 
-    public void addScanDetail(ScanDetail scanDetail) {
+    public synchronized void addScanDetail(ScanDetail scanDetail) {
         if (!scanDetails.contains(scanDetail)) {
             scanDetails.add(scanDetail);
         }

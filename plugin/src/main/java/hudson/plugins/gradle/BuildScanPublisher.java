@@ -4,7 +4,6 @@ import hudson.Extension;
 import hudson.model.Run;
 import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
 import hudson.plugins.gradle.enriched.ScanDetailService;
-import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;

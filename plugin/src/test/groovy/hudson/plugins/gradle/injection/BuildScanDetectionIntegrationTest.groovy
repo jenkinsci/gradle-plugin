@@ -87,8 +87,8 @@ echo "https://scans.gradle.com/s/test123"'''
         action != null
         action.scanUrls.size() == 1
         action.scanUrls.get(0) == 'https://scans.gradle.com/s/test123'
-        // withGradle should NOT have detected scans (global handles it)
-        log.contains('WITHGRADLE_SCAN_COUNT=0')
+        // withGradle should still return the scan link (for use in pipeline scripts)
+        log.contains('WITHGRADLE_SCAN_COUNT=1')
     }
 
     @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
