@@ -1,6 +1,7 @@
 package hudson.plugins.gradle;
 
 import com.google.common.collect.ImmutableList;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.plugins.gradle.enriched.ScanDetail;
@@ -69,7 +70,7 @@ public abstract class AbstractBuildScanAction implements Action {
     }
 
     @Exported
-    public List<String> getScanUrls() {
+    public synchronized List<String> getScanUrls() {
         return CollectionUtil.unmodifiableCopy(scanUrls);
     }
 
@@ -110,6 +111,7 @@ public abstract class AbstractBuildScanAction implements Action {
      * Invoked by XStream when this object is read into memory.
      */
     @SuppressWarnings("unused")
+    @SuppressFBWarnings(value = "IS2_INCONSISTENT_SYNC", justification = "readResolve is called during deserialization before the object is visible to other threads")
     protected Object readResolve() {
         if (scanUrl != null) {
             scanUrls = Collections.singletonList(scanUrl);
