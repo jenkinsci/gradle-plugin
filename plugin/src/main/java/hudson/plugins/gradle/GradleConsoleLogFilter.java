@@ -13,8 +13,12 @@ public class GradleConsoleLogFilter extends ConsoleLogFilter implements Serializ
 
     @Override
     public OutputStream decorateLogger(Run build, OutputStream logger) {
-        ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
-        DefaultBuildScanPublishedListener buildScanListener = new DefaultBuildScanPublishedListener(build, scanDetailService);
+        // Skip build scan detection when global detection handles it
+        BuildScanPublishedListener buildScanListener = null;
+        if (!EnrichedSummaryConfig.get().isGlobalBuildScanDetection()) {
+            ScanDetailService scanDetailService = new ScanDetailService(EnrichedSummaryConfig.get());
+            buildScanListener = new DefaultBuildScanPublishedListener(build, scanDetailService);
+        }
 
         return new GradleConsoleAnnotator(
             logger,

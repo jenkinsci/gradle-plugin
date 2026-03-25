@@ -12,6 +12,7 @@ import hudson.model.Result
 import hudson.model.TextParameterDefinition
 import hudson.model.TextParameterValue
 import hudson.model.queue.QueueTaskFuture
+import hudson.plugins.gradle.enriched.EnrichedSummaryConfig
 import hudson.plugins.gradle.injection.InjectionConfig
 import hudson.plugins.gradle.injection.NodeLabelItem
 import hudson.slaves.DumbSlave
@@ -69,6 +70,15 @@ abstract class AbstractIntegrationTest extends Specification {
 
     InjectionConfig withInjectionConfig(@DelegatesTo(InjectionConfig) Closure closure) {
         def config = InjectionConfig.get()
+
+        config.with(closure)
+        config.save()
+
+        config
+    }
+
+    EnrichedSummaryConfig withEnrichedSummaryConfig(@DelegatesTo(EnrichedSummaryConfig) Closure closure) {
+        def config = EnrichedSummaryConfig.get()
 
         config.with(closure)
         config.save()

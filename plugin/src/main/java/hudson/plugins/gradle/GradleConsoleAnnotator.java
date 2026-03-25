@@ -24,7 +24,7 @@ public final class GradleConsoleAnnotator extends AbstractGradleLogProcessor {
                                   BuildScanPublishedListener buildScanListener) {
         super(out, charset);
         this.annotateGradleOutput = annotateGradleOutput;
-        this.buildScanLogScanner = new BuildScanLogScanner(buildScanListener);
+        this.buildScanLogScanner = buildScanListener != null ? new BuildScanLogScanner(buildScanListener) : null;
     }
 
     @Override
@@ -47,6 +47,8 @@ public final class GradleConsoleAnnotator extends AbstractGradleLogProcessor {
             }
         }
 
-        buildScanLogScanner.scanLine(line);
+        if (buildScanLogScanner != null) {
+            buildScanLogScanner.scanLine(line);
+        }
     }
 }

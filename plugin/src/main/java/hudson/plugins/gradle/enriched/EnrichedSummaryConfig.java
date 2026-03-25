@@ -16,6 +16,7 @@ import org.kohsuke.stapler.verb.POST;
 
 @Extension
 public class EnrichedSummaryConfig extends GlobalConfiguration {
+    private boolean globalBuildScanDetection;
     private boolean enrichedSummaryEnabled;
 
     private int httpClientTimeoutInSeconds = 1;
@@ -31,6 +32,15 @@ public class EnrichedSummaryConfig extends GlobalConfiguration {
 
     public static EnrichedSummaryConfig get() {
         return ExtensionList.lookupSingleton(EnrichedSummaryConfig.class);
+    }
+
+    public boolean isGlobalBuildScanDetection() {
+        return globalBuildScanDetection;
+    }
+
+    @DataBoundSetter
+    public void setGlobalBuildScanDetection(boolean globalBuildScanDetection) {
+        this.globalBuildScanDetection = globalBuildScanDetection;
     }
 
     public boolean isEnrichedSummaryEnabled() {
