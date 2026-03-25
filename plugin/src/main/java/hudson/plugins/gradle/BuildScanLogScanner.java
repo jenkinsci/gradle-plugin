@@ -22,10 +22,10 @@ public class BuildScanLogScanner {
         this.listener = listener;
     }
 
-    void scanLine(String line) {
-        LOGGER.log(Level.FINE, "Scanning line: {0}", line);
+    public void scanLine(String line) {
+      LOGGER.log(Level.FINE, "Scanning line: {0}", line);
 
-        if (linesSinceBuildScanPublishingMessage < LINES_TO_SCAN) {
+      if (linesSinceBuildScanPublishingMessage < LINES_TO_SCAN) {
             linesSinceBuildScanPublishingMessage++;
             LOGGER.log(Level.FINE, "Within scan window, lines since publishing message: {0}", linesSinceBuildScanPublishingMessage);
             tryFindBuildScanUrl(line, url -> {

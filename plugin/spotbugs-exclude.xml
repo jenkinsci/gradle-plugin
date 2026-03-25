@@ -41,4 +41,10 @@
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 
+    <Match>
+        <Class name="hudson.plugins.gradle.injection.BuildScanDetectionTaskListenerDecoratorFactory$BuildScanDetectionTaskListenerDecorator"/>
+        <Field name="run"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
 </FindBugsFilter>
