@@ -6,8 +6,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class AbstractGradleLogProcessor extends LineTransformationOutputStream {
+
+    private static final Logger LOGGER = Logger.getLogger(AbstractGradleLogProcessor.class.getName());
 
     // Don't parse too long lines
     private static final int DEFAULT_MAX_LINE_LENGTH = 500;
@@ -31,6 +35,8 @@ public abstract class AbstractGradleLogProcessor extends LineTransformationOutpu
         if (length < maxLineLength) {
             String line = charset.decode(ByteBuffer.wrap(bytes, 0, length)).toString();
             processLogLine(line);
+        } else {
+            LOGGER.fine(() -> "Skipping log line of length " + length + " (max: " + maxLineLength + ")");
         }
 
         out.write(bytes, 0, length);

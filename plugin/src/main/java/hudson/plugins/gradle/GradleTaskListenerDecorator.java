@@ -5,7 +5,6 @@ import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
 import javax.annotation.Nonnull;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.List;
 
 public class GradleTaskListenerDecorator extends TaskListenerDecorator implements BuildScansAware {
