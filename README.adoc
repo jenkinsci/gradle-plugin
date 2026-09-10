@@ -107,6 +107,9 @@ The configuration of the feature can be done in the Jenkins global system config
 
 The feature can be enabled or disabled (default).
 
+The Develocity server URL is required.
+Build scan data is only fetched from this server, and never from the server named in a build scan URL found in a build log.
+
 If anonymous access to the API is not allowed, an access key has to be provided.
 
 HTTP client settings can also be customized.
@@ -320,6 +323,17 @@ For plugin version older that `2.13`, the Maven extension is bundled with the pl
 To ensure that all Develocity resources are cleaned up from the agents, before disabling/uninstalling the plugin the auto-injection has to be manually disabled. Please, refer to the <<Disable auto-injection>> section for details.
 
 == Upgrade notes
+
+=== 2.20
+
+> **Note**
+> - These upgrade notes only apply if you enabled the enriched build scans feature.
+
+The Develocity server URL is now required, and is the only server the plugin fetches build scan data from.
+Previously, when the field was left blank, the plugin derived the server from the build scan URL found in the build log.
+
+If you left the field blank, enriched build scans stop working until you set the URL in the Jenkins global system configuration.
+If you publish build scans to more than one Develocity instance, enriched data is now only available for the instance configured there.
 
 === 2.0
 

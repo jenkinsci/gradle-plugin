@@ -3,6 +3,7 @@ package hudson.plugins.gradle.enriched;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Util;
+import hudson.plugins.gradle.injection.InjectionConfig;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
@@ -110,6 +111,12 @@ public class EnrichedSummaryConfig extends GlobalConfiguration {
         req.bindJSON(this, json);
         save();
         return true;
+    }
+
+    @Restricted(NoExternalUse.class)
+    @POST
+    public FormValidation doCheckBuildScanServer(@QueryParameter String value) {
+        return InjectionConfig.checkRequiredUrl(value);
     }
 
     @Restricted(NoExternalUse.class)

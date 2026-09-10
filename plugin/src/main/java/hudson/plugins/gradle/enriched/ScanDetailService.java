@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 public class ScanDetailService {
 
@@ -25,6 +26,16 @@ public class ScanDetailService {
     private static final String GRADLE_ENTERPRISE_PUBLIC_SERVER = "https://gradle.com";
     private static final String URL_CONTEXT_PATH_SCAN_ID = "/s/";
     private static final String URL_CONTEXT_PATH_API_BUILDS = "/api/builds/";
+
+    /**
+     * Matches the build scan IDs the Develocity API accepts.
+     *
+     * <p>The scan ID comes from console output that anyone able to run a build controls, so it must
+     * not be able to alter the request target. This pattern excludes the characters that would let
+     * {@link URI#resolve(String)} escape the API path or replace the host: {@code /}, {@code .} and
+     * {@code :} among them.
+     */
+    private static final Pattern SCAN_ID_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
 
     private HttpClientFactory httpClientFactory;
 
@@ -108,20 +119,38 @@ public class ScanDetailService {
         return null;
     }
 
+    /**
+     * Builds the Develocity API URL for the scan that the given build scan URL refers to.
+     *
+     * <p>Only the scan ID is taken from {@code buildScanUrl}; the host always comes from the
+     * administrator-configured Develocity server URL. Deriving the host from the build scan URL
+     * instead would let a build redirect this request, and the access key it carries, to a host of
+     * the build's choosing.
+     *
+     * @return the API URL, or {@code null} if no server is configured or no valid scan ID is present
+     */
     private String getBaseApiUri(String buildScanUrl) {
+        if (buildScanServer == null) {
+            LOGGER.warn("No Develocity server URL is configured, unable to fetch build scan data");
+            return null;
+        }
+
         int scanIdStartIndex = buildScanUrl.lastIndexOf(URL_CONTEXT_PATH_SCAN_ID);
         if (scanIdStartIndex < 0) {
             LOGGER.warn("Build scan ID can't be parsed in {}", buildScanUrl);
             return null;
         }
         String scanId = buildScanUrl.substring(scanIdStartIndex + URL_CONTEXT_PATH_SCAN_ID.length());
+        if (!SCAN_ID_PATTERN.matcher(scanId).matches()) {
+            LOGGER.warn("Build scan ID is not valid in {}", buildScanUrl);
+            return null;
+        }
 
         try {
-            URI baseApiUri = buildScanServer != null ?
-                    URI.create(buildScanServer)
-                    : URI.create(buildScanUrl).resolve("/");
-
-            return baseApiUri.resolve(URL_CONTEXT_PATH_API_BUILDS).resolve(scanId).toASCIIString();
+            return URI.create(buildScanServer)
+                    .resolve(URL_CONTEXT_PATH_API_BUILDS)
+                    .resolve(scanId)
+                    .toASCIIString();
         } catch (IllegalArgumentException e) {
             LOGGER.warn("URL can't be parsed", e);
             return null;

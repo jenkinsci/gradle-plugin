@@ -14,6 +14,25 @@ class EnrichedSummaryConfigIntegrationTest extends BaseJenkinsIntegrationTest {
     FilenameFilter enrichedSummaryConfigXmlFilter = { _, name -> name == "hudson.plugins.gradle.enriched.EnrichedSummaryConfig.xml" }
 
     @Unroll
+    def "validates Develocity server URL"() {
+        expect:
+        with(EnrichedSummaryConfig.get().doCheckBuildScanServer(buildScanServer)) {
+            kind == expectedKind
+            message == expectedMessage
+        }
+
+        where:
+        buildScanServer                   || expectedKind              | expectedMessage
+        "https://develocity.example.com"  || FormValidation.Kind.OK    | null
+        "http://develocity.example.com"   || FormValidation.Kind.OK    | null
+        null                              || FormValidation.Kind.ERROR | "Required."
+        "  "                              || FormValidation.Kind.ERROR | "Required."
+        "develocity.example.com"          || FormValidation.Kind.ERROR | "Not a valid URL."
+        "ftp://develocity.example.com"    || FormValidation.Kind.ERROR | "Not a valid URL."
+        "https://not a url"               || FormValidation.Kind.ERROR | "Not a valid URL."
+    }
+
+    @Unroll
     def "validates HTTP client max retries"() {
         expect:
         with(EnrichedSummaryConfig.get().doCheckHttpClientMaxRetries(httpClientMaxRetries)) {

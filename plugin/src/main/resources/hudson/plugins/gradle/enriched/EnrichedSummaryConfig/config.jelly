@@ -8,7 +8,7 @@
 
         <f:optionalBlock field="enrichedSummaryEnabled" title="${%Enable enriched summary}" inline="true">
 
-            <f:entry title="${%Develocity server URL override}" field="buildScanServer">
+            <f:entry title="${%Develocity server URL}" field="buildScanServer">
                 <f:textbox />
             </f:entry>
 
