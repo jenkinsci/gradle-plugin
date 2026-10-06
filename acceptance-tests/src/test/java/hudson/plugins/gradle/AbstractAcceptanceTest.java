@@ -71,10 +71,6 @@ public abstract class AbstractAcceptanceTest extends AbstractJUnitTest {
         }
     }
 
-    protected final void enableEnrichedBuildScans() {
-        enableEnrichedBuildScansWithServerOverride(null);
-    }
-
     protected final void enableEnrichedBuildScansWithServerOverride(URI server) {
         updateBuildScansInjectionSettings(settings -> {
             settings.clickBuildScansEnriched();

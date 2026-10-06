@@ -35,7 +35,7 @@ public class GradleEnrichedScansTest extends AbstractAcceptanceTest {
     public void beforeEach() {
         GradleInstallation.installGradle(jenkins, GRADLE_VERSION, GRADLE_VERSION);
 
-        enableEnrichedBuildScans();
+        enableEnrichedBuildScansWithServerOverride(mockGeServer.getAddress());
     }
 
     @Test
