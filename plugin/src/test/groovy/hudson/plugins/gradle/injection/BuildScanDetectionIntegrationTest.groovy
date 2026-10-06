@@ -60,6 +60,33 @@ echo "https://scans.gradle.com/s/nested1"'''
 
 
     @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
+    def 'build scans from steps running on an agent are detected'() {
+        given:
+        withEnrichedSummaryConfig {
+            globalBuildScanDetection = true
+        }
+        createSlave('agent')
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+node('agent') {
+    sh '''echo "Publishing build scan..."
+echo "https://scans.gradle.com/s/agent1"'''
+    sh '''echo "Publishing build scan..."
+echo "https://scans.gradle.com/s/agent2"'''
+}
+""", false))
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        println JenkinsRule.getLog(build)
+        def action = build.getAction(BuildScanAction)
+        action != null
+        action.scanUrls == ['https://scans.gradle.com/s/agent1', 'https://scans.gradle.com/s/agent2']
+    }
+
+    @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
     def 'withGradle does not double-parse when global detection is enabled'() {
         given:
         withEnrichedSummaryConfig {
