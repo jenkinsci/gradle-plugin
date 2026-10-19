@@ -5,11 +5,13 @@ import hudson.plugins.gradle.AbstractIntegrationTest
 import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
 import hudson.tasks.Shell
+import jenkins.model.Jenkins
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jvnet.hudson.test.CreateFileBuilder
 import org.jvnet.hudson.test.ExtractResourceSCM
 import org.jvnet.hudson.test.JenkinsRule
+import org.jvnet.hudson.test.MockAuthorizationStrategy
 import spock.lang.Requires
 
 @SuppressWarnings("GStringExpressionWithinString")
@@ -84,6 +86,34 @@ echo "https://scans.gradle.com/s/agent2"'''
         def action = build.getAction(BuildScanAction)
         action != null
         action.scanUrls == ['https://scans.gradle.com/s/agent1', 'https://scans.gradle.com/s/agent2']
+    }
+
+    @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")
+    def 'build scans are detected when anonymous users cannot read the job'() {
+        given:
+        withEnrichedSummaryConfig {
+            globalBuildScanDetection = true
+        }
+        def pipelineJob = j.createProject(WorkflowJob)
+        pipelineJob.setDefinition(new CpsFlowDefinition("""
+node {
+    sh '''echo "Publishing build scan..."
+echo "https://scans.gradle.com/s/secured1"'''
+}
+""", false))
+        // After the definition, so the unsandboxed script needs no approval
+        j.jenkins.securityRealm = j.createDummySecurityRealm()
+        j.jenkins.authorizationStrategy = new MockAuthorizationStrategy()
+            .grant(Jenkins.ADMINISTER).everywhere().to('admin')
+
+        when:
+        def build = j.buildAndAssertSuccess(pipelineJob)
+
+        then:
+        println JenkinsRule.getLog(build)
+        def action = build.getAction(BuildScanAction)
+        action != null
+        action.scanUrls == ['https://scans.gradle.com/s/secured1']
     }
 
     @Requires(value = { os.linux || os.macOs }, reason = "Uses shell commands")

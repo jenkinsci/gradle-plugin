@@ -8,6 +8,8 @@ import hudson.plugins.gradle.DefaultBuildScanPublishedListener;
 import hudson.plugins.gradle.enriched.EnrichedSummaryConfig;
 import hudson.plugins.gradle.enriched.ScanDetailService;
 import hudson.remoting.Channel;
+import hudson.security.ACL;
+import hudson.security.ACLContext;
 import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.log.TaskListenerDecorator;
@@ -78,7 +80,11 @@ public class BuildScanDetectionTaskListenerDecoratorFactory implements TaskListe
 
         @Override
         public void onBuildScanPublished(String scanUrl) {
-            Run<?, ?> run = Run.fromExternalizableId(runId);
+            Run<?, ?> run;
+            // Log processing for steps on the built-in node runs as anonymous, which may not see the job
+            try (ACLContext ignored = ACL.as2(ACL.SYSTEM2)) {
+                run = Run.fromExternalizableId(runId);
+            }
             if (run == null) {
                 LOGGER.log(Level.FINE, "Run {0} not found, ignoring Build Scan {1}", new Object[]{runId, scanUrl});
                 return;
