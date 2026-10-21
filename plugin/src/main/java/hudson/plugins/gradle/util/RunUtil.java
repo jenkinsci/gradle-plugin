@@ -20,14 +20,17 @@ public final class RunUtil {
         Class<A> actionClass,
         Supplier<A> actionFactory
     ) {
-        A action = actionable.getAction(actionClass);
+        // Parallel pipeline branches may report their first Build Scan concurrently
+        synchronized (actionable) {
+            A action = actionable.getAction(actionClass);
 
-        if (action == null) {
-            action = actionFactory.get();
-            actionable.addAction(action);
+            if (action == null) {
+                action = actionFactory.get();
+                actionable.addAction(action);
+            }
+
+            return action;
         }
-
-        return action;
     }
 
     public static boolean isFreestyleBuildWithGradle(@Nullable Run<?, ?> build) {
