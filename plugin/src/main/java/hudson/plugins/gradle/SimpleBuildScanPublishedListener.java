@@ -17,11 +17,15 @@ public final class SimpleBuildScanPublishedListener
     @Override
     public void onBuildScanPublished(String scanUrl) {
         LOGGER.fine(() -> "Build scan has been published: " + scanUrl);
-        buildScans.add(scanUrl);
+        synchronized (buildScans) {
+            buildScans.add(scanUrl);
+        }
     }
 
     @Override
     public List<String> getBuildScans() {
-        return CollectionUtil.unmodifiableCopy(buildScans);
+        synchronized (buildScans) {
+            return CollectionUtil.unmodifiableCopy(buildScans);
+        }
     }
 }
