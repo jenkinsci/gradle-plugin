@@ -41,8 +41,12 @@ public final class DevelocityExceptionLogProcessor extends AbstractGradleLogProc
     }
 
     public DevelocityExceptionLogProcessor(OutputStream out, Charset charset, Actionable actionable) {
+        this(out, charset, new DefaultBuildAgentErrorListener(actionable));
+    }
+
+    DevelocityExceptionLogProcessor(OutputStream out, Charset charset, BuildAgentErrorListener listener) {
         super(out, charset);
-        this.listener = new DefaultBuildAgentErrorListener(actionable);
+        this.listener = listener;
     }
 
     @Override

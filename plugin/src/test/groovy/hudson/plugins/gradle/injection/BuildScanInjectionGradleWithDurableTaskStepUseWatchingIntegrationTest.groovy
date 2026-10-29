@@ -3,10 +3,7 @@ package hudson.plugins.gradle.injection
 import hudson.plugins.gradle.BaseGradleIntegrationTest
 import hudson.plugins.gradle.BuildScanAction
 import hudson.slaves.DumbSlave
-import org.junit.Rule
-import org.junit.rules.TestRule
-import org.jvnet.hudson.test.FlagRule
-import spock.lang.PendingFeature
+import org.jenkinsci.plugins.workflow.steps.durable_task.DurableTaskStep
 import spock.lang.Unroll
 
 @Unroll
@@ -14,15 +11,25 @@ class BuildScanInjectionGradleWithDurableTaskStepUseWatchingIntegrationTest exte
 
     private static final String MSG_INIT_SCRIPT_APPLIED = "Connection to Develocity: http://foo.com"
 
-    @Rule
-    public final TestRule durableTaskStepRule = FlagRule.systemProperty("org.jenkinsci.plugins.workflow.steps.durable_task.DurableTaskStep.USE_WATCHING", "true")
+    private boolean useWatching
 
-    @PendingFeature
-    def "cannot capture build agent errors in pipeline build if DurableTaskStep.USE_WATCHING=true"() {
+    def setup() {
+        // Read once in a static initializer, so a system property set by a rule may come too late
+        useWatching = DurableTaskStep.USE_WATCHING
+        DurableTaskStep.USE_WATCHING = true
+    }
+
+    def cleanup() {
+        DurableTaskStep.USE_WATCHING = useWatching
+    }
+
+    def "captures build agent errors in pipeline build if DurableTaskStep.USE_WATCHING=true"() {
         given:
         gradleInstallationRule.addInstallation()
+        def gradleVersion = gradleInstallationRule.gradleVersion
 
-        DumbSlave agent = createSlave('foo')
+        DumbSlave agent = createSlave()
+
         def pipelineJob = GradleSnippets.pipelineJobWithError(j, gradleInstallationRule)
 
         when:
@@ -40,7 +47,11 @@ class BuildScanInjectionGradleWithDurableTaskStepUseWatchingIntegrationTest exte
         def secondRun = buildAndAssertFailure(pipelineJob)
 
         then:
-        secondRun.getAction(BuildScanAction) != null
+        with(secondRun.getAction(BuildScanAction)) {
+            scanUrls.isEmpty()
+            hasGradleErrors
+            !hasMavenErrors
+        }
     }
 
     def "credentials are always masked in logs"() {
@@ -78,6 +89,14 @@ class BuildScanInjectionGradleWithDurableTaskStepUseWatchingIntegrationTest exte
         System.err.println('---%<--- agent logs')
         agent.computer.logText.writeLogTo(0, System.err)
         System.err.println('--->%---')
+    }
+
+    private DumbSlave createSlave() {
+        withInjectionConfig {
+            server = 'http://foo.com'
+        }
+
+        return createSlave('foo')
     }
 
 }
