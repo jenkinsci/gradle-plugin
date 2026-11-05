@@ -2,10 +2,12 @@ package hudson.plugins.gradle;
 
 import org.kohsuke.stapler.export.ExportedBean;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @ExportedBean
-public final class BuildAgentError {
+public final class BuildAgentError implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final BuildToolType buildToolType;
 

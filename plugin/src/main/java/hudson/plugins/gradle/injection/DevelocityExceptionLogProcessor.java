@@ -11,8 +11,12 @@ import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class DevelocityExceptionLogProcessor extends AbstractGradleLogProcessor {
+
+    private static final Logger LOGGER = Logger.getLogger(DevelocityExceptionLogProcessor.class.getName());
 
     private static final DevelocityExceptionDetector[] DETECTORS =
         {
@@ -41,8 +45,12 @@ public final class DevelocityExceptionLogProcessor extends AbstractGradleLogProc
     }
 
     public DevelocityExceptionLogProcessor(OutputStream out, Charset charset, Actionable actionable) {
+        this(out, charset, new DefaultBuildAgentErrorListener(actionable));
+    }
+
+    DevelocityExceptionLogProcessor(OutputStream out, Charset charset, BuildAgentErrorListener listener) {
         super(out, charset);
-        this.listener = new DefaultBuildAgentErrorListener(actionable);
+        this.listener = listener;
     }
 
     @Override
@@ -51,7 +59,11 @@ public final class DevelocityExceptionLogProcessor extends AbstractGradleLogProc
         for (DevelocityExceptionDetector detector : DETECTORS) {
             if (detector.detect(line)) {
                 BuildAgentError buildAgentError = new BuildAgentError(detector.getBuildToolType());
-                listener.onBuildAgentError(buildAgentError);
+                try {
+                    listener.onBuildAgentError(buildAgentError);
+                } catch (RuntimeException e) {
+                    LOGGER.log(Level.WARNING, "Failed to record build agent error", e);
+                }
             }
         }
     }
