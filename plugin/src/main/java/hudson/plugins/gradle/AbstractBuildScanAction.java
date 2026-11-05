@@ -44,7 +44,7 @@ public abstract class AbstractBuildScanAction implements Action {
         return "buildScans";
     }
 
-    public void addBuildAgentError(BuildAgentError buildAgentError) {
+    public synchronized void addBuildAgentError(BuildAgentError buildAgentError) {
         buildAgentErrors.add(buildAgentError);
     }
 
@@ -89,15 +89,15 @@ public abstract class AbstractBuildScanAction implements Action {
         return hasError(BuildToolType.GRADLE);
     }
 
-    public List<BuildAgentError> getBuildAgentErrors() {
+    public synchronized List<BuildAgentError> getBuildAgentErrors() {
         return ImmutableList.copyOf(buildAgentErrors);
     }
 
-    public boolean hasErrors() {
+    public synchronized boolean hasErrors() {
         return !buildAgentErrors.isEmpty();
     }
 
-    private boolean hasError(BuildToolType buildToolType) {
+    private synchronized boolean hasError(BuildToolType buildToolType) {
         return buildAgentErrors.stream().anyMatch(e -> e.getBuildToolType() == buildToolType);
     }
 
