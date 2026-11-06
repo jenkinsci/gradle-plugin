@@ -15,9 +15,11 @@ import hudson.model.queue.QueueTaskFuture
 import hudson.plugins.gradle.enriched.EnrichedSummaryConfig
 import hudson.plugins.gradle.injection.InjectionConfig
 import hudson.plugins.gradle.injection.NodeLabelItem
+import hudson.remoting.Channel
 import hudson.slaves.DumbSlave
 import hudson.slaves.EnvironmentVariablesNodeProperty
 import hudson.slaves.NodeProperty
+import hudson.slaves.SlaveComputer
 import org.jenkinsci.plugins.pipeline.maven.GlobalPipelineMavenConfig
 import org.jenkinsci.plugins.pipeline.maven.dao.PipelineMavenPluginDao
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
@@ -26,6 +28,9 @@ import org.junit.rules.TestRule
 import org.jvnet.hudson.test.FlagRule
 import org.jvnet.hudson.test.JenkinsRule
 import spock.lang.Specification
+
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Base class for all integration tests.
@@ -38,8 +43,30 @@ abstract class AbstractIntegrationTest extends Specification {
     public final TestRule noSpaceInTmpDirs = FlagRule.systemProperty("jenkins.test.noSpaceInTmpDirs", "true")
 
     void restartSlave(DumbSlave slave) {
+        SlaveComputer computer = slave.computer
+        CountDownLatch oldChannelClosed = new CountDownLatch(1)
+        Channel oldChannel = computer.channel
+        if (oldChannel != null) {
+            oldChannel.addListener(new Channel.Listener() {
+                @Override
+                void onClosed(Channel channel, IOException cause) {
+                    oldChannelClosed.countDown()
+                }
+            })
+        }
         j.disconnectSlave(slave)
-        j.waitOnline(slave)
+        if (oldChannel != null) {
+            assert oldChannelClosed.await(10, TimeUnit.SECONDS)
+        }
+        connectSlave(computer)
+    }
+
+    private static void connectSlave(SlaveComputer computer) {
+        try {
+            computer.connect(false).get()
+        } finally {
+            System.out.print(computer.log)
+        }
     }
 
     DumbSlave createSlave(String label, EnvVars env = null) {
