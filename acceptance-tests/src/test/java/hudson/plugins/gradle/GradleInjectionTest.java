@@ -33,7 +33,7 @@ import static org.jenkinsci.test.acceptance.Matchers.containsString;
 public class GradleInjectionTest extends AbstractAcceptanceTest {
 
     private static final String AGENT_VERSION = "3.11.1";
-    private static final String GRADLE_VERSION = "Gradle 7.5.1";
+    private static final String GRADLE_VERSION = "Gradle 8.14.2";
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
