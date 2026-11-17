@@ -37,13 +37,12 @@ class BuildScanInjectionMavenCrossVersionIntegrationTest extends BaseMavenIntegr
         def build = j.buildAndAssertSuccess(p)
 
         then:
+        def action = build.getAction(BuildScanAction)
         if (mavenVersion >= MINIMUM_SUPPORTED_MAVEN_VERSION) {
-            def action = build.getAction(BuildScanAction)
-            action.scanUrls.size() == 1
+            assert action.scanUrls.size() == 1
             new URL(action.scanUrls.get(0))
         } else {
-            def action = build.getAction(BuildScanAction)
-            action == null
+            assert action == null
         }
 
         where:
