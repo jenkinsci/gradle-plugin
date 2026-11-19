@@ -46,6 +46,24 @@ class MavenExtensionsTest extends Specification {
         !mavenExtensions.hasExtension(SOME_EXTENSION_COORDINATES)
     }
 
+    def 'hasExtension returns false when extensions xml file declares a doctype'() {
+        given:
+        extensionsXml << """<?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE extensions [<!ENTITY foo "bar">]>
+            <extensions>
+                <extension>
+                    <groupId>${SOME_EXTENSION_COORDINATES.groupId()}</groupId>
+                    <artifactId>${SOME_EXTENSION_COORDINATES.artifactId()}</artifactId>
+                </extension>
+            </extensions>"""
+
+        when:
+        def mavenExtensions = MavenExtensions.fromFilePath(new FilePath(extensionsXml))
+
+        then:
+        !mavenExtensions.hasExtension(SOME_EXTENSION_COORDINATES)
+    }
+
     def 'hasExtension returns false when coordinates argument is null'() {
         given:
         MavenCoordinates nullCoords = null

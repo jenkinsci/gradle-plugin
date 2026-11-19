@@ -1,14 +1,13 @@
 package hudson.plugins.gradle.injection;
 
 import hudson.FilePath;
+import jenkins.util.xml.XMLUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -40,11 +39,11 @@ final class MavenExtensions {
 
     static MavenExtensions fromFilePath(FilePath extensionsFile) {
         try(InputStream inputStream = extensionsFile.read()) {
-            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(inputStream);
+            Document document = XMLUtils.parse(inputStream);
             document.normalizeDocument();
 
             return new MavenExtensions(document);
-        } catch (ParserConfigurationException | IOException | InterruptedException | SAXException e) {
+        } catch (IOException | InterruptedException | SAXException e) {
             LOGGER.warn("Failed to parse extensions file: {}", extensionsFile, e);
             return MavenExtensions.empty();
         }
